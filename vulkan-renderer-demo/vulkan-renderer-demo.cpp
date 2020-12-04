@@ -137,25 +137,32 @@ private:
     {
         m_renderer = std::make_unique<vkr::Renderer>(m_window);
 
-        createSwapchain();
-        createImageViews();
-        createRenderPass();
-        createDescriptorSetLayout();
-        createGraphicsPipeline();
         createCommandPool();
-        createDepthResources();
-        createFramebuffers();
+        createDescriptorSetLayout();
+
         createTextureImage();
         createTextureImageView();
         createTextureSampler();
         loadModel();
         createVertexBuffer();
         createIndexBuffer();
+
+        initSwapchain();
+        createSyncObjects();
+    }
+
+    void initSwapchain()
+    {
+        createSwapchain();
+        createImageViews();
+        createRenderPass();
+        createGraphicsPipeline();
+        createDepthResources();
+        createFramebuffers();
         createUniformBuffers();
         createDescriptorPool();
         createDescriptorSets();
         createCommandBuffers();
-        createSyncObjects();
     }
 
     void recreateSwapchain()
@@ -171,17 +178,7 @@ private:
         vkDeviceWaitIdle(getDevice());
 
         cleanupSwapchain();
-
-        createSwapchain();
-        createImageViews();
-        createRenderPass();
-        createGraphicsPipeline();
-        createDepthResources();
-        createFramebuffers();
-        createUniformBuffers();
-        createDescriptorPool();
-        createDescriptorSets();
-        createCommandBuffers();
+        initSwapchain();
     }
 
     struct QueueFamilyIndices
