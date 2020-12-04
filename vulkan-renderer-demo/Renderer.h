@@ -43,6 +43,7 @@ namespace vkr
         VkDevice getDevice() const { return m_device; }
         VkQueue getGraphicsQueue() const { return m_graphicsQueue; }
         VkQueue getPresentQueue() const { return m_presentQueue; }
+        VkCommandPool getCommandPool() const { return m_commandPool; }
 
         PhysicalDeviceProperties const& getPhysicalDeviceProperties() const { return m_physicalDeviceProperties; }
 
@@ -50,16 +51,18 @@ namespace vkr
         void createSurface(GLFWwindow* window);
         void pickPhysicalDevice();
         void createLogicalDevice();
+        void createCommandPool();
 
         QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) const;
         SwapchainSupportDetails querySwapchainSupport(VkPhysicalDevice device) const;
 
         VkInstance m_instance = VK_NULL_HANDLE;
-        VkSurfaceKHR m_surface;
+        VkSurfaceKHR m_surface = VK_NULL_HANDLE;
         VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
         VkDevice m_device = VK_NULL_HANDLE;
         VkQueue m_graphicsQueue = VK_NULL_HANDLE;
         VkQueue m_presentQueue = VK_NULL_HANDLE;
+        VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
         PhysicalDeviceProperties m_physicalDeviceProperties;
     };

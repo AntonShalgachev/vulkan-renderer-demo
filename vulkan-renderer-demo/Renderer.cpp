@@ -122,10 +122,13 @@ namespace vkr
         createSurface(window);
         pickPhysicalDevice();
         createLogicalDevice();
+        createCommandPool();
+        createDescriptorSetLayout();
     }
 
     Renderer::~Renderer()
     {
+        vkDestroyCommandPool(m_device, m_commandPool, nullptr);
         vkDestroyDevice(m_device, nullptr);
         vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
         vkDestroyInstance(m_instance, nullptr);
@@ -256,6 +259,19 @@ namespace vkr
 
         vkGetDeviceQueue(m_device, indices.graphicsFamily.value(), 0, &m_graphicsQueue);
         vkGetDeviceQueue(m_device, indices.presentFamily.value(), 0, &m_presentQueue);
+    }
+
+    void Renderer::createCommandPool()
+    {
+        vkr::Renderer::QueueFamilyIndices queueFamilyIndices = getPhysicalDeviceProperties().queueFamilyIndices;
+
+        VkCommandPoolCreateInfo poolCreateInfo{};
+        poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        poolCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+        poolCreateInfo.flags = 0;
+
+        if (vkCreateCommandPool(m_device, &poolCreateInfo, nullptr, &m_commandPool) != VK_SUCCESS)
+            throw std::runtime_error("failed to create command pool!");
     }
 
     vkr::Renderer::QueueFamilyIndices Renderer::findQueueFamilies(VkPhysicalDevice device) const

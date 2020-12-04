@@ -137,9 +137,7 @@ private:
     {
         m_renderer = std::make_unique<vkr::Renderer>(m_window);
 
-        createCommandPool();
         createDescriptorSetLayout();
-
         createTextureImage();
         createTextureImageView();
         createTextureSampler();
@@ -537,19 +535,6 @@ private:
             if (vkCreateFramebuffer(getDevice(), &framebufferCreateInfo, nullptr, &m_swapchainFramebuffers[i]) != VK_SUCCESS)
                 throw std::runtime_error("failed to create framebuffer!");
         }
-    }
-
-    void createCommandPool()
-    {
-        vkr::Renderer::QueueFamilyIndices queueFamilyIndices = m_renderer->getPhysicalDeviceProperties().queueFamilyIndices;
-
-        VkCommandPoolCreateInfo poolCreateInfo{};
-        poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        poolCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
-        poolCreateInfo.flags = 0;
-
-        if (vkCreateCommandPool(getDevice(), &poolCreateInfo, nullptr, &m_commandPool) != VK_SUCCESS)
-            throw std::runtime_error("failed to create command pool!");
     }
 
     void createDepthResources()
@@ -1010,7 +995,7 @@ private:
 
         VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
         commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        commandBufferAllocateInfo.commandPool = m_commandPool;
+        commandBufferAllocateInfo.commandPool = m_renderer->getCommandPool();
         commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
 
@@ -1064,7 +1049,7 @@ private:
         VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
         commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        commandBufferAllocateInfo.commandPool = m_commandPool;
+        commandBufferAllocateInfo.commandPool = m_renderer->getCommandPool();
         commandBufferAllocateInfo.commandBufferCount = 1;
 
         VkCommandBuffer commandBuffer;
@@ -1091,7 +1076,7 @@ private:
         vkQueueSubmit(m_renderer->getGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
         vkQueueWaitIdle(m_renderer->getGraphicsQueue());
 
-        vkFreeCommandBuffers(getDevice(), m_commandPool, 1, &commandBuffer);
+        vkFreeCommandBuffers(getDevice(), m_renderer->getCommandPool(), 1, &commandBuffer);
     }
 
     void createSyncObjects()
@@ -1252,8 +1237,6 @@ private:
             vkDestroyFence(getDevice(), m_inFlightFences[i], nullptr);
         }
 
-        vkDestroyCommandPool(getDevice(), m_commandPool, nullptr);
-
         cleanupSwapchain();
 
         vkDestroyDescriptorSetLayout(getDevice(), m_descriptorSetLayout, nullptr);
@@ -1311,7 +1294,6 @@ private:
 
     std::vector<VkFramebuffer> m_swapchainFramebuffers;
 
-    VkCommandPool m_commandPool;
     std::vector<VkCommandBuffer> m_commandBuffers;
 
     std::vector<VkSemaphore> m_imageAvailableSemaphores;
