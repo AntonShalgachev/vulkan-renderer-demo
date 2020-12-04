@@ -85,8 +85,8 @@ namespace
     const uint32_t TARGET_WINDOW_WIDTH = 800;
     const uint32_t TARGET_WINDOW_HEIGHT = 600;
 
-    const std::string MODEL_PATH = "models/viking_room.obj";
-    const std::string TEXTURE_PATH = "textures/viking_room.png";
+    const std::string MODEL_PATH = "data/models/viking_room.obj";
+    const std::string TEXTURE_PATH = "data/textures/viking_room.png";
 
     const std::vector<const char*> VALIDATION_LAYERS = {
         "VK_LAYER_KHRONOS_validation"
@@ -715,8 +715,8 @@ private:
 
     void createGraphicsPipeline()
     {
-        auto vertShaderCode = readFile("shaders/vert.spv");
-        auto fragShaderCode = readFile("shaders/frag.spv");
+        auto vertShaderCode = readFile("data/shaders/vert.spv");
+        auto fragShaderCode = readFile("data/shaders/frag.spv");
 
         VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
         VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
