@@ -123,7 +123,6 @@ namespace vkr
         pickPhysicalDevice();
         createLogicalDevice();
         createCommandPool();
-        createDescriptorSetLayout();
     }
 
     Renderer::~Renderer()
