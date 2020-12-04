@@ -93,6 +93,25 @@ namespace
 
         return requiredExtensions.empty();
     }
+
+    bool isDeviceSuitable(VkPhysicalDevice device, vkr::Renderer::PhysicalDeviceProperties properties)
+    {
+        VkPhysicalDeviceProperties deviceProperties;
+        VkPhysicalDeviceFeatures deviceFeatures;
+
+        vkGetPhysicalDeviceProperties(device, &deviceProperties);
+        vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+        const bool areExtensionsSupported = doesDeviceSupportExtensions(device, DEVICE_EXTENSIONS);
+
+        bool swapchainSupported = false;
+        if (areExtensionsSupported)
+        {
+            swapchainSupported = !properties.swapchainSupportDetails.formats.empty() && !properties.swapchainSupportDetails.presentModes.empty();
+        }
+
+        return properties.queueFamilyIndices.IsComplete() && areExtensionsSupported && swapchainSupported && deviceFeatures.samplerAnisotropy;
+    }
 }
 
 namespace vkr
@@ -110,6 +129,11 @@ namespace vkr
         vkDestroyDevice(m_device, nullptr);
         vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
         vkDestroyInstance(m_instance, nullptr);
+    }
+
+    void Renderer::OnResize()
+    {
+        m_physicalDeviceProperties.swapchainSupportDetails = querySwapchainSupport(m_physicalDevice);
     }
 
     void Renderer::createVulkanInstance()
@@ -179,9 +203,14 @@ namespace vkr
 
         for (const auto& device : devices)
         {
-            if (isDeviceSuitable(device))
+            PhysicalDeviceProperties properties;
+            properties.queueFamilyIndices = findQueueFamilies(device);
+            properties.swapchainSupportDetails = querySwapchainSupport(device);
+
+            if (isDeviceSuitable(device, properties))
             {
                 m_physicalDevice = device;
+                m_physicalDeviceProperties = properties;
                 break;
             }
         }
@@ -227,28 +256,6 @@ namespace vkr
 
         vkGetDeviceQueue(m_device, indices.graphicsFamily.value(), 0, &m_graphicsQueue);
         vkGetDeviceQueue(m_device, indices.presentFamily.value(), 0, &m_presentQueue);
-    }
-
-    bool Renderer::isDeviceSuitable(VkPhysicalDevice device) const
-    {
-        VkPhysicalDeviceProperties deviceProperties;
-        VkPhysicalDeviceFeatures deviceFeatures;
-        // 
-        vkGetPhysicalDeviceProperties(device, &deviceProperties);
-        vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-
-        QueueFamilyIndices indices = findQueueFamilies(device);
-
-        const bool areExtensionsSupported = doesDeviceSupportExtensions(device, DEVICE_EXTENSIONS);
-
-        bool swapchainSupported = false;
-        if (areExtensionsSupported)
-        {
-            SwapchainSupportDetails details = querySwapchainSupport(device);
-            swapchainSupported = !details.formats.empty() && !details.presentModes.empty();
-        }
-
-        return indices.IsComplete() && areExtensionsSupported && swapchainSupported && deviceFeatures.samplerAnisotropy;
     }
 
     vkr::Renderer::QueueFamilyIndices Renderer::findQueueFamilies(VkPhysicalDevice device) const

@@ -181,86 +181,6 @@ private:
         initSwapchain();
     }
 
-    struct QueueFamilyIndices
-    {
-        std::optional<uint32_t> graphicsFamily;
-        std::optional<uint32_t> presentFamily;
-
-        bool IsComplete()
-        {
-            return graphicsFamily.has_value() && presentFamily.has_value();
-        }
-    };
-
-    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device)
-    {
-        QueueFamilyIndices indices;
-
-        uint32_t queueFamilyCount = 0;
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-
-        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-
-        int i = 0;
-        for (const auto& queueFamily : queueFamilies)
-        {
-            if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-                indices.graphicsFamily = i;
-
-            VkBool32 presentSupport = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_renderer->getSurfaceHandle(), &presentSupport);
-
-            if (presentSupport)
-                indices.presentFamily = i;
-
-            if (indices.IsComplete())
-                break;
-
-            i++;
-        }
-
-        return indices;
-    }
-
-    struct SwapchainSupportDetails
-    {
-        VkSurfaceCapabilitiesKHR capabilities;
-        std::vector<VkSurfaceFormatKHR> formats;
-        std::vector<VkPresentModeKHR> presentModes;
-    };
-
-    SwapchainSupportDetails querySwapchainSupport(VkPhysicalDevice device)
-    {
-        SwapchainSupportDetails details;
-
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, m_renderer->getSurfaceHandle(), &details.capabilities);
-
-        {
-            uint32_t formatCount;
-            vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_renderer->getSurfaceHandle(), &formatCount, nullptr);
-
-            if (formatCount > 0)
-            {
-                details.formats.resize(formatCount);
-                vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_renderer->getSurfaceHandle(), &formatCount, details.formats.data());
-            }
-        }
-
-        {
-            uint32_t presentModeCount;
-            vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_renderer->getSurfaceHandle(), &presentModeCount, nullptr);
-
-            if (presentModeCount > 0)
-            {
-                details.presentModes.resize(presentModeCount);
-                vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_renderer->getSurfaceHandle(), &presentModeCount, details.presentModes.data());
-            }
-        }
-
-        return details;
-    }
-
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
     {
         if (availableFormats.empty())
@@ -297,7 +217,7 @@ private:
 
     void createSwapchain()
     {
-        SwapchainSupportDetails swapChainSupport = querySwapchainSupport(m_renderer->getPhysicalDevice());
+        vkr::Renderer::SwapchainSupportDetails swapChainSupport = m_renderer->getPhysicalDeviceProperties().swapchainSupportDetails;
 
         VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
         VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
@@ -322,7 +242,7 @@ private:
         swapchainCreateInfo.imageArrayLayers = 1;
         swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-        QueueFamilyIndices indices = findQueueFamilies(m_renderer->getPhysicalDevice());
+        vkr::Renderer::QueueFamilyIndices indices = m_renderer->getPhysicalDeviceProperties().queueFamilyIndices;
         if (indices.graphicsFamily != indices.presentFamily)
         {
 
@@ -621,7 +541,7 @@ private:
 
     void createCommandPool()
     {
-        QueueFamilyIndices queueFamilyIndices = findQueueFamilies(m_renderer->getPhysicalDevice());
+        vkr::Renderer::QueueFamilyIndices queueFamilyIndices = m_renderer->getPhysicalDeviceProperties().queueFamilyIndices;
 
         VkCommandPoolCreateInfo poolCreateInfo{};
         poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -1260,6 +1180,7 @@ private:
 
         if (aquireImageResult == VK_SUBOPTIMAL_KHR || m_framebufferResized)
         {
+            m_renderer->OnResize();
             m_framebufferResized = false;
             recreateSwapchain();
         }
