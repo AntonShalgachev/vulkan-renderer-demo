@@ -167,6 +167,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="DeviceMemory.cpp" />
     <ClCompile Include="framework.cpp" />
     <ClCompile Include="Image.cpp" />
@@ -178,6 +179,7 @@
     <ClCompile Include="vulkan-renderer-demo.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Buffer.h" />
     <ClInclude Include="DeviceMemory.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Image.h" />

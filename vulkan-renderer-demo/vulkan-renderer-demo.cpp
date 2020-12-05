@@ -4,6 +4,7 @@
 #include "ImageView.h"
 #include "DeviceMemory.h"
 #include "Image.h"
+#include "Buffer.h"
 
 namespace
 {
@@ -591,7 +592,7 @@ private:
 
         size_t imageSize = texWidth * texHeight * 4;
 
-        VkBuffer stagingBuffer;
+        std::unique_ptr<vkr::Buffer> stagingBuffer;
         std::unique_ptr<vkr::DeviceMemory> stagingBufferMemory;
         createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
@@ -602,10 +603,9 @@ private:
         createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_textureImage, m_textureImageMemory);
 
         transitionImageLayout(m_textureImage->getHandle(), VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        copyBufferToImage(stagingBuffer, m_textureImage->getHandle(), static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+        // TODO extract to some class
+        copyBufferToImage(stagingBuffer->getHandle(), m_textureImage->getHandle(), static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
         transitionImageLayout(m_textureImage->getHandle(), VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-        vkDestroyBuffer(getDevice(), stagingBuffer, nullptr);
     }
 
     void createTextureImageView()
@@ -732,23 +732,11 @@ private:
         image->bind(*imageMemory);
     }
 
-    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, std::unique_ptr<vkr::DeviceMemory>& bufferMemory)
+    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, std::unique_ptr<vkr::Buffer>& buffer, std::unique_ptr<vkr::DeviceMemory>& bufferMemory)
     {
-        VkBufferCreateInfo bufferCreateInfo{};
-        bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        bufferCreateInfo.size = size;
-        bufferCreateInfo.usage = usage;
-        bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-        if (vkCreateBuffer(getDevice(), &bufferCreateInfo, nullptr, &buffer) != VK_SUCCESS)
-            throw std::runtime_error("failed to create buffer!");
-
-        VkMemoryRequirements memRequirements;
-        vkGetBufferMemoryRequirements(getDevice(), buffer, &memRequirements);
-
-        bufferMemory = std::make_unique<vkr::DeviceMemory>(memRequirements, properties);
-
-        vkBindBufferMemory(getDevice(), buffer, bufferMemory->getHandle(), 0);
+        buffer = std::make_unique<vkr::Buffer>(size, usage);
+        bufferMemory = std::make_unique<vkr::DeviceMemory>(buffer->getMemoryRequirements(), properties);
+        buffer->bind(*bufferMemory);
     }
 
     void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
@@ -808,7 +796,7 @@ private:
     {
         VkDeviceSize bufferSize = sizeof(m_vertices[0]) * m_vertices.size();
 
-        VkBuffer stagingBuffer;
+        std::unique_ptr<vkr::Buffer> stagingBuffer;
         std::unique_ptr<vkr::DeviceMemory> stagingBufferMemory;
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
@@ -816,16 +804,15 @@ private:
 
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexBufferMemory);
 
-        copyBuffer(stagingBuffer, m_vertexBuffer, bufferSize);
-
-        vkDestroyBuffer(getDevice(), stagingBuffer, nullptr);
+        // TODO extract to some class
+        copyBuffer(stagingBuffer->getHandle(), m_vertexBuffer->getHandle(), bufferSize);
     }
 
     void createIndexBuffer()
     {
         VkDeviceSize bufferSize = sizeof(m_indices[0]) * m_indices.size();
 
-        VkBuffer stagingBuffer;
+        std::unique_ptr<vkr::Buffer> stagingBuffer;
         std::unique_ptr<vkr::DeviceMemory> stagingBufferMemory;
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
@@ -833,9 +820,8 @@ private:
 
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer, m_indexBufferMemory);
 
-        copyBuffer(stagingBuffer, m_indexBuffer, bufferSize);
-
-        vkDestroyBuffer(getDevice(), stagingBuffer, nullptr);
+        // TODO extract to some class
+        copyBuffer(stagingBuffer->getHandle(), m_indexBuffer->getHandle(), bufferSize);
     }
 
     void createUniformBuffers()
@@ -884,7 +870,7 @@ private:
         for (size_t i = 0; i < m_swapchainImages.size(); i++)
         {
             VkDescriptorBufferInfo bufferInfo{};
-            bufferInfo.buffer = m_uniformBuffers[i];
+            bufferInfo.buffer = m_uniformBuffers[i]->getHandle();
             bufferInfo.offset = 0;
             bufferInfo.range = sizeof(UniformBufferObject);
 
@@ -955,10 +941,10 @@ private:
             vkCmdBeginRenderPass(m_commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
             vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
-            VkBuffer vertexBuffers[] = { m_vertexBuffer };
+            VkBuffer vertexBuffers[] = { m_vertexBuffer->getHandle() };
             VkDeviceSize offsets[] = { 0 };
             vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, vertexBuffers, offsets);
-            vkCmdBindIndexBuffer(m_commandBuffers[i], m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+            vkCmdBindIndexBuffer(m_commandBuffers[i], m_indexBuffer->getHandle(), 0, VK_INDEX_TYPE_UINT32);
 
             vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptorSets[i], 0, nullptr);
             vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_indices.size()), 1, 0, 0, 0);
@@ -1144,10 +1130,6 @@ private:
     {
         vkDestroySampler(getDevice(), m_textureSampler, nullptr);
 
-        vkDestroyBuffer(getDevice(), m_indexBuffer, nullptr);
-
-        vkDestroyBuffer(getDevice(), m_vertexBuffer, nullptr);
-
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
             vkDestroySemaphore(getDevice(), m_renderFinishedSemaphores[i], nullptr);
@@ -1166,11 +1148,6 @@ private:
 
     void cleanupSwapchain()
     {
-        for (size_t i = 0; i < m_swapchainImages.size(); i++)
-        {
-            vkDestroyBuffer(getDevice(), m_uniformBuffers[i], nullptr);
-        }
-
         vkDestroyDescriptorPool(getDevice(), m_descriptorPool, nullptr);
 
         for (auto framebuffer : m_swapchainFramebuffers)
@@ -1214,12 +1191,12 @@ private:
 
     bool m_framebufferResized = false;
 
-    VkBuffer m_vertexBuffer;
+    std::unique_ptr<vkr::Buffer> m_vertexBuffer;
     std::unique_ptr<vkr::DeviceMemory> m_vertexBufferMemory;
-    VkBuffer m_indexBuffer;
+    std::unique_ptr<vkr::Buffer> m_indexBuffer;
     std::unique_ptr<vkr::DeviceMemory> m_indexBufferMemory;
 
-    std::vector<VkBuffer> m_uniformBuffers;
+    std::vector<std::unique_ptr<vkr::Buffer>> m_uniformBuffers;
     std::vector<std::unique_ptr<vkr::DeviceMemory>> m_uniformBuffersMemory;
 
     VkDescriptorSetLayout m_descriptorSetLayout;
