@@ -189,6 +189,8 @@ namespace vkr
 {
     Renderer::Renderer(GLFWwindow* window)
     {
+        glfwGetFramebufferSize(window, &m_width, &m_height);
+
         createVulkanInstance();
         createSurface(window);
         pickPhysicalDevice();
@@ -204,8 +206,10 @@ namespace vkr
         vkDestroyInstance(m_instance, nullptr);
     }
 
-    void Renderer::OnSurfaceChanged()
+    void Renderer::OnSurfaceChanged(int width, int height)
     {
+        m_width = width;
+        m_height = height;
         m_physicalDeviceProperties = calculatePhysicalDeviceProperties(m_physicalDevice, m_surface);
     }
 

@@ -35,7 +35,7 @@ namespace vkr
         Renderer(GLFWwindow* window);
         ~Renderer();
 
-        void OnSurfaceChanged();
+        void OnSurfaceChanged(int width, int height);
 
         VkInstance getInstanceHandle() const { return m_instance; }
         VkSurfaceKHR getSurfaceHandle() const { return m_surface; }
@@ -44,6 +44,9 @@ namespace vkr
         VkQueue getGraphicsQueue() const { return m_graphicsQueue; }
         VkQueue getPresentQueue() const { return m_presentQueue; }
         VkCommandPool getCommandPool() const { return m_commandPool; }
+
+        int getWidth() const { return m_width; }
+        int getHeight() const { return m_height; }
 
         PhysicalDeviceProperties const& getPhysicalDeviceProperties() const { return m_physicalDeviceProperties; }
 
@@ -62,5 +65,8 @@ namespace vkr
         VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
         PhysicalDeviceProperties m_physicalDeviceProperties;
+
+        int m_width = -1;
+        int m_height = -1;
     };
 }

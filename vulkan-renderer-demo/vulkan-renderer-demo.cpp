@@ -104,7 +104,7 @@ private:
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-        m_window = glfwCreateWindow(m_width, m_height, "Vulkan Demo", nullptr, nullptr);
+        m_window = glfwCreateWindow(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo", nullptr, nullptr);
         glfwSetWindowUserPointer(m_window, this);
         glfwSetFramebufferSizeCallback(m_window, framebufferResizeCallback);
     }
@@ -124,7 +124,7 @@ private:
     {
         m_framebufferResized = true;
 
-        getRenderer()->OnSurfaceChanged();
+        getRenderer()->OnSurfaceChanged(width, height);
     }
 
     void initVulkan()
@@ -201,12 +201,13 @@ private:
         if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
             return capabilities.currentExtent;
 
-        VkExtent2D actualExtent = { m_width, m_height };
+        auto width = static_cast<uint32_t>(getRenderer()->getWidth());
+        auto height = static_cast<uint32_t>(getRenderer()->getHeight());
 
-        actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
-        actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
+        width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, width));
+        height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, height));
 
-        return actualExtent;
+        return { width, height };
     }
 
     void createSwapchain()
@@ -1101,8 +1102,6 @@ private:
 
 private:
     GLFWwindow* m_window = nullptr;
-    uint32_t m_width = TARGET_WINDOW_WIDTH;
-    uint32_t m_height = TARGET_WINDOW_HEIGHT;
 
     VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
     std::vector<VkImage> m_swapchainImages;
