@@ -35,7 +35,7 @@ namespace vkr
         Renderer(GLFWwindow* window);
         ~Renderer();
 
-        void OnResize();
+        void OnSurfaceChanged();
 
         VkInstance getInstanceHandle() const { return m_instance; }
         VkSurfaceKHR getSurfaceHandle() const { return m_surface; }
@@ -52,9 +52,6 @@ namespace vkr
         void pickPhysicalDevice();
         void createLogicalDevice();
         void createCommandPool();
-
-        QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) const;
-        SwapchainSupportDetails querySwapchainSupport(VkPhysicalDevice device) const;
 
         VkInstance m_instance = VK_NULL_HANDLE;
         VkSurfaceKHR m_surface = VK_NULL_HANDLE;

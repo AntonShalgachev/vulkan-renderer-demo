@@ -123,6 +123,8 @@ private:
     void onFramebufferResized(int width, int height)
     {
         m_framebufferResized = true;
+
+        getRenderer()->OnSurfaceChanged();
     }
 
     void initVulkan()
@@ -1028,7 +1030,6 @@ private:
 
         if (aquireImageResult == VK_SUBOPTIMAL_KHR || m_framebufferResized)
         {
-            getRenderer()->OnResize();
             m_framebufferResized = false;
             recreateSwapchain();
         }
