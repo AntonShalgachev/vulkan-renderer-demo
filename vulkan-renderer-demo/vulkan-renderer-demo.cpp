@@ -1,5 +1,6 @@
 #include "framework.h"
 #include "Renderer.h"
+#include "ServiceLocator.h"
 
 namespace
 {
@@ -137,7 +138,9 @@ private:
 
     void initVulkan()
     {
-        m_renderer = std::make_unique<vkr::Renderer>(m_window);
+        auto renderer = std::make_unique<vkr::Renderer>(m_window);
+
+        vkr::ServiceLocator::instance().setRenderer(std::move(renderer));
 
         createDescriptorSetLayout();
         createTextureImage();
@@ -217,7 +220,7 @@ private:
 
     void createSwapchain()
     {
-        vkr::Renderer::SwapchainSupportDetails swapChainSupport = m_renderer->getPhysicalDeviceProperties().swapchainSupportDetails;
+        vkr::Renderer::SwapchainSupportDetails swapChainSupport = getRenderer()->getPhysicalDeviceProperties().swapchainSupportDetails;
 
         VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
         VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
@@ -233,7 +236,7 @@ private:
 
         VkSwapchainCreateInfoKHR swapchainCreateInfo{};
         swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        swapchainCreateInfo.surface = m_renderer->getSurfaceHandle();
+        swapchainCreateInfo.surface = getRenderer()->getSurfaceHandle();
 
         swapchainCreateInfo.minImageCount = imageCount;
         swapchainCreateInfo.imageFormat = surfaceFormat.format;
@@ -242,7 +245,7 @@ private:
         swapchainCreateInfo.imageArrayLayers = 1;
         swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-        vkr::Renderer::QueueFamilyIndices indices = m_renderer->getPhysicalDeviceProperties().queueFamilyIndices;
+        vkr::Renderer::QueueFamilyIndices indices = getRenderer()->getPhysicalDeviceProperties().queueFamilyIndices;
         if (indices.graphicsFamily != indices.presentFamily)
         {
 
@@ -552,7 +555,7 @@ private:
         for (VkFormat format : candidates)
         {
             VkFormatProperties props;
-            vkGetPhysicalDeviceFormatProperties(m_renderer->getPhysicalDevice(), format, &props);
+            vkGetPhysicalDeviceFormatProperties(getRenderer()->getPhysicalDevice(), format, &props);
 
             if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
                 return format;
@@ -913,7 +916,7 @@ private:
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
     {
         VkPhysicalDeviceMemoryProperties memProperties;
-        vkGetPhysicalDeviceMemoryProperties(m_renderer->getPhysicalDevice(), &memProperties);
+        vkGetPhysicalDeviceMemoryProperties(getRenderer()->getPhysicalDevice(), &memProperties);
 
         for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
         {
@@ -1001,7 +1004,7 @@ private:
 
         VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
         commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        commandBufferAllocateInfo.commandPool = m_renderer->getCommandPool();
+        commandBufferAllocateInfo.commandPool = getRenderer()->getCommandPool();
         commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
 
@@ -1055,7 +1058,7 @@ private:
         VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
         commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        commandBufferAllocateInfo.commandPool = m_renderer->getCommandPool();
+        commandBufferAllocateInfo.commandPool = getRenderer()->getCommandPool();
         commandBufferAllocateInfo.commandBufferCount = 1;
 
         VkCommandBuffer commandBuffer;
@@ -1079,10 +1082,10 @@ private:
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffer;
 
-        vkQueueSubmit(m_renderer->getGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle(m_renderer->getGraphicsQueue());
+        vkQueueSubmit(getRenderer()->getGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(getRenderer()->getGraphicsQueue());
 
-        vkFreeCommandBuffers(getDevice(), m_renderer->getCommandPool(), 1, &commandBuffer);
+        vkFreeCommandBuffers(getDevice(), getRenderer()->getCommandPool(), 1, &commandBuffer);
     }
 
     void createSyncObjects()
@@ -1153,7 +1156,7 @@ private:
 
         vkResetFences(getDevice(), 1, &m_inFlightFences[m_currentFrame]);
 
-        if (vkQueueSubmit(m_renderer->getGraphicsQueue(), 1, &submitInfo, m_inFlightFences[m_currentFrame]) != VK_SUCCESS)
+        if (vkQueueSubmit(getRenderer()->getGraphicsQueue(), 1, &submitInfo, m_inFlightFences[m_currentFrame]) != VK_SUCCESS)
             throw std::runtime_error("failed to submit draw command buffer!");
 
         VkPresentInfoKHR presentInfo{};
@@ -1167,11 +1170,11 @@ private:
         presentInfo.pImageIndices = &imageIndex;
         presentInfo.pResults = nullptr;
 
-        vkQueuePresentKHR(m_renderer->getPresentQueue(), &presentInfo);
+        vkQueuePresentKHR(getRenderer()->getPresentQueue(), &presentInfo);
 
         if (aquireImageResult == VK_SUBOPTIMAL_KHR || m_framebufferResized)
         {
-            m_renderer->OnResize();
+            getRenderer()->OnResize();
             m_framebufferResized = false;
             recreateSwapchain();
         }
@@ -1279,14 +1282,13 @@ private:
         vkDestroySwapchainKHR(getDevice(), m_swapchain, nullptr);
     }
 
-    VkDevice getDevice() const { return m_renderer->getDevice(); }
+    std::unique_ptr<vkr::Renderer> const& getRenderer() const { return vkr::ServiceLocator::instance().getRenderer(); }
+    VkDevice getDevice() const { return getRenderer()->getDevice(); }
 
 private:
     GLFWwindow* m_window = nullptr;
     uint32_t m_width = TARGET_WINDOW_WIDTH;
     uint32_t m_height = TARGET_WINDOW_HEIGHT;
-
-    std::unique_ptr<vkr::Renderer> m_renderer;
 
     VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
     std::vector<VkImage> m_swapchainImages;
