@@ -6,6 +6,7 @@
 #include "Image.h"
 #include "Buffer.h"
 #include "Sampler.h"
+#include "ShaderModule.h"
 
 namespace
 {
@@ -68,23 +69,6 @@ namespace
     const std::string TEXTURE_PATH = "data/textures/viking_room.png";
 
     const int MAX_FRAMES_IN_FLIGHT = 2;
-
-    std::vector<char> readFile(const std::string& filename)
-    {
-        std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-        if (!file.is_open())
-            throw std::runtime_error("failed to open file!");
-
-        size_t fileSize = static_cast<size_t>(file.tellg());
-        std::vector<char> buffer(fileSize);
-
-        file.seekg(0);
-        file.read(buffer.data(), fileSize);
-        file.close();
-
-        return buffer;
-    }
 }
 
 namespace std
@@ -380,23 +364,11 @@ private:
 
     void createGraphicsPipeline()
     {
-        auto vertShaderCode = readFile("data/shaders/vert.spv");
-        auto fragShaderCode = readFile("data/shaders/frag.spv");
+        vkr::ShaderModule vertShaderModule{ "data/shaders/vert.spv" };
+        vkr::ShaderModule fragShaderModule{ "data/shaders/frag.spv" };
 
-        VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
-        VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
-
-        VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
-        vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-        vertShaderStageInfo.module = vertShaderModule;
-        vertShaderStageInfo.pName = "main";
-
-        VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
-        fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        fragShaderStageInfo.module = fragShaderModule;
-        fragShaderStageInfo.pName = "main";
+        VkPipelineShaderStageCreateInfo vertShaderStageInfo = vertShaderModule.createStageCreateInfo(vkr::ShaderModule::Type::Vertex, "main");
+        VkPipelineShaderStageCreateInfo fragShaderStageInfo = fragShaderModule.createStageCreateInfo(vkr::ShaderModule::Type::Fragment, "main");
 
         VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
@@ -520,9 +492,6 @@ private:
 
         if (vkCreateGraphicsPipelines(getDevice(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &m_pipeline) != VK_SUCCESS)
             throw std::runtime_error("failed to create graphics pipeline!");
-
-        vkDestroyShaderModule(getDevice(), fragShaderModule, nullptr);
-        vkDestroyShaderModule(getDevice(), vertShaderModule, nullptr);
     }
 
     void createFramebuffers()
@@ -1081,20 +1050,6 @@ private:
         ubo.proj[1][1] *= -1;
 
         m_uniformBuffersMemory[currentImage]->copyFrom(&ubo, sizeof(ubo));
-    }
-
-    VkShaderModule createShaderModule(const std::vector<char>& code)
-    {
-        VkShaderModuleCreateInfo createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        createInfo.codeSize = code.size();
-        createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
-
-        VkShaderModule shaderModule;
-        if (vkCreateShaderModule(getDevice(), &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
-            throw std::runtime_error("failed to create shader module!");
-
-        return shaderModule;
     }
 
     void mainLoop()
