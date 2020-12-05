@@ -87,9 +87,11 @@ namespace std
     {
         size_t operator()(Vertex const& vertex) const
         {
-            return ((hash<glm::vec3>()(vertex.pos) ^
-                (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
-                (hash<glm::vec2>()(vertex.texCoord) << 1);
+            auto pos = hash<glm::vec3>()(vertex.pos);
+            auto color = hash<glm::vec3>()(vertex.color);
+            auto texCoord = hash<glm::vec2>()(vertex.texCoord);
+
+            return ((pos ^ (color << 1)) >> 1) ^ (texCoord << 1);
         }
     };
 }
@@ -583,8 +585,8 @@ private:
 
         VkDeviceSize imageSize = texWidth * texHeight * 4;
 
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
         createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
         void* data;
@@ -794,7 +796,8 @@ private:
         memoryAllocInfo.allocationSize = memRequirements.size;
         memoryAllocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
-        if (vkAllocateMemory(getDevice(), &memoryAllocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
+        if (vkAllocateMemory(getDevice(), &memoryAllocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+        {
             throw std::runtime_error("failed to allocate buffer memory!");
         }
 
