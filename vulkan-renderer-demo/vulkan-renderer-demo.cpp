@@ -5,6 +5,7 @@
 #include "DeviceMemory.h"
 #include "Image.h"
 #include "Buffer.h"
+#include "Sampler.h"
 
 namespace
 {
@@ -615,26 +616,7 @@ private:
 
     void createTextureSampler()
     {
-        VkSamplerCreateInfo samplerCreateInfo{};
-        samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
-        samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
-        samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerCreateInfo.anisotropyEnable = VK_TRUE;
-        samplerCreateInfo.maxAnisotropy = 16.0f;
-        samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-        samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
-        samplerCreateInfo.compareEnable = VK_FALSE;
-        samplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-        samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        samplerCreateInfo.mipLodBias = 0.0f;
-        samplerCreateInfo.minLod = 0.0f;
-        samplerCreateInfo.maxLod = 0.0f;
-
-        if (vkCreateSampler(getDevice(), &samplerCreateInfo, nullptr, &m_textureSampler) != VK_SUCCESS)
-            throw std::runtime_error("failed to create texture sampler!");
+        m_textureSampler = std::make_unique<vkr::Sampler>();
     }
 
     void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
@@ -877,7 +859,7 @@ private:
             VkDescriptorImageInfo imageInfo{};
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             imageInfo.imageView = m_textureImageView->getHandle();
-            imageInfo.sampler = m_textureSampler;
+            imageInfo.sampler = m_textureSampler->getHandle();
 
             std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
@@ -1128,8 +1110,6 @@ private:
 
     void cleanup()
     {
-        vkDestroySampler(getDevice(), m_textureSampler, nullptr);
-
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
             vkDestroySemaphore(getDevice(), m_renderFinishedSemaphores[i], nullptr);
@@ -1206,7 +1186,7 @@ private:
     std::unique_ptr<vkr::Image> m_textureImage;
     std::unique_ptr<vkr::DeviceMemory> m_textureImageMemory;
     std::unique_ptr<vkr::ImageView> m_textureImageView;
-    VkSampler m_textureSampler;
+    std::unique_ptr<vkr::Sampler> m_textureSampler;
 
     std::unique_ptr<vkr::Image> m_depthImage;
     std::unique_ptr<vkr::DeviceMemory> m_depthImageMemory;
