@@ -1316,18 +1316,23 @@ private:
 
 int main()
 {
-    HelloTriangleApplication app;
-
     try
     {
+        HelloTriangleApplication app;
         app.run();
     }
     catch (const std::exception& e)
     {
+        vkr::ServiceLocator::instance().setRenderer(nullptr);
+
         std::cerr << e.what() << std::endl;
         std::getchar();
+
         return EXIT_FAILURE;
     }
 
+    // temporary to catch Vulkan errors
+    vkr::ServiceLocator::instance().setRenderer(nullptr);
+    std::getchar();
     return EXIT_SUCCESS;
 }
