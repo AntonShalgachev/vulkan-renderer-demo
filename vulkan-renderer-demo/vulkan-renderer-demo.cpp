@@ -1,6 +1,7 @@
 #include "framework.h"
 #include "Renderer.h"
 #include "ServiceLocator.h"
+#include "ImageView.h"
 
 namespace
 {
@@ -284,7 +285,7 @@ private:
         m_swapchainImageViews.resize(m_swapchainImages.size());
 
         for (std::size_t i = 0; i < m_swapchainImages.size(); i++)
-            m_swapchainImageViews[i] = createImageView(m_swapchainImages[i], m_swapchainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+            m_swapchainImageViews[i] = std::make_unique<vkr::ImageView>(m_swapchainImages[i], m_swapchainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
     void createRenderPass()
@@ -526,7 +527,7 @@ private:
 
         for (size_t i = 0; i < m_swapchainImageViews.size(); i++)
         {
-            std::array<VkImageView, 2> attachments = { m_swapchainImageViews[i], m_depthImageView };
+            std::array<VkImageView, 2> attachments = { m_swapchainImageViews[i]->getHandle(), m_depthImageView->getHandle() };
 
             VkFramebufferCreateInfo framebufferCreateInfo{};
             framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -547,7 +548,7 @@ private:
         VkFormat depthFormat = findDepthFormat();
 
         createImage(m_swapchainExtent.width, m_swapchainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
-        m_depthImageView = createImageView(m_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+        m_depthImageView = std::make_unique<vkr::ImageView>(m_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
     }
 
     VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
@@ -611,7 +612,7 @@ private:
 
     void createTextureImageView()
     {
-        m_textureImageView = createImageView(m_textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+        m_textureImageView = std::make_unique<vkr::ImageView>(m_textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
     void createTextureSampler()
@@ -636,26 +637,6 @@ private:
 
         if (vkCreateSampler(getDevice(), &samplerCreateInfo, nullptr, &m_textureSampler) != VK_SUCCESS)
             throw std::runtime_error("failed to create texture sampler!");
-    }
-
-    VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
-    {
-        VkImageViewCreateInfo imageViewCreateInfo{};
-        imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        imageViewCreateInfo.image = image;
-        imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        imageViewCreateInfo.format = format;
-        imageViewCreateInfo.subresourceRange.aspectMask = aspectFlags;
-        imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-        imageViewCreateInfo.subresourceRange.levelCount = 1;
-        imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-        imageViewCreateInfo.subresourceRange.layerCount = 1;
-
-        VkImageView imageView;
-        if (vkCreateImageView(getDevice(), &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS)
-            throw std::runtime_error("failed to create texture image view!");
-
-        return imageView;
     }
 
     void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
@@ -973,7 +954,7 @@ private:
 
             VkDescriptorImageInfo imageInfo{};
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfo.imageView = m_textureImageView;
+            imageInfo.imageView = m_textureImageView->getHandle();
             imageInfo.sampler = m_textureSampler;
 
             std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
@@ -1229,7 +1210,6 @@ private:
     void cleanup()
     {
         vkDestroySampler(getDevice(), m_textureSampler, nullptr);
-        vkDestroyImageView(getDevice(), m_textureImageView, nullptr);
         vkDestroyImage(getDevice(), m_textureImage, nullptr);
         vkFreeMemory(getDevice(), m_textureImageMemory, nullptr);
 
@@ -1257,7 +1237,6 @@ private:
 
     void cleanupSwapchain()
     {
-        vkDestroyImageView(getDevice(), m_depthImageView, nullptr);
         vkDestroyImage(getDevice(), m_depthImage, nullptr);
         vkFreeMemory(getDevice(), m_depthImageMemory, nullptr);
 
@@ -1276,9 +1255,6 @@ private:
         vkDestroyPipelineLayout(getDevice(), m_pipelineLayout, nullptr);
         vkDestroyRenderPass(getDevice(), m_renderPass, nullptr);
 
-        for (auto imageView : m_swapchainImageViews)
-            vkDestroyImageView(getDevice(), imageView, nullptr);
-
         vkDestroySwapchainKHR(getDevice(), m_swapchain, nullptr);
     }
 
@@ -1292,7 +1268,7 @@ private:
 
     VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
     std::vector<VkImage> m_swapchainImages;
-    std::vector<VkImageView> m_swapchainImageViews;
+    std::vector<std::unique_ptr<vkr::ImageView>> m_swapchainImageViews;
     VkFormat m_swapchainImageFormat = VK_FORMAT_UNDEFINED;
     VkExtent2D m_swapchainExtent = { 0, 0 };
 
@@ -1327,12 +1303,12 @@ private:
 
     VkImage m_textureImage;
     VkDeviceMemory m_textureImageMemory;
-    VkImageView m_textureImageView;
+    std::unique_ptr<vkr::ImageView> m_textureImageView;
     VkSampler m_textureSampler;
 
     VkImage m_depthImage;
     VkDeviceMemory m_depthImageMemory;
-    VkImageView m_depthImageView;
+    std::unique_ptr<vkr::ImageView> m_depthImageView;
 
     std::vector<Vertex> m_vertices;
     std::vector<uint32_t> m_indices;
