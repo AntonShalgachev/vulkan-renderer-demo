@@ -3,6 +3,7 @@
 #include "ServiceLocator.h"
 #include "ImageView.h"
 #include "DeviceMemory.h"
+#include "Image.h"
 
 namespace
 {
@@ -549,7 +550,7 @@ private:
         VkFormat depthFormat = findDepthFormat();
 
         createImage(m_swapchainExtent.width, m_swapchainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
-        m_depthImageView = std::make_unique<vkr::ImageView>(m_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+        m_depthImageView = std::make_unique<vkr::ImageView>(m_depthImage->getHandle(), depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
     }
 
     VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
@@ -600,16 +601,16 @@ private:
 
         createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_textureImage, m_textureImageMemory);
 
-        transitionImageLayout(m_textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        copyBufferToImage(stagingBuffer, m_textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-        transitionImageLayout(m_textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        transitionImageLayout(m_textureImage->getHandle(), VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        copyBufferToImage(stagingBuffer, m_textureImage->getHandle(), static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+        transitionImageLayout(m_textureImage->getHandle(), VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
         vkDestroyBuffer(getDevice(), stagingBuffer, nullptr);
     }
 
     void createTextureImageView()
     {
-        m_textureImageView = std::make_unique<vkr::ImageView>(m_textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+        m_textureImageView = std::make_unique<vkr::ImageView>(m_textureImage->getHandle(), VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
     void createTextureSampler()
@@ -724,32 +725,11 @@ private:
         endSingleTimeCommands(commandBuffer);
     }
 
-    void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, std::unique_ptr<vkr::DeviceMemory>& imageMemory)
+    void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, std::unique_ptr<vkr::Image>& image, std::unique_ptr<vkr::DeviceMemory>& imageMemory)
     {
-        VkImageCreateInfo imageCreateInfo{};
-        imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-        imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-        imageCreateInfo.extent.width = width;
-        imageCreateInfo.extent.height = height;
-        imageCreateInfo.extent.depth = 1;
-        imageCreateInfo.mipLevels = 1;
-        imageCreateInfo.arrayLayers = 1;
-        imageCreateInfo.format = format;
-        imageCreateInfo.tiling = tiling;
-        imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imageCreateInfo.usage = usage;
-        imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-
-        if (vkCreateImage(getDevice(), &imageCreateInfo, nullptr, &image) != VK_SUCCESS)
-            throw std::runtime_error("failed to create image!");
-
-        VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(getDevice(), image, &memRequirements);
-
-        imageMemory = std::make_unique<vkr::DeviceMemory>(memRequirements, properties);
-
-        vkBindImageMemory(getDevice(), image, imageMemory->getHandle(), 0);
+        image = std::make_unique<vkr::Image>(width, height, format, tiling, usage);
+        imageMemory = std::make_unique<vkr::DeviceMemory>(image->getMemoryRequirements(), properties);
+        image->bind(*imageMemory);
     }
 
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, std::unique_ptr<vkr::DeviceMemory>& bufferMemory)
@@ -1163,7 +1143,6 @@ private:
     void cleanup()
     {
         vkDestroySampler(getDevice(), m_textureSampler, nullptr);
-        vkDestroyImage(getDevice(), m_textureImage, nullptr);
 
         vkDestroyBuffer(getDevice(), m_indexBuffer, nullptr);
 
@@ -1187,8 +1166,6 @@ private:
 
     void cleanupSwapchain()
     {
-        vkDestroyImage(getDevice(), m_depthImage, nullptr);
-
         for (size_t i = 0; i < m_swapchainImages.size(); i++)
         {
             vkDestroyBuffer(getDevice(), m_uniformBuffers[i], nullptr);
@@ -1249,12 +1226,12 @@ private:
     VkDescriptorPool m_descriptorPool;
     std::vector<VkDescriptorSet> m_descriptorSets;
 
-    VkImage m_textureImage;
+    std::unique_ptr<vkr::Image> m_textureImage;
     std::unique_ptr<vkr::DeviceMemory> m_textureImageMemory;
     std::unique_ptr<vkr::ImageView> m_textureImageView;
     VkSampler m_textureSampler;
 
-    VkImage m_depthImage;
+    std::unique_ptr<vkr::Image> m_depthImage;
     std::unique_ptr<vkr::DeviceMemory> m_depthImageMemory;
     std::unique_ptr<vkr::ImageView> m_depthImageView;
 
