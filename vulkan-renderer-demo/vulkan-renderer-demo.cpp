@@ -582,23 +582,26 @@ private:
             throw std::runtime_error("failed to load texture image!");
 
         VkDeviceSize imageSize = texWidth * texHeight * 4;
-        createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_stagingBuffer, m_stagingBufferMemory);
+
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+        createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
         void* data;
-        vkMapMemory(getDevice(), m_stagingBufferMemory, 0, imageSize, 0, &data);
+        vkMapMemory(getDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
         memcpy(data, pixels, static_cast<size_t>(imageSize));
-        vkUnmapMemory(getDevice(), m_stagingBufferMemory);
+        vkUnmapMemory(getDevice(), stagingBufferMemory);
 
         stbi_image_free(pixels);
 
         createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_textureImage, m_textureImageMemory);
 
         transitionImageLayout(m_textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        copyBufferToImage(m_stagingBuffer, m_textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+        copyBufferToImage(stagingBuffer, m_textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
         transitionImageLayout(m_textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-        vkDestroyBuffer(getDevice(), m_stagingBuffer, nullptr);
-        vkFreeMemory(getDevice(), m_stagingBufferMemory, nullptr);
+        vkDestroyBuffer(getDevice(), stagingBuffer, nullptr);
+        vkFreeMemory(getDevice(), stagingBufferMemory, nullptr);
     }
 
     void createTextureImageView()
@@ -1317,8 +1320,6 @@ private:
     VkDescriptorPool m_descriptorPool;
     std::vector<VkDescriptorSet> m_descriptorSets;
 
-    VkBuffer m_stagingBuffer;
-    VkDeviceMemory m_stagingBufferMemory;
     VkImage m_textureImage;
     VkDeviceMemory m_textureImageMemory;
     VkImageView m_textureImageView;
