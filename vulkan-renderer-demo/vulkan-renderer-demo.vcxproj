@@ -175,7 +175,6 @@
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="ServiceLocator.cpp" />
-    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderModule.cpp" />
     <ClCompile Include="vulkan-renderer-demo.cpp" />
   </ItemGroup>
@@ -188,7 +187,6 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="ServiceLocator.h" />
-    <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderModule.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
