@@ -1259,7 +1259,7 @@ private:
     }
 
     std::unique_ptr<vkr::Renderer> const& getRenderer() const { return vkr::ServiceLocator::instance().getRenderer(); }
-    VkDevice getDevice() const { return getRenderer()->getDevice(); }
+    VkDevice getDevice() const { return vkr::temp::getDevice(); }
 
 private:
     GLFWwindow* m_window = nullptr;

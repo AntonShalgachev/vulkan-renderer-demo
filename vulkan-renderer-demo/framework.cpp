@@ -5,3 +5,22 @@
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
+
+#include "ServiceLocator.h"
+#include "Renderer.h"
+
+namespace vkr
+{
+    namespace temp
+    {
+        std::unique_ptr<Renderer> const& getRenderer()
+        {
+            return vkr::ServiceLocator::instance().getRenderer();
+        }
+
+        VkDevice getDevice()
+        {
+            return getRenderer()->getDevice();
+        }
+    }
+}

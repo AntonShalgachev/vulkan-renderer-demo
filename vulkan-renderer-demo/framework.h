@@ -26,3 +26,14 @@
 #include <array>
 #include <chrono>
 #include <unordered_map>
+
+namespace vkr
+{
+    class Renderer;
+
+    namespace temp
+    {
+        std::unique_ptr<Renderer> const& getRenderer();
+        VkDevice getDevice();
+    }
+}
