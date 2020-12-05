@@ -596,7 +596,7 @@ private:
         std::unique_ptr<vkr::DeviceMemory> stagingBufferMemory;
         createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-        stagingBufferMemory->copy(pixels, imageSize);
+        stagingBufferMemory->copyFrom(pixels, imageSize);
 
         stbi_image_free(pixels);
 
@@ -800,7 +800,7 @@ private:
         std::unique_ptr<vkr::DeviceMemory> stagingBufferMemory;
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-        stagingBufferMemory->copy(m_vertices);
+        stagingBufferMemory->copyFrom(m_vertices);
 
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexBufferMemory);
 
@@ -816,7 +816,7 @@ private:
         std::unique_ptr<vkr::DeviceMemory> stagingBufferMemory;
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-        stagingBufferMemory->copy(m_indices);
+        stagingBufferMemory->copyFrom(m_indices);
 
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer, m_indexBufferMemory);
 
@@ -1098,7 +1098,7 @@ private:
         ubo.proj = glm::perspective(glm::radians(45.0f), 1.0f * m_swapchainExtent.width / m_swapchainExtent.height, 0.1f, 10.0f);
         ubo.proj[1][1] *= -1;
 
-        m_uniformBuffersMemory[currentImage]->copy(&ubo, sizeof(ubo));
+        m_uniformBuffersMemory[currentImage]->copyFrom(&ubo, sizeof(ubo));
     }
 
     VkShaderModule createShaderModule(const std::vector<char>& code)

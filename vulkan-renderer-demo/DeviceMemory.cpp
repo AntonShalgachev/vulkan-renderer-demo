@@ -40,7 +40,7 @@ vkr::DeviceMemory::~DeviceMemory()
     vkFreeMemory(temp::getDevice(), m_memory, nullptr);
 }
 
-void vkr::DeviceMemory::copy(void const* sourcePointer, std::size_t sourceSize)
+void vkr::DeviceMemory::copyFrom(void const* sourcePointer, std::size_t sourceSize)
 {
     void* data;
     vkMapMemory(temp::getDevice(), m_memory, 0, sourceSize, 0, &data);

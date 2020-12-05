@@ -10,12 +10,12 @@ namespace vkr
         DeviceMemory(VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties);
         ~DeviceMemory();
 
-        void copy(void const* sourcePointer, std::size_t sourceSize);
+        void copyFrom(void const* sourcePointer, std::size_t sourceSize);
 
         template<typename T>
-        void copy(std::vector<T> const& source)
+        void copyFrom(std::vector<T> const& source)
         {
-            copy(source.data(), sizeof(T) * source.size());
+            copyFrom(source.data(), sizeof(T) * source.size());
         }
 
         VkDeviceMemory getHandle() const { return m_memory; };
