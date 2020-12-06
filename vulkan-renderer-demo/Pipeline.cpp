@@ -2,8 +2,9 @@
 #include "ShaderModule.h"
 #include "PipelineLayout.h"
 #include "RenderPass.h"
+#include "Vertex.h"
 
-vkr::Pipeline::Pipeline(PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, ShaderModule const& vertShaderModule, ShaderModule const& fragShaderModule, VkVertexInputBindingDescription const& bindingDescription, std::vector<VkVertexInputAttributeDescription> const& attributeDescriptions)
+vkr::Pipeline::Pipeline(PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, ShaderModule const& vertShaderModule, ShaderModule const& fragShaderModule)
 {
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = vertShaderModule.createStageCreateInfo();
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = fragShaderModule.createStageCreateInfo();
@@ -17,9 +18,11 @@ vkr::Pipeline::Pipeline(PipelineLayout const& layout, RenderPass const& renderPa
     vertexInputCreateInfo.vertexAttributeDescriptionCount = 0;
     vertexInputCreateInfo.pVertexAttributeDescriptions = nullptr;
 
+    auto bindingDescription = Vertex::getBindingDescription();
     vertexInputCreateInfo.vertexBindingDescriptionCount = 1;
     vertexInputCreateInfo.pVertexBindingDescriptions = &bindingDescription;
 
+    auto attributeDescriptions = Vertex::getAttributeDescriptions();
     vertexInputCreateInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
     vertexInputCreateInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 

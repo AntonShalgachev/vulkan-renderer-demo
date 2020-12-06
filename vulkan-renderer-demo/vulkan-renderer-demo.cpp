@@ -15,54 +15,10 @@
 #include "PipelineLayout.h"
 #include "Pipeline.h"
 #include "DescriptorPool.h"
+#include "Vertex.h"
 
 namespace
 {
-    struct Vertex
-    {
-        glm::vec3 pos;
-        glm::vec3 color;
-        glm::vec2 texCoord;
-
-        static VkVertexInputBindingDescription getBindingDescription()
-        {
-            VkVertexInputBindingDescription bindingDescription{};
-
-            bindingDescription.binding = 0;
-            bindingDescription.stride = sizeof(Vertex);
-            bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-            return bindingDescription;
-        }
-
-        static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions()
-        {
-            std::vector<VkVertexInputAttributeDescription> attributeDescriptions{ 3 };
-
-            attributeDescriptions[0].binding = 0;
-            attributeDescriptions[0].location = 0;
-            attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-            attributeDescriptions[0].offset = offsetof(Vertex, pos);
-
-            attributeDescriptions[1].binding = 0;
-            attributeDescriptions[1].location = 1;
-            attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-            attributeDescriptions[1].offset = offsetof(Vertex, color);
-
-            attributeDescriptions[2].binding = 0;
-            attributeDescriptions[2].location = 2;
-            attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-            attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
-
-            return attributeDescriptions;
-        }
-
-        bool operator==(const Vertex& other) const
-        {
-            return pos == other.pos && color == other.color && texCoord == other.texCoord;
-        }
-    };
-
     struct UniformBufferObject
     {
         glm::mat4 model;
@@ -77,21 +33,6 @@ namespace
     const std::string TEXTURE_PATH = "data/textures/viking_room.png";
 
     const int MAX_FRAMES_IN_FLIGHT = 2;
-}
-
-namespace std
-{
-    template<> struct hash<Vertex>
-    {
-        size_t operator()(Vertex const& vertex) const
-        {
-            auto pos = hash<glm::vec3>()(vertex.pos);
-            auto color = hash<glm::vec3>()(vertex.color);
-            auto texCoord = hash<glm::vec2>()(vertex.texCoord);
-
-            return ((pos ^ (color << 1)) >> 1) ^ (texCoord << 1);
-        }
-    };
 }
 
 class HelloTriangleApplication
@@ -206,7 +147,7 @@ private:
         vkr::ShaderModule vertShaderModule{ "data/shaders/vert.spv", vkr::ShaderModule::Type::Vertex, "main" };
         vkr::ShaderModule fragShaderModule{ "data/shaders/frag.spv", vkr::ShaderModule::Type::Fragment, "main" };
 
-        m_pipeline = std::make_unique<vkr::Pipeline>(*m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), vertShaderModule, fragShaderModule, Vertex::getBindingDescription(), Vertex::getAttributeDescriptions());
+        m_pipeline = std::make_unique<vkr::Pipeline>(*m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), vertShaderModule, fragShaderModule);
     }
 
     void createFramebuffers()
@@ -387,13 +328,13 @@ private:
         if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warnings, &errors, MODEL_PATH.c_str()))
             throw std::runtime_error(warnings + errors);
 
-        std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+        std::unordered_map<vkr::Vertex, uint32_t> uniqueVertices{};
 
         for (const auto& shape : shapes)
         {
             for (const auto& index : shape.mesh.indices)
             {
-                Vertex vertex{};
+                vkr::Vertex vertex{};
 
                 vertex.pos = {
                     attrib.vertices[3 * index.vertex_index + 0],
@@ -785,7 +726,7 @@ private:
     std::unique_ptr<vkr::DeviceMemory> m_depthImageMemory;
     std::unique_ptr<vkr::ImageView> m_depthImageView;
 
-    std::vector<Vertex> m_vertices;
+    std::vector<vkr::Vertex> m_vertices;
     std::vector<uint32_t> m_indices;
 };
 

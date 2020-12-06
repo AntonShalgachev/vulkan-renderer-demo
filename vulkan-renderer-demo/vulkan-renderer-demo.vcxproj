@@ -202,6 +202,7 @@
     <ClInclude Include="ServiceLocator.h" />
     <ClInclude Include="ShaderModule.h" />
     <ClInclude Include="Swapchain.h" />
+    <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
