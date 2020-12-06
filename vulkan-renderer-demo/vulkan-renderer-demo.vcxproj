@@ -172,6 +172,7 @@
     <ClCompile Include="DescriptorSetLayout.cpp" />
     <ClCompile Include="DescriptorSets.cpp" />
     <ClCompile Include="DeviceMemory.cpp" />
+    <ClCompile Include="Fence.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="framework.cpp" />
     <ClCompile Include="Image.cpp" />
@@ -182,6 +183,7 @@
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="Sampler.cpp" />
+    <ClCompile Include="Semaphore.cpp" />
     <ClCompile Include="ServiceLocator.cpp" />
     <ClCompile Include="ShaderModule.cpp" />
     <ClCompile Include="Swapchain.cpp" />
@@ -193,6 +195,7 @@
     <ClInclude Include="DescriptorSetLayout.h" />
     <ClInclude Include="DescriptorSets.h" />
     <ClInclude Include="DeviceMemory.h" />
+    <ClInclude Include="Fence.h" />
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Image.h" />
@@ -203,6 +206,7 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="Sampler.h" />
+    <ClInclude Include="Semaphore.h" />
     <ClInclude Include="ServiceLocator.h" />
     <ClInclude Include="ShaderModule.h" />
     <ClInclude Include="Swapchain.h" />
