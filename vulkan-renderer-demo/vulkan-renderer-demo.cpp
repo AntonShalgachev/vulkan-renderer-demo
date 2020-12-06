@@ -11,6 +11,7 @@
 #include <memory>
 #include "RenderPass.h"
 #include "Framebuffer.h"
+#include "DescriptorSetLayout.h"
 
 namespace
 {
@@ -193,29 +194,7 @@ private:
 
     void createDescriptorSetLayout()
     {
-        VkDescriptorSetLayoutBinding uboLayoutBinding{};
-        uboLayoutBinding.binding = 0;
-        uboLayoutBinding.descriptorCount = 1;
-        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-        uboLayoutBinding.pImmutableSamplers = nullptr;
-
-        VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-        samplerLayoutBinding.binding = 1;
-        samplerLayoutBinding.descriptorCount = 1;
-        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-        samplerLayoutBinding.pImmutableSamplers = nullptr;
-
-        std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
-
-        VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{};
-        descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        descriptorSetLayoutCreateInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-        descriptorSetLayoutCreateInfo.pBindings = bindings.data();
-
-        if (vkCreateDescriptorSetLayout(getDevice(), &descriptorSetLayoutCreateInfo, nullptr, &m_descriptorSetLayout) != VK_SUCCESS)
-            throw std::runtime_error("failed to create descriptor set layout!");
+        m_descriptorSetLayout = std::make_unique<vkr::DescriptorSetLayout>();
     }
 
     void createGraphicsPipeline()
@@ -323,7 +302,7 @@ private:
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
         pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutCreateInfo.setLayoutCount = 1;
-        pipelineLayoutCreateInfo.pSetLayouts = &m_descriptorSetLayout;
+        pipelineLayoutCreateInfo.pSetLayouts = &m_descriptorSetLayout->getHandle();
         pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
         pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
 
@@ -625,7 +604,7 @@ private:
 
     void createDescriptorSets()
     {
-        std::vector<VkDescriptorSetLayout> layouts(m_swapchain->getImageCount(), m_descriptorSetLayout);
+        std::vector<VkDescriptorSetLayout> layouts(m_swapchain->getImageCount(), m_descriptorSetLayout->getHandle());
 
         VkDescriptorSetAllocateInfo descriptorSetallocInfo{};
         descriptorSetallocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -894,8 +873,6 @@ private:
 
         cleanupSwapchain();
 
-        vkDestroyDescriptorSetLayout(getDevice(), m_descriptorSetLayout, nullptr);
-
         glfwDestroyWindow(m_window);
 
         glfwTerminate();
@@ -940,7 +917,7 @@ private:
     std::vector<std::unique_ptr<vkr::Buffer>> m_uniformBuffers;
     std::vector<std::unique_ptr<vkr::DeviceMemory>> m_uniformBuffersMemory;
 
-    VkDescriptorSetLayout m_descriptorSetLayout;
+    std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayout;
     VkDescriptorPool m_descriptorPool;
     std::vector<VkDescriptorSet> m_descriptorSets;
 
