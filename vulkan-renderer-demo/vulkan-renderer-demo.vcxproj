@@ -173,6 +173,7 @@
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="ImageView.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="ServiceLocator.cpp" />
     <ClCompile Include="ShaderModule.cpp" />
@@ -186,6 +187,7 @@
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImageView.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="RenderPass.h" />
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="ServiceLocator.h" />
     <ClInclude Include="ShaderModule.h" />
