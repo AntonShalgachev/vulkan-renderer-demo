@@ -14,3 +14,13 @@ vkr::Fence::~Fence()
 {
     vkDestroyFence(temp::getDevice(), m_handle, nullptr);
 }
+
+void vkr::Fence::wait()
+{
+    vkWaitForFences(temp::getDevice(), 1, &m_handle, VK_TRUE, UINT64_MAX);
+}
+
+void vkr::Fence::reset()
+{
+    vkResetFences(temp::getDevice(), 1, &m_handle);
+}

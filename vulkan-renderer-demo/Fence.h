@@ -10,6 +10,9 @@ namespace vkr
     	Fence();
     	~Fence();
 
+        void wait();
+        void reset();
+
         VkFence const& getHandle() const { return m_handle; }
 
     private:

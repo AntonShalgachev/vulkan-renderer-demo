@@ -471,7 +471,7 @@ private:
 
     void drawFrame()
     {
-        vkWaitForFences(getDevice(), 1, &m_inFlightFences[m_currentFrame].getHandle(), VK_TRUE, UINT64_MAX);
+        m_inFlightFences[m_currentFrame].wait();
 
         uint32_t imageIndex;
         VkResult aquireImageResult = vkAcquireNextImageKHR(getDevice(), m_swapchain->getHandle(), UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame].getHandle(), VK_NULL_HANDLE, &imageIndex);
@@ -486,13 +486,13 @@ private:
             throw std::runtime_error("failed to acquire swapchain image!");
 
         if (m_currentFences[imageIndex] != nullptr)
-            vkWaitForFences(getDevice(), 1, &m_currentFences[imageIndex]->getHandle(), VK_TRUE, UINT64_MAX);
+            m_currentFences[imageIndex]->wait();
 
         m_currentFences[imageIndex] = &m_inFlightFences[m_currentFrame];
 
         updateUniformBuffer(imageIndex);
 
-        vkResetFences(getDevice(), 1, &m_inFlightFences[m_currentFrame].getHandle());
+        m_inFlightFences[m_currentFrame].reset();
 
         m_commandBuffers->submit(imageIndex, m_renderFinishedSemaphores[m_currentFrame], m_imageAvailableSemaphores[m_currentFrame], m_inFlightFences[m_currentFrame]);
 
