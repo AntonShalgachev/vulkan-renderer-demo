@@ -94,8 +94,11 @@ private:
         vkr::ServiceLocator::instance().setRenderer(std::move(renderer));
 
         m_descriptorSetLayout = std::make_unique<vkr::DescriptorSetLayout>();
-        createTextureResources();
-        loadModel();
+        
+        m_mesh = std::make_unique<vkr::Mesh>(MODEL_PATH);
+        m_texture = std::make_unique<vkr::Texture>(TEXTURE_PATH);
+
+        m_sampler = std::make_unique<vkr::Sampler>();
 
         initSwapchain();
         createSyncObjects();
@@ -155,18 +158,6 @@ private:
         m_depthImageView = m_depthImage->createImageView(VK_IMAGE_ASPECT_DEPTH_BIT);
     }
 
-    void createTextureResources()
-    {
-        m_texture = std::make_unique<vkr::Texture>(TEXTURE_PATH);
-
-        m_textureSampler = std::make_unique<vkr::Sampler>();
-    }
-
-    void loadModel()
-    {
-        m_mesh = std::make_unique<vkr::Mesh>(MODEL_PATH);
-    }
-
     void createUniformBuffers()
     {
         VkDeviceSize bufferSize = sizeof(UniformBufferObject);
@@ -192,7 +183,7 @@ private:
             VkDescriptorImageInfo imageInfo{};
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             imageInfo.imageView = m_texture->getImageViewHandle();
-            imageInfo.sampler = m_textureSampler->getHandle();
+            imageInfo.sampler = m_sampler->getHandle();
 
             std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
@@ -379,14 +370,14 @@ private:
     std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayout;
     std::unique_ptr<vkr::DescriptorSets> m_descriptorSets;
 
-    std::unique_ptr<vkr::Texture> m_texture;
-    std::unique_ptr<vkr::Sampler> m_textureSampler;
+    std::unique_ptr<vkr::Sampler> m_sampler;
 
     std::unique_ptr<vkr::Image> m_depthImage;
     std::unique_ptr<vkr::DeviceMemory> m_depthImageMemory;
     std::unique_ptr<vkr::ImageView> m_depthImageView;
 
     std::unique_ptr<vkr::Mesh> m_mesh;
+    std::unique_ptr<vkr::Texture> m_texture;
 };
 
 int main()
