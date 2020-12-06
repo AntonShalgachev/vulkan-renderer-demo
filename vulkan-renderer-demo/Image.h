@@ -5,6 +5,7 @@
 namespace vkr
 {
     class DeviceMemory;
+    class ImageView;
 
     class Image
     {
@@ -15,9 +16,13 @@ namespace vkr
         VkMemoryRequirements getMemoryRequirements() const;
         void bind(DeviceMemory const& memory) const;
 
+        std::unique_ptr<ImageView> createImageView(VkImageAspectFlags aspectFlags);
+
         VkImage getHandle() const { return m_image; }
+        VkFormat getFormat() const { return m_format; }
 
     private:
         VkImage m_image;
+        VkFormat m_format;
     };
 }

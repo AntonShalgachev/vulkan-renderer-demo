@@ -1,11 +1,14 @@
 #include "Image.h"
 
 #include "DeviceMemory.h"
+#include "ImageView.h"
 
 namespace vkr
 {
     Image::Image(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage)
     {
+        m_format = format;
+
         VkImageCreateInfo imageCreateInfo{};
         imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -42,4 +45,10 @@ namespace vkr
     {
         vkBindImageMemory(temp::getDevice(), m_image, memory.getHandle(), 0);
     }
+
+    std::unique_ptr<vkr::ImageView> Image::createImageView(VkImageAspectFlags aspectFlags)
+    {
+        return std::make_unique<vkr::ImageView>(m_image, m_format, aspectFlags);
+    }
+
 }

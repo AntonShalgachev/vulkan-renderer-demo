@@ -363,7 +363,7 @@ private:
         VkExtent2D swapchainExtent = m_swapchain->getExtent();
 
         createImage(swapchainExtent.width, swapchainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
-        m_depthImageView = std::make_unique<vkr::ImageView>(m_depthImage->getHandle(), depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+        m_depthImageView = m_depthImage->createImageView(VK_IMAGE_ASPECT_DEPTH_BIT);
     }
 
     bool hasStencilComponent(VkFormat format)
@@ -391,15 +391,15 @@ private:
 
         createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_textureImage, m_textureImageMemory);
 
-        transitionImageLayout(m_textureImage->getHandle(), VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        transitionImageLayout(m_textureImage->getHandle(), m_textureImage->getFormat(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
         // TODO extract to some class
         copyBufferToImage(stagingBuffer->getHandle(), m_textureImage->getHandle(), static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-        transitionImageLayout(m_textureImage->getHandle(), VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        transitionImageLayout(m_textureImage->getHandle(), m_textureImage->getFormat(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
     void createTextureImageView()
     {
-        m_textureImageView = std::make_unique<vkr::ImageView>(m_textureImage->getHandle(), VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+        m_textureImageView = m_textureImage->createImageView(VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
     void createTextureSampler()
