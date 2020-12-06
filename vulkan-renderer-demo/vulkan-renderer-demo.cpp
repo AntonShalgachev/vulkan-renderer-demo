@@ -12,6 +12,7 @@
 #include "RenderPass.h"
 #include "Framebuffer.h"
 #include "DescriptorSetLayout.h"
+#include "PipelineLayout.h"
 
 namespace
 {
@@ -32,9 +33,9 @@ namespace
             return bindingDescription;
         }
 
-        static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions()
+        static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions()
         {
-            std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
+            std::vector<VkVertexInputAttributeDescription> attributeDescriptions{ 3 };
 
             attributeDescriptions[0].binding = 0;
             attributeDescriptions[0].location = 0;
@@ -199,6 +200,8 @@ private:
 
     void createGraphicsPipeline()
     {
+        m_pipelineLayout = std::make_unique<vkr::PipelineLayout>(*m_descriptorSetLayout);
+
         vkr::ShaderModule vertShaderModule{ "data/shaders/vert.spv", vkr::ShaderModule::Type::Vertex, "main" };
         vkr::ShaderModule fragShaderModule{ "data/shaders/frag.spv", vkr::ShaderModule::Type::Fragment, "main" };
 
@@ -299,16 +302,6 @@ private:
         depthStencilCreateInfo.depthBoundsTestEnable = VK_FALSE;
         depthStencilCreateInfo.stencilTestEnable = VK_FALSE;
 
-        VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
-        pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutCreateInfo.setLayoutCount = 1;
-        pipelineLayoutCreateInfo.pSetLayouts = &m_descriptorSetLayout->getHandle();
-        pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
-        pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
-
-        if (vkCreatePipelineLayout(getDevice(), &pipelineLayoutCreateInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
-            throw std::runtime_error("failed to create pipeline layout!");
-
         VkGraphicsPipelineCreateInfo pipelineCreateInfo{};
         pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         pipelineCreateInfo.stageCount = 2;
@@ -321,7 +314,7 @@ private:
         pipelineCreateInfo.pDepthStencilState = &depthStencilCreateInfo;
         pipelineCreateInfo.pColorBlendState = &colorBlendingCreateInfo;
         pipelineCreateInfo.pDynamicState = nullptr;
-        pipelineCreateInfo.layout = m_pipelineLayout;
+        pipelineCreateInfo.layout = m_pipelineLayout->getHandle();
         pipelineCreateInfo.renderPass = m_renderPass->getHandle();
         pipelineCreateInfo.subpass = 0;
         pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
@@ -695,7 +688,7 @@ private:
             vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, vertexBuffers, offsets);
             vkCmdBindIndexBuffer(m_commandBuffers[i], m_indexBuffer->getHandle(), 0, VK_INDEX_TYPE_UINT32);
 
-            vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptorSets[i], 0, nullptr);
+            vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout->getHandle(), 0, 1, &m_descriptorSets[i], 0, nullptr);
             vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_indices.size()), 1, 0, 0, 0);
 
             vkCmdEndRenderPass(m_commandBuffers[i]);
@@ -883,7 +876,6 @@ private:
         vkDestroyDescriptorPool(getDevice(), m_descriptorPool, nullptr);
 
         vkDestroyPipeline(getDevice(), m_pipeline, nullptr);
-        vkDestroyPipelineLayout(getDevice(), m_pipelineLayout, nullptr);
     }
 
     std::unique_ptr<vkr::Renderer> const& getRenderer() const { return vkr::ServiceLocator::instance().getRenderer(); }
@@ -895,7 +887,7 @@ private:
     std::unique_ptr<vkr::Swapchain> m_swapchain;
 
     std::unique_ptr<vkr::RenderPass> m_renderPass;
-    VkPipelineLayout m_pipelineLayout;
+    std::unique_ptr<vkr::PipelineLayout> m_pipelineLayout;
     VkPipeline m_pipeline;
 
     std::vector<VkCommandBuffer> m_commandBuffers;
