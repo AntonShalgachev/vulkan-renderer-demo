@@ -357,6 +357,7 @@ private:
 
             std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
+            // TODO couple it with the data within DescriptorPool
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrites[0].dstSet = m_descriptorSets->getHandles()[i];
             descriptorWrites[0].dstBinding = 0;
