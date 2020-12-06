@@ -19,6 +19,7 @@
 #include "Mesh.h"
 #include "Semaphore.h"
 #include "Fence.h"
+#include "CommandBuffers.h"
 
 namespace
 {
@@ -382,26 +383,14 @@ private:
 
     void createCommandBuffers()
     {
-        m_commandBuffers.resize(m_swapchain->getImageCount());
+        m_commandBuffers = std::make_unique<vkr::CommandBuffers>(m_swapchain->getImageCount());
 
-        VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
-        commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        commandBufferAllocateInfo.commandPool = getRenderer()->getCommandPool();
-        commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
-
-        if (vkAllocateCommandBuffers(getDevice(), &commandBufferAllocateInfo, m_commandBuffers.data()) != VK_SUCCESS)
-            throw std::runtime_error("failed to allocate command buffers!");
-
-        for (size_t i = 0; i < m_commandBuffers.size(); i++)
+        for (size_t i = 0; i < m_commandBuffers->getSize(); i++)
         {
-            VkCommandBufferBeginInfo commandBufferBeginInfo{};
-            commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            commandBufferBeginInfo.flags = 0;
-            commandBufferBeginInfo.pInheritanceInfo = nullptr;
+            VkCommandBufferUsageFlags const flags = 0;
+            m_commandBuffers->begin(i, flags);
 
-            if (vkBeginCommandBuffer(m_commandBuffers[i], &commandBufferBeginInfo) != VK_SUCCESS)
-                throw std::runtime_error("failed to begin recording command buffer!");
+            VkCommandBuffer handle = m_commandBuffers->getHandle(i);
 
             VkRenderPassBeginInfo renderPassBeginInfo{};
             renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -417,21 +406,20 @@ private:
             renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());;
             renderPassBeginInfo.pClearValues = clearValues.data();
 
-            vkCmdBeginRenderPass(m_commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-            vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->getHandle());
+            vkCmdBeginRenderPass(handle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+            vkCmdBindPipeline(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->getHandle());
 
             VkBuffer vertexBuffers[] = { m_vertexBuffer->getHandle() };
             VkDeviceSize offsets[] = { 0 };
-            vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, vertexBuffers, offsets);
-            vkCmdBindIndexBuffer(m_commandBuffers[i], m_indexBuffer->getHandle(), 0, VK_INDEX_TYPE_UINT32);
+            vkCmdBindVertexBuffers(handle, 0, 1, vertexBuffers, offsets);
+            vkCmdBindIndexBuffer(handle, m_indexBuffer->getHandle(), 0, VK_INDEX_TYPE_UINT32);
 
-            vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout->getHandle(), 0, 1, &m_descriptorSets->getHandles()[i], 0, nullptr);
-            vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_mesh->getIndexCount()), 1, 0, 0, 0);
+            vkCmdBindDescriptorSets(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout->getHandle(), 0, 1, &m_descriptorSets->getHandles()[i], 0, nullptr);
+            vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh->getIndexCount()), 1, 0, 0, 0);
 
-            vkCmdEndRenderPass(m_commandBuffers[i]);
+            vkCmdEndRenderPass(handle);
 
-            if (vkEndCommandBuffer(m_commandBuffers[i]) != VK_SUCCESS)
-                throw std::runtime_error("failed to record command buffer!");
+            m_commandBuffers->end(i);
         }
     }
 
@@ -465,6 +453,8 @@ private:
         submitInfo.pCommandBuffers = &commandBuffer;
 
         vkQueueSubmit(getRenderer()->getGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+
+        // DO NOT REMOVE
         vkQueueWaitIdle(getRenderer()->getGraphicsQueue());
 
         vkFreeCommandBuffers(getDevice(), getRenderer()->getCommandPool(), 1, &commandBuffer);
@@ -502,31 +492,14 @@ private:
 
         updateUniformBuffer(imageIndex);
 
-        VkSubmitInfo submitInfo{};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-        VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphores[m_currentFrame].getHandle() };
-        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-        submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = waitSemaphores;
-        submitInfo.pWaitDstStageMask = waitStages;
-
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &m_commandBuffers[imageIndex];
-
-        VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphores[m_currentFrame].getHandle() };
-        submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = signalSemaphores;
-
         vkResetFences(getDevice(), 1, &m_inFlightFences[m_currentFrame].getHandle());
 
-        if (vkQueueSubmit(getRenderer()->getGraphicsQueue(), 1, &submitInfo, m_inFlightFences[m_currentFrame].getHandle()) != VK_SUCCESS)
-            throw std::runtime_error("failed to submit draw command buffer!");
+        m_commandBuffers->submit(imageIndex, m_renderFinishedSemaphores[m_currentFrame], m_imageAvailableSemaphores[m_currentFrame], m_inFlightFences[m_currentFrame]);
 
         VkPresentInfoKHR presentInfo{};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
         presentInfo.waitSemaphoreCount = 1;
-        presentInfo.pWaitSemaphores = signalSemaphores;
+        presentInfo.pWaitSemaphores = &m_renderFinishedSemaphores[m_currentFrame].getHandle();
 
         VkSwapchainKHR swapchains[] = { m_swapchain->getHandle() };
         presentInfo.swapchainCount = 1;
@@ -592,7 +565,7 @@ private:
     std::unique_ptr<vkr::PipelineLayout> m_pipelineLayout;
     std::unique_ptr<vkr::Pipeline> m_pipeline;
 
-    std::vector<VkCommandBuffer> m_commandBuffers;
+    std::unique_ptr<vkr::CommandBuffers> m_commandBuffers;
 
     std::vector<vkr::Semaphore> m_imageAvailableSemaphores;
     std::vector<vkr::Semaphore> m_renderFinishedSemaphores;
