@@ -11,8 +11,10 @@ namespace vkr
     	~DescriptorPool();
 
         VkDescriptorPool const& getHandle() const { return m_handle; }
+        std::size_t getSize() const { return m_size; }
 
     private:
     	VkDescriptorPool m_handle;
+        std::size_t m_size;
     };
 }
