@@ -4,6 +4,7 @@
 
 namespace vkr
 {
+    class Image;
     class ImageView;
     class RenderPass;
     class Framebuffer;
@@ -21,7 +22,7 @@ namespace vkr
         VkSurfaceFormatKHR getSurfaceFormat() const { return m_surfaceFormat; }
 
         std::size_t getImageCount() const { return m_images.size(); }
-        std::vector<VkImage> const& getImages() const { return m_images; }
+        std::vector<std::unique_ptr<vkr::Image>> const& getImages() const { return m_images; }
         std::vector<std::unique_ptr<vkr::ImageView>> const& getImageViews() const { return m_imageViews; }
         std::vector<std::unique_ptr<vkr::Framebuffer>> const& getFramebuffers() const { return m_framebuffers; }
 
@@ -36,7 +37,8 @@ namespace vkr
         VkExtent2D m_extent;
         VkSurfaceFormatKHR m_surfaceFormat;
 
-        std::vector<VkImage> m_images;
+        //std::vector<VkImage> m_images;
+        std::vector<std::unique_ptr<vkr::Image>> m_images;
         std::vector<std::unique_ptr<vkr::ImageView>> m_imageViews;
         std::vector<std::unique_ptr<vkr::Framebuffer>> m_framebuffers;
     };

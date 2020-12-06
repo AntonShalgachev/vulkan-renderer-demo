@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "ImageView.h"
 #include "Framebuffer.h"
+#include "Image.h"
 
 namespace
 {
@@ -116,14 +117,20 @@ void vkr::Swapchain::retrieveImages()
 {
     uint32_t finalImageCount = 0;
     vkGetSwapchainImagesKHR(temp::getDevice(), m_handle, &finalImageCount, nullptr);
-    m_images.resize(finalImageCount);
-    vkGetSwapchainImagesKHR(temp::getDevice(), m_handle, &finalImageCount, m_images.data());
+
+    std::vector<VkImage> imageHandles;
+    imageHandles.resize(finalImageCount);
+    vkGetSwapchainImagesKHR(temp::getDevice(), m_handle, &finalImageCount, imageHandles.data());
+
+    m_images.reserve(finalImageCount);
+    for (VkImage const& handle : imageHandles)
+        m_images.push_back(std::make_unique<Image>(handle, m_surfaceFormat.format));
 }
 
 void vkr::Swapchain::createImageViews()
 {
-    m_imageViews.resize(m_images.size());
+    m_imageViews.reserve(m_images.size());
 
-    for (std::size_t i = 0; i < m_images.size(); i++)
-        m_imageViews[i] = std::make_unique<vkr::ImageView>(m_images[i], m_surfaceFormat.format, VK_IMAGE_ASPECT_COLOR_BIT);
+    for (auto const& image : m_images)
+        m_imageViews.push_back(image->createImageView(VK_IMAGE_ASPECT_COLOR_BIT));
 }

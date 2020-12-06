@@ -28,9 +28,17 @@ namespace vkr
             throw std::runtime_error("failed to create image!");
     }
 
+    Image::Image(VkImage image, VkFormat format)
+    {
+        m_isOwned = false;
+        m_image = image;
+        m_format = format;
+    }
+
     Image::~Image()
     {
-        vkDestroyImage(temp::getDevice(), m_image, nullptr);
+        if (m_isOwned)
+            vkDestroyImage(temp::getDevice(), m_image, nullptr);
     }
 
     VkMemoryRequirements Image::getMemoryRequirements() const

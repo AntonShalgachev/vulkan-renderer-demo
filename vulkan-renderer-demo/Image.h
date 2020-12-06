@@ -11,6 +11,7 @@ namespace vkr
     {
     public:
         Image(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage);
+        Image(VkImage image, VkFormat format);
         ~Image();
 
         VkMemoryRequirements getMemoryRequirements() const;
@@ -22,6 +23,7 @@ namespace vkr
         VkFormat getFormat() const { return m_format; }
 
     private:
+        bool m_isOwned = true;
         VkImage m_image;
         VkFormat m_format;
     };
