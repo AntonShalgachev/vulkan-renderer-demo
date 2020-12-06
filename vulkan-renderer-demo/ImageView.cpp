@@ -2,16 +2,17 @@
 
 #include "ServiceLocator.h"
 #include "Renderer.h"
+#include "Image.h"
 
 namespace vkr
 {
-	ImageView::ImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
+	ImageView::ImageView(vkr::Image const& image, VkImageAspectFlags aspectFlags)
 	{
 		VkImageViewCreateInfo imageViewCreateInfo{};
 		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		imageViewCreateInfo.image = image;
+		imageViewCreateInfo.image = image.getHandle();
 		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		imageViewCreateInfo.format = format;
+		imageViewCreateInfo.format = image.getFormat();
 		imageViewCreateInfo.subresourceRange.aspectMask = aspectFlags;
 		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
 		imageViewCreateInfo.subresourceRange.levelCount = 1;

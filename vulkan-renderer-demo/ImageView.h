@@ -4,10 +4,12 @@
 
 namespace vkr
 {
+    class Image;
+
 	class ImageView
 	{
 	public:
-		ImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+		ImageView(vkr::Image const& image, VkImageAspectFlags aspectFlags);
 		~ImageView();
 
         VkImageView getHandle() const { return m_imageView; }

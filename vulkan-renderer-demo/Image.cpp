@@ -56,7 +56,7 @@ namespace vkr
 
     std::unique_ptr<vkr::ImageView> Image::createImageView(VkImageAspectFlags aspectFlags)
     {
-        return std::make_unique<vkr::ImageView>(m_image, m_format, aspectFlags);
+        return std::make_unique<vkr::ImageView>(*this, aspectFlags);
     }
 
 }
