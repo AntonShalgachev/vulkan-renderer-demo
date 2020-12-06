@@ -189,6 +189,7 @@
     <ClCompile Include="ServiceLocator.cpp" />
     <ClCompile Include="ShaderModule.cpp" />
     <ClCompile Include="Swapchain.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="vulkan-renderer-demo.cpp" />
   </ItemGroup>
@@ -215,6 +216,7 @@
     <ClInclude Include="ServiceLocator.h" />
     <ClInclude Include="ShaderModule.h" />
     <ClInclude Include="Swapchain.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
