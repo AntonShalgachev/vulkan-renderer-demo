@@ -82,10 +82,8 @@ private:
 
         vkr::ServiceLocator::instance().setRenderer(std::move(renderer));
 
-        createDescriptorSetLayout();
-        createTextureImage();
-        createTextureImageView();
-        createTextureSampler();
+        m_descriptorSetLayout = std::make_unique<vkr::DescriptorSetLayout>();
+        createTextureResources();
         loadModel();
         createVertexBuffer();
         createIndexBuffer();
@@ -97,12 +95,12 @@ private:
     void initSwapchain()
     {
         createSwapchain();
-        createRenderPass();
+        m_renderPass = std::make_unique<vkr::RenderPass>(*m_swapchain);
         createGraphicsPipeline();
         createDepthResources();
-        createFramebuffers();
+        m_swapchain->createFramebuffers(*m_renderPass, *m_depthImageView);
         createUniformBuffers();
-        createDescriptorPool();
+        m_descriptorPool = std::make_unique<vkr::DescriptorPool>(m_swapchain->getImageCount());
         createDescriptorSets();
         createCommandBuffers();
     }
@@ -130,16 +128,6 @@ private:
         m_swapchain = std::make_unique<vkr::Swapchain>();
     }
 
-    void createRenderPass()
-    {
-        m_renderPass = std::make_unique<vkr::RenderPass>(*m_swapchain);
-    }
-
-    void createDescriptorSetLayout()
-    {
-        m_descriptorSetLayout = std::make_unique<vkr::DescriptorSetLayout>();
-    }
-
     void createGraphicsPipeline()
     {
         m_pipelineLayout = std::make_unique<vkr::PipelineLayout>(*m_descriptorSetLayout);
@@ -148,11 +136,6 @@ private:
         vkr::ShaderModule fragShaderModule{ "data/shaders/frag.spv", vkr::ShaderModule::Type::Fragment, "main" };
 
         m_pipeline = std::make_unique<vkr::Pipeline>(*m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), vertShaderModule, fragShaderModule);
-    }
-
-    void createFramebuffers()
-    {
-        m_swapchain->createFramebuffers(*m_renderPass, *m_depthImageView);
     }
 
     void createDepthResources()
@@ -164,12 +147,7 @@ private:
         m_depthImageView = m_depthImage->createImageView(VK_IMAGE_ASPECT_DEPTH_BIT);
     }
 
-    bool hasStencilComponent(VkFormat format)
-    {
-        return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
-    }
-
-    void createTextureImage()
+    void createTextureResources()
     {
         int texWidth, texHeight, texChannels;
         stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
@@ -193,15 +171,8 @@ private:
         // TODO extract to some class
         copyBufferToImage(stagingBuffer->getHandle(), m_textureImage->getHandle(), static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
         transitionImageLayout(m_textureImage->getHandle(), m_textureImage->getFormat(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    }
 
-    void createTextureImageView()
-    {
         m_textureImageView = m_textureImage->createImageView(VK_IMAGE_ASPECT_COLOR_BIT);
-    }
-
-    void createTextureSampler()
-    {
         m_textureSampler = std::make_unique<vkr::Sampler>();
     }
 
@@ -401,11 +372,6 @@ private:
 
         for (size_t i = 0; i < m_swapchain->getImageCount(); i++)
             createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uniformBuffers[i], m_uniformBuffersMemory[i]);
-    }
-
-    void createDescriptorPool()
-    {
-        m_descriptorPool = std::make_unique<vkr::DescriptorPool>(m_swapchain->getImageCount());
     }
 
     void createDescriptorSets()
