@@ -10,6 +10,7 @@
 #include "Swapchain.h"
 #include <memory>
 #include "RenderPass.h"
+#include "Framebuffer.h"
 
 namespace
 {
@@ -353,26 +354,7 @@ private:
 
     void createFramebuffers()
     {
-        VkExtent2D swapchainExtent = m_swapchain->getExtent();
-
-        m_swapchainFramebuffers.resize(m_swapchain->getImageCount());
-
-        for (size_t i = 0; i < m_swapchainFramebuffers.size(); i++)
-        {
-            std::array<VkImageView, 2> attachments = { m_swapchain->getImageViews()[i]->getHandle(), m_depthImageView->getHandle() };
-
-            VkFramebufferCreateInfo framebufferCreateInfo{};
-            framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            framebufferCreateInfo.renderPass = m_renderPass->getHandle();
-            framebufferCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-            framebufferCreateInfo.pAttachments = attachments.data();
-            framebufferCreateInfo.width = swapchainExtent.width;
-            framebufferCreateInfo.height = swapchainExtent.height;
-            framebufferCreateInfo.layers = 1;
-
-            if (vkCreateFramebuffer(getDevice(), &framebufferCreateInfo, nullptr, &m_swapchainFramebuffers[i]) != VK_SUCCESS)
-                throw std::runtime_error("failed to create framebuffer!");
-        }
+        m_swapchain->createFramebuffers(*m_renderPass, *m_depthImageView);
     }
 
     void createDepthResources()
@@ -691,7 +673,7 @@ private:
 
     void createCommandBuffers()
     {
-        m_commandBuffers.resize(m_swapchainFramebuffers.size());
+        m_commandBuffers.resize(m_swapchain->getImageCount());
 
         VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
         commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -715,7 +697,7 @@ private:
             VkRenderPassBeginInfo renderPassBeginInfo{};
             renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
             renderPassBeginInfo.renderPass = m_renderPass->getHandle();
-            renderPassBeginInfo.framebuffer = m_swapchainFramebuffers[i];
+            renderPassBeginInfo.framebuffer = m_swapchain->getFramebuffers()[i]->getHandle();
             renderPassBeginInfo.renderArea.offset = { 0, 0 };
             renderPassBeginInfo.renderArea.extent = m_swapchain->getExtent();
 
@@ -923,9 +905,6 @@ private:
     {
         vkDestroyDescriptorPool(getDevice(), m_descriptorPool, nullptr);
 
-        for (auto framebuffer : m_swapchainFramebuffers)
-            vkDestroyFramebuffer(getDevice(), framebuffer, nullptr);
-
         vkDestroyPipeline(getDevice(), m_pipeline, nullptr);
         vkDestroyPipelineLayout(getDevice(), m_pipelineLayout, nullptr);
     }
@@ -941,8 +920,6 @@ private:
     std::unique_ptr<vkr::RenderPass> m_renderPass;
     VkPipelineLayout m_pipelineLayout;
     VkPipeline m_pipeline;
-
-    std::vector<VkFramebuffer> m_swapchainFramebuffers;
 
     std::vector<VkCommandBuffer> m_commandBuffers;
 

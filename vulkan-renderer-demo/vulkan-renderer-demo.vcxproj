@@ -169,6 +169,7 @@
   <ItemGroup>
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="DeviceMemory.cpp" />
+    <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="framework.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="ImageView.cpp" />
@@ -183,6 +184,7 @@
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="DeviceMemory.h" />
+    <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImageView.h" />

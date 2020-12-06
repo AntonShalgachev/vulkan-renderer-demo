@@ -2,6 +2,7 @@
 
 #include "Renderer.h"
 #include "ImageView.h"
+#include "Framebuffer.h"
 
 namespace
 {
@@ -51,6 +52,12 @@ vkr::Swapchain::Swapchain()
 vkr::Swapchain::~Swapchain()
 {
     vkDestroySwapchainKHR(temp::getDevice(), m_handle, nullptr);
+}
+
+void vkr::Swapchain::createFramebuffers(vkr::RenderPass const& renderPass, vkr::ImageView const& depthImageView)
+{
+    for (std::unique_ptr<vkr::ImageView> const& colorImageView : m_imageViews)
+        m_framebuffers.push_back(std::make_unique<vkr::Framebuffer>(*colorImageView, depthImageView, renderPass, m_extent));
 }
 
 void vkr::Swapchain::createSwapchain()

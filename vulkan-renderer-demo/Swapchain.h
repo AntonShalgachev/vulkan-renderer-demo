@@ -5,12 +5,16 @@
 namespace vkr
 {
     class ImageView;
+    class RenderPass;
+    class Framebuffer;
 
     class Swapchain
     {
     public:
         Swapchain();
         ~Swapchain();
+
+        void createFramebuffers(vkr::RenderPass const& renderPass, vkr::ImageView const& depthImageView);
 
         VkSwapchainKHR getHandle() const { return m_handle; }
         VkExtent2D getExtent() const { return m_extent; }
@@ -19,6 +23,7 @@ namespace vkr
         std::size_t getImageCount() const { return m_images.size(); }
         std::vector<VkImage> const& getImages() const { return m_images; }
         std::vector<std::unique_ptr<vkr::ImageView>> const& getImageViews() const { return m_imageViews; }
+        std::vector<std::unique_ptr<vkr::Framebuffer>> const& getFramebuffers() const { return m_framebuffers; }
 
     private:
         void createSwapchain();
@@ -33,5 +38,6 @@ namespace vkr
 
         std::vector<VkImage> m_images;
         std::vector<std::unique_ptr<vkr::ImageView>> m_imageViews;
+        std::vector<std::unique_ptr<vkr::Framebuffer>> m_framebuffers;
     };
 }
