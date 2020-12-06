@@ -38,7 +38,7 @@ void vkr::CommandBuffers::end(std::size_t index)
         throw std::runtime_error("failed to record command buffer!");
 }
 
-void vkr::CommandBuffers::submit(std::size_t index)
+void vkr::CommandBuffers::submitAndWait(std::size_t index)
 {
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -46,6 +46,8 @@ void vkr::CommandBuffers::submit(std::size_t index)
     submitInfo.pCommandBuffers = &m_handles[index];
 
     vkQueueSubmit(temp::getRenderer()->getGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+
+    vkQueueWaitIdle(temp::getRenderer()->getGraphicsQueue());
 }
 
 void vkr::CommandBuffers::submit(std::size_t index, Semaphore const& signalSemaphore, Semaphore const& waitSemaphore, Fence const& signalFence)

@@ -15,7 +15,7 @@ namespace vkr
 
         void begin(std::size_t index, VkCommandBufferUsageFlags flags);
         void end(std::size_t index);
-        void submit(std::size_t index);
+        void submitAndWait(std::size_t index);
         void submit(std::size_t index, Semaphore const& signalSemaphore, Semaphore const& waitSemaphore, Fence const& signalFence);
 
         std::size_t getSize() const { return m_handles.size(); }

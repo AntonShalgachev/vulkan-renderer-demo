@@ -20,6 +20,7 @@
 #include "Semaphore.h"
 #include "Fence.h"
 #include "CommandBuffers.h"
+#include "ScopedOneTimeCommandBuffer.h"
 
 namespace
 {
@@ -181,7 +182,7 @@ private:
 
     void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
     {
-        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+        vkr::ScopedOneTimeCommandBuffer commandBuffer;
 
         VkImageMemoryBarrier barrier{};
         barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -223,20 +224,18 @@ private:
         }
 
         vkCmdPipelineBarrier(
-            commandBuffer,
+            commandBuffer.getHandle(),
             sourceStage, destinationStage,
             0,
             0, nullptr,
             0, nullptr,
             1, &barrier
         );
-
-        endSingleTimeCommands(commandBuffer);
     }
 
     void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
     {
-        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+        vkr::ScopedOneTimeCommandBuffer commandBuffer;
 
         VkBufferImageCopy region{};
         region.bufferOffset = 0;
@@ -256,15 +255,13 @@ private:
         };
 
         vkCmdCopyBufferToImage(
-            commandBuffer,
+            commandBuffer.getHandle(),
             buffer,
             image,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             1,
             &region
         );
-
-        endSingleTimeCommands(commandBuffer);
     }
 
     void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, std::unique_ptr<vkr::Image>& image, std::unique_ptr<vkr::DeviceMemory>& imageMemory)
@@ -283,13 +280,11 @@ private:
 
     void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
     {
-        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+        vkr::ScopedOneTimeCommandBuffer commandBuffer;
 
         VkBufferCopy copyRegion{};
         copyRegion.size = size;
-        vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-
-        endSingleTimeCommands(commandBuffer);
+        vkCmdCopyBuffer(commandBuffer.getHandle(), srcBuffer, dstBuffer, 1, &copyRegion);
     }
 
     void loadModel()
@@ -421,43 +416,6 @@ private:
 
             m_commandBuffers->end(i);
         }
-    }
-
-    VkCommandBuffer beginSingleTimeCommands()
-    {
-        VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
-        commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        commandBufferAllocateInfo.commandPool = getRenderer()->getCommandPool();
-        commandBufferAllocateInfo.commandBufferCount = 1;
-
-        VkCommandBuffer commandBuffer;
-        vkAllocateCommandBuffers(getDevice(), &commandBufferAllocateInfo, &commandBuffer);
-
-        VkCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-        vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
-        return commandBuffer;
-    }
-
-    void endSingleTimeCommands(VkCommandBuffer commandBuffer)
-    {
-        vkEndCommandBuffer(commandBuffer);
-
-        VkSubmitInfo submitInfo{};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &commandBuffer;
-
-        vkQueueSubmit(getRenderer()->getGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-
-        // DO NOT REMOVE
-        vkQueueWaitIdle(getRenderer()->getGraphicsQueue());
-
-        vkFreeCommandBuffers(getDevice(), getRenderer()->getCommandPool(), 1, &commandBuffer);
     }
 
     void createSyncObjects()
