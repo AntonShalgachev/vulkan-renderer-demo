@@ -176,6 +176,7 @@
     <ClCompile Include="framework.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="ImageView.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="PipelineLayout.cpp" />
     <ClCompile Include="Renderer.cpp" />
@@ -196,6 +197,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImageView.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="Pipeline.h" />
     <ClInclude Include="PipelineLayout.h" />
     <ClInclude Include="Renderer.h" />

@@ -16,6 +16,7 @@
 #include "Pipeline.h"
 #include "Vertex.h"
 #include "DescriptorSets.h"
+#include "Mesh.h"
 
 namespace
 {
@@ -290,55 +291,19 @@ private:
 
     void loadModel()
     {
-        tinyobj::attrib_t attrib;
-        std::vector<tinyobj::shape_t> shapes;
-        std::vector<tinyobj::material_t> materials;
-        std::string warnings, errors;
-
-        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warnings, &errors, MODEL_PATH.c_str()))
-            throw std::runtime_error(warnings + errors);
-
-        std::unordered_map<vkr::Vertex, uint32_t> uniqueVertices{};
-
-        for (const auto& shape : shapes)
-        {
-            for (const auto& index : shape.mesh.indices)
-            {
-                vkr::Vertex vertex{};
-
-                vertex.pos = {
-                    attrib.vertices[3 * index.vertex_index + 0],
-                    attrib.vertices[3 * index.vertex_index + 1],
-                    attrib.vertices[3 * index.vertex_index + 2],
-                };
-
-                vertex.texCoord = {
-                    attrib.texcoords[2 * index.texcoord_index + 0],
-                    1.0f - attrib.texcoords[2 * index.texcoord_index + 1],
-                };
-
-                vertex.color = { 1.0f, 1.0f, 1.0f };
-
-                if (uniqueVertices.count(vertex) == 0)
-                {
-                    uniqueVertices[vertex] = static_cast<uint32_t>(m_vertices.size());
-                    m_vertices.push_back(vertex);
-                }
-
-                m_indices.push_back(uniqueVertices[vertex]);
-            }
-        }
+        m_mesh = std::make_unique<vkr::Mesh>(MODEL_PATH);
     }
 
     void createVertexBuffer()
     {
-        VkDeviceSize bufferSize = sizeof(m_vertices[0]) * m_vertices.size();
+        auto const& vertices = m_mesh->getVertices();
+        VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
         std::unique_ptr<vkr::Buffer> stagingBuffer;
         std::unique_ptr<vkr::DeviceMemory> stagingBufferMemory;
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-        stagingBufferMemory->copyFrom(m_vertices);
+        stagingBufferMemory->copyFrom(vertices);
 
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexBufferMemory);
 
@@ -348,13 +313,14 @@ private:
 
     void createIndexBuffer()
     {
-        VkDeviceSize bufferSize = sizeof(m_indices[0]) * m_indices.size();
+        auto const& indices = m_mesh->getIndices();
+        VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
         std::unique_ptr<vkr::Buffer> stagingBuffer;
         std::unique_ptr<vkr::DeviceMemory> stagingBufferMemory;
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-        stagingBufferMemory->copyFrom(m_indices);
+        stagingBufferMemory->copyFrom(indices);
 
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer, m_indexBufferMemory);
 
@@ -457,7 +423,7 @@ private:
             vkCmdBindIndexBuffer(m_commandBuffers[i], m_indexBuffer->getHandle(), 0, VK_INDEX_TYPE_UINT32);
 
             vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout->getHandle(), 0, 1, &m_descriptorSets->getHandles()[i], 0, nullptr);
-            vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_indices.size()), 1, 0, 0, 0);
+            vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_mesh->getIndexCount()), 1, 0, 0, 0);
 
             vkCmdEndRenderPass(m_commandBuffers[i]);
 
@@ -680,8 +646,7 @@ private:
     std::unique_ptr<vkr::DeviceMemory> m_depthImageMemory;
     std::unique_ptr<vkr::ImageView> m_depthImageView;
 
-    std::vector<vkr::Vertex> m_vertices;
-    std::vector<uint32_t> m_indices;
+    std::unique_ptr<vkr::Mesh> m_mesh;
 };
 
 int main()
