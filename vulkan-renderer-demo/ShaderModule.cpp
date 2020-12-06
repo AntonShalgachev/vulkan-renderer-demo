@@ -33,8 +33,11 @@ namespace
     }
 }
 
-vkr::ShaderModule::ShaderModule(std::string const& path)
+vkr::ShaderModule::ShaderModule(std::string const& path, Type type, std::string const& entryPoint)
 {
+    m_type = type;
+    m_entryPoint = entryPoint;
+
     std::vector<char> code = readFile(path);
 
     VkShaderModuleCreateInfo createInfo{};
@@ -51,13 +54,13 @@ vkr::ShaderModule::~ShaderModule()
     vkDestroyShaderModule(temp::getDevice(), m_handle, nullptr);
 }
 
-VkPipelineShaderStageCreateInfo vkr::ShaderModule::createStageCreateInfo(Type type, char const* entryPoint)
+VkPipelineShaderStageCreateInfo vkr::ShaderModule::createStageCreateInfo() const
 {
     VkPipelineShaderStageCreateInfo stageCreateInfo{};
     stageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    stageCreateInfo.stage = getStageFlags(type);
+    stageCreateInfo.stage = getStageFlags(m_type);
     stageCreateInfo.module = m_handle;
-    stageCreateInfo.pName = entryPoint;
+    stageCreateInfo.pName = m_entryPoint.c_str();
 
     return stageCreateInfo;
 }

@@ -14,15 +14,17 @@ namespace vkr
         };
 
     public:
-        ShaderModule(std::string const& path);
+        ShaderModule(std::string const& path, Type type, std::string const& entryPoint);
         ~ShaderModule();
 
-        VkPipelineShaderStageCreateInfo createStageCreateInfo(Type type, char const* entryPoint);
+        VkPipelineShaderStageCreateInfo createStageCreateInfo() const;
 
         VkShaderModule getHandle() const { return m_handle; }
 
     private:
         VkShaderModule m_handle;
+
+        Type m_type;
         std::string m_entryPoint;
     };
 }

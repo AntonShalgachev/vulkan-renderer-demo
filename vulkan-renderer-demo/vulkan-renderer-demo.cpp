@@ -199,11 +199,11 @@ private:
 
     void createGraphicsPipeline()
     {
-        vkr::ShaderModule vertShaderModule{ "data/shaders/vert.spv" };
-        vkr::ShaderModule fragShaderModule{ "data/shaders/frag.spv" };
+        vkr::ShaderModule vertShaderModule{ "data/shaders/vert.spv", vkr::ShaderModule::Type::Vertex, "main" };
+        vkr::ShaderModule fragShaderModule{ "data/shaders/frag.spv", vkr::ShaderModule::Type::Fragment, "main" };
 
-        VkPipelineShaderStageCreateInfo vertShaderStageInfo = vertShaderModule.createStageCreateInfo(vkr::ShaderModule::Type::Vertex, "main");
-        VkPipelineShaderStageCreateInfo fragShaderStageInfo = fragShaderModule.createStageCreateInfo(vkr::ShaderModule::Type::Fragment, "main");
+        VkPipelineShaderStageCreateInfo vertShaderStageInfo = vertShaderModule.createStageCreateInfo();
+        VkPipelineShaderStageCreateInfo fragShaderStageInfo = fragShaderModule.createStageCreateInfo();
 
         VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
