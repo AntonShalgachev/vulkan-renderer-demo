@@ -168,6 +168,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="DescriptorPool.cpp" />
     <ClCompile Include="DescriptorSetLayout.cpp" />
     <ClCompile Include="DeviceMemory.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
@@ -186,6 +187,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
+    <ClInclude Include="DescriptorPool.h" />
     <ClInclude Include="DescriptorSetLayout.h" />
     <ClInclude Include="DeviceMemory.h" />
     <ClInclude Include="Framebuffer.h" />

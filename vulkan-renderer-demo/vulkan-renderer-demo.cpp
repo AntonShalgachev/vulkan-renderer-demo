@@ -14,6 +14,7 @@
 #include "DescriptorSetLayout.h"
 #include "PipelineLayout.h"
 #include "Pipeline.h"
+#include "DescriptorPool.h"
 
 namespace
 {
@@ -177,7 +178,6 @@ private:
 
         vkDeviceWaitIdle(getDevice());
 
-        cleanupSwapchain();
         initSwapchain();
     }
 
@@ -464,20 +464,7 @@ private:
 
     void createDescriptorPool()
     {
-        std::array<VkDescriptorPoolSize, 2> poolSizes{};
-        poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        poolSizes[0].descriptorCount = static_cast<uint32_t>(m_swapchain->getImageCount());
-        poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        poolSizes[1].descriptorCount = static_cast<uint32_t>(m_swapchain->getImageCount());
-
-        VkDescriptorPoolCreateInfo poolCreateInfo{};
-        poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolCreateInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-        poolCreateInfo.pPoolSizes = poolSizes.data();
-        poolCreateInfo.maxSets = static_cast<uint32_t>(m_swapchain->getImageCount());
-
-        if (vkCreateDescriptorPool(getDevice(), &poolCreateInfo, nullptr, &m_descriptorPool) != VK_SUCCESS)
-            throw std::runtime_error("failed to create descriptor pool");
+        m_descriptorPool = std::make_unique<vkr::DescriptorPool>(m_swapchain->getImageCount());
     }
 
     void createDescriptorSets()
@@ -486,7 +473,7 @@ private:
 
         VkDescriptorSetAllocateInfo descriptorSetallocInfo{};
         descriptorSetallocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        descriptorSetallocInfo.descriptorPool = m_descriptorPool;
+        descriptorSetallocInfo.descriptorPool = m_descriptorPool->getHandle();
         descriptorSetallocInfo.descriptorSetCount = static_cast<uint32_t>(m_swapchain->getImageCount());
         descriptorSetallocInfo.pSetLayouts = layouts.data();
 
@@ -749,16 +736,9 @@ private:
             vkDestroyFence(getDevice(), m_inFlightFences[i], nullptr);
         }
 
-        cleanupSwapchain();
-
         glfwDestroyWindow(m_window);
 
         glfwTerminate();
-    }
-
-    void cleanupSwapchain()
-    {
-        vkDestroyDescriptorPool(getDevice(), m_descriptorPool, nullptr);
     }
 
     std::unique_ptr<vkr::Renderer> const& getRenderer() const { return vkr::ServiceLocator::instance().getRenderer(); }
@@ -793,7 +773,7 @@ private:
     std::vector<std::unique_ptr<vkr::DeviceMemory>> m_uniformBuffersMemory;
 
     std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayout;
-    VkDescriptorPool m_descriptorPool;
+    std::unique_ptr<vkr::DescriptorPool> m_descriptorPool;
     std::vector<VkDescriptorSet> m_descriptorSets;
 
     std::unique_ptr<vkr::Image> m_textureImage;
