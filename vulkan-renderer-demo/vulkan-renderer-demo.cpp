@@ -109,8 +109,10 @@ private:
         createSwapchain();
         m_renderPass = std::make_unique<vkr::RenderPass>(*m_swapchain);
         createGraphicsPipeline();
+
         createDepthResources();
         m_swapchain->createFramebuffers(*m_renderPass, *m_depthImageView);
+
         createUniformBuffers();
         createDescriptorSets();
         createCommandBuffers();
@@ -346,38 +348,40 @@ private:
 private:
     GLFWwindow* m_window = nullptr;
 
-    std::unique_ptr<vkr::Swapchain> m_swapchain;
-
-    std::unique_ptr<vkr::RenderPass> m_renderPass;
-    std::unique_ptr<vkr::PipelineLayout> m_pipelineLayout;
-    std::unique_ptr<vkr::Pipeline> m_pipeline;
-
-    std::unique_ptr<vkr::CommandBuffers> m_commandBuffers;
-
+    // Renderer
     std::vector<vkr::Semaphore> m_imageAvailableSemaphores;
     std::vector<vkr::Semaphore> m_renderFinishedSemaphores;
     std::vector<vkr::Fence> m_inFlightFences;
-
     std::vector<vkr::Fence*> m_currentFences;
 
     std::size_t m_currentFrame = 0;
-
     bool m_framebufferResized = false;
 
-    std::vector<std::unique_ptr<vkr::Buffer>> m_uniformBuffers;
-    std::vector<std::unique_ptr<vkr::DeviceMemory>> m_uniformBuffersMemory;
-
-    std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayout;
-    std::unique_ptr<vkr::DescriptorSets> m_descriptorSets;
-
-    std::unique_ptr<vkr::Sampler> m_sampler;
+    // Swapchain
+    std::unique_ptr<vkr::Swapchain> m_swapchain;
+    std::unique_ptr<vkr::RenderPass> m_renderPass;
+    std::unique_ptr<vkr::PipelineLayout> m_pipelineLayout;
+    std::unique_ptr<vkr::Pipeline> m_pipeline;
 
     std::unique_ptr<vkr::Image> m_depthImage;
     std::unique_ptr<vkr::DeviceMemory> m_depthImageMemory;
     std::unique_ptr<vkr::ImageView> m_depthImageView;
 
+    std::unique_ptr<vkr::CommandBuffers> m_commandBuffers;
+
+    // Per type
+    std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayout;
+
+    // Per instance
+    std::vector<std::unique_ptr<vkr::Buffer>> m_uniformBuffers;
+    std::vector<std::unique_ptr<vkr::DeviceMemory>> m_uniformBuffersMemory;
+    std::unique_ptr<vkr::DescriptorSets> m_descriptorSets;
+
+    // Resources
     std::unique_ptr<vkr::Mesh> m_mesh;
     std::unique_ptr<vkr::Texture> m_texture;
+
+    std::unique_ptr<vkr::Sampler> m_sampler;
 };
 
 int main()
