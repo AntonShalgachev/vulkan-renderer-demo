@@ -23,6 +23,7 @@
 #include "ScopedOneTimeCommandBuffer.h"
 #include "Utils.h"
 #include "Texture.h"
+#include "ObjectInstance.h"
 
 namespace
 {
@@ -113,8 +114,8 @@ private:
         createDepthResources();
         m_swapchain->createFramebuffers(*m_renderPass, *m_depthImageView);
 
-        createUniformBuffers();
-        createDescriptorSets();
+        m_instance = std::make_unique<vkr::ObjectInstance>(sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture, *m_sampler, *m_descriptorSetLayout);
+
         createCommandBuffers();
     }
 
@@ -160,25 +161,6 @@ private:
         m_depthImageView = m_depthImage->createImageView(VK_IMAGE_ASPECT_DEPTH_BIT);
     }
 
-    void createUniformBuffers()
-    {
-        VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
-        m_uniformBuffers.resize(m_swapchain->getImageCount());
-        m_uniformBuffersMemory.resize(m_swapchain->getImageCount());
-
-        for (size_t i = 0; i < m_swapchain->getImageCount(); i++)
-            vkr::utils::createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uniformBuffers[i], m_uniformBuffersMemory[i]);
-    }
-
-    void createDescriptorSets()
-    {
-        m_descriptorSets = std::make_unique<vkr::DescriptorSets>(m_swapchain->getImageCount(), *m_descriptorSetLayout);
-
-        for (size_t i = 0; i < m_descriptorSets->getSize(); i++)
-            m_descriptorSets->update(i, *m_uniformBuffers[i], *m_texture, *m_sampler);
-    }
-
     void createCommandBuffers()
     {
         m_commandBuffers = std::make_unique<vkr::CommandBuffers>(m_swapchain->getImageCount());
@@ -208,8 +190,8 @@ private:
             vkCmdBindPipeline(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->getHandle());
 
             m_mesh->bindBuffers(handle);
+            m_instance->bindDescriptorSet(handle, i, *m_pipelineLayout);
 
-            vkCmdBindDescriptorSets(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout->getHandle(), 0, 1, &m_descriptorSets->getHandles()[i], 0, nullptr);
             vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh->getIndexCount()), 1, 0, 0, 0);
 
             vkCmdEndRenderPass(handle);
@@ -291,7 +273,7 @@ private:
         ubo.proj = glm::perspective(glm::radians(45.0f), 1.0f * swapchainExtent.width / swapchainExtent.height, 0.1f, 10.0f);
         ubo.proj[1][1] *= -1;
 
-        m_uniformBuffersMemory[currentImage]->copyFrom(&ubo, sizeof(ubo));
+        m_instance->copyToUniformBuffer(currentImage, &ubo, sizeof(ubo));
     }
 
     void mainLoop()
@@ -339,9 +321,7 @@ private:
     std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayout;
 
     // Per instance
-    std::vector<std::unique_ptr<vkr::Buffer>> m_uniformBuffers;
-    std::vector<std::unique_ptr<vkr::DeviceMemory>> m_uniformBuffersMemory;
-    std::unique_ptr<vkr::DescriptorSets> m_descriptorSets;
+    std::unique_ptr<vkr::ObjectInstance> m_instance;
 
     // Resources
     std::unique_ptr<vkr::Mesh> m_mesh;
