@@ -37,14 +37,21 @@ namespace
     const uint32_t TARGET_WINDOW_WIDTH = 800;
     const uint32_t TARGET_WINDOW_HEIGHT = 600;
 
-    //const std::string MODEL_PATH = "data/models/cat.obj";
-    //const std::string TEXTURE_PATH = "data/textures/cat.jpg";
-    //const float MODEL_SCALE = 0.05f;
-    const std::string MODEL_PATH = "data/models/viking_room.obj";
-    const std::string TEXTURE_PATH = "data/textures/viking_room.png";
-    const float MODEL_SCALE = 1.0f;
-    const glm::vec3 MODEL1_INSTANCE1_POSITION = { -1.0f, 0.0f, 0.0f };
-    const glm::vec3 MODEL1_INSTANCE2_POSITION = { 1.0f, 0.0f, 0.0f };
+    const std::string MODEL1_PATH = "data/models/viking_room.obj";
+    const std::string TEXTURE1_PATH = "data/textures/viking_room.png";
+    const float MODEL1_SCALE = 1.0f;
+    const float MODEL1_INSTANCE1_POSITION_X = -1.0f;
+    const float MODEL1_INSTANCE1_AMPLITUDE_Z = 0.0f;
+    const float MODEL1_INSTANCE2_POSITION_X = 1.0f;
+    const float MODEL1_INSTANCE2_AMPLITUDE_Z = 0.0f;
+
+    const std::string MODEL2_PATH = "data/models/cat.obj";
+    const std::string TEXTURE2_PATH = "data/textures/cat.jpg";
+    const float MODEL2_SCALE = 0.01f;
+    const float MODEL2_INSTANCE1_POSITION_X = -1.0f;
+    const float MODEL2_INSTANCE1_AMPLITUDE_Z = 0.5f;
+    const float MODEL2_INSTANCE2_POSITION_x = 1.0f;
+    const float MODEL2_INSTANCE2_AMPLITUDE_Z = 0.5f;
 
     const int MAX_FRAMES_IN_FLIGHT = 2;
 }
@@ -97,9 +104,11 @@ private:
         vkr::ServiceLocator::instance().setRenderer(std::move(renderer));
 
         m_descriptorSetLayout = std::make_unique<vkr::DescriptorSetLayout>();
-        
-        m_mesh = std::make_unique<vkr::Mesh>(MODEL_PATH);
-        m_texture = std::make_unique<vkr::Texture>(TEXTURE_PATH);
+
+        m_mesh1 = std::make_unique<vkr::Mesh>(MODEL1_PATH);
+        m_texture1 = std::make_unique<vkr::Texture>(TEXTURE1_PATH);
+        m_mesh2 = std::make_unique<vkr::Mesh>(MODEL2_PATH);
+        m_texture2 = std::make_unique<vkr::Texture>(TEXTURE2_PATH);
 
         m_sampler = std::make_unique<vkr::Sampler>();
 
@@ -116,8 +125,10 @@ private:
         createDepthResources();
         m_swapchain->createFramebuffers(*m_renderPass, *m_depthImageView);
 
-        m_instance1 = std::make_unique<vkr::ObjectInstance>(sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture, *m_sampler, *m_descriptorSetLayout);
-        m_instance2 = std::make_unique<vkr::ObjectInstance>(sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture, *m_sampler, *m_descriptorSetLayout);
+        m_instance1Model1 = std::make_unique<vkr::ObjectInstance>(sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture1, *m_sampler, *m_descriptorSetLayout);
+        m_instance2Model1 = std::make_unique<vkr::ObjectInstance>(sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture1, *m_sampler, *m_descriptorSetLayout);
+        m_instance1Model2 = std::make_unique<vkr::ObjectInstance>(sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture2, *m_sampler, *m_descriptorSetLayout);
+        m_instance2Model2 = std::make_unique<vkr::ObjectInstance>(sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture2, *m_sampler, *m_descriptorSetLayout);
 
         createCommandBuffers();
     }
@@ -192,13 +203,21 @@ private:
             vkCmdBeginRenderPass(handle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
             vkCmdBindPipeline(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->getHandle());
 
-            m_mesh->bindBuffers(handle);
+            m_mesh1->bindBuffers(handle);
 
-            m_instance1->bindDescriptorSet(handle, i, *m_pipelineLayout);
-            vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh->getIndexCount()), 1, 0, 0, 0);
+            m_instance1Model1->bindDescriptorSet(handle, i, *m_pipelineLayout);
+            vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh1->getIndexCount()), 1, 0, 0, 0);
 
-            m_instance2->bindDescriptorSet(handle, i, *m_pipelineLayout);
-            vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh->getIndexCount()), 1, 0, 0, 0);
+            m_instance2Model1->bindDescriptorSet(handle, i, *m_pipelineLayout);
+            vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh1->getIndexCount()), 1, 0, 0, 0);
+
+            m_mesh2->bindBuffers(handle);
+
+            m_instance1Model2->bindDescriptorSet(handle, i, *m_pipelineLayout);
+            vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh2->getIndexCount()), 1, 0, 0, 0);
+
+            m_instance2Model2->bindDescriptorSet(handle, i, *m_pipelineLayout);
+            vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh2->getIndexCount()), 1, 0, 0, 0);
 
             vkCmdEndRenderPass(handle);
 
@@ -264,10 +283,13 @@ private:
         m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
-    UniformBufferObject createUbo(float time, glm::vec3 const& pos, float scale, glm::mat4 const& view, glm::mat4 const& proj)
+    UniformBufferObject createUbo(float time, float posX, float amplitudeZ, float scale, glm::mat4 const& view, glm::mat4 const& proj)
     {
+        float posZ = amplitudeZ * (std::sin(5.0f * time) * 0.5f + 0.5f);
+        glm::vec3 pos{ posX, 0.0f, posZ };
+
         UniformBufferObject ubo{};
-        ubo.model = glm::translate(glm::mat4(1.0f), pos) * glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::scale(glm::mat4(1.0f), glm::vec3(MODEL_SCALE));
+        ubo.model = glm::translate(glm::mat4(1.0f), pos) * glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::scale(glm::mat4(1.0f), glm::vec3(scale));
         ubo.view = view;
         ubo.proj = proj;
 
@@ -283,16 +305,21 @@ private:
 
         VkExtent2D swapchainExtent = m_swapchain->getExtent();
 
-        auto view = glm::lookAt(glm::vec3(0.0f, -5.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        auto view = glm::lookAt(glm::vec3(0.0f, -3.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         auto proj = glm::perspective(glm::radians(45.0f), 1.0f * swapchainExtent.width / swapchainExtent.height, 0.1f, 10.0f);
         proj[1][1] *= -1;
 
+        auto ubo1Model1 = createUbo(time, MODEL1_INSTANCE1_POSITION_X, MODEL1_INSTANCE1_AMPLITUDE_Z, MODEL1_SCALE, view, proj);
+        m_instance1Model1->copyToUniformBuffer(currentImage, &ubo1Model1, sizeof(ubo1Model1));
 
-        auto ubo1 = createUbo(time, MODEL1_INSTANCE1_POSITION, MODEL_SCALE, view, proj);
-        m_instance1->copyToUniformBuffer(currentImage, &ubo1, sizeof(ubo1));
+        auto ubo2Model1 = createUbo(time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, MODEL1_SCALE, view, proj);
+        m_instance2Model1->copyToUniformBuffer(currentImage, &ubo2Model1, sizeof(ubo2Model1));
 
-        auto ubo2 = createUbo(time * 0.5f, MODEL1_INSTANCE2_POSITION, MODEL_SCALE, view, proj);
-        m_instance2->copyToUniformBuffer(currentImage, &ubo2, sizeof(ubo2));
+        auto ubo1Model2 = createUbo(time, MODEL2_INSTANCE1_POSITION_X, MODEL2_INSTANCE1_AMPLITUDE_Z, MODEL2_SCALE, view, proj);
+        m_instance1Model2->copyToUniformBuffer(currentImage, &ubo1Model2, sizeof(ubo1Model2));
+
+        auto ubo2Model2 = createUbo(time * 0.5f, MODEL2_INSTANCE2_POSITION_x, MODEL2_INSTANCE2_AMPLITUDE_Z, MODEL2_SCALE, view, proj);
+        m_instance2Model2->copyToUniformBuffer(currentImage, &ubo2Model2, sizeof(ubo2Model2));
     }
 
     void mainLoop()
@@ -340,12 +367,16 @@ private:
     std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayout;
 
     // Per instance
-    std::unique_ptr<vkr::ObjectInstance> m_instance1;
-    std::unique_ptr<vkr::ObjectInstance> m_instance2;
+    std::unique_ptr<vkr::ObjectInstance> m_instance1Model1;
+    std::unique_ptr<vkr::ObjectInstance> m_instance2Model1;
+    std::unique_ptr<vkr::ObjectInstance> m_instance1Model2;
+    std::unique_ptr<vkr::ObjectInstance> m_instance2Model2;
 
     // Resources
-    std::unique_ptr<vkr::Mesh> m_mesh;
-    std::unique_ptr<vkr::Texture> m_texture;
+    std::unique_ptr<vkr::Mesh> m_mesh1;
+    std::unique_ptr<vkr::Texture> m_texture1;
+    std::unique_ptr<vkr::Mesh> m_mesh2;
+    std::unique_ptr<vkr::Texture> m_texture2;
 
     std::unique_ptr<vkr::Sampler> m_sampler;
 };
