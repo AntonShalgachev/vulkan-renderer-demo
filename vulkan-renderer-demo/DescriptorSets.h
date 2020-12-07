@@ -7,6 +7,7 @@ namespace vkr
     class DescriptorPool;
     class DescriptorSetLayout;
 
+    // TODO make it responsible for a single descriptor set
     class DescriptorSets
     {
     public:

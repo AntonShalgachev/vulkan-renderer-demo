@@ -7,6 +7,7 @@ namespace vkr
     class Semaphore;
     class Fence;
 
+    // TODO make it responsible for a single command buffer
     class CommandBuffers
     {
     public:
