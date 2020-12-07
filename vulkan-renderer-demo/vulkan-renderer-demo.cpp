@@ -84,7 +84,7 @@ private:
     {
         m_framebufferResized = true;
 
-        getRenderer()->OnSurfaceChanged(width, height);
+        vkr::temp::getRenderer()->OnSurfaceChanged(width, height);
     }
 
     void initVulkan()
@@ -128,7 +128,7 @@ private:
             glfwWaitEvents();
         }
 
-        vkDeviceWaitIdle(getDevice());
+        vkDeviceWaitIdle(vkr::temp::getDevice());
 
         initSwapchain();
     }
@@ -206,7 +206,7 @@ private:
             descriptorWrites[1].descriptorCount = 1;
             descriptorWrites[1].pImageInfo = &imageInfo;
 
-            vkUpdateDescriptorSets(getDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+            vkUpdateDescriptorSets(vkr::temp::getDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
         }
     }
 
@@ -263,7 +263,7 @@ private:
         m_inFlightFences[m_currentFrame].wait();
 
         uint32_t imageIndex;
-        VkResult aquireImageResult = vkAcquireNextImageKHR(getDevice(), m_swapchain->getHandle(), UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame].getHandle(), VK_NULL_HANDLE, &imageIndex);
+        VkResult aquireImageResult = vkAcquireNextImageKHR(vkr::temp::getDevice(), m_swapchain->getHandle(), UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame].getHandle(), VK_NULL_HANDLE, &imageIndex);
 
         if (aquireImageResult == VK_ERROR_OUT_OF_DATE_KHR)
         {
@@ -296,7 +296,7 @@ private:
         presentInfo.pImageIndices = &imageIndex;
         presentInfo.pResults = nullptr;
 
-        vkQueuePresentKHR(getRenderer()->getPresentQueue(), &presentInfo);
+        vkQueuePresentKHR(vkr::temp::getRenderer()->getPresentQueue(), &presentInfo);
 
         if (aquireImageResult == VK_SUBOPTIMAL_KHR || m_framebufferResized)
         {
@@ -333,7 +333,7 @@ private:
             drawFrame();
         }
 
-        vkDeviceWaitIdle(getDevice());
+        vkDeviceWaitIdle(vkr::temp::getDevice());
     }
 
     void cleanup()
@@ -341,9 +341,6 @@ private:
         glfwDestroyWindow(m_window);
         glfwTerminate();
     }
-
-    std::unique_ptr<vkr::Renderer> const& getRenderer() const { return vkr::ServiceLocator::instance().getRenderer(); }
-    VkDevice getDevice() const { return vkr::temp::getDevice(); }
 
 private:
     GLFWwindow* m_window = nullptr;
