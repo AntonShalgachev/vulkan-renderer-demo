@@ -7,14 +7,14 @@ vkr::DescriptorSets::DescriptorSets(std::size_t size, DescriptorSetLayout const&
 {
     std::vector<VkDescriptorSetLayout> layouts(size, layout.getHandle());
 
-    VkDescriptorSetAllocateInfo descriptorSetallocInfo{};
-    descriptorSetallocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    descriptorSetallocInfo.descriptorPool = m_pool->getHandle();
-    descriptorSetallocInfo.descriptorSetCount = static_cast<uint32_t>(size);
-    descriptorSetallocInfo.pSetLayouts = layouts.data();
+    VkDescriptorSetAllocateInfo descriptorSetAllocInfo{};
+    descriptorSetAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    descriptorSetAllocInfo.descriptorPool = m_pool->getHandle();
+    descriptorSetAllocInfo.descriptorSetCount = static_cast<uint32_t>(size);
+    descriptorSetAllocInfo.pSetLayouts = layouts.data();
 
     m_handles.resize(size);
-    if (vkAllocateDescriptorSets(temp::getDevice(), &descriptorSetallocInfo, m_handles.data()) != VK_SUCCESS)
+    if (vkAllocateDescriptorSets(temp::getDevice(), &descriptorSetAllocInfo, m_handles.data()) != VK_SUCCESS)
         throw std::runtime_error("failed to allocate descriptor sets!");
 }
 
