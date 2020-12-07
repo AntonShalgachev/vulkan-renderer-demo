@@ -175,9 +175,6 @@ private:
     {
         m_descriptorSets = std::make_unique<vkr::DescriptorSets>(m_swapchain->getImageCount(), *m_descriptorSetLayout);
 
-        std::vector<VkWriteDescriptorSet> descriptorWrites{};
-        descriptorWrites.resize(2 * m_descriptorSets->getSize(), VkWriteDescriptorSet{});
-
         for (size_t i = 0; i < m_descriptorSets->getSize(); i++)
         {
             VkDescriptorBufferInfo bufferInfo{};
@@ -190,29 +187,27 @@ private:
             imageInfo.imageView = m_texture->getImageViewHandle();
             imageInfo.sampler = m_sampler->getHandle();
 
+            std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+
             // TODO couple it with the data within DescriptorPool
+            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[0].dstSet = m_descriptorSets->getHandles()[i];
+            descriptorWrites[0].dstBinding = 0;
+            descriptorWrites[0].dstArrayElement = 0;
+            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrites[0].descriptorCount = 1;
+            descriptorWrites[0].pBufferInfo = &bufferInfo;
 
-            VkWriteDescriptorSet& uboDescriptorWrite = descriptorWrites[2 * i + 0];
-            VkWriteDescriptorSet& samplerDescriptorWrite = descriptorWrites[2 * i + 1];
+            descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[1].dstSet = m_descriptorSets->getHandles()[i];
+            descriptorWrites[1].dstBinding = 1;
+            descriptorWrites[1].dstArrayElement = 0;
+            descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorWrites[1].descriptorCount = 1;
+            descriptorWrites[1].pImageInfo = &imageInfo;
 
-            uboDescriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            uboDescriptorWrite.dstSet = m_descriptorSets->getHandles()[i];
-            uboDescriptorWrite.dstBinding = 0;
-            uboDescriptorWrite.dstArrayElement = 0;
-            uboDescriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            uboDescriptorWrite.descriptorCount = 1;
-            uboDescriptorWrite.pBufferInfo = &bufferInfo;
-
-            samplerDescriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            samplerDescriptorWrite.dstSet = m_descriptorSets->getHandles()[i];
-            samplerDescriptorWrite.dstBinding = 1;
-            samplerDescriptorWrite.dstArrayElement = 0;
-            samplerDescriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            samplerDescriptorWrite.descriptorCount = 1;
-            samplerDescriptorWrite.pImageInfo = &imageInfo;
+            vkUpdateDescriptorSets(getDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
         }
-
-        vkUpdateDescriptorSets(getDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
     }
 
     void createCommandBuffers()
