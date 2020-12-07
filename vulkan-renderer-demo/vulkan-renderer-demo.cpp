@@ -43,6 +43,8 @@ namespace
     const std::string MODEL_PATH = "data/models/viking_room.obj";
     const std::string TEXTURE_PATH = "data/textures/viking_room.png";
     const float MODEL_SCALE = 1.0f;
+    const glm::vec3 MODEL1_INSTANCE1_POSITION = { -1.0f, 0.0f, 0.0f };
+    const glm::vec3 MODEL1_INSTANCE2_POSITION = { 1.0f, 0.0f, 0.0f };
 
     const int MAX_FRAMES_IN_FLIGHT = 2;
 }
@@ -114,7 +116,8 @@ private:
         createDepthResources();
         m_swapchain->createFramebuffers(*m_renderPass, *m_depthImageView);
 
-        m_instance = std::make_unique<vkr::ObjectInstance>(sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture, *m_sampler, *m_descriptorSetLayout);
+        m_instance1 = std::make_unique<vkr::ObjectInstance>(sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture, *m_sampler, *m_descriptorSetLayout);
+        m_instance2 = std::make_unique<vkr::ObjectInstance>(sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture, *m_sampler, *m_descriptorSetLayout);
 
         createCommandBuffers();
     }
@@ -190,8 +193,11 @@ private:
             vkCmdBindPipeline(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->getHandle());
 
             m_mesh->bindBuffers(handle);
-            m_instance->bindDescriptorSet(handle, i, *m_pipelineLayout);
 
+            m_instance1->bindDescriptorSet(handle, i, *m_pipelineLayout);
+            vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh->getIndexCount()), 1, 0, 0, 0);
+
+            m_instance2->bindDescriptorSet(handle, i, *m_pipelineLayout);
             vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh->getIndexCount()), 1, 0, 0, 0);
 
             vkCmdEndRenderPass(handle);
@@ -258,6 +264,16 @@ private:
         m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
+    UniformBufferObject createUbo(float time, glm::vec3 const& pos, float scale, glm::mat4 const& view, glm::mat4 const& proj)
+    {
+        UniformBufferObject ubo{};
+        ubo.model = glm::translate(glm::mat4(1.0f), pos) * glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::scale(glm::mat4(1.0f), glm::vec3(MODEL_SCALE));
+        ubo.view = view;
+        ubo.proj = proj;
+
+        return ubo;
+    }
+
     void updateUniformBuffer(uint32_t currentImage)
     {
         static auto startTime = std::chrono::high_resolution_clock::now();
@@ -267,13 +283,16 @@ private:
 
         VkExtent2D swapchainExtent = m_swapchain->getExtent();
 
-        UniformBufferObject ubo{};
-        ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::scale(glm::mat4(1.0f), glm::vec3(MODEL_SCALE));
-        ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.proj = glm::perspective(glm::radians(45.0f), 1.0f * swapchainExtent.width / swapchainExtent.height, 0.1f, 10.0f);
-        ubo.proj[1][1] *= -1;
+        auto view = glm::lookAt(glm::vec3(0.0f, -5.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        auto proj = glm::perspective(glm::radians(45.0f), 1.0f * swapchainExtent.width / swapchainExtent.height, 0.1f, 10.0f);
+        proj[1][1] *= -1;
 
-        m_instance->copyToUniformBuffer(currentImage, &ubo, sizeof(ubo));
+
+        auto ubo1 = createUbo(time, MODEL1_INSTANCE1_POSITION, MODEL_SCALE, view, proj);
+        m_instance1->copyToUniformBuffer(currentImage, &ubo1, sizeof(ubo1));
+
+        auto ubo2 = createUbo(time * 0.5f, MODEL1_INSTANCE2_POSITION, MODEL_SCALE, view, proj);
+        m_instance2->copyToUniformBuffer(currentImage, &ubo2, sizeof(ubo2));
     }
 
     void mainLoop()
@@ -321,7 +340,8 @@ private:
     std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayout;
 
     // Per instance
-    std::unique_ptr<vkr::ObjectInstance> m_instance;
+    std::unique_ptr<vkr::ObjectInstance> m_instance1;
+    std::unique_ptr<vkr::ObjectInstance> m_instance2;
 
     // Resources
     std::unique_ptr<vkr::Mesh> m_mesh;
