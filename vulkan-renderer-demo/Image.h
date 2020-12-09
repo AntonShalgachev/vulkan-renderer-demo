@@ -15,7 +15,7 @@ namespace vkr
         ~Image();
 
         VkMemoryRequirements getMemoryRequirements() const;
-        void bind(DeviceMemory const& memory) const;
+        void bindMemory(DeviceMemory const& memory) const;
 
         std::unique_ptr<ImageView> createImageView(VkImageAspectFlags aspectFlags);
 

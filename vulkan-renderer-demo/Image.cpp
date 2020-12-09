@@ -49,7 +49,7 @@ namespace vkr
         return memRequirements;
     }
 
-    void Image::bind(DeviceMemory const& memory) const
+    void Image::bindMemory(DeviceMemory const& memory) const
     {
         vkBindImageMemory(temp::getDevice(), m_handle, memory.getHandle(), 0);
     }

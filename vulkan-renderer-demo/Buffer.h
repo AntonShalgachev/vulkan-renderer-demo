@@ -13,7 +13,7 @@ namespace vkr
         ~Buffer();
 
         VkMemoryRequirements getMemoryRequirements() const;
-        void bind(DeviceMemory const& memory) const;
+        void bindMemory(DeviceMemory const& memory) const;
 
         VkBuffer getHandle() const { return m_handle; }
         VkDeviceSize getSize() const { return m_size; }

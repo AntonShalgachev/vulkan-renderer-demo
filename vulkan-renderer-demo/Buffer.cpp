@@ -30,7 +30,7 @@ VkMemoryRequirements vkr::Buffer::getMemoryRequirements() const
     return memoryRequirements;
 }
 
-void vkr::Buffer::bind(DeviceMemory const& memory) const
+void vkr::Buffer::bindMemory(DeviceMemory const& memory) const
 {
     vkBindBufferMemory(temp::getDevice(), m_handle, memory.getHandle(), 0);
 }
