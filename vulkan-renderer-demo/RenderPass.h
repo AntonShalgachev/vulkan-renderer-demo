@@ -16,7 +16,7 @@ namespace vkr
         VkFormat getDepthFormat() const { return m_depthFormat; }
 
     private:
-        VkRenderPass m_handle;
+        VkRenderPass m_handle = VK_NULL_HANDLE;
         VkFormat m_depthFormat;
     };
 }

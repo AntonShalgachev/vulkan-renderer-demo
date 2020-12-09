@@ -22,7 +22,7 @@ namespace vkr
         static void copy(Buffer const& source, Buffer const& destination);
 
     private:
-        VkBuffer m_handle;
+        VkBuffer m_handle = VK_NULL_HANDLE;
         VkDeviceSize m_size;
     };
 }

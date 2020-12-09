@@ -16,6 +16,6 @@ namespace vkr
         VkFence const& getHandle() const { return m_handle; }
 
     private:
-    	VkFence m_handle;
+    	VkFence m_handle = VK_NULL_HANDLE;
     };
 }

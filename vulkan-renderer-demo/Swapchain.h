@@ -32,7 +32,7 @@ namespace vkr
         void createImageViews();
 
     private:
-        VkSwapchainKHR m_handle;
+        VkSwapchainKHR m_handle = VK_NULL_HANDLE;
 
         VkExtent2D m_extent;
         VkSurfaceFormatKHR m_surfaceFormat;

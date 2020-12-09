@@ -16,6 +16,6 @@ namespace vkr
         VkFramebuffer getHandle() const { return m_handle; }
 
     private:
-        VkFramebuffer m_handle;
+        VkFramebuffer m_handle = VK_NULL_HANDLE;
     };
 }

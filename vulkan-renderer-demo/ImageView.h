@@ -15,7 +15,7 @@ namespace vkr
         VkImageView getHandle() const { return m_handle; }
 
 	private:
-		VkImageView m_handle;
+		VkImageView m_handle = VK_NULL_HANDLE;
 	};
 }
 

@@ -13,6 +13,6 @@ namespace vkr
         VkSemaphore const& getHandle() const { return m_handle; }
 
     private:
-    	VkSemaphore m_handle;
+    	VkSemaphore m_handle = VK_NULL_HANDLE;
     };
 }

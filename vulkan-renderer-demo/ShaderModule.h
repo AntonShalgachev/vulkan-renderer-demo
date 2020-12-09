@@ -22,7 +22,7 @@ namespace vkr
         VkShaderModule getHandle() const { return m_handle; }
 
     private:
-        VkShaderModule m_handle;
+        VkShaderModule m_handle = VK_NULL_HANDLE;
 
         Type m_type;
         std::string m_entryPoint;

@@ -24,7 +24,7 @@ namespace vkr
 
     private:
         bool m_isOwned = true;
-        VkImage m_handle;
+        VkImage m_handle = VK_NULL_HANDLE;
         VkFormat m_format;
     };
 }

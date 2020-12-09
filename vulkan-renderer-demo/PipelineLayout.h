@@ -15,6 +15,6 @@ namespace vkr
         VkPipelineLayout const& getHandle() const { return m_handle; }
 
     private:
-    	VkPipelineLayout m_handle;
+    	VkPipelineLayout m_handle = VK_NULL_HANDLE;
     };
 }

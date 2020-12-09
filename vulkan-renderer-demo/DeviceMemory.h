@@ -21,6 +21,6 @@ namespace vkr
         VkDeviceMemory getHandle() const { return m_handle; };
 
     private:
-        VkDeviceMemory m_handle;
+        VkDeviceMemory m_handle = VK_NULL_HANDLE;
     };
 }
