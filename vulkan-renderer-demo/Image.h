@@ -19,12 +19,12 @@ namespace vkr
 
         std::unique_ptr<ImageView> createImageView(VkImageAspectFlags aspectFlags);
 
-        VkImage getHandle() const { return m_image; }
+        VkImage getHandle() const { return m_handle; }
         VkFormat getFormat() const { return m_format; }
 
     private:
         bool m_isOwned = true;
-        VkImage m_image;
+        VkImage m_handle;
         VkFormat m_format;
     };
 }

@@ -12,10 +12,10 @@ namespace vkr
 		ImageView(vkr::Image const& image, VkImageAspectFlags aspectFlags);
 		~ImageView();
 
-        VkImageView getHandle() const { return m_imageView; }
+        VkImageView getHandle() const { return m_handle; }
 
 	private:
-		VkImageView m_imageView;
+		VkImageView m_handle;
 	};
 }
 

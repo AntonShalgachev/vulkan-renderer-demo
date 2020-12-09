@@ -18,9 +18,9 @@ namespace vkr
             copyFrom(source.data(), sizeof(T) * source.size());
         }
 
-        VkDeviceMemory getHandle() const { return m_memory; };
+        VkDeviceMemory getHandle() const { return m_handle; };
 
     private:
-        VkDeviceMemory m_memory;
+        VkDeviceMemory m_handle;
     };
 }

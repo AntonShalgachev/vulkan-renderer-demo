@@ -20,11 +20,11 @@ vkr::Sampler::Sampler()
     samplerCreateInfo.minLod = 0.0f;
     samplerCreateInfo.maxLod = 0.0f;
 
-    if (vkCreateSampler(temp::getDevice(), &samplerCreateInfo, nullptr, &m_sampler) != VK_SUCCESS)
+    if (vkCreateSampler(temp::getDevice(), &samplerCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("failed to create texture sampler!");
 }
 
 vkr::Sampler::~Sampler()
 {
-    vkDestroySampler(temp::getDevice(), m_sampler, nullptr);
+    vkDestroySampler(temp::getDevice(), m_handle, nullptr);
 }

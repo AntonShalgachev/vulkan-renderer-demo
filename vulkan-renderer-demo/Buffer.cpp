@@ -13,26 +13,26 @@ vkr::Buffer::Buffer(VkDeviceSize size, VkBufferUsageFlags usage)
     bufferCreateInfo.usage = usage;
     bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    if (vkCreateBuffer(temp::getDevice(), &bufferCreateInfo, nullptr, &m_buffer) != VK_SUCCESS)
+    if (vkCreateBuffer(temp::getDevice(), &bufferCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("failed to create buffer!");
 }
 
 vkr::Buffer::~Buffer()
 {
-    vkDestroyBuffer(temp::getDevice(), m_buffer, nullptr);
+    vkDestroyBuffer(temp::getDevice(), m_handle, nullptr);
 }
 
 VkMemoryRequirements vkr::Buffer::getMemoryRequirements() const
 {
     VkMemoryRequirements memoryRequirements;
-    vkGetBufferMemoryRequirements(temp::getDevice(), m_buffer, &memoryRequirements);
+    vkGetBufferMemoryRequirements(temp::getDevice(), m_handle, &memoryRequirements);
 
     return memoryRequirements;
 }
 
 void vkr::Buffer::bind(DeviceMemory const& memory) const
 {
-    vkBindBufferMemory(temp::getDevice(), m_buffer, memory.getHandle(), 0);
+    vkBindBufferMemory(temp::getDevice(), m_handle, memory.getHandle(), 0);
 }
 
 void vkr::Buffer::copy(Buffer const& source, Buffer const& destination)

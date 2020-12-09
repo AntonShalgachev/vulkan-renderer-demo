@@ -10,9 +10,9 @@ namespace vkr
         Sampler();
         ~Sampler();
 
-        VkSampler getHandle() const { return m_sampler; }
+        VkSampler getHandle() const { return m_handle; }
 
     private:
-        VkSampler m_sampler;
+        VkSampler m_handle;
     };
 }

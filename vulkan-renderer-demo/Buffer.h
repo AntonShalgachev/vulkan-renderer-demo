@@ -15,14 +15,14 @@ namespace vkr
         VkMemoryRequirements getMemoryRequirements() const;
         void bind(DeviceMemory const& memory) const;
 
-        VkBuffer getHandle() const { return m_buffer; }
+        VkBuffer getHandle() const { return m_handle; }
         VkDeviceSize getSize() const { return m_size; }
 
     public:
         static void copy(Buffer const& source, Buffer const& destination);
 
     private:
-        VkBuffer m_buffer;
+        VkBuffer m_handle;
         VkDeviceSize m_size;
     };
 }

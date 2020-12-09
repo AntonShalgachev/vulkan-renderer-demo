@@ -31,19 +31,19 @@ vkr::DeviceMemory::DeviceMemory(VkMemoryRequirements memoryRequirements, VkMemor
     allocInfo.allocationSize = memoryRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, memoryProperties);
 
-    if (vkAllocateMemory(temp::getDevice(), &allocInfo, nullptr, &m_memory) != VK_SUCCESS)
+    if (vkAllocateMemory(temp::getDevice(), &allocInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("failed to allocate image memory!");
 }
 
 vkr::DeviceMemory::~DeviceMemory()
 {
-    vkFreeMemory(temp::getDevice(), m_memory, nullptr);
+    vkFreeMemory(temp::getDevice(), m_handle, nullptr);
 }
 
 void vkr::DeviceMemory::copyFrom(void const* sourcePointer, std::size_t sourceSize)
 {
     void* data;
-    vkMapMemory(temp::getDevice(), m_memory, 0, sourceSize, 0, &data);
+    vkMapMemory(temp::getDevice(), m_handle, 0, sourceSize, 0, &data);
     memcpy(data, sourcePointer, sourceSize);
-    vkUnmapMemory(temp::getDevice(), m_memory);
+    vkUnmapMemory(temp::getDevice(), m_handle);
 }
