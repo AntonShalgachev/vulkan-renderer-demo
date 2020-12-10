@@ -24,6 +24,7 @@ vkr::Buffer::~Buffer()
 
 VkMemoryRequirements vkr::Buffer::getMemoryRequirements() const
 {
+    // TODO cache
     VkMemoryRequirements memoryRequirements;
     vkGetBufferMemoryRequirements(temp::getDevice(), m_handle, &memoryRequirements);
 

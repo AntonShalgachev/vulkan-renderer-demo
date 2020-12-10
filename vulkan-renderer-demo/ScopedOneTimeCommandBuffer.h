@@ -6,6 +6,7 @@
 
 namespace vkr
 {
+    // TODO move to utils namespace
     class ScopedOneTimeCommandBuffer
     {
     public:
