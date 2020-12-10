@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framework.h"
+#include "Instance.h"
 
 namespace vkr
 {
@@ -37,7 +38,6 @@ namespace vkr
 
         void OnSurfaceChanged(int width, int height);
 
-        VkInstance getInstanceHandle() const { return m_instance; }
         VkSurfaceKHR getSurfaceHandle() const { return m_surface; }
         VkPhysicalDevice getPhysicalDevice() const { return m_physicalDevice; }
         VkDevice getDevice() const { return m_device; }
@@ -50,13 +50,12 @@ namespace vkr
 
         PhysicalDeviceProperties const& getPhysicalDeviceProperties() const { return m_physicalDeviceProperties; }
 
-        void createVulkanInstance();
         void createSurface(GLFWwindow* window);
         void pickPhysicalDevice();
         void createLogicalDevice();
         void createCommandPool();
 
-        VkInstance m_instance = VK_NULL_HANDLE;
+        Instance m_instance;
         VkSurfaceKHR m_surface = VK_NULL_HANDLE;
         VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
         VkDevice m_device = VK_NULL_HANDLE;

@@ -14,5 +14,11 @@ namespace vkr
 
     private:
     	VkInstance m_handle = VK_NULL_HANDLE;
+
+        std::vector<VkLayerProperties> m_availableLayers;
+        std::vector<char const*> m_availableLayerNames;
+
+        std::vector<VkExtensionProperties> m_availableExtensions;
+        std::vector<char const*> m_availableExtensionNames;
     };
 }

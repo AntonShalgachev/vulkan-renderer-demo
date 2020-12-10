@@ -18,53 +18,51 @@ namespace
         return true;
     }
 
-    std::vector<char const*> getAvailableValidationLayers()
+    std::vector<VkLayerProperties> getAvailableLayers()
     {
-        uint32_t layerCount = 0;
-        vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-        std::vector<VkLayerProperties> availableLayers(layerCount);
-        vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+        uint32_t count = 0;
+        vkEnumerateInstanceLayerProperties(&count, nullptr);
+        std::vector<VkLayerProperties> availableLayers(count);
+        vkEnumerateInstanceLayerProperties(&count, availableLayers.data());
 
-        std::vector<char const*> names;
-        names.reserve(availableLayers.size());
-
-        for (const auto& layer : availableLayers)
-            names.push_back(layer.layerName);
-
-        return names;
+        return availableLayers;
     }
 
-    std::vector<char const*> getAvailableExtensions()
+    std::vector<VkExtensionProperties> getAvailableExtensions()
     {
-        uint32_t extensionCount = 0;
-        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-        std::vector<VkExtensionProperties> supportedExtensions(extensionCount);
-        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, supportedExtensions.data());
+        uint32_t count = 0;
+        vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr);
+        std::vector<VkExtensionProperties> availableExtensions(count);
+        vkEnumerateInstanceExtensionProperties(nullptr, &count, availableExtensions.data());
 
-        std::vector<char const*> names;
-        names.reserve(supportedExtensions.size());
-
-        for (const auto& extension : supportedExtensions)
-            names.push_back(extension.extensionName);
-
-        return names;
+        return availableExtensions;
     }
 }
 
 vkr::Instance::Instance(std::string const& appName, std::vector<char const*> extensions, bool enableValidation, bool enableApiDump)
 {
-    std::vector<char const*> requestedValidationLayers;
+    m_availableLayers = getAvailableLayers();
+    m_availableLayerNames.reserve(m_availableLayers.size());
+    for (const auto& layer : m_availableLayers)
+        m_availableLayerNames.push_back(layer.layerName);
+
+    m_availableExtensions = getAvailableExtensions();
+    m_availableExtensionNames.reserve(m_availableExtensions.size());
+    for (const auto& extension : m_availableExtensions)
+        m_availableExtensionNames.push_back(extension.extensionName);
+
+    std::vector<char const*> requestedLayers;
     if (enableValidation)
-        requestedValidationLayers.push_back("VK_LAYER_KHRONOS_validation");
+        requestedLayers.push_back("VK_LAYER_KHRONOS_validation");
     if (enableApiDump)
-        requestedValidationLayers.push_back("VK_LAYER_LUNARG_api_dump");
+        requestedLayers.push_back("VK_LAYER_LUNARG_api_dump");
 
     std::vector<char const*> requestedExtensions = extensions;
 
-    if (!hasEveryOption(getAvailableValidationLayers(), requestedValidationLayers))
+    if (!hasEveryOption(m_availableLayerNames, requestedLayers))
         throw std::runtime_error("Some of the required validation layers aren't supported");
 
-    if (!hasEveryOption(getAvailableExtensions(), requestedExtensions))
+    if (!hasEveryOption(m_availableExtensionNames, requestedExtensions))
         throw std::runtime_error("Some of the required extensions aren't supported");
 
     VkApplicationInfo appInfo{};
@@ -80,8 +78,8 @@ vkr::Instance::Instance(std::string const& appName, std::vector<char const*> ext
     instanceCreateInfo.pApplicationInfo = &appInfo;
     instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(requestedExtensions.size());
     instanceCreateInfo.ppEnabledExtensionNames = requestedExtensions.data();
-    instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(requestedValidationLayers.size());
-    instanceCreateInfo.ppEnabledLayerNames = requestedValidationLayers.data();
+    instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(requestedLayers.size());
+    instanceCreateInfo.ppEnabledLayerNames = requestedLayers.data();
 
     if (vkCreateInstance(&instanceCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("Failed to create Vulkan instance");
