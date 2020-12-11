@@ -34,8 +34,8 @@ vkr::Pipeline::Pipeline(PipelineLayout const& layout, RenderPass const& renderPa
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = extent.width * 1.0f;
-    viewport.height = extent.height * 1.0f;
+    viewport.width = 1.0f * extent.width;
+    viewport.height = 1.0f * extent.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 

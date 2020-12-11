@@ -4,6 +4,7 @@ namespace
 {
     const std::vector<const char*> DEVICE_EXTENSIONS = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_KHR_MAINTENANCE1_EXTENSION_NAME,
     };
 
     bool doesDeviceSupportExtensions(VkPhysicalDevice device, const std::vector<const char*>& extensions)

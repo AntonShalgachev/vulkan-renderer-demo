@@ -42,18 +42,30 @@ void vkr::Mesh::loadMesh(std::string const& path)
         {
             vkr::Vertex vertex{};
 
+            auto vertexIndex = index.vertex_index;
+            auto texIndex = index.texcoord_index;
+            if (texIndex < 0)
+                texIndex = vertexIndex;
+
             vertex.pos = {
-                attrib.vertices[3 * index.vertex_index + 0],
-                attrib.vertices[3 * index.vertex_index + 1],
-                attrib.vertices[3 * index.vertex_index + 2],
+                attrib.vertices[3 * vertexIndex + 0],
+                attrib.vertices[3 * vertexIndex + 1],
+                attrib.vertices[3 * vertexIndex + 2],
             };
 
-            vertex.texCoord = {
-                attrib.texcoords[2 * index.texcoord_index + 0],
-                1.0f - attrib.texcoords[2 * index.texcoord_index + 1],
-            };
+            if (!attrib.texcoords.empty())
+            {
+                vertex.texCoord = {
+                    attrib.texcoords[2 * texIndex + 0],
+                    1.0f - attrib.texcoords[2 * texIndex + 1],
+                };
+            }
 
-            vertex.color = { 1.0f, 1.0f, 1.0f };
+            vertex.color = {
+                attrib.colors[3 * vertexIndex + 0],
+                attrib.colors[3 * vertexIndex + 1],
+                attrib.colors[3 * vertexIndex + 2],
+            };
 
             if (uniqueVertices.count(vertex) == 0)
             {
