@@ -2,6 +2,7 @@
 
 #include "framework.h"
 #include "Instance.h"
+#include "Surface.h"
 
 namespace vkr
 {
@@ -38,7 +39,7 @@ namespace vkr
 
         void OnSurfaceChanged(int width, int height);
 
-        VkSurfaceKHR getSurfaceHandle() const { return m_surface; }
+        VkSurfaceKHR getSurfaceHandle() const { return m_surface.getHandle(); }
         VkPhysicalDevice getPhysicalDevice() const { return m_physicalDevice; }
         VkDevice getDevice() const { return m_device; }
         VkQueue getGraphicsQueue() const { return m_graphicsQueue; }
@@ -50,13 +51,12 @@ namespace vkr
 
         PhysicalDeviceProperties const& getPhysicalDeviceProperties() const { return m_physicalDeviceProperties; }
 
-        void createSurface(GLFWwindow* window);
         void pickPhysicalDevice();
         void createLogicalDevice();
         void createCommandPool();
 
         Instance m_instance;
-        VkSurfaceKHR m_surface = VK_NULL_HANDLE;
+        Surface m_surface;
         VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
         VkDevice m_device = VK_NULL_HANDLE;
         VkQueue m_graphicsQueue = VK_NULL_HANDLE;

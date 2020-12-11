@@ -190,6 +190,7 @@
     <ClCompile Include="Semaphore.cpp" />
     <ClCompile Include="ServiceLocator.cpp" />
     <ClCompile Include="ShaderModule.cpp" />
+    <ClCompile Include="Surface.cpp" />
     <ClCompile Include="Swapchain.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Utils.cpp" />
@@ -219,6 +220,7 @@
     <ClInclude Include="Semaphore.h" />
     <ClInclude Include="ServiceLocator.h" />
     <ClInclude Include="ShaderModule.h" />
+    <ClInclude Include="Surface.h" />
     <ClInclude Include="Swapchain.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Utils.h" />

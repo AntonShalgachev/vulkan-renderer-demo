@@ -129,11 +129,12 @@ namespace
 
 namespace vkr
 {
-    Renderer::Renderer(GLFWwindow* window) : m_instance("Vulkan demo", getGlfwExtensions(), VALIDATION_ENABLED, API_DUMP_ENABLED)
+    Renderer::Renderer(GLFWwindow* window)
+        : m_instance("Vulkan demo", getGlfwExtensions(), VALIDATION_ENABLED, API_DUMP_ENABLED)
+        , m_surface(m_instance, window)
     {
         glfwGetFramebufferSize(window, &m_width, &m_height);
 
-        createSurface(window);
         pickPhysicalDevice();
         createLogicalDevice();
         createCommandPool();
@@ -143,20 +144,13 @@ namespace vkr
     {
         vkDestroyCommandPool(m_device, m_commandPool, nullptr);
         vkDestroyDevice(m_device, nullptr);
-        vkDestroySurfaceKHR(m_instance.getHandle(), m_surface, nullptr);
     }
 
     void Renderer::OnSurfaceChanged(int width, int height)
     {
         m_width = width;
         m_height = height;
-        m_physicalDeviceProperties = calculatePhysicalDeviceProperties(m_physicalDevice, m_surface);
-    }
-
-    void Renderer::createSurface(GLFWwindow* window)
-    {
-        if (glfwCreateWindowSurface(m_instance.getHandle(), window, nullptr, &m_surface) != VK_SUCCESS)
-            throw std::runtime_error("failed to create window surface!");
+        m_physicalDeviceProperties = calculatePhysicalDeviceProperties(m_physicalDevice, m_surface.getHandle());
     }
 
     void Renderer::pickPhysicalDevice()
@@ -171,7 +165,7 @@ namespace vkr
 
         for (const auto& device : devices)
         {
-            PhysicalDeviceProperties properties = calculatePhysicalDeviceProperties(device, m_surface);
+            PhysicalDeviceProperties properties = calculatePhysicalDeviceProperties(device, m_surface.getHandle());
 
             if (isDeviceSuitable(device, properties))
             {
