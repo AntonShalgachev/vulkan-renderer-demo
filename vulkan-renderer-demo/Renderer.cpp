@@ -129,7 +129,7 @@ namespace
 
 namespace vkr
 {
-    Renderer::Renderer(GLFWwindow* window) : m_instance("", getGlfwExtensions(), VALIDATION_ENABLED, API_DUMP_ENABLED)
+    Renderer::Renderer(GLFWwindow* window) : m_instance("Vulkan demo", getGlfwExtensions(), VALIDATION_ENABLED, API_DUMP_ENABLED)
     {
         glfwGetFramebufferSize(window, &m_width, &m_height);
 
