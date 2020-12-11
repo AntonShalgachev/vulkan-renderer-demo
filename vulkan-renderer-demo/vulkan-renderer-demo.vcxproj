@@ -181,6 +181,7 @@
     <ClCompile Include="Instance.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="ObjectInstance.cpp" />
+    <ClCompile Include="PhysicalDevice.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="PipelineLayout.cpp" />
     <ClCompile Include="Renderer.cpp" />
@@ -211,6 +212,7 @@
     <ClInclude Include="Instance.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="ObjectInstance.h" />
+    <ClInclude Include="PhysicalDevice.h" />
     <ClInclude Include="Pipeline.h" />
     <ClInclude Include="PipelineLayout.h" />
     <ClInclude Include="Renderer.h" />
