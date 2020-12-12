@@ -8,6 +8,7 @@ namespace vkr
 {
     class PhysicalDevice;
     class Device;
+    class CommandPool;
 
     class Renderer
     {
@@ -47,7 +48,7 @@ namespace vkr
         VkDevice getDevice() const;
         VkQueue getGraphicsQueue() const { return m_graphicsQueue; }
         VkQueue getPresentQueue() const { return m_presentQueue; }
-        VkCommandPool getCommandPool() const { return m_commandPool; }
+        VkCommandPool getCommandPool() const;
 
         int getWidth() const { return m_width; }
         int getHeight() const { return m_height; }
@@ -64,7 +65,7 @@ namespace vkr
         std::unique_ptr<Device> m_device;
         VkQueue m_graphicsQueue = VK_NULL_HANDLE;
         VkQueue m_presentQueue = VK_NULL_HANDLE;
-        VkCommandPool m_commandPool = VK_NULL_HANDLE;
+        std::unique_ptr<CommandPool> m_commandPool;
 
         PhysicalDeviceProperties m_physicalDeviceProperties;
 

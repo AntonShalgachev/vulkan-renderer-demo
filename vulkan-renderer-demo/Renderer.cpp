@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include "PhysicalDevice.h"
 #include "Device.h"
+#include "CommandPool.h"
 
 namespace
 {
@@ -117,10 +118,7 @@ namespace vkr
         createCommandPool();
     }
 
-    Renderer::~Renderer()
-    {
-        vkDestroyCommandPool(m_device->getHandle(), m_commandPool, nullptr);
-    }
+    Renderer::~Renderer() = default;
 
     void Renderer::OnSurfaceChanged(int width, int height)
     {
@@ -138,6 +136,11 @@ namespace vkr
     VkDevice Renderer::getDevice() const
     {
         return m_device->getHandle();
+    }
+
+    VkCommandPool Renderer::getCommandPool() const
+    {
+        return m_commandPool->getHandle();
     }
 
     void Renderer::pickPhysicalDevice()
@@ -172,14 +175,8 @@ namespace vkr
 
     void Renderer::createCommandPool()
     {
-        vkr::Renderer::QueueFamilyIndices queueFamilyIndices = getPhysicalDeviceProperties().queueFamilyIndices;
+        QueueFamilyIndices const& indices = getPhysicalDeviceProperties().queueFamilyIndices;
 
-        VkCommandPoolCreateInfo poolCreateInfo{};
-        poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        poolCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
-        poolCreateInfo.flags = 0;
-
-        if (vkCreateCommandPool(m_device->getHandle(), &poolCreateInfo, nullptr, &m_commandPool) != VK_SUCCESS)
-            throw std::runtime_error("failed to create command pool!");
+        m_commandPool = std::make_unique<CommandPool>(*m_device, indices.graphicsFamily.value());
     }
 }
