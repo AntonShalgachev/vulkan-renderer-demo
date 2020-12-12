@@ -2,47 +2,20 @@
 
 #include "framework.h"
 
-#include <optional>
-
 namespace vkr
 {
     class PhysicalDevice
     {
     public:
-        struct QueueFamilyIndices
-        {
-            std::optional<uint32_t> graphicsFamily;
-            std::optional<uint32_t> presentFamily;
-
-            bool IsComplete()
-            {
-                return graphicsFamily.has_value() && presentFamily.has_value();
-            }
-        };
-
-        struct SwapchainSupportDetails
-        {
-            VkSurfaceCapabilitiesKHR capabilities;
-            std::vector<VkSurfaceFormatKHR> formats;
-            std::vector<VkPresentModeKHR> presentModes;
-        };
-
-        struct PhysicalDeviceProperties
-        {
-            QueueFamilyIndices queueFamilyIndices;
-            SwapchainSupportDetails swapchainSupportDetails;
-        };
-
-    public:
         explicit PhysicalDevice(VkPhysicalDevice handle);
+
+        VkPhysicalDevice const& getHandle() const { return m_handle; }
 
         VkPhysicalDeviceProperties const& getProperties() const { return m_properties; }
         VkPhysicalDeviceFeatures const& getFeatures() const { return m_features; }
         std::vector<VkQueueFamilyProperties> const& getQueueFamilyProperties() const { return m_queueFamilyProperties; }
 
         bool areExtensionsSupported(std::vector<char const*> const& requestedExtensions) const;
-
-        VkPhysicalDevice const& getHandle() const { return m_handle; }
 
     private:
         void queryAvailableExtensions();

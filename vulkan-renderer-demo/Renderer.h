@@ -9,34 +9,11 @@ namespace vkr
     class PhysicalDevice;
     class Device;
     class CommandPool;
+    class PhysicalDeviceSurfaceParameters;
+    class QueueFamilyIndices;
 
     class Renderer
     {
-    public:
-        struct QueueFamilyIndices
-        {
-            std::optional<uint32_t> graphicsFamily;
-            std::optional<uint32_t> presentFamily;
-
-            bool IsComplete()
-            {
-                return graphicsFamily.has_value() && presentFamily.has_value();
-            }
-        };
-
-        struct SwapchainSupportDetails
-        {
-            VkSurfaceCapabilitiesKHR capabilities;
-            std::vector<VkSurfaceFormatKHR> formats;
-            std::vector<VkPresentModeKHR> presentModes;
-        };
-
-        struct PhysicalDeviceProperties
-        {
-            QueueFamilyIndices queueFamilyIndices;
-            SwapchainSupportDetails swapchainSupportDetails;
-        };
-
     public:
         Renderer(GLFWwindow* window);
         ~Renderer();
@@ -50,10 +27,11 @@ namespace vkr
         VkQueue getPresentQueue() const { return m_presentQueue; }
         VkCommandPool getCommandPool() const;
 
+        PhysicalDeviceSurfaceParameters const& getPhysicalDeviceSurfaceParameters() { return *m_physicalDeviceSurfaceParameters; }
+        QueueFamilyIndices const& getQueueFamilyIndices() { return *m_queueFamilyIndices; }
+
         int getWidth() const { return m_width; }
         int getHeight() const { return m_height; }
-
-        PhysicalDeviceProperties const& getPhysicalDeviceProperties() const { return m_physicalDeviceProperties; }
 
         void pickPhysicalDevice();
         void createLogicalDevice();
@@ -67,7 +45,8 @@ namespace vkr
         VkQueue m_presentQueue = VK_NULL_HANDLE;
         std::unique_ptr<CommandPool> m_commandPool;
 
-        PhysicalDeviceProperties m_physicalDeviceProperties;
+        std::unique_ptr<PhysicalDeviceSurfaceParameters> m_physicalDeviceSurfaceParameters;
+        std::unique_ptr<QueueFamilyIndices> m_queueFamilyIndices;
 
         int m_width = -1;
         int m_height = -1;

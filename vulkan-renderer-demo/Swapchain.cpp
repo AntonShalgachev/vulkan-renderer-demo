@@ -4,6 +4,8 @@
 #include "ImageView.h"
 #include "Framebuffer.h"
 #include "Image.h"
+#include "PhysicalDeviceSurfaceParameters.h"
+#include "QueueFamilyIndices.h"
 
 namespace
 {
@@ -63,14 +65,14 @@ void vkr::Swapchain::createFramebuffers(vkr::RenderPass const& renderPass, vkr::
 
 void vkr::Swapchain::createSwapchain()
 {
-    vkr::Renderer::SwapchainSupportDetails swapChainSupport = temp::getRenderer()->getPhysicalDeviceProperties().swapchainSupportDetails;
+    PhysicalDeviceSurfaceParameters const& parameters = temp::getRenderer()->getPhysicalDeviceSurfaceParameters();
 
-    m_surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-    VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-    m_extent = chooseSwapExtent(swapChainSupport.capabilities);
+    m_surfaceFormat = chooseSwapSurfaceFormat(parameters.getFormats());
+    VkPresentModeKHR presentMode = chooseSwapPresentMode(parameters.getPresentModes());
+    m_extent = chooseSwapExtent(parameters.getCapabilities());
 
-    const uint32_t minImageCount = swapChainSupport.capabilities.minImageCount;
-    const uint32_t maxImageCount = swapChainSupport.capabilities.maxImageCount;
+    const uint32_t minImageCount = parameters.getCapabilities().minImageCount;
+    const uint32_t maxImageCount = parameters.getCapabilities().maxImageCount;
 
     uint32_t imageCount = minImageCount + 1;
 
@@ -88,10 +90,10 @@ void vkr::Swapchain::createSwapchain()
     swapchainCreateInfo.imageArrayLayers = 1;
     swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    vkr::Renderer::QueueFamilyIndices indices = temp::getRenderer()->getPhysicalDeviceProperties().queueFamilyIndices;
-    if (indices.graphicsFamily != indices.presentFamily)
+    vkr::QueueFamilyIndices const& indices = temp::getRenderer()->getQueueFamilyIndices();
+    if (indices.getGraphicsIndex() != indices.getPresentIndex())
     {
-        uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+        uint32_t queueFamilyIndices[] = { indices.getGraphicsIndex(), indices.getPresentIndex() };
         swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         swapchainCreateInfo.queueFamilyIndexCount = 2;
         swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
@@ -103,7 +105,7 @@ void vkr::Swapchain::createSwapchain()
         swapchainCreateInfo.pQueueFamilyIndices = nullptr;
     }
 
-    swapchainCreateInfo.preTransform = swapChainSupport.capabilities.currentTransform;
+    swapchainCreateInfo.preTransform = parameters.getCapabilities().currentTransform;
     swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     swapchainCreateInfo.presentMode = presentMode;
     swapchainCreateInfo.clipped = VK_TRUE;

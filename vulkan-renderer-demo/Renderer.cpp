@@ -2,6 +2,8 @@
 #include "PhysicalDevice.h"
 #include "Device.h"
 #include "CommandPool.h"
+#include "PhysicalDeviceSurfaceParameters.h"
+#include "QueueFamilyIndices.h"
 
 namespace
 {
@@ -9,87 +11,17 @@ namespace
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
 
-    bool isDeviceSuitable(vkr::PhysicalDevice const& physicalDevice, vkr::Renderer::PhysicalDeviceProperties properties)
+    bool isDeviceSuitable(vkr::PhysicalDevice const& physicalDevice, vkr::PhysicalDeviceSurfaceParameters const& physicalDeviceSurfaceParameters, vkr::QueueFamilyIndices const& indices)
     {
-        auto const& features = physicalDevice.getFeatures();
-
         bool const areExtensionsSupported = physicalDevice.areExtensionsSupported(DEVICE_EXTENSIONS);
 
         bool swapchainSupported = false;
         if (areExtensionsSupported)
         {
-            swapchainSupported = !properties.swapchainSupportDetails.formats.empty() && !properties.swapchainSupportDetails.presentModes.empty();
+            swapchainSupported = !physicalDeviceSurfaceParameters.getFormats().empty() && !physicalDeviceSurfaceParameters.getPresentModes().empty();
         }
 
-        return properties.queueFamilyIndices.IsComplete() && areExtensionsSupported && swapchainSupported && features.samplerAnisotropy;
-    }
-
-    vkr::Renderer::QueueFamilyIndices findQueueFamilies(vkr::PhysicalDevice const& physicalDevice, VkSurfaceKHR surface)
-    {
-        vkr::Renderer::QueueFamilyIndices indices;
-
-        std::vector<VkQueueFamilyProperties> const& queueFamilies = physicalDevice.getQueueFamilyProperties();
-
-        for (auto i = 0; i < queueFamilies.size(); i++)
-        {
-            auto const& queueFamily = queueFamilies[i];
-
-            if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-                indices.graphicsFamily = i;
-
-            VkBool32 presentSupport = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice.getHandle(), i, surface, &presentSupport);
-
-            if (presentSupport)
-                indices.presentFamily = i;
-
-            if (indices.IsComplete())
-                break;
-        }
-
-        return indices;
-    }
-
-    vkr::Renderer::SwapchainSupportDetails querySwapchainSupport(vkr::PhysicalDevice const& physicalDevice, VkSurfaceKHR surface)
-    {
-        vkr::Renderer::SwapchainSupportDetails details;
-
-        VkPhysicalDevice handle = physicalDevice.getHandle();
-
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(handle, surface, &details.capabilities);
-
-        {
-            uint32_t formatCount;
-            vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formatCount, nullptr);
-
-            if (formatCount > 0)
-            {
-                details.formats.resize(formatCount);
-                vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formatCount, details.formats.data());
-            }
-        }
-
-        {
-            uint32_t presentModeCount;
-            vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &presentModeCount, nullptr);
-
-            if (presentModeCount > 0)
-            {
-                details.presentModes.resize(presentModeCount);
-                vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &presentModeCount, details.presentModes.data());
-            }
-        }
-
-        return details;
-    }
-
-    vkr::Renderer::PhysicalDeviceProperties calculatePhysicalDeviceProperties(vkr::PhysicalDevice const& physicalDevice, VkSurfaceKHR surface)
-    {
-        vkr::Renderer::PhysicalDeviceProperties properties;
-        properties.queueFamilyIndices = findQueueFamilies(physicalDevice, surface);
-        properties.swapchainSupportDetails = querySwapchainSupport(physicalDevice, surface);
-
-        return properties;
+        return indices.isValid() && areExtensionsSupported && swapchainSupported && physicalDevice.getFeatures().samplerAnisotropy;
     }
 
     std::vector<char const*> getGlfwExtensions()
@@ -125,7 +57,7 @@ namespace vkr
         m_width = width;
         m_height = height;
 
-        m_physicalDeviceProperties = calculatePhysicalDeviceProperties(*m_physicalDevice, m_surface.getHandle());
+        m_physicalDeviceSurfaceParameters = std::make_unique<PhysicalDeviceSurfaceParameters>(*m_physicalDevice, m_surface);
     }
 
     VkPhysicalDevice Renderer::getPhysicalDevice() const
@@ -149,12 +81,14 @@ namespace vkr
 
         for (const auto& physicalDevice : physicalDevices)
         {
-            PhysicalDeviceProperties properties = calculatePhysicalDeviceProperties(*physicalDevice, m_surface.getHandle());
+            auto parameters = std::make_unique<PhysicalDeviceSurfaceParameters>(*physicalDevice, m_surface);
+            auto indices = std::make_unique<QueueFamilyIndices>(*physicalDevice, *parameters);
 
-            if (isDeviceSuitable(*physicalDevice, properties))
+            if (isDeviceSuitable(*physicalDevice, *parameters, *indices))
             {
                 m_physicalDevice = physicalDevice;
-                m_physicalDeviceProperties = properties;
+                m_physicalDeviceSurfaceParameters = std::move(parameters);
+                m_queueFamilyIndices = std::move(indices);
                 break;
             }
         }
@@ -165,18 +99,14 @@ namespace vkr
 
     void Renderer::createLogicalDevice()
     {
-        QueueFamilyIndices const& indices = m_physicalDeviceProperties.queueFamilyIndices;
+        m_device = std::make_unique<Device>(*m_physicalDevice, DEVICE_EXTENSIONS, m_queueFamilyIndices->getGraphicsIndex());
 
-        m_device = std::make_unique<Device>(*m_physicalDevice, DEVICE_EXTENSIONS, indices.graphicsFamily.value());
-
-        vkGetDeviceQueue(m_device->getHandle(), indices.graphicsFamily.value(), 0, &m_graphicsQueue);
-        vkGetDeviceQueue(m_device->getHandle(), indices.presentFamily.value(), 0, &m_presentQueue);
+        vkGetDeviceQueue(m_device->getHandle(), m_queueFamilyIndices->getGraphicsIndex(), 0, &m_graphicsQueue);
+        vkGetDeviceQueue(m_device->getHandle(), m_queueFamilyIndices->getPresentIndex(), 0, &m_presentQueue);
     }
 
     void Renderer::createCommandPool()
     {
-        QueueFamilyIndices const& indices = getPhysicalDeviceProperties().queueFamilyIndices;
-
-        m_commandPool = std::make_unique<CommandPool>(*m_device, indices.graphicsFamily.value());
+        m_commandPool = std::make_unique<CommandPool>(*m_device, m_queueFamilyIndices->getGraphicsIndex());
     }
 }
