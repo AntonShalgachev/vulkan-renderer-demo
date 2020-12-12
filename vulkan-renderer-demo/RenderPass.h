@@ -9,7 +9,7 @@ namespace vkr
     class RenderPass
     {
     public:
-        RenderPass(Swapchain const& swapchain);
+        explicit RenderPass(Swapchain const& swapchain);
         ~RenderPass();
 
         VkRenderPass getHandle() const { return m_handle; }

@@ -14,7 +14,7 @@ namespace vkr
     class DescriptorSets
     {
     public:
-    	DescriptorSets(std::size_t size, DescriptorSetLayout const& layout);
+    	explicit DescriptorSets(std::size_t size, DescriptorSetLayout const& layout);
     	~DescriptorSets();
 
         void update(std::size_t index, Buffer const& uniformBuffer, Texture const& texture, Sampler const& sampler);

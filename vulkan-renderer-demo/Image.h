@@ -10,8 +10,8 @@ namespace vkr
     class Image
     {
     public:
-        Image(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage);
-        Image(VkImage image, VkFormat format);
+        explicit Image(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage);
+        explicit Image(VkImage image, VkFormat format);
         ~Image();
 
         VkMemoryRequirements getMemoryRequirements() const;

@@ -9,7 +9,7 @@ namespace vkr
     class Surface
     {
     public:
-        Surface(Instance const& instance, GLFWwindow* window);
+        explicit Surface(Instance const& instance, GLFWwindow* window);
         ~Surface();
 
         VkSurfaceKHR const& getHandle() const { return m_handle; }

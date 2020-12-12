@@ -11,7 +11,7 @@ namespace vkr
     class CommandBuffers
     {
     public:
-    	CommandBuffers(std::size_t size);
+    	explicit CommandBuffers(std::size_t size);
     	~CommandBuffers();
 
         void begin(std::size_t index, VkCommandBufferUsageFlags flags);

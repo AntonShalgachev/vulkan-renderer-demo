@@ -9,7 +9,7 @@ namespace vkr
     class Device
     {
     public:
-    	Device(PhysicalDevice const& physicalDevice, std::vector<const char*> const& extensions, uint32_t queueFamilyIndex);
+    	explicit Device(PhysicalDevice const& physicalDevice, std::vector<const char*> const& extensions, uint32_t queueFamilyIndex);
     	~Device();
 
         VkDevice const& getHandle() const { return m_handle; }

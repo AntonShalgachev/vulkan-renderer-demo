@@ -7,7 +7,7 @@ namespace vkr
     class DeviceMemory
     {
     public:
-        DeviceMemory(VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties);
+        explicit DeviceMemory(VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties);
         ~DeviceMemory();
 
         void copyFrom(void const* sourcePointer, std::size_t sourceSize);

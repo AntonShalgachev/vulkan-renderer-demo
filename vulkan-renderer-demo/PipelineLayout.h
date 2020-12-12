@@ -9,7 +9,7 @@ namespace vkr
     class PipelineLayout
     {
     public:
-    	PipelineLayout(DescriptorSetLayout const& descriptorSetLayout);
+    	explicit PipelineLayout(DescriptorSetLayout const& descriptorSetLayout);
     	~PipelineLayout();
 
         VkPipelineLayout const& getHandle() const { return m_handle; }

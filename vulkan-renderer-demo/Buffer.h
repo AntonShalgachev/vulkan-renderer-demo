@@ -9,7 +9,7 @@ namespace vkr
     class Buffer
     {
     public:
-        Buffer(VkDeviceSize size, VkBufferUsageFlags usage);
+        explicit Buffer(VkDeviceSize size, VkBufferUsageFlags usage);
         ~Buffer();
 
         VkMemoryRequirements getMemoryRequirements() const;

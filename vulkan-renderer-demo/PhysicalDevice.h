@@ -34,7 +34,7 @@ namespace vkr
         };
 
     public:
-        PhysicalDevice(VkPhysicalDevice handle);
+        explicit PhysicalDevice(VkPhysicalDevice handle);
 
         VkPhysicalDeviceProperties const& getProperties() const { return m_properties; }
         VkPhysicalDeviceFeatures const& getFeatures() const { return m_features; }

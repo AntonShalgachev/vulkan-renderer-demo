@@ -10,7 +10,7 @@ namespace vkr
     class Framebuffer
     {
     public:
-        Framebuffer(vkr::ImageView const& colorImageView, vkr::ImageView const& depthImageView, vkr::RenderPass const& renderPass, VkExtent2D extent);
+        explicit Framebuffer(vkr::ImageView const& colorImageView, vkr::ImageView const& depthImageView, vkr::RenderPass const& renderPass, VkExtent2D extent);
         ~Framebuffer();
 
         VkFramebuffer getHandle() const { return m_handle; }

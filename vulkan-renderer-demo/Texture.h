@@ -11,7 +11,7 @@ namespace vkr
     class Texture
     {
     public:
-        Texture(std::string const& path);
+        explicit Texture(std::string const& path);
 
         VkImageView getImageViewHandle() const;
 

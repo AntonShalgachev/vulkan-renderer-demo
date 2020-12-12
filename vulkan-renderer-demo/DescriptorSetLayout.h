@@ -7,7 +7,7 @@ namespace vkr
     class DescriptorSetLayout
     {
     public:
-    	DescriptorSetLayout();
+    	explicit DescriptorSetLayout();
     	~DescriptorSetLayout();
 
         VkDescriptorSetLayout const& getHandle() const { return m_handle; }

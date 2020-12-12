@@ -14,7 +14,7 @@ namespace vkr
         };
 
     public:
-        ShaderModule(std::string const& path, Type type, std::string const& entryPoint);
+        explicit ShaderModule(std::string const& path, Type type, std::string const& entryPoint);
         ~ShaderModule();
 
         VkPipelineShaderStageCreateInfo createStageCreateInfo() const;
