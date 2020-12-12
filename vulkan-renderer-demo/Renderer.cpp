@@ -8,11 +8,11 @@ namespace
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
 
-    bool isDeviceSuitable(vkr::PhysicalDevice const& device, vkr::Renderer::PhysicalDeviceProperties properties)
+    bool isDeviceSuitable(vkr::PhysicalDevice const& physicalDevice, vkr::Renderer::PhysicalDeviceProperties properties)
     {
-        auto const& features = device.getFeatures();
+        auto const& features = physicalDevice.getFeatures();
 
-        bool const areExtensionsSupported = device.areExtensionsSupported(DEVICE_EXTENSIONS);
+        bool const areExtensionsSupported = physicalDevice.areExtensionsSupported(DEVICE_EXTENSIONS);
 
         bool swapchainSupported = false;
         if (areExtensionsSupported)
@@ -23,11 +23,11 @@ namespace
         return properties.queueFamilyIndices.IsComplete() && areExtensionsSupported && swapchainSupported && features.samplerAnisotropy;
     }
 
-    vkr::Renderer::QueueFamilyIndices findQueueFamilies(vkr::PhysicalDevice const& device, VkSurfaceKHR surface)
+    vkr::Renderer::QueueFamilyIndices findQueueFamilies(vkr::PhysicalDevice const& physicalDevice, VkSurfaceKHR surface)
     {
         vkr::Renderer::QueueFamilyIndices indices;
 
-        std::vector<VkQueueFamilyProperties> const& queueFamilies = device.getQueueFamilyProperties();
+        std::vector<VkQueueFamilyProperties> const& queueFamilies = physicalDevice.getQueueFamilyProperties();
 
         for (auto i = 0; i < queueFamilies.size(); i++)
         {
@@ -37,7 +37,7 @@ namespace
                 indices.graphicsFamily = i;
 
             VkBool32 presentSupport = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(device.getHandle(), i, surface, &presentSupport);
+            vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice.getHandle(), i, surface, &presentSupport);
 
             if (presentSupport)
                 indices.presentFamily = i;
@@ -49,11 +49,11 @@ namespace
         return indices;
     }
 
-    vkr::Renderer::SwapchainSupportDetails querySwapchainSupport(vkr::PhysicalDevice const& device, VkSurfaceKHR surface)
+    vkr::Renderer::SwapchainSupportDetails querySwapchainSupport(vkr::PhysicalDevice const& physicalDevice, VkSurfaceKHR surface)
     {
         vkr::Renderer::SwapchainSupportDetails details;
 
-        VkPhysicalDevice handle = device.getHandle();
+        VkPhysicalDevice handle = physicalDevice.getHandle();
 
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(handle, surface, &details.capabilities);
 
@@ -82,11 +82,11 @@ namespace
         return details;
     }
 
-    vkr::Renderer::PhysicalDeviceProperties calculatePhysicalDeviceProperties(vkr::PhysicalDevice const& device, VkSurfaceKHR surface)
+    vkr::Renderer::PhysicalDeviceProperties calculatePhysicalDeviceProperties(vkr::PhysicalDevice const& physicalDevice, VkSurfaceKHR surface)
     {
         vkr::Renderer::PhysicalDeviceProperties properties;
-        properties.queueFamilyIndices = findQueueFamilies(device, surface);
-        properties.swapchainSupportDetails = querySwapchainSupport(device, surface);
+        properties.queueFamilyIndices = findQueueFamilies(physicalDevice, surface);
+        properties.swapchainSupportDetails = querySwapchainSupport(physicalDevice, surface);
 
         return properties;
     }
@@ -142,15 +142,15 @@ namespace vkr
 
     void Renderer::pickPhysicalDevice()
     {
-        auto const& devices = m_instance.getPhysicalDevices();
+        auto const& physicalDevices = m_instance.getPhysicalDevices();
 
-        for (const auto& device : devices)
+        for (const auto& physicalDevice : physicalDevices)
         {
-            PhysicalDeviceProperties properties = calculatePhysicalDeviceProperties(*device, m_surface.getHandle());
+            PhysicalDeviceProperties properties = calculatePhysicalDeviceProperties(*physicalDevice, m_surface.getHandle());
 
-            if (isDeviceSuitable(device->getHandle(), properties))
+            if (isDeviceSuitable(*physicalDevice, properties))
             {
-                m_physicalDevice = device;
+                m_physicalDevice = physicalDevice;
                 m_physicalDeviceProperties = properties;
                 break;
             }
