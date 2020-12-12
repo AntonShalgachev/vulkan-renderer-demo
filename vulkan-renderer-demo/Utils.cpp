@@ -17,3 +17,19 @@ void vkr::utils::createImage(uint32_t width, uint32_t height, VkFormat format, V
     imageMemory = std::make_unique<vkr::DeviceMemory>(image->getMemoryRequirements(), properties);
     image->bindMemory(*imageMemory);
 }
+
+bool vkr::utils::hasEveryOption(std::vector<char const*> const& availableOptions, std::vector<char const*> const& requestedOptions)
+{
+    for (const auto& requestedOption : requestedOptions)
+    {
+        auto it = std::find_if(availableOptions.begin(), availableOptions.end(), [requestedOption](char const* availableOption)
+        {
+            return std::strcmp(availableOption, requestedOption) == 0;
+        });
+
+        if (it == availableOptions.end())
+            return false;
+    }
+
+    return true;
+}

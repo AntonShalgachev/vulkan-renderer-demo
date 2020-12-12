@@ -1,23 +1,9 @@
 #include "Instance.h"
+#include "PhysicalDevice.h"
+#include "Utils.h"
 
 namespace
 {
-    bool hasEveryOption(std::vector<char const*> const& availableOptions, std::vector<char const*> const& requestedOptions)
-    {
-        for (const auto& requestedOption : requestedOptions)
-        {
-            auto it = std::find_if(availableOptions.begin(), availableOptions.end(), [requestedOption](char const* availableOption)
-            {
-                return std::strcmp(availableOption, requestedOption) == 0;
-            });
-
-            if (it == availableOptions.end())
-                return false;
-        }
-
-        return true;
-    }
-
     std::vector<VkLayerProperties> getAvailableLayers()
     {
         uint32_t count = 0;
@@ -51,6 +37,17 @@ vkr::Instance::Instance(std::string const& appName, std::vector<char const*> ext
     for (const auto& extension : m_availableExtensions)
         m_availableExtensionNames.push_back(extension.extensionName);
 
+    createInstance(appName, extensions, enableValidation, enableApiDump);
+    findPhysicalDevices();
+}
+
+vkr::Instance::~Instance()
+{
+    vkDestroyInstance(m_handle, nullptr);
+}
+
+void vkr::Instance::createInstance(std::string const& appName, std::vector<char const*> extensions, bool enableValidation, bool enableApiDump)
+{
     std::vector<char const*> requestedLayers;
     if (enableValidation)
         requestedLayers.push_back("VK_LAYER_KHRONOS_validation");
@@ -59,10 +56,10 @@ vkr::Instance::Instance(std::string const& appName, std::vector<char const*> ext
 
     std::vector<char const*> requestedExtensions = extensions;
 
-    if (!hasEveryOption(m_availableLayerNames, requestedLayers))
+    if (!utils::hasEveryOption(m_availableLayerNames, requestedLayers))
         throw std::runtime_error("Some of the required validation layers aren't supported");
 
-    if (!hasEveryOption(m_availableExtensionNames, requestedExtensions))
+    if (!utils::hasEveryOption(m_availableExtensionNames, requestedExtensions))
         throw std::runtime_error("Some of the required extensions aren't supported");
 
     VkApplicationInfo appInfo{};
@@ -85,7 +82,17 @@ vkr::Instance::Instance(std::string const& appName, std::vector<char const*> ext
         throw std::runtime_error("Failed to create Vulkan instance");
 }
 
-vkr::Instance::~Instance()
+void vkr::Instance::findPhysicalDevices()
 {
-    vkDestroyInstance(m_handle, nullptr);
+    uint32_t count = 0;
+    vkEnumeratePhysicalDevices(m_handle, &count, nullptr);
+    if (count == 0)
+        throw std::runtime_error("failed to find GPUs with Vulkan support!");
+
+    std::vector<VkPhysicalDevice> physicalDevices(count);
+    vkEnumeratePhysicalDevices(m_handle, &count, physicalDevices.data());
+
+    m_physicalDevices.reserve(count);
+    for (auto const& handle : physicalDevices)
+        m_physicalDevices.push_back(std::make_shared<PhysicalDevice>(handle));
 }

@@ -40,7 +40,7 @@ namespace vkr
         void OnSurfaceChanged(int width, int height);
 
         VkSurfaceKHR getSurfaceHandle() const { return m_surface.getHandle(); }
-        VkPhysicalDevice getPhysicalDevice() const { return m_physicalDevice; }
+        VkPhysicalDevice getPhysicalDevice() const;
         VkDevice getDevice() const { return m_device; }
         VkQueue getGraphicsQueue() const { return m_graphicsQueue; }
         VkQueue getPresentQueue() const { return m_presentQueue; }
@@ -57,7 +57,7 @@ namespace vkr
 
         Instance m_instance;
         Surface m_surface;
-        VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
+        std::shared_ptr<PhysicalDevice> m_physicalDevice;
         VkDevice m_device = VK_NULL_HANDLE;
         VkQueue m_graphicsQueue = VK_NULL_HANDLE;
         VkQueue m_presentQueue = VK_NULL_HANDLE;

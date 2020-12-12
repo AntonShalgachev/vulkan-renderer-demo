@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "PhysicalDevice.h"
 
 namespace
 {
@@ -6,33 +7,11 @@ namespace
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
 
-    bool doesDeviceSupportExtensions(VkPhysicalDevice device, const std::vector<const char*>& extensions)
+    bool isDeviceSuitable(vkr::PhysicalDevice const& device, vkr::Renderer::PhysicalDeviceProperties properties)
     {
-        uint32_t extensionCount;
-        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+        auto const& features = device.getFeatures();
 
-        std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
-
-        std::set<std::string> requiredExtensions(extensions.begin(), extensions.end());
-
-        for (const auto& extension : availableExtensions)
-        {
-            requiredExtensions.erase(extension.extensionName);
-        }
-
-        return requiredExtensions.empty();
-    }
-
-    bool isDeviceSuitable(VkPhysicalDevice device, vkr::Renderer::PhysicalDeviceProperties properties)
-    {
-        VkPhysicalDeviceProperties deviceProperties;
-        VkPhysicalDeviceFeatures deviceFeatures;
-
-        vkGetPhysicalDeviceProperties(device, &deviceProperties);
-        vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-
-        const bool areExtensionsSupported = doesDeviceSupportExtensions(device, DEVICE_EXTENSIONS);
+        bool const areExtensionsSupported = device.areExtensionsSupported(DEVICE_EXTENSIONS);
 
         bool swapchainSupported = false;
         if (areExtensionsSupported)
@@ -40,72 +19,69 @@ namespace
             swapchainSupported = !properties.swapchainSupportDetails.formats.empty() && !properties.swapchainSupportDetails.presentModes.empty();
         }
 
-        return properties.queueFamilyIndices.IsComplete() && areExtensionsSupported && swapchainSupported && deviceFeatures.samplerAnisotropy;
+        return properties.queueFamilyIndices.IsComplete() && areExtensionsSupported && swapchainSupported && features.samplerAnisotropy;
     }
 
-    vkr::Renderer::QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
+    vkr::Renderer::QueueFamilyIndices findQueueFamilies(vkr::PhysicalDevice const& device, VkSurfaceKHR surface)
     {
         vkr::Renderer::QueueFamilyIndices indices;
 
-        uint32_t queueFamilyCount = 0;
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+        std::vector<VkQueueFamilyProperties> const& queueFamilies = device.getQueueFamilyProperties();
 
-        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-
-        int i = 0;
-        for (const auto& queueFamily : queueFamilies)
+        for (auto i = 0; i < queueFamilies.size(); i++)
         {
+            auto const& queueFamily = queueFamilies[i];
+
             if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
                 indices.graphicsFamily = i;
 
             VkBool32 presentSupport = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+            vkGetPhysicalDeviceSurfaceSupportKHR(device.getHandle(), i, surface, &presentSupport);
 
             if (presentSupport)
                 indices.presentFamily = i;
 
             if (indices.IsComplete())
                 break;
-
-            i++;
         }
 
         return indices;
     }
 
-    vkr::Renderer::SwapchainSupportDetails querySwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
+    vkr::Renderer::SwapchainSupportDetails querySwapchainSupport(vkr::PhysicalDevice const& device, VkSurfaceKHR surface)
     {
         vkr::Renderer::SwapchainSupportDetails details;
 
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+        VkPhysicalDevice handle = device.getHandle();
+
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(handle, surface, &details.capabilities);
 
         {
             uint32_t formatCount;
-            vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+            vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formatCount, nullptr);
 
             if (formatCount > 0)
             {
                 details.formats.resize(formatCount);
-                vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
+                vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &formatCount, details.formats.data());
             }
         }
 
         {
             uint32_t presentModeCount;
-            vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
+            vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &presentModeCount, nullptr);
 
             if (presentModeCount > 0)
             {
                 details.presentModes.resize(presentModeCount);
-                vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
+                vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &presentModeCount, details.presentModes.data());
             }
         }
 
         return details;
     }
 
-    vkr::Renderer::PhysicalDeviceProperties calculatePhysicalDeviceProperties(VkPhysicalDevice device, VkSurfaceKHR surface)
+    vkr::Renderer::PhysicalDeviceProperties calculatePhysicalDeviceProperties(vkr::PhysicalDevice const& device, VkSurfaceKHR surface)
     {
         vkr::Renderer::PhysicalDeviceProperties properties;
         properties.queueFamilyIndices = findQueueFamilies(device, surface);
@@ -150,24 +126,24 @@ namespace vkr
     {
         m_width = width;
         m_height = height;
-        m_physicalDeviceProperties = calculatePhysicalDeviceProperties(m_physicalDevice, m_surface.getHandle());
+
+        m_physicalDeviceProperties = calculatePhysicalDeviceProperties(*m_physicalDevice, m_surface.getHandle());
+    }
+
+    VkPhysicalDevice Renderer::getPhysicalDevice() const
+    {
+        return m_physicalDevice->getHandle();
     }
 
     void Renderer::pickPhysicalDevice()
     {
-        uint32_t deviceCount = 0;
-        vkEnumeratePhysicalDevices(m_instance.getHandle(), &deviceCount, nullptr);
-        if (deviceCount == 0)
-            throw std::runtime_error("failed to find GPUs with Vulkan support!");
-
-        std::vector<VkPhysicalDevice> devices(deviceCount);
-        vkEnumeratePhysicalDevices(m_instance.getHandle(), &deviceCount, devices.data());
+        auto const& devices = m_instance.getPhysicalDevices();
 
         for (const auto& device : devices)
         {
-            PhysicalDeviceProperties properties = calculatePhysicalDeviceProperties(device, m_surface.getHandle());
+            PhysicalDeviceProperties properties = calculatePhysicalDeviceProperties(*device, m_surface.getHandle());
 
-            if (isDeviceSuitable(device, properties))
+            if (isDeviceSuitable(device->getHandle(), properties))
             {
                 m_physicalDevice = device;
                 m_physicalDeviceProperties = properties;
@@ -175,7 +151,7 @@ namespace vkr
             }
         }
 
-        if (m_physicalDevice == VK_NULL_HANDLE)
+        if (!m_physicalDevice)
             throw std::runtime_error("failed to find a suitable GPU!");
     }
 
@@ -201,7 +177,7 @@ namespace vkr
         deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(DEVICE_EXTENSIONS.size());
         deviceCreateInfo.ppEnabledExtensionNames = DEVICE_EXTENSIONS.data();
 
-        if (vkCreateDevice(m_physicalDevice, &deviceCreateInfo, nullptr, &m_device) != VK_SUCCESS)
+        if (vkCreateDevice(m_physicalDevice->getHandle(), &deviceCreateInfo, nullptr, &m_device) != VK_SUCCESS)
             throw std::runtime_error("failed to create logical device!");
 
         vkGetDeviceQueue(m_device, indices.graphicsFamily.value(), 0, &m_graphicsQueue);

@@ -1,30 +1,44 @@
 #include "PhysicalDevice.h"
+#include "Utils.h"
 
-vkr::PhysicalDevice::PhysicalDevice(VkPhysicalDevice handle, Surface const& surface) : m_handle(handle)
+vkr::PhysicalDevice::PhysicalDevice(VkPhysicalDevice handle) : m_handle(handle)
 {
-
+    queryAvailableExtensions();
+    queryProperties();
+    queryFeatures();
+    queryQueueFamilyProperties();
 }
 
-VkPhysicalDeviceProperties const& vkr::PhysicalDevice::getProperties() const
+bool vkr::PhysicalDevice::areExtensionsSupported(std::vector<char const*> const& requestedExtensions) const
 {
-    if (!m_properties.has_value())
-    {
-        VkPhysicalDeviceProperties properties;
-        vkGetPhysicalDeviceProperties(m_handle, &properties);
-        m_properties = properties;
-    }
-
-    return m_properties.value();
+    return utils::hasEveryOption(m_availableExtensionNames, requestedExtensions);
 }
 
-VkPhysicalDeviceFeatures const& vkr::PhysicalDevice::getFeatures() const
+void vkr::PhysicalDevice::queryAvailableExtensions()
 {
-    if (!m_features.has_value())
-    {
-        VkPhysicalDeviceFeatures features;
-        vkGetPhysicalDeviceFeatures(m_handle, &features);
-        m_features = features;
-    }
+    uint32_t count;
+    vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, nullptr);
+    m_availableExtensions.resize(count);
+    vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, m_availableExtensions.data());
 
-    return m_features.value();
+    for (const auto& extension : m_availableExtensions)
+        m_availableExtensionNames.push_back(extension.extensionName);
+}
+
+void vkr::PhysicalDevice::queryProperties()
+{
+    vkGetPhysicalDeviceProperties(m_handle, &m_properties);
+}
+
+void vkr::PhysicalDevice::queryFeatures()
+{
+    vkGetPhysicalDeviceFeatures(m_handle, &m_features);
+}
+
+void vkr::PhysicalDevice::queryQueueFamilyProperties()
+{
+    uint32_t count = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, nullptr);
+    m_queueFamilyProperties.resize(count);
+    vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, m_queueFamilyProperties.data());
 }

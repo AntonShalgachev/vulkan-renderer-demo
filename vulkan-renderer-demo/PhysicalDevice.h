@@ -6,8 +6,6 @@
 
 namespace vkr
 {
-    class Surface;
-
     class PhysicalDevice
     {
     public:
@@ -36,17 +34,30 @@ namespace vkr
         };
 
     public:
-        PhysicalDevice(VkPhysicalDevice handle, Surface const& surface);
+        PhysicalDevice(VkPhysicalDevice handle);
 
-        VkPhysicalDeviceProperties const& getProperties() const;
-        VkPhysicalDeviceFeatures const& getFeatures() const;
+        VkPhysicalDeviceProperties const& getProperties() const { return m_properties; }
+        VkPhysicalDeviceFeatures const& getFeatures() const { return m_features; }
+        std::vector<VkQueueFamilyProperties> const& getQueueFamilyProperties() const { return m_queueFamilyProperties; }
+
+        bool areExtensionsSupported(std::vector<char const*> const& requestedExtensions) const;
 
         VkPhysicalDevice const& getHandle() const { return m_handle; }
 
     private:
-        mutable std::optional<VkPhysicalDeviceProperties> m_properties;
-        mutable std::optional<VkPhysicalDeviceFeatures> m_features;
+        void queryAvailableExtensions();
+        void queryProperties();
+        void queryFeatures();
+        void queryQueueFamilyProperties();
 
+    private:
         VkPhysicalDevice m_handle;
+
+        std::vector<VkExtensionProperties> m_availableExtensions;
+        std::vector<char const*> m_availableExtensionNames;
+
+        VkPhysicalDeviceProperties m_properties;
+        VkPhysicalDeviceFeatures m_features;
+        std::vector<VkQueueFamilyProperties> m_queueFamilyProperties;
     };
 }
