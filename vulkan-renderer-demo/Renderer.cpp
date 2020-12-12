@@ -162,7 +162,7 @@ namespace vkr
 
     void Renderer::createLogicalDevice()
     {
-        QueueFamilyIndices indices = m_physicalDeviceProperties.queueFamilyIndices;
+        QueueFamilyIndices const& indices = m_physicalDeviceProperties.queueFamilyIndices;
 
         m_device = std::make_unique<Device>(*m_physicalDevice, DEVICE_EXTENSIONS, indices.graphicsFamily.value());
 
