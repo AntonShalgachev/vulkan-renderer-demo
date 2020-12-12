@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "PhysicalDevice.h"
+#include "Device.h"
 
 namespace
 {
@@ -118,8 +119,7 @@ namespace vkr
 
     Renderer::~Renderer()
     {
-        vkDestroyCommandPool(m_device, m_commandPool, nullptr);
-        vkDestroyDevice(m_device, nullptr);
+        vkDestroyCommandPool(m_device->getHandle(), m_commandPool, nullptr);
     }
 
     void Renderer::OnSurfaceChanged(int width, int height)
@@ -133,6 +133,11 @@ namespace vkr
     VkPhysicalDevice Renderer::getPhysicalDevice() const
     {
         return m_physicalDevice->getHandle();
+    }
+
+    VkDevice Renderer::getDevice() const
+    {
+        return m_device->getHandle();
     }
 
     void Renderer::pickPhysicalDevice()
@@ -150,7 +155,7 @@ namespace vkr
                 break;
             }
         }
-
+         
         if (!m_physicalDevice)
             throw std::runtime_error("failed to find a suitable GPU!");
     }
@@ -159,29 +164,10 @@ namespace vkr
     {
         QueueFamilyIndices indices = m_physicalDeviceProperties.queueFamilyIndices;
 
-        VkDeviceQueueCreateInfo queueCreateInfo{};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
-        queueCreateInfo.queueCount = 1;
-        float queuePriority = 1.0f;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
+        m_device = std::make_unique<Device>(*m_physicalDevice, DEVICE_EXTENSIONS, indices.graphicsFamily.value());
 
-        VkPhysicalDeviceFeatures deviceFeatures{};
-        deviceFeatures.samplerAnisotropy = VK_TRUE;
-
-        VkDeviceCreateInfo deviceCreateInfo{};
-        deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
-        deviceCreateInfo.queueCreateInfoCount = 1;
-        deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
-        deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(DEVICE_EXTENSIONS.size());
-        deviceCreateInfo.ppEnabledExtensionNames = DEVICE_EXTENSIONS.data();
-
-        if (vkCreateDevice(m_physicalDevice->getHandle(), &deviceCreateInfo, nullptr, &m_device) != VK_SUCCESS)
-            throw std::runtime_error("failed to create logical device!");
-
-        vkGetDeviceQueue(m_device, indices.graphicsFamily.value(), 0, &m_graphicsQueue);
-        vkGetDeviceQueue(m_device, indices.presentFamily.value(), 0, &m_presentQueue);
+        vkGetDeviceQueue(m_device->getHandle(), indices.graphicsFamily.value(), 0, &m_graphicsQueue);
+        vkGetDeviceQueue(m_device->getHandle(), indices.presentFamily.value(), 0, &m_presentQueue);
     }
 
     void Renderer::createCommandPool()
@@ -193,7 +179,7 @@ namespace vkr
         poolCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
         poolCreateInfo.flags = 0;
 
-        if (vkCreateCommandPool(m_device, &poolCreateInfo, nullptr, &m_commandPool) != VK_SUCCESS)
+        if (vkCreateCommandPool(m_device->getHandle(), &poolCreateInfo, nullptr, &m_commandPool) != VK_SUCCESS)
             throw std::runtime_error("failed to create command pool!");
     }
 }

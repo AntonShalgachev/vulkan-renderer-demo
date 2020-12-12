@@ -6,6 +6,9 @@
 
 namespace vkr
 {
+    class PhysicalDevice;
+    class Device;
+
     class Renderer
     {
     public:
@@ -41,7 +44,7 @@ namespace vkr
 
         VkSurfaceKHR getSurfaceHandle() const { return m_surface.getHandle(); }
         VkPhysicalDevice getPhysicalDevice() const;
-        VkDevice getDevice() const { return m_device; }
+        VkDevice getDevice() const;
         VkQueue getGraphicsQueue() const { return m_graphicsQueue; }
         VkQueue getPresentQueue() const { return m_presentQueue; }
         VkCommandPool getCommandPool() const { return m_commandPool; }
@@ -58,7 +61,7 @@ namespace vkr
         Instance m_instance;
         Surface m_surface;
         std::shared_ptr<PhysicalDevice> m_physicalDevice;
-        VkDevice m_device = VK_NULL_HANDLE;
+        std::unique_ptr<Device> m_device;
         VkQueue m_graphicsQueue = VK_NULL_HANDLE;
         VkQueue m_presentQueue = VK_NULL_HANDLE;
         VkCommandPool m_commandPool = VK_NULL_HANDLE;
