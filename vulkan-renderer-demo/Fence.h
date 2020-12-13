@@ -10,6 +10,11 @@ namespace vkr
     	Fence();
     	~Fence();
 
+        Fence(Fence const&) = delete;
+        Fence(Fence&&) = default;
+        Fence& operator=(Fence const&) = delete;
+        Fence& operator=(Fence&&) = default;
+
         void wait();
         void reset();
 

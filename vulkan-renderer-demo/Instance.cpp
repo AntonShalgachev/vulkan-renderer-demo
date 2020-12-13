@@ -94,7 +94,7 @@ std::vector<vkr::PhysicalDevice> vkr::Instance::findPhysicalDevices()
     std::vector<PhysicalDevice> physicalDevices;
     physicalDevices.reserve(count);
     for (auto const& handle : physicalDeviceHandles)
-        physicalDevices.push_back(PhysicalDevice(handle));
+        physicalDevices.emplace_back(handle);
 
     return physicalDevices;
 }

@@ -8,6 +8,12 @@ namespace vkr
     {
     public:
         explicit PhysicalDevice(VkPhysicalDevice handle);
+        ~PhysicalDevice() = default;
+
+        PhysicalDevice(PhysicalDevice const&) = delete;
+        PhysicalDevice(PhysicalDevice&&) = default;
+        PhysicalDevice& operator=(PhysicalDevice const&) = delete;
+        PhysicalDevice& operator=(PhysicalDevice&&) = default;
 
         VkPhysicalDevice const& getHandle() const { return m_handle; }
 

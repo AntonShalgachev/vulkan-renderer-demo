@@ -15,6 +15,11 @@ namespace vkr
         Swapchain();
         ~Swapchain();
 
+        Swapchain(Swapchain const&) = delete;
+        Swapchain(Swapchain&&) = delete;
+        Swapchain& operator=(Swapchain const&) = delete;
+        Swapchain& operator=(Swapchain&&) = delete;
+
         void createFramebuffers(vkr::RenderPass const& renderPass, vkr::ImageView const& depthImageView);
 
         VkSwapchainKHR getHandle() const { return m_handle; }

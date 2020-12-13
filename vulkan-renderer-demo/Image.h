@@ -14,6 +14,11 @@ namespace vkr
         explicit Image(VkImage image, VkFormat format);
         ~Image();
 
+        Image(Image const&) = delete;
+        Image(Image&&) = delete;
+        Image& operator=(Image const&) = delete;
+        Image& operator=(Image&&) = delete;
+
         VkMemoryRequirements getMemoryRequirements() const;
         void bindMemory(DeviceMemory const& memory) const;
 

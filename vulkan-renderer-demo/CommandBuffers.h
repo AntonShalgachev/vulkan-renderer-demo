@@ -14,6 +14,11 @@ namespace vkr
     	explicit CommandBuffers(std::size_t size);
     	~CommandBuffers();
 
+        CommandBuffers(CommandBuffers const&) = delete;
+        CommandBuffers(CommandBuffers&&) = delete;
+        CommandBuffers& operator=(CommandBuffers const&) = delete;
+        CommandBuffers& operator=(CommandBuffers&&) = delete;
+
         void begin(std::size_t index, VkCommandBufferUsageFlags flags);
         void end(std::size_t index);
         void submitAndWait(std::size_t index);

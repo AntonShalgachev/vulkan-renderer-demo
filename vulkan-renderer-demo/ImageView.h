@@ -12,6 +12,11 @@ namespace vkr
 		explicit ImageView(vkr::Image const& image, VkImageAspectFlags aspectFlags);
 		~ImageView();
 
+        ImageView(ImageView const&) = delete;
+        ImageView(ImageView&&) = delete;
+        ImageView& operator=(ImageView const&) = delete;
+        ImageView& operator=(ImageView&&) = delete;
+
         VkImageView getHandle() const { return m_handle; }
 
 	private:

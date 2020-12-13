@@ -10,6 +10,11 @@ namespace vkr
     	explicit DescriptorPool(std::size_t size);
     	~DescriptorPool();
 
+        DescriptorPool(DescriptorPool const&) = delete;
+        DescriptorPool(DescriptorPool&&) = delete;
+        DescriptorPool& operator=(DescriptorPool const&) = delete;
+        DescriptorPool& operator=(DescriptorPool&&) = delete;
+
         VkDescriptorPool const& getHandle() const { return m_handle; }
         std::size_t getSize() const { return m_size; }
 

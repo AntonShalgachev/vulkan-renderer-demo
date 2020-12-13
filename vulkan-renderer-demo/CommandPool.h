@@ -12,6 +12,11 @@ namespace vkr
     	explicit CommandPool(Device const& device, uint32_t queueFamilyIndex);
     	~CommandPool();
 
+        CommandPool(CommandPool const&) = delete;
+        CommandPool(CommandPool&&) = delete;
+        CommandPool& operator=(CommandPool const&) = delete;
+        CommandPool& operator=(CommandPool&&) = delete;
+
         VkCommandPool const& getHandle() const { return m_handle; }
 
     private:

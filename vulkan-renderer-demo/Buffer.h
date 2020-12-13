@@ -12,6 +12,11 @@ namespace vkr
         explicit Buffer(VkDeviceSize size, VkBufferUsageFlags usage);
         ~Buffer();
 
+        Buffer(Buffer const&) = delete;
+        Buffer(Buffer&&) = delete;
+        Buffer& operator=(Buffer const&) = delete;
+        Buffer& operator=(Buffer&&) = delete;
+
         VkMemoryRequirements getMemoryRequirements() const;
         void bindMemory(DeviceMemory const& memory) const;
 

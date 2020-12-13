@@ -10,6 +10,11 @@ namespace vkr
         explicit DeviceMemory(VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties);
         ~DeviceMemory();
 
+        DeviceMemory(DeviceMemory const&) = delete;
+        DeviceMemory(DeviceMemory&&) = delete;
+        DeviceMemory& operator=(DeviceMemory const&) = delete;
+        DeviceMemory& operator=(DeviceMemory&&) = delete;
+
         void copyFrom(void const* sourcePointer, std::size_t sourceSize);
 
         template<typename T>

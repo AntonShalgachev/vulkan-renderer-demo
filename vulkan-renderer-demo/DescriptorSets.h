@@ -17,6 +17,11 @@ namespace vkr
     	explicit DescriptorSets(std::size_t size, DescriptorSetLayout const& layout);
     	~DescriptorSets();
 
+        DescriptorSets(DescriptorSets const&) = delete;
+        DescriptorSets(DescriptorSets&&) = delete;
+        DescriptorSets& operator=(DescriptorSets const&) = delete;
+        DescriptorSets& operator=(DescriptorSets&&) = delete;
+
         void update(std::size_t index, Buffer const& uniformBuffer, Texture const& texture, Sampler const& sampler);
 
         std::vector<VkDescriptorSet> const& getHandles() const { return m_handles; }

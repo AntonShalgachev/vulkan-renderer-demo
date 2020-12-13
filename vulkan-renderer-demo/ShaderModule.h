@@ -17,6 +17,11 @@ namespace vkr
         explicit ShaderModule(std::string const& path, Type type, std::string const& entryPoint);
         ~ShaderModule();
 
+        ShaderModule(ShaderModule const&) = delete;
+        ShaderModule(ShaderModule&&) = delete;
+        ShaderModule& operator=(ShaderModule const&) = delete;
+        ShaderModule& operator=(ShaderModule&&) = delete;
+
         VkPipelineShaderStageCreateInfo createStageCreateInfo() const;
 
         VkShaderModule getHandle() const { return m_handle; }

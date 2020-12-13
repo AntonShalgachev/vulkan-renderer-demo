@@ -10,6 +10,11 @@ namespace vkr
         Sampler();
         ~Sampler();
 
+        Sampler(Sampler const&) = delete;
+        Sampler(Sampler&&) = delete;
+        Sampler& operator=(Sampler const&) = delete;
+        Sampler& operator=(Sampler&&) = delete;
+
         VkSampler getHandle() const { return m_handle; }
 
     private:

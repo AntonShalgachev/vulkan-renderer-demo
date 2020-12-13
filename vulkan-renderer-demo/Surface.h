@@ -12,6 +12,11 @@ namespace vkr
         explicit Surface(Instance const& instance, GLFWwindow* window);
         ~Surface();
 
+        Surface(Surface const&) = delete;
+        Surface(Surface&&) = delete;
+        Surface& operator=(Surface const&) = delete;
+        Surface& operator=(Surface&&) = delete;
+
         void onSurfaceChanged();
 
         VkSurfaceKHR const& getHandle() const { return m_handle; }

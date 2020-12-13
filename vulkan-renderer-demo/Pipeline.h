@@ -14,6 +14,11 @@ namespace vkr
     	explicit Pipeline(PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, ShaderModule const& vertShaderModule, ShaderModule const& fragShaderModule);
     	~Pipeline();
 
+        Pipeline(Pipeline const&) = delete;
+        Pipeline(Pipeline&&) = delete;
+        Pipeline& operator=(Pipeline const&) = delete;
+        Pipeline& operator=(Pipeline&&) = delete;
+
         VkPipeline const& getHandle() const { return m_handle; }
 
     private:
