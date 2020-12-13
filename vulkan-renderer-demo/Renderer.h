@@ -27,8 +27,8 @@ namespace vkr
         VkQueue getPresentQueue() const { return m_presentQueue; }
         VkCommandPool getCommandPool() const;
 
-        PhysicalDeviceSurfaceParameters const& getPhysicalDeviceSurfaceParameters() { return *m_physicalDeviceSurfaceParameters; }
-        QueueFamilyIndices const& getQueueFamilyIndices() { return *m_queueFamilyIndices; }
+        PhysicalDeviceSurfaceParameters const& getPhysicalDeviceSurfaceParameters() const { return *m_physicalDeviceSurfaceParameters; }
+        QueueFamilyIndices const& getQueueFamilyIndices() const;
 
         int getWidth() const { return m_surface.getWidth(); }
         int getHeight() const { return m_surface.getHeight(); }
@@ -47,6 +47,5 @@ namespace vkr
         std::unique_ptr<CommandPool> m_commandPool;
 
         std::unique_ptr<PhysicalDeviceSurfaceParameters> m_physicalDeviceSurfaceParameters;
-        std::unique_ptr<QueueFamilyIndices> m_queueFamilyIndices;
     };
 }

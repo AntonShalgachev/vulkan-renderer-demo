@@ -1,6 +1,7 @@
 #include "PhysicalDeviceSurfaceParameters.h"
 #include "PhysicalDevice.h"
 #include "Surface.h"
+#include "QueueFamilyIndices.h"
 
 vkr::PhysicalDeviceSurfaceParameters::PhysicalDeviceSurfaceParameters(PhysicalDevice const& physicalDevice, Surface const& surface) : m_physicalDevice(physicalDevice), m_surface(surface)
 {
@@ -8,6 +9,8 @@ vkr::PhysicalDeviceSurfaceParameters::PhysicalDeviceSurfaceParameters(PhysicalDe
     queryFormats();
     queryPresentModes();
     queryPresentationSupport();
+
+    m_queueFamilyIndices = std::make_unique<QueueFamilyIndices>(physicalDevice, *this);
 }
 
 bool vkr::PhysicalDeviceSurfaceParameters::isPresentationSupported(std::size_t queueIndex) const

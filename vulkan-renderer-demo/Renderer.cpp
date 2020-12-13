@@ -11,7 +11,7 @@ namespace
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
 
-    bool isDeviceSuitable(vkr::PhysicalDevice const& physicalDevice, vkr::PhysicalDeviceSurfaceParameters const& physicalDeviceSurfaceParameters, vkr::QueueFamilyIndices const& indices)
+    bool isDeviceSuitable(vkr::PhysicalDevice const& physicalDevice, vkr::PhysicalDeviceSurfaceParameters const& physicalDeviceSurfaceParameters)
     {
         bool const areExtensionsSupported = physicalDevice.areExtensionsSupported(DEVICE_EXTENSIONS);
 
@@ -21,7 +21,7 @@ namespace
             swapchainSupported = !physicalDeviceSurfaceParameters.getFormats().empty() && !physicalDeviceSurfaceParameters.getPresentModes().empty();
         }
 
-        return indices.isValid() && areExtensionsSupported && swapchainSupported && physicalDevice.getFeatures().samplerAnisotropy;
+        return physicalDeviceSurfaceParameters.getQueueFamilyIndices().isValid() && areExtensionsSupported && swapchainSupported && physicalDevice.getFeatures().samplerAnisotropy;
     }
 
     std::vector<char const*> getGlfwExtensions()
@@ -73,19 +73,22 @@ namespace vkr
         return m_commandPool->getHandle();
     }
 
+    vkr::QueueFamilyIndices const& Renderer::getQueueFamilyIndices() const
+    {
+        return m_physicalDeviceSurfaceParameters->getQueueFamilyIndices();
+    }
+
     void Renderer::pickPhysicalDevice()
     {
         for (std::size_t index = 0; index < m_physicalDevices.size(); index++)
         {
             auto const& physicalDevice = m_physicalDevices[index];
             auto parameters = std::make_unique<PhysicalDeviceSurfaceParameters>(physicalDevice, m_surface);
-            auto indices = std::make_unique<QueueFamilyIndices>(physicalDevice, *parameters);
 
-            if (isDeviceSuitable(physicalDevice, *parameters, *indices))
+            if (isDeviceSuitable(physicalDevice, *parameters))
             {
                 m_currentPhysicalDeviceIndex = index;
                 m_physicalDeviceSurfaceParameters = std::move(parameters);
-                m_queueFamilyIndices = std::move(indices);
                 break;
             }
         }
@@ -96,14 +99,16 @@ namespace vkr
 
     void Renderer::createLogicalDevice()
     {
-        m_device = std::make_unique<Device>(m_physicalDevices[m_currentPhysicalDeviceIndex], DEVICE_EXTENSIONS, m_queueFamilyIndices->getGraphicsIndex());
+        auto const& indices = m_physicalDeviceSurfaceParameters->getQueueFamilyIndices();
 
-        vkGetDeviceQueue(m_device->getHandle(), m_queueFamilyIndices->getGraphicsIndex(), 0, &m_graphicsQueue);
-        vkGetDeviceQueue(m_device->getHandle(), m_queueFamilyIndices->getPresentIndex(), 0, &m_presentQueue);
+        m_device = std::make_unique<Device>(m_physicalDevices[m_currentPhysicalDeviceIndex], DEVICE_EXTENSIONS, indices.getGraphicsIndex());
+
+        vkGetDeviceQueue(m_device->getHandle(), indices.getGraphicsIndex(), 0, &m_graphicsQueue);
+        vkGetDeviceQueue(m_device->getHandle(), indices.getPresentIndex(), 0, &m_presentQueue);
     }
 
     void Renderer::createCommandPool()
     {
-        m_commandPool = std::make_unique<CommandPool>(*m_device, m_queueFamilyIndices->getGraphicsIndex());
+        m_commandPool = std::make_unique<CommandPool>(*m_device, m_physicalDeviceSurfaceParameters->getQueueFamilyIndices().getGraphicsIndex());
     }
 }

@@ -6,6 +6,7 @@ namespace vkr
 {
     class PhysicalDevice;
     class Surface;
+    class QueueFamilyIndices;
 
     class PhysicalDeviceSurfaceParameters
     {
@@ -19,6 +20,8 @@ namespace vkr
 
         void onSurfaceChanged();
 
+        QueueFamilyIndices const& getQueueFamilyIndices() const { return *m_queueFamilyIndices; };
+
     private:
         void queryCapabilities();
         void queryFormats();
@@ -30,6 +33,8 @@ namespace vkr
         std::vector<VkSurfaceFormatKHR> m_formats;
         std::vector<VkPresentModeKHR> m_presentModes;
         std::vector<bool> m_queuePresentationSupport;
+
+        std::unique_ptr<QueueFamilyIndices> m_queueFamilyIndices;
 
         PhysicalDevice const& m_physicalDevice;
         Surface const& m_surface;
