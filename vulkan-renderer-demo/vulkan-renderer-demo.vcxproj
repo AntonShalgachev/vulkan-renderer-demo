@@ -94,7 +94,8 @@
       <AdditionalIncludeDirectories>include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalOptions>/experimental:external /external:I include/ /external:W0 %(AdditionalOptions)</AdditionalOptions>
-      <DisableSpecificWarnings>4514;4625;4626;4820;5027</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4514;4625;4626;4820;5027;4710;4711</DisableSpecificWarnings>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -115,7 +116,8 @@
       <AdditionalIncludeDirectories>include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalOptions>/experimental:external /external:I include/ /external:W0 %(AdditionalOptions)</AdditionalOptions>
-      <DisableSpecificWarnings>4514;4625;4626;4820;5027</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4514;4625;4626;4820;5027;4710;4711</DisableSpecificWarnings>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -138,7 +140,8 @@
       <AdditionalIncludeDirectories>include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalOptions>/experimental:external /external:I include/ /external:W0 %(AdditionalOptions)</AdditionalOptions>
-      <DisableSpecificWarnings>4514;4625;4626;4820;5027</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4514;4625;4626;4820;5027;4710;4711</DisableSpecificWarnings>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -163,7 +166,8 @@
       <AdditionalIncludeDirectories>include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalOptions>/experimental:external /external:I include/ /external:W0 %(AdditionalOptions)</AdditionalOptions>
-      <DisableSpecificWarnings>4514;4625;4626;4820;5027</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4514;4625;4626;4820;5027;4710;4711</DisableSpecificWarnings>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
