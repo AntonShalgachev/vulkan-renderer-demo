@@ -60,7 +60,7 @@ namespace vkr
 
     VkPhysicalDevice Renderer::getPhysicalDevice() const
     {
-        return m_physicalDevices[m_currentPhysicalDeviceIndex]->getHandle();
+        return m_physicalDevices[m_currentPhysicalDeviceIndex].getHandle();
     }
 
     VkDevice Renderer::getDevice() const
@@ -78,10 +78,10 @@ namespace vkr
         for (std::size_t index = 0; index < m_physicalDevices.size(); index++)
         {
             auto const& physicalDevice = m_physicalDevices[index];
-            auto parameters = std::make_unique<PhysicalDeviceSurfaceParameters>(*physicalDevice, m_surface);
-            auto indices = std::make_unique<QueueFamilyIndices>(*physicalDevice, *parameters);
+            auto parameters = std::make_unique<PhysicalDeviceSurfaceParameters>(physicalDevice, m_surface);
+            auto indices = std::make_unique<QueueFamilyIndices>(physicalDevice, *parameters);
 
-            if (isDeviceSuitable(*physicalDevice, *parameters, *indices))
+            if (isDeviceSuitable(physicalDevice, *parameters, *indices))
             {
                 m_currentPhysicalDeviceIndex = index;
                 m_physicalDeviceSurfaceParameters = std::move(parameters);
@@ -96,7 +96,7 @@ namespace vkr
 
     void Renderer::createLogicalDevice()
     {
-        m_device = std::make_unique<Device>(*m_physicalDevices[m_currentPhysicalDeviceIndex], DEVICE_EXTENSIONS, m_queueFamilyIndices->getGraphicsIndex());
+        m_device = std::make_unique<Device>(m_physicalDevices[m_currentPhysicalDeviceIndex], DEVICE_EXTENSIONS, m_queueFamilyIndices->getGraphicsIndex());
 
         vkGetDeviceQueue(m_device->getHandle(), m_queueFamilyIndices->getGraphicsIndex(), 0, &m_graphicsQueue);
         vkGetDeviceQueue(m_device->getHandle(), m_queueFamilyIndices->getPresentIndex(), 0, &m_presentQueue);

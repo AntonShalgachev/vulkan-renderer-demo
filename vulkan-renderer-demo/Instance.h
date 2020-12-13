@@ -14,7 +14,7 @@ namespace vkr
 
         VkInstance const& getHandle() const { return m_handle; }
 
-        std::vector<std::unique_ptr<PhysicalDevice>> findPhysicalDevices();
+        std::vector<PhysicalDevice> findPhysicalDevices();
 
     private:
         void createInstance(std::string const& appName, std::vector<char const*> extensions, bool enableValidation, bool enableApiDump);

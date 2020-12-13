@@ -81,7 +81,7 @@ void vkr::Instance::createInstance(std::string const& appName, std::vector<char 
         throw std::runtime_error("Failed to create Vulkan instance");
 }
 
-std::vector<std::unique_ptr<vkr::PhysicalDevice>> vkr::Instance::findPhysicalDevices()
+std::vector<vkr::PhysicalDevice> vkr::Instance::findPhysicalDevices()
 {
     uint32_t count = 0;
     vkEnumeratePhysicalDevices(m_handle, &count, nullptr);
@@ -91,10 +91,10 @@ std::vector<std::unique_ptr<vkr::PhysicalDevice>> vkr::Instance::findPhysicalDev
     std::vector<VkPhysicalDevice> physicalDeviceHandles(count);
     vkEnumeratePhysicalDevices(m_handle, &count, physicalDeviceHandles.data());
 
-    std::vector<std::unique_ptr<PhysicalDevice>> physicalDevices;
+    std::vector<PhysicalDevice> physicalDevices;
     physicalDevices.reserve(count);
     for (auto const& handle : physicalDeviceHandles)
-        physicalDevices.push_back(std::make_unique<PhysicalDevice>(handle));
+        physicalDevices.push_back(PhysicalDevice(handle));
 
     return physicalDevices;
 }
