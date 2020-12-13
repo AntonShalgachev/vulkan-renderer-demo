@@ -84,7 +84,7 @@ private:
         return reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
     }
 
-    static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
+    static void framebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept
     {
         if (auto app = getAppFromWindow(window))
             app->onFramebufferResized(width, height);
