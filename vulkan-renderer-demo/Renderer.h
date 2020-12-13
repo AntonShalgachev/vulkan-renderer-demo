@@ -18,7 +18,7 @@ namespace vkr
         Renderer(GLFWwindow* window);
         ~Renderer();
 
-        void OnSurfaceChanged(int width, int height);
+        void onSurfaceChanged();
 
         VkSurfaceKHR getSurfaceHandle() const { return m_surface.getHandle(); }
         VkPhysicalDevice getPhysicalDevice() const;
@@ -30,8 +30,8 @@ namespace vkr
         PhysicalDeviceSurfaceParameters const& getPhysicalDeviceSurfaceParameters() { return *m_physicalDeviceSurfaceParameters; }
         QueueFamilyIndices const& getQueueFamilyIndices() { return *m_queueFamilyIndices; }
 
-        int getWidth() const { return m_width; }
-        int getHeight() const { return m_height; }
+        int getWidth() const { return m_surface.getWidth(); }
+        int getHeight() const { return m_surface.getHeight(); }
 
         void pickPhysicalDevice();
         void createLogicalDevice();
@@ -47,8 +47,5 @@ namespace vkr
 
         std::unique_ptr<PhysicalDeviceSurfaceParameters> m_physicalDeviceSurfaceParameters;
         std::unique_ptr<QueueFamilyIndices> m_queueFamilyIndices;
-
-        int m_width = -1;
-        int m_height = -1;
     };
 }

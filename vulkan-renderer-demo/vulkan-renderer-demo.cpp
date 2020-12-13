@@ -84,17 +84,17 @@ private:
         return reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
     }
 
-    static void framebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept
+    static void framebufferResizeCallback(GLFWwindow* window, int, int) noexcept
     {
         if (auto app = getAppFromWindow(window))
-            app->onFramebufferResized(width, height);
+            app->onFramebufferResized();
     }
 
-    void onFramebufferResized(int width, int height)
+    void onFramebufferResized()
     {
         m_framebufferResized = true;
 
-        vkr::temp::getRenderer()->OnSurfaceChanged(width, height);
+        vkr::temp::getRenderer()->onSurfaceChanged();
     }
 
     void initVulkan()

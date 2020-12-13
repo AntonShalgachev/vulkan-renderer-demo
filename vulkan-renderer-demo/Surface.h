@@ -12,11 +12,20 @@ namespace vkr
         explicit Surface(Instance const& instance, GLFWwindow* window);
         ~Surface();
 
+        void onSurfaceChanged();
+
         VkSurfaceKHR const& getHandle() const { return m_handle; }
+
+        int getWidth() const { return m_width; }
+        int getHeight() const { return m_height; }
 
     private:
         VkSurfaceKHR m_handle;
 
         Instance const& m_instance;
+        GLFWwindow* m_window;
+
+        int m_width = -1;
+        int m_height = -1;
     };
 }

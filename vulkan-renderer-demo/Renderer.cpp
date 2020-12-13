@@ -43,8 +43,6 @@ namespace vkr
         : m_instance("Vulkan demo", getGlfwExtensions(), VALIDATION_ENABLED, API_DUMP_ENABLED)
         , m_surface(m_instance, window)
     {
-        glfwGetFramebufferSize(window, &m_width, &m_height);
-
         pickPhysicalDevice();
         createLogicalDevice();
         createCommandPool();
@@ -52,10 +50,9 @@ namespace vkr
 
     Renderer::~Renderer() = default;
 
-    void Renderer::OnSurfaceChanged(int width, int height)
+    void Renderer::onSurfaceChanged()
     {
-        m_width = width;
-        m_height = height;
+        m_surface.onSurfaceChanged();
 
         m_physicalDeviceSurfaceParameters->onSurfaceChanged();
     }
