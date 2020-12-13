@@ -13,6 +13,10 @@ vkr::PhysicalDeviceSurfaceParameters::PhysicalDeviceSurfaceParameters(PhysicalDe
     m_queueFamilyIndices = std::make_unique<QueueFamilyIndices>(physicalDevice, *this);
 }
 
+vkr::PhysicalDeviceSurfaceParameters::PhysicalDeviceSurfaceParameters(PhysicalDeviceSurfaceParameters&&) = default;
+
+vkr::PhysicalDeviceSurfaceParameters::~PhysicalDeviceSurfaceParameters() = default;
+
 bool vkr::PhysicalDeviceSurfaceParameters::isPresentationSupported(std::size_t queueIndex) const
 {
     if (queueIndex >= m_queuePresentationSupport.size())

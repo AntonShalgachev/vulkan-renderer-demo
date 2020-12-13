@@ -12,6 +12,12 @@ namespace vkr
     {
     public:
     	PhysicalDeviceSurfaceParameters(PhysicalDevice const& physicalDevice, Surface const& surface);
+        ~PhysicalDeviceSurfaceParameters();
+
+        PhysicalDeviceSurfaceParameters(PhysicalDeviceSurfaceParameters const&) = delete;
+        PhysicalDeviceSurfaceParameters(PhysicalDeviceSurfaceParameters&&);
+        PhysicalDeviceSurfaceParameters& operator=(PhysicalDeviceSurfaceParameters const&) = delete;
+        PhysicalDeviceSurfaceParameters& operator=(PhysicalDeviceSurfaceParameters&&) = delete;
 
         VkSurfaceCapabilitiesKHR const& getCapabilities() const { return m_capabilities; }
         std::vector<VkSurfaceFormatKHR> const& getFormats() const { return m_formats; }

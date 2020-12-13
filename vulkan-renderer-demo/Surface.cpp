@@ -14,6 +14,8 @@ vkr::Surface::~Surface()
     vkDestroySurfaceKHR(m_instance.getHandle(), m_handle, nullptr);
 }
 
+vkr::Surface::Surface(Surface&&) = default;
+
 void vkr::Surface::onSurfaceChanged()
 {
     glfwGetFramebufferSize(m_window, &m_width, &m_height);

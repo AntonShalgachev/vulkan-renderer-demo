@@ -4,7 +4,8 @@
 
 namespace vkr
 {
-    class PhysicalDevice;
+    class PhysicalDeviceSurfaceContainer;
+    class Surface;
 
     class Instance
     {
@@ -19,7 +20,7 @@ namespace vkr
 
         VkInstance const& getHandle() const { return m_handle; }
 
-        std::vector<PhysicalDevice> findPhysicalDevices();
+        std::vector<PhysicalDeviceSurfaceContainer> findPhysicalDevices(Surface const& surface);
 
     private:
         void createInstance(std::string const& appName, std::vector<char const*> extensions, bool enableValidation, bool enableApiDump);

@@ -13,7 +13,7 @@ namespace vkr
         ~Surface();
 
         Surface(Surface const&) = delete;
-        Surface(Surface&&) = delete;
+        Surface(Surface&&);
         Surface& operator=(Surface const&) = delete;
         Surface& operator=(Surface&&) = delete;
 
