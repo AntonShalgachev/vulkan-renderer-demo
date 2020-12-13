@@ -57,7 +57,7 @@ void vkr::PhysicalDeviceSurfaceParameters::queryPresentationSupport()
     std::vector<VkQueueFamilyProperties> const& queueFamilies = m_physicalDevice.getQueueFamilyProperties();
     m_queuePresentationSupport.resize(queueFamilies.size());
 
-    for (auto i = 0; i < queueFamilies.size(); i++)
+    for (uint32_t i = 0; i < queueFamilies.size(); i++)
     {
         VkBool32 presentSupport = false;
         vkGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice.getHandle(), i, m_surface.getHandle(), &presentSupport);

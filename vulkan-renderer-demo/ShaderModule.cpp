@@ -22,8 +22,8 @@ namespace
         if (!file.is_open())
             throw std::runtime_error("failed to open file!");
 
-        size_t fileSize = static_cast<size_t>(file.tellg());
-        std::vector<char> buffer(fileSize);
+        std::streamsize fileSize = file.tellg();
+        std::vector<char> buffer(static_cast<std::size_t>(fileSize));
 
         file.seekg(0);
         file.read(buffer.data(), fileSize);
