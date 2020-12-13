@@ -2,42 +2,65 @@
 #include "PhysicalDevice.h"
 #include "Surface.h"
 
-vkr::PhysicalDeviceSurfaceParameters::PhysicalDeviceSurfaceParameters(PhysicalDevice const& physicalDevice, Surface const& surface)
+vkr::PhysicalDeviceSurfaceParameters::PhysicalDeviceSurfaceParameters(PhysicalDevice const& physicalDevice, Surface const& surface) : m_physicalDevice(physicalDevice), m_surface(surface)
 {
-    VkPhysicalDevice physicalDeviceHandle = physicalDevice.getHandle();
-    VkSurfaceKHR surfaceHandle = surface.getHandle();
+    queryCapabilities();
+    queryFormats();
+    queryPresentModes();
+    queryPresentationSupport();
+}
 
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDeviceHandle, surfaceHandle, &m_capabilities);
+bool vkr::PhysicalDeviceSurfaceParameters::isPresentationSupported(std::size_t queueIndex) const
+{
+    if (queueIndex >= m_queuePresentationSupport.size())
+        return false;
 
+    return m_queuePresentationSupport[queueIndex];
+}
+
+void vkr::PhysicalDeviceSurfaceParameters::onSurfaceChanged()
+{
+    queryCapabilities();
+}
+
+void vkr::PhysicalDeviceSurfaceParameters::queryCapabilities()
+{
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_physicalDevice.getHandle(), m_surface.getHandle(), &m_capabilities);
+}
+
+void vkr::PhysicalDeviceSurfaceParameters::queryFormats()
+{
+    uint32_t count;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice.getHandle(), m_surface.getHandle(), &count, nullptr);
+
+    if (count > 0)
     {
-        uint32_t count;
-        vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDeviceHandle, surfaceHandle, &count, nullptr);
-
-        if (count > 0)
-        {
-            m_formats.resize(count);
-            vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDeviceHandle, surfaceHandle, &count, m_formats.data());
-        }
+        m_formats.resize(count);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice.getHandle(), m_surface.getHandle(), &count, m_formats.data());
     }
+}
 
+void vkr::PhysicalDeviceSurfaceParameters::queryPresentModes()
+{
+    uint32_t count;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice.getHandle(), m_surface.getHandle(), &count, nullptr);
+
+    if (count > 0)
     {
-        uint32_t count;
-        vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDeviceHandle, surfaceHandle, &count, nullptr);
-
-        if (count > 0)
-        {
-            m_presentModes.resize(count);
-            vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDeviceHandle, surfaceHandle, &count, m_presentModes.data());
-        }
+        m_presentModes.resize(count);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice.getHandle(), m_surface.getHandle(), &count, m_presentModes.data());
     }
+}
 
-    std::vector<VkQueueFamilyProperties> const& queueFamilies = physicalDevice.getQueueFamilyProperties();
+void vkr::PhysicalDeviceSurfaceParameters::queryPresentationSupport()
+{
+    std::vector<VkQueueFamilyProperties> const& queueFamilies = m_physicalDevice.getQueueFamilyProperties();
     m_queuePresentationSupport.resize(queueFamilies.size());
 
     for (auto i = 0; i < queueFamilies.size(); i++)
     {
         VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice.getHandle(), i, surfaceHandle, &presentSupport);
+        vkGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice.getHandle(), i, m_surface.getHandle(), &presentSupport);
 
         m_queuePresentationSupport[i] = presentSupport;
     }

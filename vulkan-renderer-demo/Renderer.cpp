@@ -57,7 +57,7 @@ namespace vkr
         m_width = width;
         m_height = height;
 
-        m_physicalDeviceSurfaceParameters = std::make_unique<PhysicalDeviceSurfaceParameters>(*m_physicalDevice, m_surface);
+        m_physicalDeviceSurfaceParameters->onSurfaceChanged();
     }
 
     VkPhysicalDevice Renderer::getPhysicalDevice() const
