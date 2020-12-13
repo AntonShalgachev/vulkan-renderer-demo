@@ -8,7 +8,7 @@
 
 namespace
 {
-    void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
+    void transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout)
     {
         vkr::ScopedOneTimeCommandBuffer commandBuffer;
 
@@ -121,10 +121,10 @@ vkr::Texture::Texture(std::string const& path)
 
     vkr::utils::createImage(width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_image, m_memory);
 
-    transitionImageLayout(m_image->getHandle(), m_image->getFormat(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    transitionImageLayout(m_image->getHandle(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     // TODO extract to some class
     copyBufferToImage(stagingBuffer->getHandle(), m_image->getHandle(), width, height);
-    transitionImageLayout(m_image->getHandle(), m_image->getFormat(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    transitionImageLayout(m_image->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     m_imageView = m_image->createImageView(VK_IMAGE_ASPECT_COLOR_BIT);
 }
