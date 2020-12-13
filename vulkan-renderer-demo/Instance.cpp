@@ -38,7 +38,6 @@ vkr::Instance::Instance(std::string const& appName, std::vector<char const*> ext
         m_availableExtensionNames.push_back(extension.extensionName);
 
     createInstance(appName, extensions, enableValidation, enableApiDump);
-    findPhysicalDevices();
 }
 
 vkr::Instance::~Instance()
@@ -82,17 +81,20 @@ void vkr::Instance::createInstance(std::string const& appName, std::vector<char 
         throw std::runtime_error("Failed to create Vulkan instance");
 }
 
-void vkr::Instance::findPhysicalDevices()
+std::vector<std::unique_ptr<vkr::PhysicalDevice>> vkr::Instance::findPhysicalDevices()
 {
     uint32_t count = 0;
     vkEnumeratePhysicalDevices(m_handle, &count, nullptr);
     if (count == 0)
         throw std::runtime_error("failed to find GPUs with Vulkan support!");
 
-    std::vector<VkPhysicalDevice> physicalDevices(count);
-    vkEnumeratePhysicalDevices(m_handle, &count, physicalDevices.data());
+    std::vector<VkPhysicalDevice> physicalDeviceHandles(count);
+    vkEnumeratePhysicalDevices(m_handle, &count, physicalDeviceHandles.data());
 
-    m_physicalDevices.reserve(count);
-    for (auto const& handle : physicalDevices)
-        m_physicalDevices.push_back(std::make_shared<PhysicalDevice>(handle));
+    std::vector<std::unique_ptr<PhysicalDevice>> physicalDevices;
+    physicalDevices.reserve(count);
+    for (auto const& handle : physicalDeviceHandles)
+        physicalDevices.push_back(std::make_unique<PhysicalDevice>(handle));
+
+    return physicalDevices;
 }

@@ -39,7 +39,8 @@ namespace vkr
 
         Instance m_instance;
         Surface m_surface;
-        std::shared_ptr<PhysicalDevice> m_physicalDevice;
+        std::vector<std::unique_ptr<vkr::PhysicalDevice>> m_physicalDevices;
+        std::size_t m_currentPhysicalDeviceIndex = std::numeric_limits<std::size_t>::max();
         std::unique_ptr<Device> m_device;
         VkQueue m_graphicsQueue = VK_NULL_HANDLE;
         VkQueue m_presentQueue = VK_NULL_HANDLE;

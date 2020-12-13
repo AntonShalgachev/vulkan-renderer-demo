@@ -42,6 +42,7 @@ namespace vkr
     Renderer::Renderer(GLFWwindow* window)
         : m_instance("Vulkan demo", getGlfwExtensions(), VALIDATION_ENABLED, API_DUMP_ENABLED)
         , m_surface(m_instance, window)
+        , m_physicalDevices(m_instance.findPhysicalDevices())
     {
         pickPhysicalDevice();
         createLogicalDevice();
@@ -59,7 +60,7 @@ namespace vkr
 
     VkPhysicalDevice Renderer::getPhysicalDevice() const
     {
-        return m_physicalDevice->getHandle();
+        return m_physicalDevices[m_currentPhysicalDeviceIndex]->getHandle();
     }
 
     VkDevice Renderer::getDevice() const
@@ -74,29 +75,28 @@ namespace vkr
 
     void Renderer::pickPhysicalDevice()
     {
-        auto const& physicalDevices = m_instance.getPhysicalDevices();
-
-        for (const auto& physicalDevice : physicalDevices)
+        for (std::size_t index = 0; index < m_physicalDevices.size(); index++)
         {
+            auto const& physicalDevice = m_physicalDevices[index];
             auto parameters = std::make_unique<PhysicalDeviceSurfaceParameters>(*physicalDevice, m_surface);
             auto indices = std::make_unique<QueueFamilyIndices>(*physicalDevice, *parameters);
 
             if (isDeviceSuitable(*physicalDevice, *parameters, *indices))
             {
-                m_physicalDevice = physicalDevice;
+                m_currentPhysicalDeviceIndex = index;
                 m_physicalDeviceSurfaceParameters = std::move(parameters);
                 m_queueFamilyIndices = std::move(indices);
                 break;
             }
         }
          
-        if (!m_physicalDevice)
+        if (m_currentPhysicalDeviceIndex >= m_physicalDevices.size())
             throw std::runtime_error("failed to find a suitable GPU!");
     }
 
     void Renderer::createLogicalDevice()
     {
-        m_device = std::make_unique<Device>(*m_physicalDevice, DEVICE_EXTENSIONS, m_queueFamilyIndices->getGraphicsIndex());
+        m_device = std::make_unique<Device>(*m_physicalDevices[m_currentPhysicalDeviceIndex], DEVICE_EXTENSIONS, m_queueFamilyIndices->getGraphicsIndex());
 
         vkGetDeviceQueue(m_device->getHandle(), m_queueFamilyIndices->getGraphicsIndex(), 0, &m_graphicsQueue);
         vkGetDeviceQueue(m_device->getHandle(), m_queueFamilyIndices->getPresentIndex(), 0, &m_presentQueue);

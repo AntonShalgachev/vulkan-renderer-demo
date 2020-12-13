@@ -12,11 +12,12 @@ namespace vkr
     	Instance(std::string const& appName, std::vector<char const*> extensions, bool enableValidation, bool enableApiDump);
     	~Instance();
 
-        void createInstance(std::string const& appName, std::vector<char const*> extensions, bool enableValidation, bool enableApiDump);
-        void findPhysicalDevices();
-
         VkInstance const& getHandle() const { return m_handle; }
-        std::vector<std::shared_ptr<PhysicalDevice>> const& getPhysicalDevices() const { return m_physicalDevices; }
+
+        std::vector<std::unique_ptr<PhysicalDevice>> findPhysicalDevices();
+
+    private:
+        void createInstance(std::string const& appName, std::vector<char const*> extensions, bool enableValidation, bool enableApiDump);
 
     private:
     	VkInstance m_handle = VK_NULL_HANDLE;
@@ -26,7 +27,5 @@ namespace vkr
 
         std::vector<VkExtensionProperties> m_availableExtensions;
         std::vector<char const*> m_availableExtensionNames;
-
-        std::vector<std::shared_ptr<PhysicalDevice>> m_physicalDevices;
     };
 }
