@@ -3,8 +3,6 @@
 #include <vector>
 #include <string>
 
-struct GLFWwindow;
-
 namespace vkr
 {
     class ApplicationImpl;
@@ -13,11 +11,12 @@ namespace vkr
     class Surface;
     class PhysicalDevice;
     class Device;
+    class Window;
 
     class Application
     {
     public:
-    	Application(std::string const& name, std::vector<char const*> const extensions, bool enableValidation, bool enableApiDump, GLFWwindow* window);
+    	Application(std::string const& name, std::vector<char const*> const extensions, bool enableValidation, bool enableApiDump, Window const& window);
 
         Instance const& getInstance() const;
         Surface const& getSurface() const;

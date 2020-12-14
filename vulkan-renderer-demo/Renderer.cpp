@@ -58,7 +58,7 @@ namespace
 
 namespace vkr
 {
-    Renderer::Renderer(GLFWwindow* window)
+    Renderer::Renderer(Window const& window)
         : m_instance("Vulkan demo", getGlfwExtensions(), VALIDATION_ENABLED, API_DUMP_ENABLED)
         , m_surface(m_instance, window)
         , m_physicalDevices(m_instance.findPhysicalDevices(m_surface))

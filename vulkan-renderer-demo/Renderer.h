@@ -12,11 +12,12 @@ namespace vkr
     class PhysicalDeviceSurfaceContainer;
     class PhysicalDeviceSurfaceParameters;
     class QueueFamilyIndices;
+    class Window;
 
     class Renderer
     {
     public:
-        Renderer(GLFWwindow* window);
+        Renderer(Window const& window);
         ~Renderer();
 
         void onSurfaceChanged();

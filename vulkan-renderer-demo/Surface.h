@@ -5,11 +5,12 @@
 namespace vkr
 {
     class Instance;
+    class Window;
 
     class Surface
     {
     public:
-        explicit Surface(Instance const& instance, GLFWwindow* window);
+        explicit Surface(Instance const& instance, Window const& window);
         ~Surface();
 
         Surface(Surface const&) = delete;
@@ -21,16 +22,13 @@ namespace vkr
 
         VkSurfaceKHR const& getHandle() const { return m_handle; }
 
-        int getWidth() const { return m_width; }
-        int getHeight() const { return m_height; }
+        int getWidth() const;
+        int getHeight() const;
 
     private:
         VkSurfaceKHR m_handle;
 
         Instance const& m_instance;
-        GLFWwindow* m_window;
-
-        int m_width = -1;
-        int m_height = -1;
+        Window const& m_window;
     };
 }

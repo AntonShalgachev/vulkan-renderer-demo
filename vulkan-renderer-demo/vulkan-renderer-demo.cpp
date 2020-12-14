@@ -24,6 +24,7 @@
 #include "Utils.h"
 #include "Texture.h"
 #include "ObjectInstance.h"
+#include "Window.h"
 
 namespace
 {
@@ -64,7 +65,6 @@ public:
         initWindow();
         initVulkan();
         mainLoop();
-        cleanup();
     }
 
 private:
@@ -74,20 +74,9 @@ private:
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-        m_window = glfwCreateWindow(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo", nullptr, nullptr);
-        glfwSetWindowUserPointer(m_window, this);
-        glfwSetFramebufferSizeCallback(m_window, framebufferResizeCallback);
-    }
+        m_window = std::make_unique<vkr::Window>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
 
-    static HelloTriangleApplication* getAppFromWindow(GLFWwindow* window)
-    {
-        return reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
-    }
-
-    static void framebufferResizeCallback(GLFWwindow* window, int, int) noexcept
-    {
-        if (auto app = getAppFromWindow(window))
-            app->onFramebufferResized();
+        m_window->addResizeCallback([this](int, int) { onFramebufferResized(); });
     }
 
     void onFramebufferResized()
@@ -99,7 +88,7 @@ private:
 
     void initVulkan()
     {
-        auto renderer = std::make_unique<vkr::Renderer>(m_window);
+        auto renderer = std::make_unique<vkr::Renderer>(*m_window);
 
         vkr::ServiceLocator::instance().setRenderer(std::move(renderer));
 
@@ -135,13 +124,7 @@ private:
 
     void recreateSwapchain()
     {
-        int width = 0, height = 0;
-        glfwGetFramebufferSize(m_window, &width, &height);
-        while (width == 0 || height == 0)
-        {
-            glfwGetFramebufferSize(m_window, &width, &height);
-            glfwWaitEvents();
-        }
+        m_window->waitUntilInForeground();
 
         vkDeviceWaitIdle(vkr::temp::getDevice());
 
@@ -324,23 +307,13 @@ private:
 
     void mainLoop()
     {
-        while (!glfwWindowShouldClose(m_window))
-        {
-            glfwPollEvents();
-            drawFrame();
-        }
+        m_window->startEventLoop([this]() { drawFrame(); });
 
         vkDeviceWaitIdle(vkr::temp::getDevice());
     }
 
-    void cleanup()
-    {
-        glfwDestroyWindow(m_window);
-        glfwTerminate();
-    }
-
 private:
-    GLFWwindow* m_window = nullptr;
+    std::unique_ptr<vkr::Window> m_window;
 
     // Renderer
     std::vector<vkr::Semaphore> m_imageAvailableSemaphores;
