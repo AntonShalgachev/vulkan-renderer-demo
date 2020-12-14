@@ -2,6 +2,7 @@
 
 #include "Swapchain.h"
 #include "Renderer.h"
+#include "PhysicalDevice.h"
 
 namespace
 {
@@ -10,7 +11,7 @@ namespace
         for (VkFormat format : candidates)
         {
             VkFormatProperties props;
-            vkGetPhysicalDeviceFormatProperties(vkr::temp::getRenderer()->getPhysicalDevice(), format, &props);
+            vkGetPhysicalDeviceFormatProperties(vkr::temp::getRenderer()->getPhysicalDevice().getHandle(), format, &props);
 
             if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
                 return format;

@@ -77,11 +77,6 @@ namespace vkr
         getPhysicalDeviceSurfaceContainer().getParameters().onSurfaceChanged();
     }
 
-    VkPhysicalDevice Renderer::getPhysicalDevice() const
-    {
-        return getPhysicalDeviceSurfaceContainer().getPhysicalDevice().getHandle();
-    }
-
     VkDevice Renderer::getDevice() const
     {
         return m_device->getHandle();
@@ -90,6 +85,11 @@ namespace vkr
     VkCommandPool Renderer::getCommandPool() const
     {
         return m_commandPool->getHandle();
+    }
+
+    vkr::PhysicalDevice const& Renderer::getPhysicalDevice() const
+    {
+        return getPhysicalDeviceSurfaceContainer().getPhysicalDevice();
     }
 
     vkr::PhysicalDeviceSurfaceParameters const& Renderer::getPhysicalDeviceSurfaceParameters() const
@@ -106,7 +106,7 @@ namespace vkr
     {
         auto const& indices = getQueueFamilyIndices();
 
-        m_device = std::make_unique<Device>(getPhysicalDeviceSurfaceContainer().getPhysicalDevice(), DEVICE_EXTENSIONS, indices.getGraphicsIndex());
+        m_device = std::make_unique<Device>(getPhysicalDevice(), DEVICE_EXTENSIONS, indices.getGraphicsIndex());
 
         vkGetDeviceQueue(m_device->getHandle(), indices.getGraphicsIndex(), 0, &m_graphicsQueue);
         vkGetDeviceQueue(m_device->getHandle(), indices.getPresentIndex(), 0, &m_presentQueue);

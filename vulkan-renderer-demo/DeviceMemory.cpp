@@ -1,13 +1,14 @@
 #include "DeviceMemory.h"
 
 #include "Renderer.h"
+#include "PhysicalDevice.h"
 
 namespace
 {
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
     {
         VkPhysicalDeviceMemoryProperties memProperties;
-        vkGetPhysicalDeviceMemoryProperties(vkr::temp::getRenderer()->getPhysicalDevice(), &memProperties);
+        vkGetPhysicalDeviceMemoryProperties(vkr::temp::getRenderer()->getPhysicalDevice().getHandle(), &memProperties);
 
         for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
         {

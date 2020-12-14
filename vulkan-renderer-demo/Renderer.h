@@ -22,12 +22,12 @@ namespace vkr
         void onSurfaceChanged();
 
         VkSurfaceKHR getSurfaceHandle() const { return m_surface.getHandle(); }
-        VkPhysicalDevice getPhysicalDevice() const;
         VkDevice getDevice() const;
         VkQueue getGraphicsQueue() const { return m_graphicsQueue; }
         VkQueue getPresentQueue() const { return m_presentQueue; }
         VkCommandPool getCommandPool() const;
 
+        PhysicalDevice const& getPhysicalDevice() const;
         PhysicalDeviceSurfaceParameters const& getPhysicalDeviceSurfaceParameters() const;
         QueueFamilyIndices const& getQueueFamilyIndices() const;
 
