@@ -63,8 +63,9 @@ namespace vkr
         , m_surface(m_instance, window)
         , m_physicalDevices(m_instance.findPhysicalDevices(m_surface))
         , m_currentPhysicalDeviceIndex(findSuitablePhysicalDeviceIndex(m_physicalDevices))
+        , m_device(getPhysicalDevice(), DEVICE_EXTENSIONS, getQueueFamilyIndices().getGraphicsIndex())
     {
-        createLogicalDevice();
+        getDeviceQueues();
         createCommandPool();
     }
 
@@ -79,7 +80,7 @@ namespace vkr
 
     VkDevice Renderer::getDevice() const
     {
-        return m_device->getHandle();
+        return m_device.getHandle();
     }
 
     VkCommandPool Renderer::getCommandPool() const
@@ -102,19 +103,17 @@ namespace vkr
         return getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices();
     }
 
-    void Renderer::createLogicalDevice()
+    void Renderer::getDeviceQueues()
     {
         auto const& indices = getQueueFamilyIndices();
 
-        m_device = std::make_unique<Device>(getPhysicalDevice(), DEVICE_EXTENSIONS, indices.getGraphicsIndex());
-
-        vkGetDeviceQueue(m_device->getHandle(), indices.getGraphicsIndex(), 0, &m_graphicsQueue);
-        vkGetDeviceQueue(m_device->getHandle(), indices.getPresentIndex(), 0, &m_presentQueue);
+        vkGetDeviceQueue(m_device.getHandle(), indices.getGraphicsIndex(), 0, &m_graphicsQueue);
+        vkGetDeviceQueue(m_device.getHandle(), indices.getPresentIndex(), 0, &m_presentQueue);
     }
 
     void Renderer::createCommandPool()
     {
-        m_commandPool = std::make_unique<CommandPool>(*m_device, getQueueFamilyIndices().getGraphicsIndex());
+        m_commandPool = std::make_unique<CommandPool>(m_device, getQueueFamilyIndices().getGraphicsIndex());
     }
 
     vkr::PhysicalDeviceSurfaceContainer const& Renderer::getPhysicalDeviceSurfaceContainer() const

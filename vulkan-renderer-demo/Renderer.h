@@ -3,11 +3,11 @@
 #include "framework.h"
 #include "Instance.h"
 #include "Surface.h"
+#include "Device.h"
 
 namespace vkr
 {
     class PhysicalDevice;
-    class Device;
     class CommandPool;
     class PhysicalDeviceSurfaceContainer;
     class PhysicalDeviceSurfaceParameters;
@@ -35,7 +35,7 @@ namespace vkr
         int getHeight() const { return m_surface.getHeight(); }
 
     private:
-        void createLogicalDevice();
+        void getDeviceQueues();
         void createCommandPool();
 
         PhysicalDeviceSurfaceContainer const& getPhysicalDeviceSurfaceContainer() const;
@@ -45,7 +45,7 @@ namespace vkr
         Surface m_surface;
         std::vector<vkr::PhysicalDeviceSurfaceContainer> m_physicalDevices;
         std::size_t m_currentPhysicalDeviceIndex = std::numeric_limits<std::size_t>::max();
-        std::unique_ptr<Device> m_device;
+        Device m_device;
         VkQueue m_graphicsQueue = VK_NULL_HANDLE;
         VkQueue m_presentQueue = VK_NULL_HANDLE;
         std::unique_ptr<CommandPool> m_commandPool;
