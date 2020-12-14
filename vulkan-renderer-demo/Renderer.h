@@ -35,7 +35,6 @@ namespace vkr
         int getHeight() const { return m_surface.getHeight(); }
 
     private:
-        void pickPhysicalDevice();
         void createLogicalDevice();
         void createCommandPool();
 

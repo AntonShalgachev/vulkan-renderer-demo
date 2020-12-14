@@ -37,6 +37,21 @@ namespace
         return std::vector<char const*>{ glfwExtensions, glfwExtensions + glfwExtensionCount };
     }
 
+    std::size_t findSuitablePhysicalDeviceIndex(std::vector<vkr::PhysicalDeviceSurfaceContainer> const& physicalDevices)
+    {
+        for (std::size_t index = 0; index < physicalDevices.size(); index++)
+        {
+            auto const& physicalDevice = physicalDevices[index];
+
+            if (isDeviceSuitable(physicalDevice))
+            {
+                return index;
+            }
+        }
+
+        throw std::runtime_error("failed to find a suitable GPU!");
+    }
+
     bool const VALIDATION_ENABLED = true;
     bool const API_DUMP_ENABLED = false;
 }
@@ -47,8 +62,8 @@ namespace vkr
         : m_instance("Vulkan demo", getGlfwExtensions(), VALIDATION_ENABLED, API_DUMP_ENABLED)
         , m_surface(m_instance, window)
         , m_physicalDevices(m_instance.findPhysicalDevices(m_surface))
+        , m_currentPhysicalDeviceIndex(findSuitablePhysicalDeviceIndex(m_physicalDevices))
     {
-        pickPhysicalDevice();
         createLogicalDevice();
         createCommandPool();
     }
@@ -85,23 +100,6 @@ namespace vkr
     vkr::QueueFamilyIndices const& Renderer::getQueueFamilyIndices() const
     {
         return getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices();
-    }
-
-    void Renderer::pickPhysicalDevice()
-    {
-        for (std::size_t index = 0; index < m_physicalDevices.size(); index++)
-        {
-            auto const& physicalDevice = m_physicalDevices[index];
-
-            if (isDeviceSuitable(physicalDevice))
-            {
-                m_currentPhysicalDeviceIndex = index;
-                break;
-            }
-        }
-         
-        if (m_currentPhysicalDeviceIndex >= m_physicalDevices.size())
-            throw std::runtime_error("failed to find a suitable GPU!");
     }
 
     void Renderer::createLogicalDevice()
