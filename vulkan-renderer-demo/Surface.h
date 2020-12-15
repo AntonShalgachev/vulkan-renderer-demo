@@ -18,8 +18,6 @@ namespace vkr
         Surface& operator=(Surface const&) = delete;
         Surface& operator=(Surface&&) = delete;
 
-        void onSurfaceChanged();
-
         VkSurfaceKHR const& getHandle() const { return m_handle; }
 
         int getWidth() const;

@@ -6,8 +6,6 @@
 vkr::Surface::Surface(Instance const& instance, Window const& window) : m_instance(instance), m_window(window)
 {
     m_handle = VulkanSurfaceCreator::createVulkanSurface(instance, window);
-
-    onSurfaceChanged();
 }
 
 vkr::Surface::~Surface()
@@ -16,11 +14,6 @@ vkr::Surface::~Surface()
 }
 
 vkr::Surface::Surface(Surface&&) = default;
-
-void vkr::Surface::onSurfaceChanged()
-{
-    //glfwGetFramebufferSize(m_window, &m_width, &m_height);
-}
 
 int vkr::Surface::getWidth() const
 {

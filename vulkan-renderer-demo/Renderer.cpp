@@ -73,8 +73,6 @@ namespace vkr
 
     void Renderer::onSurfaceChanged()
     {
-        m_surface.onSurfaceChanged();
-
         getPhysicalDeviceSurfaceContainer().getParameters().onSurfaceChanged();
     }
 
