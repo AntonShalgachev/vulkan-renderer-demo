@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
@@ -9,7 +10,7 @@ namespace vkr
     class RenderPass;
     class Framebuffer;
 
-    class Swapchain
+    class Swapchain : public Object
     {
     public:
         Swapchain();

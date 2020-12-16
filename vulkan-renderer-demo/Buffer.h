@@ -1,12 +1,13 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
     class DeviceMemory;
 
-    class Buffer
+    class Buffer : public Object
     {
     public:
         explicit Buffer(VkDeviceSize size, VkBufferUsageFlags usage);

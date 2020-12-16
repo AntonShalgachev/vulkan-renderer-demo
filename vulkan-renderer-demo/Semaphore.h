@@ -1,10 +1,11 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
-    class Semaphore
+    class Semaphore : public Object
     {
     public:
     	Semaphore();

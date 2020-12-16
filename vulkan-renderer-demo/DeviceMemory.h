@@ -1,10 +1,11 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
-    class DeviceMemory
+    class DeviceMemory : public Object
     {
     public:
         explicit DeviceMemory(VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties);

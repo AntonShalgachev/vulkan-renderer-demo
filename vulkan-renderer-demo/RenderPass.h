@@ -1,12 +1,13 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
     class Swapchain;
 
-    class RenderPass
+    class RenderPass : public Object
     {
     public:
         explicit RenderPass(Swapchain const& swapchain);

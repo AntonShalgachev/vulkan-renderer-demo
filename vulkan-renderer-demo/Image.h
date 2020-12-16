@@ -1,13 +1,14 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
     class DeviceMemory;
     class ImageView;
 
-    class Image
+    class Image : public Object
     {
     public:
         explicit Image(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage);

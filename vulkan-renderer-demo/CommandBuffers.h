@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
@@ -8,7 +9,7 @@ namespace vkr
     class Fence;
 
     // TODO make it responsible for a single command buffer
-    class CommandBuffers
+    class CommandBuffers : public Object
     {
     public:
     	explicit CommandBuffers(std::size_t size);

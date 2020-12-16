@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
@@ -11,7 +12,7 @@ namespace vkr
     class Sampler;
 
     // TODO make it responsible for a single descriptor set
-    class DescriptorSets
+    class DescriptorSets : public Object
     {
     public:
     	explicit DescriptorSets(std::size_t size, DescriptorSetLayout const& layout);

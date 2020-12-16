@@ -1,10 +1,11 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
-    class Sampler
+    class Sampler : public Object
     {
     public:
         Sampler();

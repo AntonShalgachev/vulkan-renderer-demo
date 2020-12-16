@@ -1,10 +1,11 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
-    class DescriptorSetLayout
+    class DescriptorSetLayout : public Object
     {
     public:
     	explicit DescriptorSetLayout();

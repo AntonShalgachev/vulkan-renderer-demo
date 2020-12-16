@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
@@ -8,7 +9,7 @@ namespace vkr
     class PipelineLayout;
     class RenderPass;
 
-    class Pipeline
+    class Pipeline : public Object
     {
     public:
     	explicit Pipeline(PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, ShaderModule const& vertShaderModule, ShaderModule const& fragShaderModule);

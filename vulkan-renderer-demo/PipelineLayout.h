@@ -1,12 +1,13 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
     class DescriptorSetLayout;
 
-    class PipelineLayout
+    class PipelineLayout : public Object
     {
     public:
     	explicit PipelineLayout(DescriptorSetLayout const& descriptorSetLayout);

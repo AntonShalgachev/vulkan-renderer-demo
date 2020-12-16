@@ -1,10 +1,11 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
-    class DescriptorPool
+    class DescriptorPool : public Object
     {
     public:
     	explicit DescriptorPool(std::size_t size);

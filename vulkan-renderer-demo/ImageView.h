@@ -1,12 +1,13 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
     class Image;
 
-	class ImageView
+	class ImageView : public Object
 	{
 	public:
 		explicit ImageView(vkr::Image const& image, VkImageAspectFlags aspectFlags);
