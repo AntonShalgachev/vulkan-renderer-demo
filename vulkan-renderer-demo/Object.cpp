@@ -15,3 +15,13 @@ vkr::Device const& vkr::Object::getDevice() const
 {
     return getApp().getDevice();
 }
+
+vkr::PhysicalDevice const& vkr::Object::getPhysicalDevice() const
+{
+    return getApp().getPhysicalDevice();
+}
+
+vkr::PhysicalDeviceSurfaceParameters const& vkr::Object::getPhysicalDeviceSurfaceParameters() const
+{
+    return getApp().getPhysicalDeviceSurfaceParameters();
+}

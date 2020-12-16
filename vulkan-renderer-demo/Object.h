@@ -7,6 +7,8 @@ namespace vkr
     class Instance;
     class Surface;
     class Device;
+    class PhysicalDevice;
+    class PhysicalDeviceSurfaceParameters;
 
     class Object
     {
@@ -23,6 +25,8 @@ namespace vkr
         Instance const& getInstance() const;
         Surface const& getSurface() const;
         Device const& getDevice() const;
+        PhysicalDevice const& getPhysicalDevice() const;
+        PhysicalDeviceSurfaceParameters const& getPhysicalDeviceSurfaceParameters() const;
 
     private:
         //Application const& m_app;
