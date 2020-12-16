@@ -140,8 +140,8 @@ private:
     {
         m_pipelineLayout = std::make_unique<vkr::PipelineLayout>(*m_descriptorSetLayout);
 
-        vkr::ShaderModule vertShaderModule{ "data/shaders/vert.spv", vkr::ShaderModule::Type::Vertex, "main" };
-        vkr::ShaderModule fragShaderModule{ "data/shaders/frag.spv", vkr::ShaderModule::Type::Fragment, "main" };
+        vkr::ShaderModule vertShaderModule{ getApp(), "data/shaders/vert.spv", vkr::ShaderModule::Type::Vertex, "main" };
+        vkr::ShaderModule fragShaderModule{ getApp(), "data/shaders/frag.spv", vkr::ShaderModule::Type::Fragment, "main" };
 
         m_pipeline = std::make_unique<vkr::Pipeline>(*m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), vertShaderModule, fragShaderModule);
     }

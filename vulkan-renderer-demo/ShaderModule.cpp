@@ -1,4 +1,5 @@
 #include "ShaderModule.h"
+#include "Device.h"
 
 namespace
 {
@@ -33,7 +34,7 @@ namespace
     }
 }
 
-vkr::ShaderModule::ShaderModule(std::string const& path, Type type, std::string const& entryPoint)
+vkr::ShaderModule::ShaderModule(Application const& app, std::string const& path, Type type, std::string const& entryPoint) : Object(app)
 {
     m_type = type;
     m_entryPoint = entryPoint;
@@ -45,13 +46,13 @@ vkr::ShaderModule::ShaderModule(std::string const& path, Type type, std::string 
     createInfo.codeSize = code.size();
     createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
-    if (vkCreateShaderModule(temp::getDevice(), &createInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateShaderModule(getDevice().getHandle(), &createInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("failed to create shader module!");
 }
 
 vkr::ShaderModule::~ShaderModule()
 {
-    vkDestroyShaderModule(temp::getDevice(), m_handle, nullptr);
+    vkDestroyShaderModule(getDevice().getHandle(), m_handle, nullptr);
 }
 
 VkPipelineShaderStageCreateInfo vkr::ShaderModule::createStageCreateInfo() const

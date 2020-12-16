@@ -1,10 +1,11 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
-    class ShaderModule
+    class ShaderModule : Object
     {
     public:
         enum class Type
@@ -14,7 +15,7 @@ namespace vkr
         };
 
     public:
-        explicit ShaderModule(std::string const& path, Type type, std::string const& entryPoint);
+        explicit ShaderModule(Application const& app, std::string const& path, Type type, std::string const& entryPoint);
         ~ShaderModule();
 
         ShaderModule(ShaderModule const&) = delete;
