@@ -70,10 +70,6 @@ public:
 private:
     void initWindow()
     {
-        glfwInit();
-
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
         m_window = std::make_unique<vkr::Window>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
 
         m_window->addResizeCallback([this](int, int) { onFramebufferResized(); });

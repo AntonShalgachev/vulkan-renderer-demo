@@ -23,6 +23,8 @@ namespace vkr
         int getWidth() const { return m_width; }
         int getHeight() const { return m_height; }
 
+        std::vector<char const*> const& getRequiredInstanceExtensions() const { return m_requiredInstanceExtensions; }
+
         template <typename Func>
         void startEventLoop(Func&& onUpdate)
         {
@@ -42,6 +44,9 @@ namespace vkr
         void waitUntilInForeground() const;
 
     private:
+        void createWindow(std::string const& title);
+        void queryRequiredInstanceExtensions();
+
         static void framebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept;
         void onFramebufferResized(int width, int height);
 
@@ -53,6 +58,8 @@ namespace vkr
 
         int m_width = -1;
         int m_height = -1;
+
+        std::vector<char const*> m_requiredInstanceExtensions;
 
         std::vector<std::function<void(int, int)>> m_resizeCallbacks;
     };

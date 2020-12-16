@@ -16,10 +16,10 @@ vkr::Window::Window(int width, int height, std::string const& title)
     m_height = height;
 
     glfwInit();
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    m_handle = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-    glfwSetWindowUserPointer(m_handle, this);
+
+    createWindow(title);
     glfwSetFramebufferSizeCallback(m_handle, Window::framebufferResizeCallback);
+    queryRequiredInstanceExtensions();
 }
 
 void vkr::Window::waitUntilInForeground() const
@@ -37,6 +37,22 @@ vkr::Window::~Window()
 {
     glfwDestroyWindow(m_handle);
     glfwTerminate();
+}
+
+void vkr::Window::createWindow(std::string const& title)
+{
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    m_handle = glfwCreateWindow(m_width, m_height, title.c_str(), nullptr, nullptr);
+    glfwSetWindowUserPointer(m_handle, this);
+}
+
+void vkr::Window::queryRequiredInstanceExtensions()
+{
+    uint32_t glfwExtensionCount = 0;
+    const char** glfwExtensions;
+    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+    m_requiredInstanceExtensions.assign(glfwExtensions, glfwExtensions + glfwExtensionCount);
 }
 
 void vkr::Window::framebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept

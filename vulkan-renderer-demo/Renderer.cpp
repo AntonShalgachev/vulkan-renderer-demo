@@ -5,6 +5,7 @@
 #include "PhysicalDeviceSurfaceParameters.h"
 #include "QueueFamilyIndices.h"
 #include "PhysicalDeviceSurfaceContainer.h"
+#include "Window.h"
 
 namespace
 {
@@ -26,15 +27,6 @@ namespace
         }
 
         return parameters.getQueueFamilyIndices().isValid() && areExtensionsSupported && swapchainSupported && physicalDevice.getFeatures().samplerAnisotropy;
-    }
-
-    std::vector<char const*> getGlfwExtensions()
-    {
-        uint32_t glfwExtensionCount = 0;
-        const char** glfwExtensions;
-        glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-        return std::vector<char const*>{ glfwExtensions, glfwExtensions + glfwExtensionCount };
     }
 
     std::size_t findSuitablePhysicalDeviceIndex(std::vector<vkr::PhysicalDeviceSurfaceContainer> const& physicalDevices)
@@ -59,7 +51,7 @@ namespace
 namespace vkr
 {
     Renderer::Renderer(Window const& window)
-        : m_instance("Vulkan demo", getGlfwExtensions(), VALIDATION_ENABLED, API_DUMP_ENABLED)
+        : m_instance("Vulkan demo", window.getRequiredInstanceExtensions(), VALIDATION_ENABLED, API_DUMP_ENABLED)
         , m_surface(m_instance, window)
         , m_physicalDevices(m_instance.findPhysicalDevices(m_surface))
         , m_currentPhysicalDeviceIndex(findSuitablePhysicalDeviceIndex(m_physicalDevices))
