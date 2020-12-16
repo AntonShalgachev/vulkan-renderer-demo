@@ -26,6 +26,8 @@ namespace vkr
         VkQueue getPresentQueue() const { return m_presentQueue; }
         VkCommandPool getCommandPool() const;
 
+        Application const& getApplication() const { return *m_application; }
+
         PhysicalDevice const& getPhysicalDevice() const;
         PhysicalDeviceSurfaceParameters const& getPhysicalDeviceSurfaceParameters() const;
         QueueFamilyIndices const& getQueueFamilyIndices() const;

@@ -25,6 +25,7 @@
 #include "Texture.h"
 #include "ObjectInstance.h"
 #include "Window.h"
+#include "Application.h"
 
 namespace
 {
@@ -307,6 +308,8 @@ private:
 
         vkDeviceWaitIdle(vkr::temp::getDevice());
     }
+
+    vkr::Application const& getApp() { return vkr::temp::getRenderer()->getApplication(); }
 
 private:
     std::unique_ptr<vkr::Window> m_window;
