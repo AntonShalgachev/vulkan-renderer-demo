@@ -13,7 +13,7 @@ namespace vkr
     class Swapchain : public Object
     {
     public:
-        Swapchain();
+        Swapchain(Application const& app);
         ~Swapchain();
 
         Swapchain(Swapchain const&) = delete;

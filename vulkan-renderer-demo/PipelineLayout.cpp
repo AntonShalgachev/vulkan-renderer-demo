@@ -1,7 +1,8 @@
 #include "PipelineLayout.h"
 #include "DescriptorSetLayout.h"
+#include "Device.h"
 
-vkr::PipelineLayout::PipelineLayout(DescriptorSetLayout const& descriptorSetLayout)
+vkr::PipelineLayout::PipelineLayout(Application const& app, DescriptorSetLayout const& descriptorSetLayout) : Object(app)
 {
     VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
     pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -10,11 +11,11 @@ vkr::PipelineLayout::PipelineLayout(DescriptorSetLayout const& descriptorSetLayo
     pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
     pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
 
-    if (vkCreatePipelineLayout(temp::getDevice(), &pipelineLayoutCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreatePipelineLayout(getDevice().getHandle(), &pipelineLayoutCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("failed to create pipeline layout!");
 }
 
 vkr::PipelineLayout::~PipelineLayout()
 {
-    vkDestroyPipelineLayout(temp::getDevice(), m_handle, nullptr);
+    vkDestroyPipelineLayout(getDevice().getHandle(), m_handle, nullptr);
 }

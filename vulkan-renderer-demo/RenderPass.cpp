@@ -3,15 +3,16 @@
 #include "Swapchain.h"
 #include "Renderer.h"
 #include "PhysicalDevice.h"
+#include "Device.h"
 
 namespace
 {
-    VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
+    VkFormat findSupportedFormat(vkr::PhysicalDevice const& physicalDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
     {
         for (VkFormat format : candidates)
         {
             VkFormatProperties props;
-            vkGetPhysicalDeviceFormatProperties(vkr::temp::getRenderer()->getPhysicalDevice().getHandle(), format, &props);
+            vkGetPhysicalDeviceFormatProperties(physicalDevice.getHandle(), format, &props);
 
             if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
                 return format;
@@ -22,17 +23,17 @@ namespace
         throw std::runtime_error("failed to find supported format!");
     }
 
-    VkFormat findDepthFormat()
+    VkFormat findDepthFormat(vkr::PhysicalDevice const& physicalDevice)
     {
         static const std::vector<VkFormat> candidates = { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT };
 
-        return findSupportedFormat(candidates, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+        return findSupportedFormat(physicalDevice, candidates, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
     }
 }
 
-vkr::RenderPass::RenderPass(Swapchain const& swapchain)
+vkr::RenderPass::RenderPass(Application const& app, Swapchain const& swapchain) : Object(app)
 {
-    m_depthFormat = findDepthFormat();
+    m_depthFormat = findDepthFormat(getPhysicalDevice());
 
     VkAttachmentDescription colorAttachment{};
     colorAttachment.format = swapchain.getSurfaceFormat().format;
@@ -87,11 +88,11 @@ vkr::RenderPass::RenderPass(Swapchain const& swapchain)
     renderPassCreateInfo.dependencyCount = 1;
     renderPassCreateInfo.pDependencies = &dependency;
 
-    if (vkCreateRenderPass(temp::getDevice(), &renderPassCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateRenderPass(getDevice().getHandle(), &renderPassCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("failed to create render pass!");
 }
 
 vkr::RenderPass::~RenderPass()
 {
-    vkDestroyRenderPass(temp::getDevice(), m_handle, nullptr);
+    vkDestroyRenderPass(getDevice().getHandle(), m_handle, nullptr);
 }

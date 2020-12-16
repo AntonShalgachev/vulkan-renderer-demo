@@ -3,8 +3,9 @@
 #include "RenderPass.h"
 #include "Swapchain.h"
 #include "ImageView.h"
+#include "Device.h"
 
-vkr::Framebuffer::Framebuffer(vkr::ImageView const& colorImageView, vkr::ImageView const& depthImageView, vkr::RenderPass const& renderPass, VkExtent2D extent)
+vkr::Framebuffer::Framebuffer(Application const& app, vkr::ImageView const& colorImageView, vkr::ImageView const& depthImageView, vkr::RenderPass const& renderPass, VkExtent2D extent) : Object(app)
 {
     std::array<VkImageView, 2> attachments = { colorImageView.getHandle(), depthImageView.getHandle() };
 
@@ -17,11 +18,11 @@ vkr::Framebuffer::Framebuffer(vkr::ImageView const& colorImageView, vkr::ImageVi
     framebufferCreateInfo.height = extent.height;
     framebufferCreateInfo.layers = 1;
 
-    if (vkCreateFramebuffer(temp::getDevice(), &framebufferCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateFramebuffer(getDevice().getHandle(), &framebufferCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("failed to create framebuffer!");
 }
 
 vkr::Framebuffer::~Framebuffer()
 {
-    vkDestroyFramebuffer(temp::getDevice(), m_handle, nullptr);
+    vkDestroyFramebuffer(getDevice().getHandle(), m_handle, nullptr);
 }

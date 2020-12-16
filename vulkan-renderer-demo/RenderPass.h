@@ -10,7 +10,7 @@ namespace vkr
     class RenderPass : public Object
     {
     public:
-        explicit RenderPass(Swapchain const& swapchain);
+        explicit RenderPass(Application const& app, Swapchain const& swapchain);
         ~RenderPass();
 
         RenderPass(RenderPass const&) = delete;

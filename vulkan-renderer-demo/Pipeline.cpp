@@ -3,8 +3,9 @@
 #include "PipelineLayout.h"
 #include "RenderPass.h"
 #include "Vertex.h"
+#include "Device.h"
 
-vkr::Pipeline::Pipeline(PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, ShaderModule const& vertShaderModule, ShaderModule const& fragShaderModule)
+vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, ShaderModule const& vertShaderModule, ShaderModule const& fragShaderModule) : Object(app)
 {
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = vertShaderModule.createStageCreateInfo();
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = fragShaderModule.createStageCreateInfo();
@@ -119,11 +120,11 @@ vkr::Pipeline::Pipeline(PipelineLayout const& layout, RenderPass const& renderPa
     pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
     pipelineCreateInfo.basePipelineIndex = -1;
 
-    if (vkCreateGraphicsPipelines(temp::getDevice(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateGraphicsPipelines(getDevice().getHandle(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("failed to create graphics pipeline!");
 }
 
 vkr::Pipeline::~Pipeline()
 {
-    vkDestroyPipeline(temp::getDevice(), m_handle, nullptr);
+    vkDestroyPipeline(getDevice().getHandle(), m_handle, nullptr);
 }

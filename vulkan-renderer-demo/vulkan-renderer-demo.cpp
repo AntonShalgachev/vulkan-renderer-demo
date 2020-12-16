@@ -105,7 +105,7 @@ private:
     void initSwapchain()
     {
         createSwapchain();
-        m_renderPass = std::make_unique<vkr::RenderPass>(*m_swapchain);
+        m_renderPass = std::make_unique<vkr::RenderPass>(getApp(), *m_swapchain);
         createGraphicsPipeline();
 
         createDepthResources();
@@ -133,17 +133,17 @@ private:
         // TODO research why Vulkan crashes without this line
         m_swapchain = nullptr;
 
-        m_swapchain = std::make_unique<vkr::Swapchain>();
+        m_swapchain = std::make_unique<vkr::Swapchain>(getApp());
     }
 
     void createGraphicsPipeline()
     {
-        m_pipelineLayout = std::make_unique<vkr::PipelineLayout>(*m_descriptorSetLayout);
+        m_pipelineLayout = std::make_unique<vkr::PipelineLayout>(getApp(), *m_descriptorSetLayout);
 
         vkr::ShaderModule vertShaderModule{ getApp(), "data/shaders/vert.spv", vkr::ShaderModule::Type::Vertex, "main" };
         vkr::ShaderModule fragShaderModule{ getApp(), "data/shaders/frag.spv", vkr::ShaderModule::Type::Fragment, "main" };
 
-        m_pipeline = std::make_unique<vkr::Pipeline>(*m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), vertShaderModule, fragShaderModule);
+        m_pipeline = std::make_unique<vkr::Pipeline>(getApp(), *m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), vertShaderModule, fragShaderModule);
     }
 
     void createDepthResources()

@@ -6,6 +6,8 @@
 #include "Image.h"
 #include "PhysicalDeviceSurfaceParameters.h"
 #include "QueueFamilyIndices.h"
+#include "Device.h"
+#include "Surface.h"
 
 namespace
 {
@@ -30,13 +32,13 @@ namespace
         return VK_PRESENT_MODE_FIFO_KHR;
     }
 
-    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
+    VkExtent2D chooseSwapExtent(vkr::Surface const& surface, const VkSurfaceCapabilitiesKHR& capabilities)
     {
         if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
             return capabilities.currentExtent;
 
-        auto width = static_cast<uint32_t>(vkr::temp::getRenderer()->getWidth());
-        auto height = static_cast<uint32_t>(vkr::temp::getRenderer()->getHeight());
+        auto width = static_cast<uint32_t>(surface.getWidth());
+        auto height = static_cast<uint32_t>(surface.getHeight());
 
         width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, width));
         height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, height));
@@ -45,7 +47,7 @@ namespace
     }
 }
 
-vkr::Swapchain::Swapchain()
+vkr::Swapchain::Swapchain(Application const& app) : Object(app)
 {
     createSwapchain();
     retrieveImages();
@@ -54,22 +56,22 @@ vkr::Swapchain::Swapchain()
 
 vkr::Swapchain::~Swapchain()
 {
-    vkDestroySwapchainKHR(temp::getDevice(), m_handle, nullptr);
+    vkDestroySwapchainKHR(getDevice().getHandle(), m_handle, nullptr);
 }
 
 void vkr::Swapchain::createFramebuffers(vkr::RenderPass const& renderPass, vkr::ImageView const& depthImageView)
 {
     for (std::unique_ptr<vkr::ImageView> const& colorImageView : m_imageViews)
-        m_framebuffers.push_back(std::make_unique<vkr::Framebuffer>(*colorImageView, depthImageView, renderPass, m_extent));
+        m_framebuffers.push_back(std::make_unique<vkr::Framebuffer>(getApp(), *colorImageView, depthImageView, renderPass, m_extent));
 }
 
 void vkr::Swapchain::createSwapchain()
 {
-    PhysicalDeviceSurfaceParameters const& parameters = temp::getRenderer()->getPhysicalDeviceSurfaceParameters();
+    PhysicalDeviceSurfaceParameters const& parameters = getPhysicalDeviceSurfaceParameters();
 
     m_surfaceFormat = chooseSwapSurfaceFormat(parameters.getFormats());
     VkPresentModeKHR presentMode = chooseSwapPresentMode(parameters.getPresentModes());
-    m_extent = chooseSwapExtent(parameters.getCapabilities());
+    m_extent = chooseSwapExtent(getSurface(), parameters.getCapabilities());
 
     const uint32_t minImageCount = parameters.getCapabilities().minImageCount;
     const uint32_t maxImageCount = parameters.getCapabilities().maxImageCount;
@@ -81,7 +83,7 @@ void vkr::Swapchain::createSwapchain()
 
     VkSwapchainCreateInfoKHR swapchainCreateInfo{};
     swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    swapchainCreateInfo.surface = temp::getRenderer()->getSurfaceHandle();
+    swapchainCreateInfo.surface = getSurface().getHandle();
 
     swapchainCreateInfo.minImageCount = imageCount;
     swapchainCreateInfo.imageFormat = m_surfaceFormat.format;
@@ -90,7 +92,7 @@ void vkr::Swapchain::createSwapchain()
     swapchainCreateInfo.imageArrayLayers = 1;
     swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    vkr::QueueFamilyIndices const& indices = temp::getRenderer()->getQueueFamilyIndices();
+    vkr::QueueFamilyIndices const& indices = parameters.getQueueFamilyIndices();
     if (indices.getGraphicsIndex() != indices.getPresentIndex())
     {
         uint32_t queueFamilyIndices[] = { indices.getGraphicsIndex(), indices.getPresentIndex() };
@@ -111,18 +113,18 @@ void vkr::Swapchain::createSwapchain()
     swapchainCreateInfo.clipped = VK_TRUE;
     swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    if (vkCreateSwapchainKHR(temp::getDevice(), &swapchainCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateSwapchainKHR(getDevice().getHandle(), &swapchainCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("failed to create swap chain!");
 }
 
 void vkr::Swapchain::retrieveImages()
 {
     uint32_t finalImageCount = 0;
-    vkGetSwapchainImagesKHR(temp::getDevice(), m_handle, &finalImageCount, nullptr);
+    vkGetSwapchainImagesKHR(getDevice().getHandle(), m_handle, &finalImageCount, nullptr);
 
     std::vector<VkImage> imageHandles;
     imageHandles.resize(finalImageCount);
-    vkGetSwapchainImagesKHR(temp::getDevice(), m_handle, &finalImageCount, imageHandles.data());
+    vkGetSwapchainImagesKHR(getDevice().getHandle(), m_handle, &finalImageCount, imageHandles.data());
 
     m_images.reserve(finalImageCount);
     for (VkImage const& handle : imageHandles)

@@ -11,7 +11,7 @@ namespace vkr
     class Framebuffer : public Object
     {
     public:
-        explicit Framebuffer(vkr::ImageView const& colorImageView, vkr::ImageView const& depthImageView, vkr::RenderPass const& renderPass, VkExtent2D extent);
+        explicit Framebuffer(Application const& app, vkr::ImageView const& colorImageView, vkr::ImageView const& depthImageView, vkr::RenderPass const& renderPass, VkExtent2D extent);
         ~Framebuffer();
 
         Framebuffer(Framebuffer const&) = delete;

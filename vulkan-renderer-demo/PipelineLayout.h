@@ -10,7 +10,7 @@ namespace vkr
     class PipelineLayout : public Object
     {
     public:
-    	explicit PipelineLayout(DescriptorSetLayout const& descriptorSetLayout);
+    	explicit PipelineLayout(Application const& app, DescriptorSetLayout const& descriptorSetLayout);
     	~PipelineLayout();
 
         PipelineLayout(PipelineLayout const&) = delete;

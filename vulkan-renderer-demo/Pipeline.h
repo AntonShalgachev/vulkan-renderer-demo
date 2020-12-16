@@ -12,7 +12,7 @@ namespace vkr
     class Pipeline : public Object
     {
     public:
-    	explicit Pipeline(PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, ShaderModule const& vertShaderModule, ShaderModule const& fragShaderModule);
+    	explicit Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, ShaderModule const& vertShaderModule, ShaderModule const& fragShaderModule);
     	~Pipeline();
 
         Pipeline(Pipeline const&) = delete;
