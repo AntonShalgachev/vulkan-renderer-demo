@@ -8,13 +8,13 @@ namespace vkr
     class Fence : public Object
     {
     public:
-    	Fence();
+    	Fence(Application const& app);
     	~Fence();
 
         Fence(Fence const&) = delete;
-        Fence(Fence&&) = default;
+        Fence(Fence&&);
         Fence& operator=(Fence const&) = delete;
-        Fence& operator=(Fence&&) = default;
+        Fence& operator=(Fence&&) = delete;
 
         void wait();
         void reset();

@@ -55,7 +55,7 @@ namespace
     //const float MODEL2_INSTANCE2_POSITION_x = 1.0f;
     //const float MODEL2_INSTANCE2_AMPLITUDE_Z = 0.5f;
 
-    const int MAX_FRAMES_IN_FLIGHT = 3;
+    const int MAX_FRAMES_IN_FLIGHT = 2;
 }
 
 class HelloTriangleApplication
@@ -207,9 +207,12 @@ private:
 
     void createSyncObjects()
     {
-        m_imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-        m_renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-        m_inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+        for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            m_imageAvailableSemaphores.emplace_back(getApp());
+            m_renderFinishedSemaphores.emplace_back(getApp());
+            m_inFlightFences.emplace_back(getApp());
+        }
 
         m_currentFences.resize(m_swapchain->getImageCount(), nullptr);
     }

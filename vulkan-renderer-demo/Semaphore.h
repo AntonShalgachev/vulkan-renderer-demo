@@ -8,13 +8,13 @@ namespace vkr
     class Semaphore : public Object
     {
     public:
-    	Semaphore();
+    	Semaphore(Application const& app);
     	~Semaphore();
 
         Semaphore(Semaphore const&) = delete;
-        Semaphore(Semaphore&&) = default;
+        Semaphore(Semaphore&&);
         Semaphore& operator=(Semaphore const&) = delete;
-        Semaphore& operator=(Semaphore&&) = default;
+        Semaphore& operator=(Semaphore&&) = delete;
 
         VkSemaphore const& getHandle() const { return m_handle; }
 
