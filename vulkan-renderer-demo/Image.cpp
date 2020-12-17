@@ -2,6 +2,7 @@
 
 #include "DeviceMemory.h"
 #include "ImageView.h"
+#include "Device.h"
 
 namespace vkr
 {
@@ -24,7 +25,7 @@ namespace vkr
         imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 
-        if (vkCreateImage(temp::getDevice(), &imageCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+        if (vkCreateImage(getDevice().getHandle(), &imageCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
             throw std::runtime_error("failed to create image!");
     }
 
@@ -38,20 +39,20 @@ namespace vkr
     Image::~Image()
     {
         if (m_isOwned)
-            vkDestroyImage(temp::getDevice(), m_handle, nullptr);
+            vkDestroyImage(getDevice().getHandle(), m_handle, nullptr);
     }
 
     VkMemoryRequirements Image::getMemoryRequirements() const
     {
         VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(temp::getDevice(), m_handle, &memRequirements);
+        vkGetImageMemoryRequirements(getDevice().getHandle(), m_handle, &memRequirements);
 
         return memRequirements;
     }
 
     void Image::bindMemory(DeviceMemory const& memory) const
     {
-        vkBindImageMemory(temp::getDevice(), m_handle, memory.getHandle(), 0);
+        vkBindImageMemory(getDevice().getHandle(), m_handle, memory.getHandle(), 0);
     }
 
     std::unique_ptr<vkr::ImageView> Image::createImageView(VkImageAspectFlags aspectFlags)

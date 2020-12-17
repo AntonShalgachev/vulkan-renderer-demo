@@ -2,6 +2,7 @@
 
 #include "DeviceMemory.h"
 #include "ScopedOneTimeCommandBuffer.h"
+#include "Device.h"
 
 vkr::Buffer::Buffer(Application const& app, VkDeviceSize size, VkBufferUsageFlags usage) : Object(app)
 {
@@ -13,27 +14,27 @@ vkr::Buffer::Buffer(Application const& app, VkDeviceSize size, VkBufferUsageFlag
     bufferCreateInfo.usage = usage;
     bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    if (vkCreateBuffer(temp::getDevice(), &bufferCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateBuffer(getDevice().getHandle(), &bufferCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("failed to create buffer!");
 }
 
 vkr::Buffer::~Buffer()
 {
-    vkDestroyBuffer(temp::getDevice(), m_handle, nullptr);
+    vkDestroyBuffer(getDevice().getHandle(), m_handle, nullptr);
 }
 
 VkMemoryRequirements vkr::Buffer::getMemoryRequirements() const
 {
     // TODO cache
     VkMemoryRequirements memoryRequirements;
-    vkGetBufferMemoryRequirements(temp::getDevice(), m_handle, &memoryRequirements);
+    vkGetBufferMemoryRequirements(getDevice().getHandle(), m_handle, &memoryRequirements);
 
     return memoryRequirements;
 }
 
 void vkr::Buffer::bindMemory(DeviceMemory const& memory) const
 {
-    vkBindBufferMemory(temp::getDevice(), m_handle, memory.getHandle(), 0);
+    vkBindBufferMemory(getDevice().getHandle(), m_handle, memory.getHandle(), 0);
 }
 
 void vkr::Buffer::copy(Buffer const& source, Buffer const& destination)

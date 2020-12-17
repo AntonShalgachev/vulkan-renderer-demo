@@ -35,6 +35,5 @@ namespace vkr
     namespace temp
     {
         std::unique_ptr<Renderer> const& getRenderer();
-        VkDevice getDevice();
     }
 }

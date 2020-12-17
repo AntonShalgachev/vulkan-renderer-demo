@@ -1,4 +1,5 @@
 #include "Sampler.h"
+#include "Device.h"
 
 vkr::Sampler::Sampler(Application const& app) : Object(app)
 {
@@ -20,11 +21,11 @@ vkr::Sampler::Sampler(Application const& app) : Object(app)
     samplerCreateInfo.minLod = 0.0f;
     samplerCreateInfo.maxLod = 0.0f;
 
-    if (vkCreateSampler(temp::getDevice(), &samplerCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateSampler(getDevice().getHandle(), &samplerCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("failed to create texture sampler!");
 }
 
 vkr::Sampler::~Sampler()
 {
-    vkDestroySampler(temp::getDevice(), m_handle, nullptr);
+    vkDestroySampler(getDevice().getHandle(), m_handle, nullptr);
 }

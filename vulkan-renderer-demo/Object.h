@@ -22,6 +22,11 @@ namespace vkr
 
         //Application const& getApp() const { return m_app; }
 
+        Object(Object const&) = delete;
+        Object(Object&&) = default;
+        Object& operator=(Object const&) = delete;
+        Object& operator=(Object&&) = delete;
+
         Instance const& getInstance() const;
         Surface const& getSurface() const;
         Device const& getDevice() const;

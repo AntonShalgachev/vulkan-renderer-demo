@@ -26,6 +26,7 @@
 #include "ObjectInstance.h"
 #include "Window.h"
 #include "Application.h"
+#include "Device.h"
 
 namespace
 {
@@ -123,7 +124,7 @@ private:
     {
         m_window->waitUntilInForeground();
 
-        vkDeviceWaitIdle(vkr::temp::getDevice());
+        vkDeviceWaitIdle(getApp().getDevice().getHandle());
 
         initSwapchain();
     }
@@ -222,7 +223,7 @@ private:
         m_inFlightFences[m_currentFrame].wait();
 
         uint32_t imageIndex;
-        VkResult aquireImageResult = vkAcquireNextImageKHR(vkr::temp::getDevice(), m_swapchain->getHandle(), UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame].getHandle(), VK_NULL_HANDLE, &imageIndex);
+        VkResult aquireImageResult = vkAcquireNextImageKHR(getApp().getDevice().getHandle(), m_swapchain->getHandle(), UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame].getHandle(), VK_NULL_HANDLE, &imageIndex);
 
         if (aquireImageResult == VK_ERROR_OUT_OF_DATE_KHR)
         {
@@ -309,7 +310,7 @@ private:
     {
         m_window->startEventLoop([this]() { drawFrame(); });
 
-        vkDeviceWaitIdle(vkr::temp::getDevice());
+        vkDeviceWaitIdle(getApp().getDevice().getHandle());
     }
 
     vkr::Application const& getApp() { return vkr::temp::getRenderer()->getApplication(); }

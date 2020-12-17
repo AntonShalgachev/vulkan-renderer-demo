@@ -20,10 +20,5 @@ namespace vkr
         {
             return vkr::ServiceLocator::instance().getRenderer();
         }
-
-        VkDevice getDevice()
-        {
-            return getRenderer()->getDevice();
-        }
     }
 }

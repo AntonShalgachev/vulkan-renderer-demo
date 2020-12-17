@@ -3,6 +3,7 @@
 #include "ServiceLocator.h"
 #include "Renderer.h"
 #include "Image.h"
+#include "Device.h"
 
 namespace vkr
 {
@@ -19,12 +20,12 @@ namespace vkr
 		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		imageViewCreateInfo.subresourceRange.layerCount = 1;
 
-		if (vkCreateImageView(temp::getDevice(), &imageViewCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+		if (vkCreateImageView(getDevice().getHandle(), &imageViewCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
 			throw std::runtime_error("failed to create texture image view!");
 	}
 
 	ImageView::~ImageView()
 	{
-		vkDestroyImageView(temp::getDevice(), m_handle, nullptr);
+		vkDestroyImageView(getDevice().getHandle(), m_handle, nullptr);
 	}
 }

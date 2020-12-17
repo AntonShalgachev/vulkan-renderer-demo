@@ -1,4 +1,5 @@
 #include "Fence.h"
+#include "Device.h"
 
 vkr::Fence::Fence(Application const& app) : Object(app)
 {
@@ -6,26 +7,26 @@ vkr::Fence::Fence(Application const& app) : Object(app)
     fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    if (vkCreateFence(temp::getDevice(), &fenceCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateFence(getDevice().getHandle(), &fenceCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("failed to create fence!");
 }
 
-vkr::Fence::Fence(Fence&& other)
+vkr::Fence::Fence(Fence&& other) : Object(std::move(other))
 {
     std::swap(m_handle, other.m_handle);
 }
 
 vkr::Fence::~Fence()
 {
-    vkDestroyFence(temp::getDevice(), m_handle, nullptr);
+    vkDestroyFence(getDevice().getHandle(), m_handle, nullptr);
 }
 
 void vkr::Fence::wait()
 {
-    vkWaitForFences(temp::getDevice(), 1, &m_handle, VK_TRUE, UINT64_MAX);
+    vkWaitForFences(getDevice().getHandle(), 1, &m_handle, VK_TRUE, UINT64_MAX);
 }
 
 void vkr::Fence::reset()
 {
-    vkResetFences(temp::getDevice(), 1, &m_handle);
+    vkResetFences(getDevice().getHandle(), 1, &m_handle);
 }

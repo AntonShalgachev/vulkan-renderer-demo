@@ -1,4 +1,5 @@
 #include "DescriptorSetLayout.h"
+#include "Device.h"
 
 vkr::DescriptorSetLayout::DescriptorSetLayout(Application const& app) : Object(app)
 {
@@ -23,11 +24,11 @@ vkr::DescriptorSetLayout::DescriptorSetLayout(Application const& app) : Object(a
     descriptorSetLayoutCreateInfo.bindingCount = static_cast<uint32_t>(bindings.size());
     descriptorSetLayoutCreateInfo.pBindings = bindings.data();
 
-    if (vkCreateDescriptorSetLayout(temp::getDevice(), &descriptorSetLayoutCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateDescriptorSetLayout(getDevice().getHandle(), &descriptorSetLayoutCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("failed to create descriptor set layout!");
 }
 
 vkr::DescriptorSetLayout::~DescriptorSetLayout()
 {
-    vkDestroyDescriptorSetLayout(temp::getDevice(), m_handle, nullptr);
+    vkDestroyDescriptorSetLayout(getDevice().getHandle(), m_handle, nullptr);
 }

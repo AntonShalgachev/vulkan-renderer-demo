@@ -1,4 +1,5 @@
 #include "DescriptorPool.h"
+#include "Device.h"
 
 vkr::DescriptorPool::DescriptorPool(Application const& app, std::size_t size) : Object(app)
 {
@@ -16,11 +17,11 @@ vkr::DescriptorPool::DescriptorPool(Application const& app, std::size_t size) : 
     poolCreateInfo.pPoolSizes = poolSizes.data();
     poolCreateInfo.maxSets = static_cast<uint32_t>(size);
 
-    if (vkCreateDescriptorPool(temp::getDevice(), &poolCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateDescriptorPool(getDevice().getHandle(), &poolCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("failed to create descriptor pool");
 }
 
 vkr::DescriptorPool::~DescriptorPool()
 {
-    vkDestroyDescriptorPool(temp::getDevice(), m_handle, nullptr);
+    vkDestroyDescriptorPool(getDevice().getHandle(), m_handle, nullptr);
 }

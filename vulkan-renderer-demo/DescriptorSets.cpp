@@ -4,6 +4,7 @@
 #include "Buffer.h"
 #include "Texture.h"
 #include "Sampler.h"
+#include "Device.h"
 
 vkr::DescriptorSets::DescriptorSets(Application const& app, std::size_t size, DescriptorSetLayout const& layout)
     : Object(app)
@@ -18,7 +19,7 @@ vkr::DescriptorSets::DescriptorSets(Application const& app, std::size_t size, De
     descriptorSetAllocInfo.pSetLayouts = layouts.data();
 
     m_handles.resize(size);
-    if (vkAllocateDescriptorSets(temp::getDevice(), &descriptorSetAllocInfo, m_handles.data()) != VK_SUCCESS)
+    if (vkAllocateDescriptorSets(getDevice().getHandle(), &descriptorSetAllocInfo, m_handles.data()) != VK_SUCCESS)
         throw std::runtime_error("failed to allocate descriptor sets!");
 }
 
@@ -60,7 +61,7 @@ void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer,
     descriptorWrites[1].descriptorCount = 1;
     descriptorWrites[1].pImageInfo = &imageInfo;
 
-    vkUpdateDescriptorSets(vkr::temp::getDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+    vkUpdateDescriptorSets(getDevice().getHandle(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 }
 
 std::size_t vkr::DescriptorSets::getSize() const

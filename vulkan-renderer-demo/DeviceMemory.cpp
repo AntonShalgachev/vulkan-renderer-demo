@@ -2,6 +2,7 @@
 
 #include "Renderer.h"
 #include "PhysicalDevice.h"
+#include "Device.h"
 
 namespace
 {
@@ -32,19 +33,19 @@ vkr::DeviceMemory::DeviceMemory(Application const& app, VkMemoryRequirements mem
     allocInfo.allocationSize = memoryRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, memoryProperties);
 
-    if (vkAllocateMemory(temp::getDevice(), &allocInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkAllocateMemory(getDevice().getHandle(), &allocInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("failed to allocate image memory!");
 }
 
 vkr::DeviceMemory::~DeviceMemory()
 {
-    vkFreeMemory(temp::getDevice(), m_handle, nullptr);
+    vkFreeMemory(getDevice().getHandle(), m_handle, nullptr);
 }
 
 void vkr::DeviceMemory::copyFrom(void const* sourcePointer, std::size_t sourceSize)
 {
     void* data;
-    vkMapMemory(temp::getDevice(), m_handle, 0, sourceSize, 0, &data);
+    vkMapMemory(getDevice().getHandle(), m_handle, 0, sourceSize, 0, &data);
     memcpy(data, sourcePointer, sourceSize);
-    vkUnmapMemory(temp::getDevice(), m_handle);
+    vkUnmapMemory(getDevice().getHandle(), m_handle);
 }

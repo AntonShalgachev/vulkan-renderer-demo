@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "Semaphore.h"
 #include "Fence.h"
+#include "Device.h"
 
 vkr::CommandBuffers::CommandBuffers(Application const& app, std::size_t size) : Object(app)
 {
@@ -13,12 +14,12 @@ vkr::CommandBuffers::CommandBuffers(Application const& app, std::size_t size) : 
     commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(size);
 
     m_handles.resize(size);
-    vkAllocateCommandBuffers(temp::getDevice(), &commandBufferAllocateInfo, m_handles.data());
+    vkAllocateCommandBuffers(getDevice().getHandle(), &commandBufferAllocateInfo, m_handles.data());
 }
 
 vkr::CommandBuffers::~CommandBuffers()
 {
-    vkFreeCommandBuffers(temp::getDevice(), temp::getRenderer()->getCommandPool(), static_cast<uint32_t>(m_handles.size()), m_handles.data());
+    vkFreeCommandBuffers(getDevice().getHandle(), temp::getRenderer()->getCommandPool(), static_cast<uint32_t>(m_handles.size()), m_handles.data());
 }
 
 void vkr::CommandBuffers::begin(std::size_t index, VkCommandBufferUsageFlags flags)
