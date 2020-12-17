@@ -8,7 +8,7 @@ namespace vkr
     class DescriptorSetLayout : public Object
     {
     public:
-    	explicit DescriptorSetLayout();
+    	explicit DescriptorSetLayout(Application const& app);
     	~DescriptorSetLayout();
 
         DescriptorSetLayout(DescriptorSetLayout const&) = delete;

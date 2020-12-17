@@ -4,17 +4,17 @@
 #include "ScopedOneTimeCommandBuffer.h"
 #include "Image.h"
 
-void vkr::utils::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, std::unique_ptr<vkr::Buffer>& buffer, std::unique_ptr<vkr::DeviceMemory>& bufferMemory)
+void vkr::utils::createBuffer(vkr::Application const& app, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, std::unique_ptr<vkr::Buffer>& buffer, std::unique_ptr<vkr::DeviceMemory>& bufferMemory)
 {
-    buffer = std::make_unique<vkr::Buffer>(size, usage);
-    bufferMemory = std::make_unique<vkr::DeviceMemory>(buffer->getMemoryRequirements(), properties);
+    buffer = std::make_unique<vkr::Buffer>(app, size, usage);
+    bufferMemory = std::make_unique<vkr::DeviceMemory>(app, buffer->getMemoryRequirements(), properties);
     buffer->bindMemory(*bufferMemory);
 }
 
-void vkr::utils::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, std::unique_ptr<vkr::Image>& image, std::unique_ptr<vkr::DeviceMemory>& imageMemory)
+void vkr::utils::createImage(vkr::Application const& app, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, std::unique_ptr<vkr::Image>& image, std::unique_ptr<vkr::DeviceMemory>& imageMemory)
 {
-    image = std::make_unique<vkr::Image>(width, height, format, tiling, usage);
-    imageMemory = std::make_unique<vkr::DeviceMemory>(image->getMemoryRequirements(), properties);
+    image = std::make_unique<vkr::Image>(app, width, height, format, tiling, usage);
+    imageMemory = std::make_unique<vkr::DeviceMemory>(app, image->getMemoryRequirements(), properties);
     image->bindMemory(*imageMemory);
 }
 

@@ -3,14 +3,15 @@
 #include "framework.h"
 
 #include "CommandBuffers.h"
+#include "Object.h"
 
 namespace vkr
 {
     // TODO move to utils namespace
-    class ScopedOneTimeCommandBuffer
+    class ScopedOneTimeCommandBuffer : Object
     {
     public:
-    	ScopedOneTimeCommandBuffer();
+    	ScopedOneTimeCommandBuffer(Application const& app);
     	~ScopedOneTimeCommandBuffer();
 
         ScopedOneTimeCommandBuffer(ScopedOneTimeCommandBuffer const&) = delete;
@@ -21,6 +22,6 @@ namespace vkr
         VkCommandBuffer const& getHandle() const { return m_commandBuffers.getHandle(0); }
 
     private:
-        CommandBuffers m_commandBuffers{ 1 };
+        CommandBuffers m_commandBuffers;
     };
 }

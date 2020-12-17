@@ -8,7 +8,7 @@ namespace vkr
     class DeviceMemory : public Object
     {
     public:
-        explicit DeviceMemory(VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties);
+        explicit DeviceMemory(Application const& app, VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties);
         ~DeviceMemory();
 
         DeviceMemory(DeviceMemory const&) = delete;

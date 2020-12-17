@@ -8,7 +8,7 @@ namespace vkr
     class DescriptorPool : public Object
     {
     public:
-    	explicit DescriptorPool(std::size_t size);
+    	explicit DescriptorPool(Application const& app, std::size_t size);
     	~DescriptorPool();
 
         DescriptorPool(DescriptorPool const&) = delete;

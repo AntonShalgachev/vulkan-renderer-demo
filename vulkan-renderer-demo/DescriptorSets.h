@@ -15,7 +15,7 @@ namespace vkr
     class DescriptorSets : public Object
     {
     public:
-    	explicit DescriptorSets(std::size_t size, DescriptorSetLayout const& layout);
+    	explicit DescriptorSets(Application const& app, std::size_t size, DescriptorSetLayout const& layout);
     	~DescriptorSets();
 
         DescriptorSets(DescriptorSets const&) = delete;

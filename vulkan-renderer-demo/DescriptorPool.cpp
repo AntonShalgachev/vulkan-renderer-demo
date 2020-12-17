@@ -1,6 +1,6 @@
 #include "DescriptorPool.h"
 
-vkr::DescriptorPool::DescriptorPool(std::size_t size)
+vkr::DescriptorPool::DescriptorPool(Application const& app, std::size_t size) : Object(app)
 {
     m_size = size;
 

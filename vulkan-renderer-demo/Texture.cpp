@@ -8,9 +8,9 @@
 
 namespace
 {
-    void transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout)
+    void transitionImageLayout(vkr::Application const& app, VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout)
     {
-        vkr::ScopedOneTimeCommandBuffer commandBuffer;
+        vkr::ScopedOneTimeCommandBuffer commandBuffer{ app };
 
         VkImageMemoryBarrier barrier{};
         barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -61,9 +61,9 @@ namespace
         );
     }
 
-    void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
+    void copyBufferToImage(vkr::Application const& app, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
     {
-        vkr::ScopedOneTimeCommandBuffer commandBuffer;
+        vkr::ScopedOneTimeCommandBuffer commandBuffer{ app };
 
         VkBufferImageCopy region{};
         region.bufferOffset = 0;
@@ -93,7 +93,7 @@ namespace
     }
 }
 
-vkr::Texture::Texture(std::string const& path)
+vkr::Texture::Texture(Application const& app, std::string const& path) : Object(app)
 {
     uint32_t width, height;
     stbi_uc* pixels;
@@ -113,18 +113,18 @@ vkr::Texture::Texture(std::string const& path)
 
     std::unique_ptr<vkr::Buffer> stagingBuffer;
     std::unique_ptr<vkr::DeviceMemory> stagingBufferMemory;
-    vkr::utils::createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    vkr::utils::createBuffer(getApp(), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     stagingBufferMemory->copyFrom(pixels, imageSize);
 
     stbi_image_free(pixels);
 
-    vkr::utils::createImage(width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_image, m_memory);
+    vkr::utils::createImage(getApp(), width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_image, m_memory);
 
-    transitionImageLayout(m_image->getHandle(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    transitionImageLayout(getApp(), m_image->getHandle(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     // TODO extract to some class
-    copyBufferToImage(stagingBuffer->getHandle(), m_image->getHandle(), width, height);
-    transitionImageLayout(m_image->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    copyBufferToImage(getApp(), stagingBuffer->getHandle(), m_image->getHandle(), width, height);
+    transitionImageLayout(getApp(), m_image->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     m_imageView = m_image->createImageView(VK_IMAGE_ASPECT_COLOR_BIT);
 }

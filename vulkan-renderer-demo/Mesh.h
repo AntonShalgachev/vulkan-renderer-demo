@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
@@ -8,10 +9,10 @@ namespace vkr
     class Buffer;
     class DeviceMemory;
 
-    class Mesh
+    class Mesh : Object
     {
     public:
-    	Mesh(std::string const& path);
+    	Mesh(Application const& app, std::string const& path);
 
         void bindBuffers(VkCommandBuffer commandBuffer);
 

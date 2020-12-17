@@ -128,7 +128,7 @@ void vkr::Swapchain::retrieveImages()
 
     m_images.reserve(finalImageCount);
     for (VkImage const& handle : imageHandles)
-        m_images.push_back(std::make_unique<Image>(handle, m_surfaceFormat.format));
+        m_images.push_back(std::make_unique<Image>(getApp(), handle, m_surfaceFormat.format));
 }
 
 void vkr::Swapchain::createImageViews()

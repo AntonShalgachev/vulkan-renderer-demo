@@ -6,7 +6,7 @@
 
 namespace vkr
 {
-	ImageView::ImageView(vkr::Image const& image, VkImageAspectFlags aspectFlags)
+	ImageView::ImageView(Application const& app, vkr::Image const& image, VkImageAspectFlags aspectFlags) : Object(app)
 	{
 		VkImageViewCreateInfo imageViewCreateInfo{};
 		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;

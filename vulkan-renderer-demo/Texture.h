@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
@@ -8,10 +9,10 @@ namespace vkr
     class DeviceMemory;
     class ImageView;
 
-    class Texture
+    class Texture : Object
     {
     public:
-        explicit Texture(std::string const& path);
+        explicit Texture(Application const& app, std::string const& path);
 
         VkImageView getImageViewHandle() const;
 

@@ -1,6 +1,6 @@
 #include "Sampler.h"
 
-vkr::Sampler::Sampler()
+vkr::Sampler::Sampler(Application const& app) : Object(app)
 {
     VkSamplerCreateInfo samplerCreateInfo{};
     samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;

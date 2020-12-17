@@ -4,7 +4,7 @@
 #include "Semaphore.h"
 #include "Fence.h"
 
-vkr::CommandBuffers::CommandBuffers(std::size_t size)
+vkr::CommandBuffers::CommandBuffers(Application const& app, std::size_t size) : Object(app)
 {
     VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
     commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;

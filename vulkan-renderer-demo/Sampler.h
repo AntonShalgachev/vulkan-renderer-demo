@@ -8,7 +8,7 @@ namespace vkr
     class Sampler : public Object
     {
     public:
-        Sampler();
+        Sampler(Application const& app);
         ~Sampler();
 
         Sampler(Sampler const&) = delete;

@@ -55,7 +55,7 @@ namespace
     const float MODEL2_INSTANCE2_POSITION_x = 1.0f;
     const float MODEL2_INSTANCE2_AMPLITUDE_Z = 0.5f;
 
-    const int MAX_FRAMES_IN_FLIGHT = 2;
+    const int MAX_FRAMES_IN_FLIGHT = 3;
 }
 
 class HelloTriangleApplication
@@ -89,14 +89,14 @@ private:
 
         vkr::ServiceLocator::instance().setRenderer(std::move(renderer));
 
-        m_descriptorSetLayout = std::make_unique<vkr::DescriptorSetLayout>();
+        m_descriptorSetLayout = std::make_unique<vkr::DescriptorSetLayout>(getApp());
 
-        m_mesh1 = std::make_unique<vkr::Mesh>(MODEL1_PATH);
-        m_texture1 = std::make_unique<vkr::Texture>(TEXTURE1_PATH);
-        m_mesh2 = std::make_unique<vkr::Mesh>(MODEL2_PATH);
-        m_texture2 = std::make_unique<vkr::Texture>(TEXTURE2_PATH);
+        m_mesh1 = std::make_unique<vkr::Mesh>(getApp(), MODEL1_PATH);
+        m_texture1 = std::make_unique<vkr::Texture>(getApp(), TEXTURE1_PATH);
+        m_mesh2 = std::make_unique<vkr::Mesh>(getApp(), MODEL2_PATH);
+        m_texture2 = std::make_unique<vkr::Texture>(getApp(), TEXTURE2_PATH);
 
-        m_sampler = std::make_unique<vkr::Sampler>();
+        m_sampler = std::make_unique<vkr::Sampler>(getApp());
 
         initSwapchain();
         createSyncObjects();
@@ -111,10 +111,10 @@ private:
         createDepthResources();
         m_swapchain->createFramebuffers(*m_renderPass, *m_depthImageView);
 
-        m_instance1Model1 = std::make_unique<vkr::ObjectInstance>(sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture1, *m_sampler, *m_descriptorSetLayout);
-        m_instance2Model1 = std::make_unique<vkr::ObjectInstance>(sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture1, *m_sampler, *m_descriptorSetLayout);
-        m_instance1Model2 = std::make_unique<vkr::ObjectInstance>(sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture2, *m_sampler, *m_descriptorSetLayout);
-        m_instance2Model2 = std::make_unique<vkr::ObjectInstance>(sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture2, *m_sampler, *m_descriptorSetLayout);
+        m_instance1Model1 = std::make_unique<vkr::ObjectInstance>(getApp(), sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture1, *m_sampler, *m_descriptorSetLayout);
+        m_instance2Model1 = std::make_unique<vkr::ObjectInstance>(getApp(), sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture1, *m_sampler, *m_descriptorSetLayout);
+        m_instance1Model2 = std::make_unique<vkr::ObjectInstance>(getApp(), sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture2, *m_sampler, *m_descriptorSetLayout);
+        m_instance2Model2 = std::make_unique<vkr::ObjectInstance>(getApp(), sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture2, *m_sampler, *m_descriptorSetLayout);
 
         createCommandBuffers();
     }
@@ -151,13 +151,13 @@ private:
         VkFormat depthFormat = m_renderPass->getDepthFormat();
         VkExtent2D swapchainExtent = m_swapchain->getExtent();
 
-        vkr::utils::createImage(swapchainExtent.width, swapchainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
+        vkr::utils::createImage(getApp(), swapchainExtent.width, swapchainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
         m_depthImageView = m_depthImage->createImageView(VK_IMAGE_ASPECT_DEPTH_BIT);
     }
 
     void createCommandBuffers()
     {
-        m_commandBuffers = std::make_unique<vkr::CommandBuffers>(m_swapchain->getImageCount());
+        m_commandBuffers = std::make_unique<vkr::CommandBuffers>(getApp(), m_swapchain->getImageCount());
 
         for (size_t i = 0; i < m_commandBuffers->getSize(); i++)
         {

@@ -10,7 +10,7 @@ namespace vkr
     class Buffer : public Object
     {
     public:
-        explicit Buffer(VkDeviceSize size, VkBufferUsageFlags usage);
+        explicit Buffer(Application const& app, VkDeviceSize size, VkBufferUsageFlags usage);
         ~Buffer();
 
         Buffer(Buffer const&) = delete;

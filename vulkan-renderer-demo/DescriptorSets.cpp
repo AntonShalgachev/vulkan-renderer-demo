@@ -5,8 +5,9 @@
 #include "Texture.h"
 #include "Sampler.h"
 
-vkr::DescriptorSets::DescriptorSets(std::size_t size, DescriptorSetLayout const& layout)
-    : m_pool(std::make_unique<vkr::DescriptorPool>(size))
+vkr::DescriptorSets::DescriptorSets(Application const& app, std::size_t size, DescriptorSetLayout const& layout)
+    : Object(app)
+    , m_pool(std::make_unique<vkr::DescriptorPool>(app, size))
 {
     std::vector<VkDescriptorSetLayout> layouts(size, layout.getHandle());
 

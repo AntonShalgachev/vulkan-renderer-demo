@@ -12,7 +12,7 @@ namespace vkr
     class CommandBuffers : public Object
     {
     public:
-    	explicit CommandBuffers(std::size_t size);
+    	explicit CommandBuffers(Application const& app, std::size_t size);
     	~CommandBuffers();
 
         CommandBuffers(CommandBuffers const&) = delete;

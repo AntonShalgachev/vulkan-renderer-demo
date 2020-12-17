@@ -5,7 +5,7 @@
 
 namespace vkr
 {
-    Image::Image(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage)
+    Image::Image(Application const& app, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage) : Object(app)
     {
         m_format = format;
 
@@ -28,7 +28,7 @@ namespace vkr
             throw std::runtime_error("failed to create image!");
     }
 
-    Image::Image(VkImage image, VkFormat format)
+    Image::Image(Application const& app, VkImage image, VkFormat format) : Object(app)
     {
         m_isOwned = false;
         m_handle = image;
@@ -56,7 +56,7 @@ namespace vkr
 
     std::unique_ptr<vkr::ImageView> Image::createImageView(VkImageAspectFlags aspectFlags)
     {
-        return std::make_unique<vkr::ImageView>(*this, aspectFlags);
+        return std::make_unique<vkr::ImageView>(getApp(), *this, aspectFlags);
     }
 
 }

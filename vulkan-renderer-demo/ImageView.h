@@ -10,7 +10,7 @@ namespace vkr
 	class ImageView : public Object
 	{
 	public:
-		explicit ImageView(vkr::Image const& image, VkImageAspectFlags aspectFlags);
+		explicit ImageView(Application const& app, vkr::Image const& image, VkImageAspectFlags aspectFlags);
 		~ImageView();
 
         ImageView(ImageView const&) = delete;

@@ -11,8 +11,8 @@ namespace vkr
     class Image : public Object
     {
     public:
-        explicit Image(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage);
-        explicit Image(VkImage image, VkFormat format);
+        explicit Image(Application const& app, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage);
+        explicit Image(Application const& app, VkImage image, VkFormat format);
         ~Image();
 
         Image(Image const&) = delete;

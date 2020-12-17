@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framework.h"
+#include "Object.h"
 
 namespace vkr
 {
@@ -12,10 +13,10 @@ namespace vkr
     class DescriptorSetLayout;
     class PipelineLayout;
 
-    class ObjectInstance
+    class ObjectInstance : public Object
     {
     public:
-    	ObjectInstance(VkDeviceSize uniformBufferSize, std::size_t swapchainImageCount, Texture const& texture, Sampler const& sampler, DescriptorSetLayout const& setLayout);
+    	ObjectInstance(Application const& app, VkDeviceSize uniformBufferSize, std::size_t swapchainImageCount, Texture const& texture, Sampler const& sampler, DescriptorSetLayout const& setLayout);
 
         std::unique_ptr<vkr::DeviceMemory> const& getUniformBufferMemory(std::size_t index) const { return m_uniformBuffersMemory[index]; }
         std::unique_ptr<vkr::DescriptorSets> const& getDescriptorSets() const { return m_descriptorSets; }

@@ -1,6 +1,6 @@
 #include "DescriptorSetLayout.h"
 
-vkr::DescriptorSetLayout::DescriptorSetLayout()
+vkr::DescriptorSetLayout::DescriptorSetLayout(Application const& app) : Object(app)
 {
     VkDescriptorSetLayoutBinding uboLayoutBinding{};
     uboLayoutBinding.binding = 0;

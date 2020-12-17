@@ -5,15 +5,15 @@
 #include "Buffer.h"
 #include "PipelineLayout.h"
 
-vkr::ObjectInstance::ObjectInstance(VkDeviceSize uniformBufferSize, std::size_t swapchainImageCount, Texture const& texture, Sampler const& sampler, DescriptorSetLayout const& setLayout)
+vkr::ObjectInstance::ObjectInstance(Application const& app, VkDeviceSize uniformBufferSize, std::size_t swapchainImageCount, Texture const& texture, Sampler const& sampler, DescriptorSetLayout const& setLayout) : Object(app)
 {
     m_uniformBuffers.resize(swapchainImageCount);
     m_uniformBuffersMemory.resize(swapchainImageCount);
 
     for (size_t i = 0; i < swapchainImageCount; i++)
-        vkr::utils::createBuffer(uniformBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uniformBuffers[i], m_uniformBuffersMemory[i]);
+        vkr::utils::createBuffer(getApp(), uniformBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uniformBuffers[i], m_uniformBuffersMemory[i]);
 
-    m_descriptorSets = std::make_unique<vkr::DescriptorSets>(swapchainImageCount, setLayout);
+    m_descriptorSets = std::make_unique<vkr::DescriptorSets>(getApp(), swapchainImageCount, setLayout);
     for (size_t i = 0; i < m_descriptorSets->getSize(); i++)
         m_descriptorSets->update(i, *m_uniformBuffers[i], texture, sampler);
 }
