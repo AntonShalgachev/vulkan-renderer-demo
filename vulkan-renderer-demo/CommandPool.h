@@ -1,13 +1,12 @@
 #pragma once
 
 #include "framework.h"
-#include "Object.h"
 
 namespace vkr
 {
     class Device;
 
-    class CommandPool : public Object
+    class CommandPool
     {
     public:
     	explicit CommandPool(Device const& device, uint32_t queueFamilyIndex);

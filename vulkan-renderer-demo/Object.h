@@ -13,19 +13,14 @@ namespace vkr
     class Object
     {
     public:
-        Object() : m_tempApp(nullptr) {}
-        Object(Application const& app) : m_tempApp(&app) {}
-
-        Application const& getApp() const { return *m_tempApp; }
-
-        //Object(Application const& app) : m_app(app) {}
-
-        //Application const& getApp() const { return m_app; }
+        Object(Application const& app) : m_app(app) {}
 
         Object(Object const&) = delete;
         Object(Object&&) = default;
         Object& operator=(Object const&) = delete;
         Object& operator=(Object&&) = delete;
+
+        Application const& getApp() const { return m_app; }
 
         Instance const& getInstance() const;
         Surface const& getSurface() const;
@@ -34,7 +29,6 @@ namespace vkr
         PhysicalDeviceSurfaceParameters const& getPhysicalDeviceSurfaceParameters() const;
 
     private:
-        //Application const& m_app;
-        Application const* m_tempApp;
+        Application const& m_app;
     };
 }
