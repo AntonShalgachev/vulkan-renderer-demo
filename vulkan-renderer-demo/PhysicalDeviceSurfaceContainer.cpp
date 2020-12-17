@@ -8,10 +8,4 @@ vkr::PhysicalDeviceSurfaceContainer::PhysicalDeviceSurfaceContainer(PhysicalDevi
     
 }
 
-vkr::PhysicalDeviceSurfaceContainer::PhysicalDeviceSurfaceContainer(PhysicalDeviceSurfaceContainer&& rhs)
-    : m_physicalDevice(std::move(rhs.m_physicalDevice))
-    , m_surface(rhs.m_surface)
-    , m_parameters(std::move(rhs.m_parameters))
-{
-
-}
+vkr::PhysicalDeviceSurfaceContainer::PhysicalDeviceSurfaceContainer(PhysicalDeviceSurfaceContainer&& rhs) = default;

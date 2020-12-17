@@ -11,9 +11,9 @@ namespace vkr
         ~PhysicalDevice() = default;
 
         PhysicalDevice(PhysicalDevice const&) = delete;
-        PhysicalDevice(PhysicalDevice&&) = default;
+        PhysicalDevice(PhysicalDevice&&);
         PhysicalDevice& operator=(PhysicalDevice const&) = delete;
-        PhysicalDevice& operator=(PhysicalDevice&&) = default;
+        PhysicalDevice& operator=(PhysicalDevice&&) = delete;
 
         VkPhysicalDevice const& getHandle() const { return m_handle; }
 
@@ -24,6 +24,8 @@ namespace vkr
         bool areExtensionsSupported(std::vector<char const*> const& requestedExtensions) const;
 
     private:
+        void init();
+
         void queryAvailableExtensions();
         void queryProperties();
         void queryFeatures();
