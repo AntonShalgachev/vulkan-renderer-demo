@@ -47,13 +47,13 @@ namespace
     const float MODEL1_INSTANCE2_POSITION_X = 1.0f;
     const float MODEL1_INSTANCE2_AMPLITUDE_Z = 0.0f;
 
-    const std::string MODEL2_PATH = "data/models/cat.obj";
-    const std::string TEXTURE2_PATH = "data/textures/cat.jpg";
-    const float MODEL2_SCALE = 0.01f;
-    const float MODEL2_INSTANCE1_POSITION_X = -1.0f;
-    const float MODEL2_INSTANCE1_AMPLITUDE_Z = 0.5f;
-    const float MODEL2_INSTANCE2_POSITION_x = 1.0f;
-    const float MODEL2_INSTANCE2_AMPLITUDE_Z = 0.5f;
+    //const std::string MODEL2_PATH = "data/models/cat.obj";
+    //const std::string TEXTURE2_PATH = "data/textures/cat.jpg";
+    //const float MODEL2_SCALE = 0.01f;
+    //const float MODEL2_INSTANCE1_POSITION_X = -1.0f;
+    //const float MODEL2_INSTANCE1_AMPLITUDE_Z = 0.5f;
+    //const float MODEL2_INSTANCE2_POSITION_x = 1.0f;
+    //const float MODEL2_INSTANCE2_AMPLITUDE_Z = 0.5f;
 
     const int MAX_FRAMES_IN_FLIGHT = 3;
 }
@@ -93,8 +93,8 @@ private:
 
         m_mesh1 = std::make_unique<vkr::Mesh>(getApp(), MODEL1_PATH);
         m_texture1 = std::make_unique<vkr::Texture>(getApp(), TEXTURE1_PATH);
-        m_mesh2 = std::make_unique<vkr::Mesh>(getApp(), MODEL2_PATH);
-        m_texture2 = std::make_unique<vkr::Texture>(getApp(), TEXTURE2_PATH);
+        //m_mesh2 = std::make_unique<vkr::Mesh>(getApp(), MODEL2_PATH);
+        //m_texture2 = std::make_unique<vkr::Texture>(getApp(), TEXTURE2_PATH);
 
         m_sampler = std::make_unique<vkr::Sampler>(getApp());
 
@@ -113,8 +113,8 @@ private:
 
         m_instance1Model1 = std::make_unique<vkr::ObjectInstance>(getApp(), sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture1, *m_sampler, *m_descriptorSetLayout);
         m_instance2Model1 = std::make_unique<vkr::ObjectInstance>(getApp(), sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture1, *m_sampler, *m_descriptorSetLayout);
-        m_instance1Model2 = std::make_unique<vkr::ObjectInstance>(getApp(), sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture2, *m_sampler, *m_descriptorSetLayout);
-        m_instance2Model2 = std::make_unique<vkr::ObjectInstance>(getApp(), sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture2, *m_sampler, *m_descriptorSetLayout);
+        //m_instance1Model2 = std::make_unique<vkr::ObjectInstance>(getApp(), sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture2, *m_sampler, *m_descriptorSetLayout);
+        //m_instance2Model2 = std::make_unique<vkr::ObjectInstance>(getApp(), sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture2, *m_sampler, *m_descriptorSetLayout);
 
         createCommandBuffers();
     }
@@ -191,13 +191,13 @@ private:
             m_instance2Model1->bindDescriptorSet(handle, i, *m_pipelineLayout);
             vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh1->getIndexCount()), 1, 0, 0, 0);
 
-            m_mesh2->bindBuffers(handle);
+            //m_mesh2->bindBuffers(handle);
 
-            m_instance1Model2->bindDescriptorSet(handle, i, *m_pipelineLayout);
-            vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh2->getIndexCount()), 1, 0, 0, 0);
+            //m_instance1Model2->bindDescriptorSet(handle, i, *m_pipelineLayout);
+            //vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh2->getIndexCount()), 1, 0, 0, 0);
 
-            m_instance2Model2->bindDescriptorSet(handle, i, *m_pipelineLayout);
-            vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh2->getIndexCount()), 1, 0, 0, 0);
+            //m_instance2Model2->bindDescriptorSet(handle, i, *m_pipelineLayout);
+            //vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh2->getIndexCount()), 1, 0, 0, 0);
 
             vkCmdEndRenderPass(handle);
 
@@ -295,11 +295,11 @@ private:
         auto ubo2Model1 = createUbo(time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, MODEL1_SCALE, view, proj);
         m_instance2Model1->copyToUniformBuffer(currentImage, &ubo2Model1, sizeof(ubo2Model1));
 
-        auto ubo1Model2 = createUbo(time, MODEL2_INSTANCE1_POSITION_X, MODEL2_INSTANCE1_AMPLITUDE_Z, MODEL2_SCALE, view, proj);
-        m_instance1Model2->copyToUniformBuffer(currentImage, &ubo1Model2, sizeof(ubo1Model2));
+        //auto ubo1Model2 = createUbo(time, MODEL2_INSTANCE1_POSITION_X, MODEL2_INSTANCE1_AMPLITUDE_Z, MODEL2_SCALE, view, proj);
+        //m_instance1Model2->copyToUniformBuffer(currentImage, &ubo1Model2, sizeof(ubo1Model2));
 
-        auto ubo2Model2 = createUbo(time * 0.5f, MODEL2_INSTANCE2_POSITION_x, MODEL2_INSTANCE2_AMPLITUDE_Z, MODEL2_SCALE, view, proj);
-        m_instance2Model2->copyToUniformBuffer(currentImage, &ubo2Model2, sizeof(ubo2Model2));
+        //auto ubo2Model2 = createUbo(time * 0.5f, MODEL2_INSTANCE2_POSITION_x, MODEL2_INSTANCE2_AMPLITUDE_Z, MODEL2_SCALE, view, proj);
+        //m_instance2Model2->copyToUniformBuffer(currentImage, &ubo2Model2, sizeof(ubo2Model2));
     }
 
     void mainLoop()
@@ -341,14 +341,14 @@ private:
     // Per instance
     std::unique_ptr<vkr::ObjectInstance> m_instance1Model1;
     std::unique_ptr<vkr::ObjectInstance> m_instance2Model1;
-    std::unique_ptr<vkr::ObjectInstance> m_instance1Model2;
-    std::unique_ptr<vkr::ObjectInstance> m_instance2Model2;
+    //std::unique_ptr<vkr::ObjectInstance> m_instance1Model2;
+    //std::unique_ptr<vkr::ObjectInstance> m_instance2Model2;
 
     // Resources
     std::unique_ptr<vkr::Mesh> m_mesh1;
     std::unique_ptr<vkr::Texture> m_texture1;
-    std::unique_ptr<vkr::Mesh> m_mesh2;
-    std::unique_ptr<vkr::Texture> m_texture2;
+    //std::unique_ptr<vkr::Mesh> m_mesh2;
+    //std::unique_ptr<vkr::Texture> m_texture2;
 
     std::unique_ptr<vkr::Sampler> m_sampler;
 };
