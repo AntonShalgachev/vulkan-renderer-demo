@@ -29,48 +29,14 @@ namespace vkr
         m_application->onSurfaceChanged();
     }
 
-    VkSurfaceKHR Renderer::getSurfaceHandle() const
-    {
-        return m_application->getSurface().getHandle();
-    }
-
-    VkDevice Renderer::getDevice() const
-    {
-        return m_application->getDevice().getHandle();
-    }
-
     VkCommandPool Renderer::getCommandPool() const
     {
         return m_commandPool->getHandle();
     }
 
-    vkr::PhysicalDevice const& Renderer::getPhysicalDevice() const
-    {
-        return m_application->getPhysicalDevice();
-    }
-
-    vkr::PhysicalDeviceSurfaceParameters const& Renderer::getPhysicalDeviceSurfaceParameters() const
-    {
-        return m_application->getPhysicalDeviceSurfaceParameters();
-    }
-
-    vkr::QueueFamilyIndices const& Renderer::getQueueFamilyIndices() const
-    {
-        return getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices();
-    }
-
-    int Renderer::getWidth() const
-    {
-        return m_application->getSurface().getWidth();
-    }
-
-    int Renderer::getHeight() const
-    {
-        return m_application->getSurface().getHeight();
-    }
-
     void Renderer::createCommandPool()
     {
-        m_commandPool = std::make_unique<CommandPool>(m_application->getDevice(), getQueueFamilyIndices().getGraphicsQueueFamily());
+        QueueFamilyIndices indices =  m_application->getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices();
+        m_commandPool = std::make_unique<CommandPool>(m_application->getDevice(), indices.getGraphicsQueueFamily());
     }
 }
