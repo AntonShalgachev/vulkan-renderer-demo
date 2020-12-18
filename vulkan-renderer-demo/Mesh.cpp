@@ -1,4 +1,7 @@
 #include "Mesh.h"
+
+#include <tiny_obj_loader.h>
+
 #include "Vertex.h"
 #include "Buffer.h"
 #include "DeviceMemory.h"

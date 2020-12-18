@@ -1,4 +1,7 @@
 #include "Texture.h"
+
+#include <stb_image.h>
+
 #include "Buffer.h"
 #include "DeviceMemory.h"
 #include "Utils.h"
