@@ -1,6 +1,4 @@
 #include "framework.h"
-#include "Renderer.h"
-#include "ServiceLocator.h"
 #include "ImageView.h"
 #include "DeviceMemory.h"
 #include "Image.h"

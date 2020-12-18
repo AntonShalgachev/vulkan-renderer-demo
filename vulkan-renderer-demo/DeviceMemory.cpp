@@ -1,6 +1,5 @@
 #include "DeviceMemory.h"
 
-#include "Renderer.h"
 #include "PhysicalDevice.h"
 #include "Device.h"
 

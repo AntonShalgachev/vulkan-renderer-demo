@@ -1,5 +1,4 @@
 #include "ScopedOneTimeCommandBuffer.h"
-#include "Renderer.h"
 #include "Device.h"
 #include "Application.h"
 

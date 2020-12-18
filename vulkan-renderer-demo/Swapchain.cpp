@@ -1,6 +1,5 @@
 #include "Swapchain.h"
 
-#include "Renderer.h"
 #include "ImageView.h"
 #include "Framebuffer.h"
 #include "Image.h"

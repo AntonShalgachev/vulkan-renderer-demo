@@ -1,7 +1,5 @@
 #include "ImageView.h"
 
-#include "ServiceLocator.h"
-#include "Renderer.h"
 #include "Image.h"
 #include "Device.h"
 

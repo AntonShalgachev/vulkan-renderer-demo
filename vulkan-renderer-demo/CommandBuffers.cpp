@@ -1,6 +1,5 @@
 #include "CommandBuffers.h"
 
-#include "Renderer.h"
 #include "Semaphore.h"
 #include "Fence.h"
 #include "Device.h"

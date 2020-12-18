@@ -209,12 +209,10 @@
     <ClCompile Include="Queue.cpp" />
     <ClCompile Include="QueueFamily.cpp" />
     <ClCompile Include="QueueFamilyIndices.cpp" />
-    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="ScopedOneTimeCommandBuffer.cpp" />
     <ClCompile Include="Semaphore.cpp" />
-    <ClCompile Include="ServiceLocator.cpp" />
     <ClCompile Include="ShaderModule.cpp" />
     <ClCompile Include="Surface.cpp" />
     <ClCompile Include="Swapchain.cpp" />
@@ -251,12 +249,10 @@
     <ClInclude Include="Queue.h" />
     <ClInclude Include="QueueFamily.h" />
     <ClInclude Include="QueueFamilyIndices.h" />
-    <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="ScopedOneTimeCommandBuffer.h" />
     <ClInclude Include="Semaphore.h" />
-    <ClInclude Include="ServiceLocator.h" />
     <ClInclude Include="ShaderModule.h" />
     <ClInclude Include="Surface.h" />
     <ClInclude Include="Swapchain.h" />
