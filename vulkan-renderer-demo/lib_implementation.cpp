@@ -1,5 +1,3 @@
-#include "framework.h"
-
 // stb_image and tiny_obj_loader produce this warning
 #pragma warning(disable:5045)
 

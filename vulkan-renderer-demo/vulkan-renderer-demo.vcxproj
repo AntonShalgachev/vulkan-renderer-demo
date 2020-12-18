@@ -194,7 +194,7 @@
     <ClCompile Include="DeviceMemory.cpp" />
     <ClCompile Include="Fence.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
-    <ClCompile Include="framework.cpp" />
+    <ClCompile Include="lib_implementation.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="ImageView.cpp" />
     <ClCompile Include="Instance.cpp" />
@@ -234,7 +234,6 @@
     <ClInclude Include="DeviceMemory.h" />
     <ClInclude Include="Fence.h" />
     <ClInclude Include="Framebuffer.h" />
-    <ClInclude Include="framework.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImageView.h" />
     <ClInclude Include="Instance.h" />

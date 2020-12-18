@@ -1,4 +1,5 @@
-#include "framework.h"
+
+
 #include "ImageView.h"
 #include "DeviceMemory.h"
 #include "Image.h"
@@ -26,6 +27,9 @@
 #include "Application.h"
 #include "Device.h"
 #include "Queue.h"
+#include <array>
+#include <chrono>
+#include <iostream>
 
 namespace
 {
