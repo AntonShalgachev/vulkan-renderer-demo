@@ -1,5 +1,6 @@
 #include "DescriptorPool.h"
 #include "Device.h"
+#include <array>
 
 vkr::DescriptorPool::DescriptorPool(Application const& app, std::size_t size) : Object(app)
 {
