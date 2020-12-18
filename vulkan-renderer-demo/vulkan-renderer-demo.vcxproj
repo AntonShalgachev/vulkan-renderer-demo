@@ -206,6 +206,7 @@
     <ClCompile Include="PhysicalDeviceSurfaceParameters.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="PipelineLayout.cpp" />
+    <ClCompile Include="QueueFamily.cpp" />
     <ClCompile Include="QueueFamilyIndices.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderPass.cpp" />
@@ -246,6 +247,7 @@
     <ClInclude Include="PhysicalDeviceSurfaceParameters.h" />
     <ClInclude Include="Pipeline.h" />
     <ClInclude Include="PipelineLayout.h" />
+    <ClInclude Include="QueueFamily.h" />
     <ClInclude Include="QueueFamilyIndices.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderPass.h" />

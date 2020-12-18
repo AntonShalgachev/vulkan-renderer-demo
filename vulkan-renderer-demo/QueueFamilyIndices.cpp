@@ -5,6 +5,7 @@
 
 #include "PhysicalDevice.h"
 #include "PhysicalDeviceSurfaceParameters.h"
+#include "QueueFamily.h"
 
 namespace
 {
@@ -24,17 +25,15 @@ vkr::QueueFamilyIndices::QueueFamilyIndices(vkr::PhysicalDevice const& physicalD
 {
     OptionalIndices indices;
 
-    std::vector<VkQueueFamilyProperties> const& queueFamilies = physicalDevice.getQueueFamilyProperties();
-
-    for (uint32_t i = 0; i < queueFamilies.size(); i++)
+    for (QueueFamily const& queueFamily : physicalDevice.getQueueFamilies())
     {
-        auto const& queueFamily = queueFamilies[i];
+        uint32_t index = queueFamily.getIndex();
 
-        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-            indices.graphicsFamilyIndex = i;
+        if (queueFamily.getProperties().queueFlags & VK_QUEUE_GRAPHICS_BIT)
+            indices.graphicsFamilyIndex = index;
 
-        if (physicalDeviceSurfaceParameters.isPresentationSupported(i))
-            indices.presentFamilyIndex = i;
+        if (physicalDeviceSurfaceParameters.isPresentationSupported(queueFamily))
+            indices.presentFamilyIndex = index;
 
         if (indices.isValid())
             break;

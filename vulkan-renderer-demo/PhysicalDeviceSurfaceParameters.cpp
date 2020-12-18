@@ -17,12 +17,14 @@ vkr::PhysicalDeviceSurfaceParameters::~PhysicalDeviceSurfaceParameters() = defau
 
 vkr::PhysicalDeviceSurfaceParameters::PhysicalDeviceSurfaceParameters(PhysicalDeviceSurfaceParameters&&) = default;
 
-bool vkr::PhysicalDeviceSurfaceParameters::isPresentationSupported(std::size_t queueIndex) const
+bool vkr::PhysicalDeviceSurfaceParameters::isPresentationSupported(QueueFamily const& queueFamily) const
 {
-    if (queueIndex >= m_queuePresentationSupport.size())
+    uint32_t index = queueFamily.getIndex();
+
+    if (index >= m_queuePresentationSupport.size())
         return false;
 
-    return m_queuePresentationSupport[queueIndex];
+    return m_queuePresentationSupport[index];
 }
 
 void vkr::PhysicalDeviceSurfaceParameters::onSurfaceChanged()
@@ -61,14 +63,20 @@ void vkr::PhysicalDeviceSurfaceParameters::queryPresentModes()
 
 void vkr::PhysicalDeviceSurfaceParameters::queryPresentationSupport()
 {
-    std::vector<VkQueueFamilyProperties> const& queueFamilies = m_physicalDevice.getQueueFamilyProperties();
+    std::vector<QueueFamily> const& queueFamilies = m_physicalDevice.getQueueFamilies();
+
     m_queuePresentationSupport.resize(queueFamilies.size());
 
-    for (uint32_t i = 0; i < queueFamilies.size(); i++)
+    for (QueueFamily const& queueFamily : queueFamilies)
     {
-        VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice.getHandle(), i, m_surface.getHandle(), &presentSupport);
+        uint32_t index = queueFamily.getIndex();
 
-        m_queuePresentationSupport[i] = presentSupport;
+        VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice.getHandle(), index, m_surface.getHandle(), &presentSupport);
+
+        if (index >= m_queuePresentationSupport.size())
+            m_queuePresentationSupport.resize(index + 1);
+
+        m_queuePresentationSupport[index] = presentSupport;
     }
 }

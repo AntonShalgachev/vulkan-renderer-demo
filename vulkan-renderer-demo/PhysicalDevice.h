@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framework.h"
+#include "QueueFamily.h"
 
 namespace vkr
 {
@@ -19,7 +20,7 @@ namespace vkr
 
         VkPhysicalDeviceProperties const& getProperties() const { return m_properties; }
         VkPhysicalDeviceFeatures const& getFeatures() const { return m_features; }
-        std::vector<VkQueueFamilyProperties> const& getQueueFamilyProperties() const { return m_queueFamilyProperties; }
+        std::vector<QueueFamily> const& getQueueFamilies() const { return m_queueFamilies; }
 
         bool areExtensionsSupported(std::vector<char const*> const& requestedExtensions) const;
 
@@ -39,6 +40,6 @@ namespace vkr
 
         VkPhysicalDeviceProperties m_properties;
         VkPhysicalDeviceFeatures m_features;
-        std::vector<VkQueueFamilyProperties> m_queueFamilyProperties;
+        std::vector<QueueFamily> m_queueFamilies;
     };
 }

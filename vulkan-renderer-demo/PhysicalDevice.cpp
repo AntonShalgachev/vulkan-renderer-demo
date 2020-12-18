@@ -50,8 +50,14 @@ void vkr::PhysicalDevice::queryFeatures()
 
 void vkr::PhysicalDevice::queryQueueFamilyProperties()
 {
+    std::vector<VkQueueFamilyProperties> properties;
+
     uint32_t count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, nullptr);
-    m_queueFamilyProperties.resize(count);
-    vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, m_queueFamilyProperties.data());
+    properties.resize(count);
+    vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, properties.data());
+
+    m_queueFamilies.reserve(count);
+    for (uint32_t i = 0; i < count; i++)
+        m_queueFamilies.emplace_back(i, properties[i]);
 }
