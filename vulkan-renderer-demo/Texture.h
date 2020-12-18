@@ -1,7 +1,9 @@
 #pragma once
 
-#include "framework.h"
+#include <vulkan/vulkan.h>
 #include "Object.h"
+#include <memory>
+#include <string>
 
 namespace vkr
 {

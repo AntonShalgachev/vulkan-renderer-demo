@@ -3,6 +3,7 @@
 #include "PhysicalDeviceSurfaceContainer.h"
 #include "QueueFamilyIndices.h"
 #include "Queue.h"
+#include <set>
 
 vkr::Device::Device(PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceContainer, std::vector<const char*> const& extensions)
 {

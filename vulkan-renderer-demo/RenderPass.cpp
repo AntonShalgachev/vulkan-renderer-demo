@@ -3,6 +3,7 @@
 #include "Swapchain.h"
 #include "PhysicalDevice.h"
 #include "Device.h"
+#include <array>
 
 namespace
 {

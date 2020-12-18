@@ -1,5 +1,7 @@
 #include "Framebuffer.h"
 
+#include <array>
+
 #include "RenderPass.h"
 #include "Swapchain.h"
 #include "ImageView.h"

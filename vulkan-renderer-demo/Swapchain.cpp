@@ -8,6 +8,7 @@
 #include "Device.h"
 #include "Surface.h"
 #include "QueueFamily.h"
+#include <algorithm>
 
 namespace
 {

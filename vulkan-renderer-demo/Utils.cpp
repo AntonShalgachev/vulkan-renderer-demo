@@ -3,6 +3,7 @@
 #include "DeviceMemory.h"
 #include "ScopedOneTimeCommandBuffer.h"
 #include "Image.h"
+#include <algorithm>
 
 void vkr::utils::createBuffer(vkr::Application const& app, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, std::unique_ptr<vkr::Buffer>& buffer, std::unique_ptr<vkr::DeviceMemory>& bufferMemory)
 {

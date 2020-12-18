@@ -5,6 +5,7 @@
 #include "Texture.h"
 #include "Sampler.h"
 #include "Device.h"
+#include <array>
 
 vkr::DescriptorSets::DescriptorSets(Application const& app, std::size_t size, DescriptorSetLayout const& layout)
     : Object(app)

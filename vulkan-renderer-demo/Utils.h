@@ -1,6 +1,8 @@
 #pragma once
 
-#include "framework.h"
+#include <vulkan/vulkan.h>
+#include <memory>
+#include <vector>
 
 namespace vkr
 {

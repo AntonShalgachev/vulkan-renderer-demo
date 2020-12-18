@@ -1,4 +1,7 @@
 #include "ShaderModule.h"
+
+#include <fstream>
+
 #include "Device.h"
 
 namespace
