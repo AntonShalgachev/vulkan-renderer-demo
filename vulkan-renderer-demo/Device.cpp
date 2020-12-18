@@ -1,23 +1,38 @@
 #include "Device.h"
 #include "PhysicalDevice.h"
+#include "PhysicalDeviceSurfaceContainer.h"
+#include "QueueFamilyIndices.h"
 
-vkr::Device::Device(PhysicalDevice const& physicalDevice, std::vector<const char*> const& extensions, uint32_t queueFamilyIndex)
+vkr::Device::Device(PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceContainer, std::vector<const char*> const& extensions)
 {
+    PhysicalDevice const& physicalDevice = physicalDeviceSurfaceContainer.getPhysicalDevice();
+
+    QueueFamilyIndices const& indices = physicalDeviceSurfaceContainer.getParameters().getQueueFamilyIndices();
+
+    std::set<QueueFamily const*> uniqueQueueFamilies = {&indices.getGraphicsQueueFamily(), &indices.getPresentQueueFamily()};
+
+    // The device is created with 1 queue of each family
+
     std::vector<float> queuePriorities = { 1.0f };
 
-    VkDeviceQueueCreateInfo queueCreateInfo{};
-    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = queueFamilyIndex;
-    queueCreateInfo.queueCount = static_cast<uint32_t>(queuePriorities.size());
-    queueCreateInfo.pQueuePriorities = queuePriorities.data();
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    queueCreateInfos.reserve(uniqueQueueFamilies.size());
+    for (QueueFamily const* queueFamily : uniqueQueueFamilies)
+    {
+        VkDeviceQueueCreateInfo& queueCreateInfo = queueCreateInfos.emplace_back();
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = queueFamily->getIndex();
+        queueCreateInfo.queueCount = static_cast<uint32_t>(queuePriorities.size());
+        queueCreateInfo.pQueuePriorities = queuePriorities.data();
+    }
 
     VkPhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
 
     VkDeviceCreateInfo deviceCreateInfo{};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
-    deviceCreateInfo.queueCreateInfoCount = 1;
+    deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+    deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
     deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
     deviceCreateInfo.ppEnabledExtensionNames = extensions.data();

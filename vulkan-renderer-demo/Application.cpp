@@ -75,7 +75,7 @@ vkr::ApplicationImpl::ApplicationImpl(std::string const& name, std::vector<char 
     , m_surface(m_instance, window)
     , m_physicalDevices(m_instance.findPhysicalDevices(m_surface))
     , m_currentPhysicalDeviceIndex(findSuitablePhysicalDeviceIndex(m_physicalDevices))
-    , m_device(getPhysicalDevice(), DEVICE_EXTENSIONS, getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsIndex())
+    , m_device(getPhysicalDeviceSurfaceContainer(), DEVICE_EXTENSIONS)
 {
 
 }

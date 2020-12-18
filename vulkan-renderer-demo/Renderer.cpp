@@ -73,13 +73,15 @@ namespace vkr
     void Renderer::getDeviceQueues()
     {
         auto const& indices = getQueueFamilyIndices();
+        uint32_t graphicsQueueFamilyIndex = indices.getGraphicsQueueFamily().getIndex();
+        uint32_t presentQueueFamilyIndex = indices.getPresentQueueFamily().getIndex();
 
-        vkGetDeviceQueue(m_application->getDevice().getHandle(), indices.getGraphicsIndex(), 0, &m_graphicsQueue);
-        vkGetDeviceQueue(m_application->getDevice().getHandle(), indices.getPresentIndex(), 0, &m_presentQueue);
+        vkGetDeviceQueue(m_application->getDevice().getHandle(), graphicsQueueFamilyIndex, 0, &m_graphicsQueue);
+        vkGetDeviceQueue(m_application->getDevice().getHandle(), presentQueueFamilyIndex, 0, &m_presentQueue);
     }
 
     void Renderer::createCommandPool()
     {
-        m_commandPool = std::make_unique<CommandPool>(m_application->getDevice(), getQueueFamilyIndices().getGraphicsIndex());
+        m_commandPool = std::make_unique<CommandPool>(m_application->getDevice(), getQueueFamilyIndices().getGraphicsQueueFamily());
     }
 }

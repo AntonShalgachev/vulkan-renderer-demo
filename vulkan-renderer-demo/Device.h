@@ -4,12 +4,12 @@
 
 namespace vkr
 {
-    class PhysicalDevice;
+    class PhysicalDeviceSurfaceContainer;
 
     class Device
     {
     public:
-    	explicit Device(PhysicalDevice const& physicalDevice, std::vector<const char*> const& extensions, uint32_t queueFamilyIndex);
+        explicit Device(PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceContainer, std::vector<const char*> const& extensions);
     	~Device();
 
         Device(Device const&) = delete;

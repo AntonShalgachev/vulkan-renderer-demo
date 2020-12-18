@@ -8,6 +8,7 @@
 #include "QueueFamilyIndices.h"
 #include "Device.h"
 #include "Surface.h"
+#include "QueueFamily.h"
 
 namespace
 {
@@ -93,9 +94,12 @@ void vkr::Swapchain::createSwapchain()
     swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
     vkr::QueueFamilyIndices const& indices = parameters.getQueueFamilyIndices();
-    if (indices.getGraphicsIndex() != indices.getPresentIndex())
+    uint32_t graphicsQueueFamilyIndex = indices.getGraphicsQueueFamily().getIndex();
+    uint32_t presentQueueFamilyIndex = indices.getPresentQueueFamily().getIndex();
+
+    if (graphicsQueueFamilyIndex != presentQueueFamilyIndex)
     {
-        uint32_t queueFamilyIndices[] = { indices.getGraphicsIndex(), indices.getPresentIndex() };
+        uint32_t queueFamilyIndices[] = { graphicsQueueFamilyIndex, presentQueueFamilyIndex };
         swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         swapchainCreateInfo.queueFamilyIndexCount = 2;
         swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;

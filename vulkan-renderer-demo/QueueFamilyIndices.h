@@ -6,21 +6,20 @@ namespace vkr
 {
     class PhysicalDevice;
     class PhysicalDeviceSurfaceParameters;
+    class QueueFamily;
 
     class QueueFamilyIndices
     {
     public:
         QueueFamilyIndices(vkr::PhysicalDevice const& physicalDevice, vkr::PhysicalDeviceSurfaceParameters const& physicalDeviceSurfaceParameters);
 
-        bool isValid() const { return m_isValid; }
+        bool isValid() const { return m_graphicsQueueFamily && m_presentQueueFamily; }
 
-        uint32_t getGraphicsIndex() const { return m_graphicsQueueIndex; }
-        uint32_t getPresentIndex() const { return m_presentQueueIndex; }
+        QueueFamily const& getGraphicsQueueFamily() const { return *m_graphicsQueueFamily; }
+        QueueFamily const& getPresentQueueFamily() const { return *m_presentQueueFamily; }
 
     private:
-        bool m_isValid = false;
-
-        uint32_t m_graphicsQueueIndex = 0;
-        uint32_t m_presentQueueIndex = 0;
+        QueueFamily const* m_graphicsQueueFamily = nullptr;
+        QueueFamily const* m_presentQueueFamily = nullptr;
     };
 }

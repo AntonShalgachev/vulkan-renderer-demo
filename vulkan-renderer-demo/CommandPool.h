@@ -5,11 +5,12 @@
 namespace vkr
 {
     class Device;
+    class QueueFamily;
 
     class CommandPool
     {
     public:
-    	explicit CommandPool(Device const& device, uint32_t queueFamilyIndex);
+    	explicit CommandPool(Device const& device, QueueFamily const& queueFamily);
     	~CommandPool();
 
         CommandPool(CommandPool const&) = delete;
