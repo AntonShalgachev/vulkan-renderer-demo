@@ -22,8 +22,6 @@ namespace vkr
 
         VkSurfaceKHR getSurfaceHandle() const;
         VkDevice getDevice() const;
-        VkQueue getGraphicsQueue() const { return m_graphicsQueue; }
-        VkQueue getPresentQueue() const { return m_presentQueue; }
         VkCommandPool getCommandPool() const;
 
         Application const& getApplication() const { return *m_application; }
@@ -36,13 +34,10 @@ namespace vkr
         int getHeight() const;
 
     private:
-        void getDeviceQueues();
         void createCommandPool();
 
         std::unique_ptr<Application> m_application;
 
-        VkQueue m_graphicsQueue = VK_NULL_HANDLE;
-        VkQueue m_presentQueue = VK_NULL_HANDLE;
         std::unique_ptr<CommandPool> m_commandPool;
     };
 }

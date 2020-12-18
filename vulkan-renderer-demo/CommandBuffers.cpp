@@ -4,6 +4,7 @@
 #include "Semaphore.h"
 #include "Fence.h"
 #include "Device.h"
+#include "Queue.h"
 
 vkr::CommandBuffers::CommandBuffers(Application const& app, std::size_t size) : Object(app)
 {
@@ -46,9 +47,10 @@ void vkr::CommandBuffers::submitAndWait(std::size_t index)
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &m_handles[index];
 
-    vkQueueSubmit(temp::getRenderer()->getGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+    // TODO pass queue to the constructor
+    vkQueueSubmit(getDevice().getGraphicsQueue().getHandle(), 1, &submitInfo, VK_NULL_HANDLE);
 
-    vkQueueWaitIdle(temp::getRenderer()->getGraphicsQueue());
+    vkQueueWaitIdle(getDevice().getGraphicsQueue().getHandle());
 }
 
 void vkr::CommandBuffers::submit(std::size_t index, Semaphore const& signalSemaphore, Semaphore const& waitSemaphore, Fence const& signalFence)
@@ -65,6 +67,7 @@ void vkr::CommandBuffers::submit(std::size_t index, Semaphore const& signalSemap
     submitInfo.pWaitSemaphores = &waitSemaphore.getHandle();
     submitInfo.pWaitDstStageMask = waitStages;
 
-    if (vkQueueSubmit(temp::getRenderer()->getGraphicsQueue(), 1, &submitInfo, signalFence.getHandle()) != VK_SUCCESS)
+    // TODO pass queue to the constructor
+    if (vkQueueSubmit(getDevice().getGraphicsQueue().getHandle(), 1, &submitInfo, signalFence.getHandle()) != VK_SUCCESS)
         throw std::runtime_error("failed to submit draw command buffer!");
 }

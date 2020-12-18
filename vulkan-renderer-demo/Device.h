@@ -5,6 +5,7 @@
 namespace vkr
 {
     class PhysicalDeviceSurfaceContainer;
+    class Queue;
 
     class Device
     {
@@ -19,7 +20,15 @@ namespace vkr
 
         VkDevice const& getHandle() const { return m_handle; }
 
+        Queue const& getGraphicsQueue() const { return *m_graphicsQueue; }
+        Queue const& getPresentQueue() const { return *m_presentQueue; }
+
     private:
     	VkDevice m_handle = VK_NULL_HANDLE;
+
+        std::vector<Queue> m_queues;
+
+        Queue const* m_graphicsQueue = nullptr;
+        Queue const* m_presentQueue = nullptr;
     };
 }

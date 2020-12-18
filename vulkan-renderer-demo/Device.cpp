@@ -2,6 +2,7 @@
 #include "PhysicalDevice.h"
 #include "PhysicalDeviceSurfaceContainer.h"
 #include "QueueFamilyIndices.h"
+#include "Queue.h"
 
 vkr::Device::Device(PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceContainer, std::vector<const char*> const& extensions)
 {
@@ -39,6 +40,21 @@ vkr::Device::Device(PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceC
 
     if (vkCreateDevice(physicalDevice.getHandle(), &deviceCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("failed to create logical device!");
+
+    for(QueueFamily const* queueFamily : uniqueQueueFamilies)
+    {
+        VkQueue handle = VK_NULL_HANDLE;
+        vkGetDeviceQueue(m_handle, queueFamily->getIndex(), 0, &handle);
+        Queue const& queue = m_queues.emplace_back(handle, *queueFamily);
+
+        if (queueFamily->getIndex() == indices.getGraphicsQueueFamily().getIndex())
+            m_graphicsQueue = &queue;
+        if (queueFamily->getIndex() == indices.getPresentQueueFamily().getIndex())
+            m_presentQueue = &queue;
+    }
+
+    if (m_graphicsQueue == nullptr || m_presentQueue == nullptr)
+        throw std::runtime_error("failed to get device queues!");
 }
 
 vkr::Device::~Device()

@@ -27,6 +27,7 @@
 #include "Window.h"
 #include "Application.h"
 #include "Device.h"
+#include "Queue.h"
 
 namespace
 {
@@ -256,7 +257,7 @@ private:
         presentInfo.pImageIndices = &imageIndex;
         presentInfo.pResults = nullptr;
 
-        vkQueuePresentKHR(vkr::temp::getRenderer()->getPresentQueue(), &presentInfo);
+        vkQueuePresentKHR(getApp().getDevice().getPresentQueue().getHandle(), &presentInfo);
 
         if (aquireImageResult == VK_SUBOPTIMAL_KHR || m_framebufferResized)
         {

@@ -19,7 +19,6 @@ namespace vkr
     Renderer::Renderer(Window const& window)
         : m_application(std::make_unique<Application>("Vulkan demo", window.getRequiredInstanceExtensions(), VALIDATION_ENABLED, API_DUMP_ENABLED, window))
     {
-        getDeviceQueues();
         createCommandPool();
     }
 
@@ -68,16 +67,6 @@ namespace vkr
     int Renderer::getHeight() const
     {
         return m_application->getSurface().getHeight();
-    }
-
-    void Renderer::getDeviceQueues()
-    {
-        auto const& indices = getQueueFamilyIndices();
-        uint32_t graphicsQueueFamilyIndex = indices.getGraphicsQueueFamily().getIndex();
-        uint32_t presentQueueFamilyIndex = indices.getPresentQueueFamily().getIndex();
-
-        vkGetDeviceQueue(m_application->getDevice().getHandle(), graphicsQueueFamilyIndex, 0, &m_graphicsQueue);
-        vkGetDeviceQueue(m_application->getDevice().getHandle(), presentQueueFamilyIndex, 0, &m_presentQueue);
     }
 
     void Renderer::createCommandPool()
