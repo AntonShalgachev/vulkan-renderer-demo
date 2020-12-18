@@ -45,7 +45,6 @@ namespace vkr
         VkExtent2D m_extent;
         VkSurfaceFormatKHR m_surfaceFormat;
 
-        //std::vector<VkImage> m_images;
         std::vector<std::unique_ptr<vkr::Image>> m_images;
         std::vector<std::unique_ptr<vkr::ImageView>> m_imageViews;
         std::vector<std::unique_ptr<vkr::Framebuffer>> m_framebuffers;

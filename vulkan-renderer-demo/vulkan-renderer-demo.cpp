@@ -1,5 +1,3 @@
-
-
 #include "ImageView.h"
 #include "DeviceMemory.h"
 #include "Image.h"
