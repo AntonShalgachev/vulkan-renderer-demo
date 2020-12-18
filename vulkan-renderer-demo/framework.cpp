@@ -11,14 +11,3 @@
 
 #include "ServiceLocator.h"
 #include "Renderer.h"
-
-namespace vkr
-{
-    namespace temp
-    {
-        std::unique_ptr<Renderer> const& getRenderer()
-        {
-            return vkr::ServiceLocator::instance().getRenderer();
-        }
-    }
-}

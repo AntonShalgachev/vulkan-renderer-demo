@@ -41,6 +41,9 @@ namespace
     const uint32_t TARGET_WINDOW_WIDTH = 800;
     const uint32_t TARGET_WINDOW_HEIGHT = 600;
 
+    bool const VALIDATION_ENABLED = true;
+    bool const API_DUMP_ENABLED = false;
+
     const std::string MODEL1_PATH = "data/models/viking_room.obj";
     const std::string TEXTURE1_PATH = "data/textures/viking_room.png";
     const float MODEL1_SCALE = 1.0f;
@@ -82,14 +85,12 @@ private:
     {
         m_framebufferResized = true;
 
-        vkr::temp::getRenderer()->onSurfaceChanged();
+        m_application->onSurfaceChanged();
     }
 
     void initVulkan()
     {
-        auto renderer = std::make_unique<vkr::Renderer>(*m_window);
-
-        vkr::ServiceLocator::instance().setRenderer(std::move(renderer));
+        m_application = std::make_unique<vkr::Application>("Vulkan demo", m_window->getRequiredInstanceExtensions(), VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window);
 
         m_descriptorSetLayout = std::make_unique<vkr::DescriptorSetLayout>(getApp());
 
@@ -317,10 +318,12 @@ private:
         vkDeviceWaitIdle(getApp().getDevice().getHandle());
     }
 
-    vkr::Application const& getApp() { return vkr::temp::getRenderer()->getApplication(); }
+    vkr::Application const& getApp() { return *m_application; }
 
 private:
     std::unique_ptr<vkr::Window> m_window;
+
+    std::unique_ptr<vkr::Application> m_application;
 
     // Renderer
     std::vector<vkr::Semaphore> m_imageAvailableSemaphores;
@@ -370,8 +373,6 @@ int main()
     }
     catch (const std::exception& e)
     {
-        vkr::ServiceLocator::instance().setRenderer(nullptr);
-
         std::cerr << e.what() << std::endl;
         std::getchar();
 
@@ -379,7 +380,6 @@ int main()
     }
 
     // temporary to catch Vulkan errors
-    vkr::ServiceLocator::instance().setRenderer(nullptr);
     std::getchar();
     return EXIT_SUCCESS;
 }
