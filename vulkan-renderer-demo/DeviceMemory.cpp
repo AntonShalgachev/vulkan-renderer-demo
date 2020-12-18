@@ -6,10 +6,10 @@
 
 namespace
 {
-    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+    uint32_t findMemoryType(vkr::PhysicalDevice const& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
     {
         VkPhysicalDeviceMemoryProperties memProperties;
-        vkGetPhysicalDeviceMemoryProperties(vkr::temp::getRenderer()->getPhysicalDevice().getHandle(), &memProperties);
+        vkGetPhysicalDeviceMemoryProperties(physicalDevice.getHandle(), &memProperties);
 
         for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
         {
@@ -31,7 +31,7 @@ vkr::DeviceMemory::DeviceMemory(Application const& app, VkMemoryRequirements mem
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memoryRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, memoryProperties);
+    allocInfo.memoryTypeIndex = findMemoryType(getPhysicalDevice(), memoryRequirements.memoryTypeBits, memoryProperties);
 
     if (vkAllocateMemory(getDevice().getHandle(), &allocInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("failed to allocate image memory!");
