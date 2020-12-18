@@ -20,15 +20,9 @@ namespace vkr
 
         void onSurfaceChanged();
 
-        CommandPool const& getCommandPool() const { return *m_commandPool; }
-
         Application const& getApplication() const { return *m_application; }
 
     private:
-        void createCommandPool();
-
         std::unique_ptr<Application> m_application;
-
-        std::unique_ptr<CommandPool> m_commandPool;
     };
 }

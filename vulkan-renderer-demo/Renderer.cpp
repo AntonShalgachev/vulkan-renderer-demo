@@ -19,7 +19,7 @@ namespace vkr
     Renderer::Renderer(Window const& window)
         : m_application(std::make_unique<Application>("Vulkan demo", window.getRequiredInstanceExtensions(), VALIDATION_ENABLED, API_DUMP_ENABLED, window))
     {
-        createCommandPool();
+
     }
 
     Renderer::~Renderer() = default;
@@ -27,11 +27,5 @@ namespace vkr
     void Renderer::onSurfaceChanged()
     {
         m_application->onSurfaceChanged();
-    }
-
-    void Renderer::createCommandPool()
-    {
-        QueueFamilyIndices indices =  m_application->getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices();
-        m_commandPool = std::make_unique<CommandPool>(m_application->getDevice(), indices.getGraphicsQueueFamily());
     }
 }
