@@ -2,7 +2,9 @@
 #include "Device.h"
 #include "QueueFamily.h"
 
-vkr::CommandPool::CommandPool(Device const& device, QueueFamily const& queueFamily) : m_device(device)
+vkr::CommandPool::CommandPool(Device const& device, QueueFamily const& queueFamily)
+    : m_device(device)
+    , m_queueFamily(queueFamily)
 {
     VkCommandPoolCreateInfo poolCreateInfo{};
     poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;

@@ -19,10 +19,12 @@ namespace vkr
         CommandPool& operator=(CommandPool&&) = delete;
 
         VkCommandPool const& getHandle() const { return m_handle; }
+        QueueFamily const& getQueueFamily() const { return m_queueFamily; }
 
     private:
     	VkCommandPool m_handle = VK_NULL_HANDLE;
 
         Device const& m_device;
+        QueueFamily const& m_queueFamily;
     };
 }

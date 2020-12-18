@@ -29,11 +29,6 @@ namespace vkr
         m_application->onSurfaceChanged();
     }
 
-    VkCommandPool Renderer::getCommandPool() const
-    {
-        return m_commandPool->getHandle();
-    }
-
     void Renderer::createCommandPool()
     {
         QueueFamilyIndices indices =  m_application->getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices();

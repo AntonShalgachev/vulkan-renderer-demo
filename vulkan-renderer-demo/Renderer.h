@@ -20,7 +20,7 @@ namespace vkr
 
         void onSurfaceChanged();
 
-        VkCommandPool getCommandPool() const;
+        CommandPool const& getCommandPool() const { return *m_commandPool; }
 
         Application const& getApplication() const { return *m_application; }
 

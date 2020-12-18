@@ -5,13 +5,21 @@
 #include "Fence.h"
 #include "Device.h"
 #include "Queue.h"
+#include "CommandPool.h"
+#include "QueueFamily.h"
 
-vkr::CommandBuffers::CommandBuffers(Application const& app, std::size_t size) : Object(app)
+vkr::CommandBuffers::CommandBuffers(Application const& app, CommandPool const& commandPool, Queue const& queue, std::size_t size)
+    : Object(app)
+    , m_commandPool(commandPool)
+    , m_queue(queue)
 {
+    if (commandPool.getQueueFamily().getIndex() != queue.getFamily().getIndex())
+        throw std::runtime_error("Queue doesn't match queue family of the command pool");
+
     VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
     commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    commandBufferAllocateInfo.commandPool = temp::getRenderer()->getCommandPool();
+    commandBufferAllocateInfo.commandPool = m_commandPool.getHandle();
     commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(size);
 
     m_handles.resize(size);
@@ -20,7 +28,7 @@ vkr::CommandBuffers::CommandBuffers(Application const& app, std::size_t size) : 
 
 vkr::CommandBuffers::~CommandBuffers()
 {
-    vkFreeCommandBuffers(getDevice().getHandle(), temp::getRenderer()->getCommandPool(), static_cast<uint32_t>(m_handles.size()), m_handles.data());
+    vkFreeCommandBuffers(getDevice().getHandle(), m_commandPool.getHandle(), static_cast<uint32_t>(m_handles.size()), m_handles.data());
 }
 
 void vkr::CommandBuffers::begin(std::size_t index, VkCommandBufferUsageFlags flags)
@@ -47,10 +55,9 @@ void vkr::CommandBuffers::submitAndWait(std::size_t index)
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &m_handles[index];
 
-    // TODO pass queue to the constructor
-    vkQueueSubmit(getDevice().getGraphicsQueue().getHandle(), 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueSubmit(m_queue.getHandle(), 1, &submitInfo, VK_NULL_HANDLE);
 
-    vkQueueWaitIdle(getDevice().getGraphicsQueue().getHandle());
+    vkQueueWaitIdle(m_queue.getHandle());
 }
 
 void vkr::CommandBuffers::submit(std::size_t index, Semaphore const& signalSemaphore, Semaphore const& waitSemaphore, Fence const& signalFence)
@@ -67,7 +74,6 @@ void vkr::CommandBuffers::submit(std::size_t index, Semaphore const& signalSemap
     submitInfo.pWaitSemaphores = &waitSemaphore.getHandle();
     submitInfo.pWaitDstStageMask = waitStages;
 
-    // TODO pass queue to the constructor
-    if (vkQueueSubmit(getDevice().getGraphicsQueue().getHandle(), 1, &submitInfo, signalFence.getHandle()) != VK_SUCCESS)
+    if (vkQueueSubmit(m_queue.getHandle(), 1, &submitInfo, signalFence.getHandle()) != VK_SUCCESS)
         throw std::runtime_error("failed to submit draw command buffer!");
 }

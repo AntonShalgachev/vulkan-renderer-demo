@@ -1,8 +1,12 @@
 #include "ScopedOneTimeCommandBuffer.h"
+#include "Renderer.h"
+#include "Device.h"
+#include "Application.h"
 
+// TODO pass command pool and queue explicitly?
 vkr::ScopedOneTimeCommandBuffer::ScopedOneTimeCommandBuffer(Application const& app)
     : Object(app)
-    , m_commandBuffers(app, 1)
+    , m_commandBuffers(app, vkr::temp::getRenderer()->getCommandPool(), getApp().getDevice().getGraphicsQueue(), 1)
 {
     m_commandBuffers.begin(0, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 }

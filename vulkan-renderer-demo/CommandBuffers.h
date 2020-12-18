@@ -7,12 +7,14 @@ namespace vkr
 {
     class Semaphore;
     class Fence;
+    class CommandPool;
+    class Queue;
 
     // TODO make it responsible for a single command buffer
     class CommandBuffers : public Object
     {
     public:
-    	explicit CommandBuffers(Application const& app, std::size_t size);
+    	explicit CommandBuffers(Application const& app, CommandPool const& commandPool, Queue const& queue, std::size_t size);
     	~CommandBuffers();
 
         CommandBuffers(CommandBuffers const&) = delete;
@@ -30,5 +32,8 @@ namespace vkr
 
     private:
         std::vector<VkCommandBuffer> m_handles;
+
+        CommandPool const& m_commandPool;
+        Queue const& m_queue;
     };
 }

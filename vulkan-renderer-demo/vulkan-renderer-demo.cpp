@@ -159,7 +159,10 @@ private:
 
     void createCommandBuffers()
     {
-        m_commandBuffers = std::make_unique<vkr::CommandBuffers>(getApp(), m_swapchain->getImageCount());
+        vkr::CommandPool const& commandPool = vkr::temp::getRenderer()->getCommandPool();
+        vkr::Queue const& queue = getApp().getDevice().getGraphicsQueue();
+
+        m_commandBuffers = std::make_unique<vkr::CommandBuffers>(getApp(), commandPool, queue, m_swapchain->getImageCount());
 
         for (size_t i = 0; i < m_commandBuffers->getSize(); i++)
         {
