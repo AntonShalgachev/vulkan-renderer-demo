@@ -4,6 +4,8 @@
 
 vkr::DescriptorSetLayout::DescriptorSetLayout(Application const& app) : Object(app)
 {
+    // TODO pass configuration externally
+
     VkDescriptorSetLayoutBinding uboLayoutBinding{};
     uboLayoutBinding.binding = 0;
     uboLayoutBinding.descriptorCount = 1;
