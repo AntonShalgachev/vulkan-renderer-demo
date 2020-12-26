@@ -58,6 +58,11 @@ vkr::Device::Device(PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceC
         throw std::runtime_error("failed to get device queues!");
 }
 
+void vkr::Device::waitIdle() const
+{
+    vkDeviceWaitIdle(m_handle);
+}
+
 vkr::Device::~Device()
 {
     vkDestroyDevice(m_handle, nullptr);

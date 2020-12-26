@@ -19,6 +19,8 @@ namespace vkr
         Device& operator=(Device const&) = delete;
         Device& operator=(Device&&) = delete;
 
+        void waitIdle() const;
+
         VkDevice const& getHandle() const { return m_handle; }
 
         Queue const& getGraphicsQueue() const { return *m_graphicsQueue; }

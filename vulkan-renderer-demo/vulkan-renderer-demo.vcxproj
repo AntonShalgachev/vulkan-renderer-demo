@@ -209,6 +209,7 @@
     <ClCompile Include="Queue.cpp" />
     <ClCompile Include="QueueFamily.cpp" />
     <ClCompile Include="QueueFamilyIndices.cpp" />
+    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="ScopedOneTimeCommandBuffer.cpp" />
@@ -248,6 +249,7 @@
     <ClInclude Include="Queue.h" />
     <ClInclude Include="QueueFamily.h" />
     <ClInclude Include="QueueFamilyIndices.h" />
+    <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="ScopedOneTimeCommandBuffer.h" />

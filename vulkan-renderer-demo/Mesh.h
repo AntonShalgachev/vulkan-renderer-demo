@@ -17,12 +17,12 @@ namespace vkr
     public:
     	Mesh(Application const& app, std::string const& path);
 
-        void bindBuffers(VkCommandBuffer commandBuffer);
+        void bindBuffers(VkCommandBuffer commandBuffer) const;
 
         std::vector<vkr::Vertex> const& getVertices() { return m_vertices; }
         std::vector<uint32_t> const& getIndices() { return m_indices; }
 
-        std::size_t getVertexCount() const { return m_vertices.size(); }
+        std::size_t getVertexCount() const;
         std::size_t getIndexCount() const { return m_indices.size(); }
 
     private:

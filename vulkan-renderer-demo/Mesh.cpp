@@ -19,12 +19,17 @@ vkr::Mesh::Mesh(Application const& app, std::string const& path) : Object(app)
     createIndexBuffer();
 }
 
-void vkr::Mesh::bindBuffers(VkCommandBuffer commandBuffer)
+void vkr::Mesh::bindBuffers(VkCommandBuffer commandBuffer) const
 {
     VkBuffer vertexBuffers[] = { m_vertexBuffer->getHandle() };
     VkDeviceSize offsets[] = { 0 };
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
     vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer->getHandle(), 0, VK_INDEX_TYPE_UINT32);
+}
+
+std::size_t vkr::Mesh::getVertexCount() const
+{
+    return m_vertices.size();
 }
 
 void vkr::Mesh::loadMesh(std::string const& path)

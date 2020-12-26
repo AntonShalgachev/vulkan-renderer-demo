@@ -126,7 +126,7 @@ private:
     {
         m_window->waitUntilInForeground();
 
-        vkDeviceWaitIdle(getApp().getDevice().getHandle());
+        getApp().getDevice().waitIdle();
 
         initSwapchain();
     }
@@ -315,7 +315,7 @@ private:
     {
         m_window->startEventLoop([this]() { drawFrame(); });
 
-        vkDeviceWaitIdle(getApp().getDevice().getHandle());
+        getApp().getDevice().waitIdle();
     }
 
     vkr::Application const& getApp() { return *m_application; }
