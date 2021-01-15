@@ -16,7 +16,7 @@ namespace
             return VK_SHADER_STAGE_FRAGMENT_BIT;
         }
 
-        throw std::domain_error("type");
+        throw std::domain_error("getStageFlags: type has unsupported value");
     }
 
     std::vector<char> readFile(const std::string& filename)

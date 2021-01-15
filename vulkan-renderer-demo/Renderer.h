@@ -6,6 +6,7 @@
 #include "Semaphore.h"
 #include "Fence.h"
 #include <vector>
+#include <functional>
 
 namespace vkr
 {
@@ -18,15 +19,43 @@ namespace vkr
     class DeviceMemory;
     class ImageView;
     class DescriptorSetLayout;
-    class ShaderModule;
     class Mesh;
     class ObjectInstance;
 
     class Renderer : Object
     {
     public:
-    	Renderer(Application const& app, vkr::DescriptorSetLayout const& descriptorSetLayout, vkr::ShaderModule const& vertexModule, vkr::ShaderModule const& fragmentModule);
+    	Renderer(Application const& app, vkr::DescriptorSetLayout const& descriptorSetLayout);
         ~Renderer();
+
+        template<typename Func>
+        void setUpdateUniformBufferCallback(Func&& func)
+        {
+            m_updateUniformBuffer = func;
+        }
+
+        template<typename Func>
+        void setOnSwapchainCreatedCallback(Func&& func)
+        {
+            m_onSwapchainCreated = func;
+
+            if (m_swapchain)
+                onSwapchainCreated();
+        }
+
+        template<typename Func>
+        void setWaitUntilWindowInForegroundCallback(Func&& func)
+        {
+            m_waitUntilWindowInForeground = func;
+        }
+
+        // TODO make generic
+        void setObjects(Mesh const& mesh, ObjectInstance const& instance1, ObjectInstance const& instance2);
+
+        void onFramebufferResized();
+        void draw();
+
+        float getAspect() const;
 
     private:
         void createSwapchain();
@@ -35,12 +64,10 @@ namespace vkr
 
         void recreateSwapchain();
 
-        void drawFrame();
+        void onSwapchainCreated();
 
     private:
         DescriptorSetLayout const& m_descriptorSetLayout;
-        ShaderModule const& m_vertexShaderModule;
-        ShaderModule const& m_fragmentShaderModule;
 
         std::unique_ptr<vkr::CommandBuffers> m_commandBuffers;
 
@@ -60,5 +87,9 @@ namespace vkr
 
         std::size_t m_currentFrame = 0;
         bool m_framebufferResized = false;
+
+        std::function<void(uint32_t)> m_updateUniformBuffer;
+        std::function<void(uint32_t)> m_onSwapchainCreated;
+        std::function<void()> m_waitUntilWindowInForeground;
     };
 }

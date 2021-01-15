@@ -22,19 +22,85 @@ namespace
     const int MAX_FRAMES_IN_FLIGHT = 2;
 }
 
-vkr::Renderer::Renderer(Application const& app, vkr::DescriptorSetLayout const& descriptorSetLayout, vkr::ShaderModule const& vertexModule, vkr::ShaderModule const& fragmentModule)
+vkr::Renderer::Renderer(Application const& app, vkr::DescriptorSetLayout const& descriptorSetLayout)
     : Object(app)
     , m_descriptorSetLayout(descriptorSetLayout)
-    , m_vertexShaderModule(vertexModule)
-    , m_fragmentShaderModule(fragmentModule)
 {
     createSwapchain();
     createSyncObjects();
-
-    //createCommandBuffers();
 }
 
 vkr::Renderer::~Renderer() = default;
+
+void vkr::Renderer::setObjects(Mesh const& mesh, ObjectInstance const& instance1, ObjectInstance const& instance2)
+{
+    createCommandBuffers(mesh, instance1, instance2);
+}
+
+void vkr::Renderer::onFramebufferResized()
+{
+    m_framebufferResized = true;
+}
+
+void vkr::Renderer::draw()
+{
+    if (!m_commandBuffers)
+        return;
+
+    m_inFlightFences[m_currentFrame].wait();
+
+    uint32_t imageIndex;
+    VkResult aquireImageResult = vkAcquireNextImageKHR(getDevice().getHandle(), m_swapchain->getHandle(), UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame].getHandle(), VK_NULL_HANDLE, &imageIndex);
+
+    if (aquireImageResult == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+        recreateSwapchain();
+        return;
+    }
+
+    if (aquireImageResult != VK_SUCCESS && aquireImageResult != VK_SUBOPTIMAL_KHR)
+        throw std::runtime_error("failed to acquire swapchain image!");
+
+    if (m_currentFences[imageIndex] != nullptr)
+        m_currentFences[imageIndex]->wait();
+
+    m_currentFences[imageIndex] = &m_inFlightFences[m_currentFrame];
+
+    if (m_updateUniformBuffer)
+        m_updateUniformBuffer(imageIndex);
+
+    m_inFlightFences[m_currentFrame].reset();
+
+    m_commandBuffers->submit(imageIndex, m_renderFinishedSemaphores[m_currentFrame], m_imageAvailableSemaphores[m_currentFrame], m_inFlightFences[m_currentFrame]);
+
+    VkPresentInfoKHR presentInfo{};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = &m_renderFinishedSemaphores[m_currentFrame].getHandle();
+
+    VkSwapchainKHR swapchains[] = { m_swapchain->getHandle() };
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = swapchains;
+    presentInfo.pImageIndices = &imageIndex;
+    presentInfo.pResults = nullptr;
+
+    vkQueuePresentKHR(getDevice().getPresentQueue().getHandle(), &presentInfo);
+
+    if (aquireImageResult == VK_SUBOPTIMAL_KHR || m_framebufferResized)
+    {
+        m_framebufferResized = false;
+        recreateSwapchain();
+    }
+
+    m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+}
+
+float vkr::Renderer::getAspect() const
+{
+    VkExtent2D extent = m_swapchain->getExtent();
+
+    return 1.0f * extent.width / extent.height;
+}
 
 void vkr::Renderer::createSwapchain()
 {
@@ -45,19 +111,34 @@ void vkr::Renderer::createSwapchain()
     m_renderPass = std::make_unique<vkr::RenderPass>(getApp(), *m_swapchain);
     
     m_pipelineLayout = std::make_unique<vkr::PipelineLayout>(getApp(), m_descriptorSetLayout);
-    m_pipeline = std::make_unique<vkr::Pipeline>(getApp(), *m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), m_vertexShaderModule, m_fragmentShaderModule);
+
+    // TODO pass externally
+    vkr::ShaderModule vertShaderModule{ getApp(), "data/shaders/vert.spv", vkr::ShaderModule::Type::Vertex, "main" };
+    vkr::ShaderModule fragShaderModule{ getApp(), "data/shaders/frag.spv", vkr::ShaderModule::Type::Fragment, "main" };
+    m_pipeline = std::make_unique<vkr::Pipeline>(getApp(), *m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), vertShaderModule, fragShaderModule);
 
     VkExtent2D swapchainExtent = m_swapchain->getExtent();
     vkr::utils::createImage(getApp(), swapchainExtent.width, swapchainExtent.height, m_renderPass->getDepthFormat(), VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
     m_depthImageView = m_depthImage->createImageView(VK_IMAGE_ASPECT_DEPTH_BIT);
     m_swapchain->createFramebuffers(*m_renderPass, *m_depthImageView);
+
+    onSwapchainCreated();
 }
 
 void vkr::Renderer::recreateSwapchain()
 {
+    if (m_waitUntilWindowInForeground)
+        m_waitUntilWindowInForeground();
+
     getDevice().waitIdle();
 
     createSwapchain();
+}
+
+void vkr::Renderer::onSwapchainCreated()
+{
+    if (m_onSwapchainCreated)
+        m_onSwapchainCreated(static_cast<uint32_t>(m_swapchain->getImageCount()));
 }
 
 void vkr::Renderer::createCommandBuffers(Mesh const& mesh, ObjectInstance const& instance1, ObjectInstance const& instance2)
@@ -123,56 +204,4 @@ void vkr::Renderer::createSyncObjects()
     }
 
     m_currentFences.resize(m_swapchain->getImageCount(), nullptr);
-}
-
-void vkr::Renderer::drawFrame()
-{
-    //if (!m_commandBuffers)
-    //    return;
-
-    //m_inFlightFences[m_currentFrame].wait();
-
-    //uint32_t imageIndex;
-    //VkResult aquireImageResult = vkAcquireNextImageKHR(getDevice().getHandle(), m_swapchain->getHandle(), UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame].getHandle(), VK_NULL_HANDLE, &imageIndex);
-
-    //if (aquireImageResult == VK_ERROR_OUT_OF_DATE_KHR)
-    //{
-    //    recreateSwapchain();
-    //    return;
-    //}
-
-    //if (aquireImageResult != VK_SUCCESS && aquireImageResult != VK_SUBOPTIMAL_KHR)
-    //    throw std::runtime_error("failed to acquire swapchain image!");
-
-    //if (m_currentFences[imageIndex] != nullptr)
-    //    m_currentFences[imageIndex]->wait();
-
-    //m_currentFences[imageIndex] = &m_inFlightFences[m_currentFrame];
-
-    //updateUniformBuffer(imageIndex);
-
-    //m_inFlightFences[m_currentFrame].reset();
-
-    //m_commandBuffers->submit(imageIndex, m_renderFinishedSemaphores[m_currentFrame], m_imageAvailableSemaphores[m_currentFrame], m_inFlightFences[m_currentFrame]);
-
-    //VkPresentInfoKHR presentInfo{};
-    //presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    //presentInfo.waitSemaphoreCount = 1;
-    //presentInfo.pWaitSemaphores = &m_renderFinishedSemaphores[m_currentFrame].getHandle();
-
-    //VkSwapchainKHR swapchains[] = { m_swapchain->getHandle() };
-    //presentInfo.swapchainCount = 1;
-    //presentInfo.pSwapchains = swapchains;
-    //presentInfo.pImageIndices = &imageIndex;
-    //presentInfo.pResults = nullptr;
-
-    //vkQueuePresentKHR(getDevice().getPresentQueue().getHandle(), &presentInfo);
-
-    //if (aquireImageResult == VK_SUBOPTIMAL_KHR || m_framebufferResized)
-    //{
-    //    m_framebufferResized = false;
-    //    recreateSwapchain();
-    //}
-
-    //m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }

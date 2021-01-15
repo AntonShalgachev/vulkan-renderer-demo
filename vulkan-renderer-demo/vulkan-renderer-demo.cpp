@@ -28,6 +28,7 @@
 #include <array>
 #include <chrono>
 #include <iostream>
+#include "Renderer.h"
 
 namespace
 {
@@ -58,9 +59,6 @@ namespace
     //const float MODEL2_INSTANCE1_POSITION_X = -1.0f;
     //const float MODEL2_INSTANCE1_AMPLITUDE_Z = 0.5f;
     //const float MODEL2_INSTANCE2_POSITION_x = 1.0f;
-    //const float MODEL2_INSTANCE2_AMPLITUDE_Z = 0.5f;
-
-    const int MAX_FRAMES_IN_FLIGHT = 2;
 }
 
 class HelloTriangleApplication
@@ -83,7 +81,7 @@ private:
 
     void onFramebufferResized()
     {
-        m_framebufferResized = true;
+        m_renderer->onFramebufferResized();
 
         m_application->onSurfaceChanged();
     }
@@ -101,175 +99,25 @@ private:
 
         m_sampler = std::make_unique<vkr::Sampler>(getApp());
 
-        initSwapchain();
-        createSyncObjects();
+        m_renderer = std::make_unique<vkr::Renderer>(getApp(), *m_descriptorSetLayout);
+        m_renderer->setUpdateUniformBufferCallback([this](uint32_t index) { updateUniformBuffer(index); });
+        m_renderer->setOnSwapchainCreatedCallback([this](uint32_t imageCount) { onSwapchainCreated(imageCount); });
+        m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
     }
 
-    void initSwapchain()
+    void onSwapchainCreated(uint32_t imageCount)
     {
-        createSwapchain();
-        m_renderPass = std::make_unique<vkr::RenderPass>(getApp(), *m_swapchain);
-        createGraphicsPipeline();
-
-        createDepthResources();
-        m_swapchain->createFramebuffers(*m_renderPass, *m_depthImageView);
-
-        m_instance1Model1 = std::make_unique<vkr::ObjectInstance>(getApp(), sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture1, *m_sampler, *m_descriptorSetLayout);
-        m_instance2Model1 = std::make_unique<vkr::ObjectInstance>(getApp(), sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture1, *m_sampler, *m_descriptorSetLayout);
+        m_instance1Model1 = std::make_unique<vkr::ObjectInstance>(getApp(), sizeof(UniformBufferObject), imageCount, *m_texture1, *m_sampler, *m_descriptorSetLayout);
+        m_instance2Model1 = std::make_unique<vkr::ObjectInstance>(getApp(), sizeof(UniformBufferObject), imageCount, *m_texture1, *m_sampler, *m_descriptorSetLayout);
         //m_instance1Model2 = std::make_unique<vkr::ObjectInstance>(getApp(), sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture2, *m_sampler, *m_descriptorSetLayout);
         //m_instance2Model2 = std::make_unique<vkr::ObjectInstance>(getApp(), sizeof(UniformBufferObject), m_swapchain->getImageCount(), *m_texture2, *m_sampler, *m_descriptorSetLayout);
 
-        createCommandBuffers();
-    }
-
-    void recreateSwapchain()
-    {
-        m_window->waitUntilInForeground();
-
-        getApp().getDevice().waitIdle();
-
-        initSwapchain();
-    }
-
-    void createSwapchain()
-    {
-        // TODO research why Vulkan crashes without this line
-        m_swapchain = nullptr;
-
-        m_swapchain = std::make_unique<vkr::Swapchain>(getApp());
-    }
-
-    void createGraphicsPipeline()
-    {
-        m_pipelineLayout = std::make_unique<vkr::PipelineLayout>(getApp(), *m_descriptorSetLayout);
-
-        vkr::ShaderModule vertShaderModule{ getApp(), "data/shaders/vert.spv", vkr::ShaderModule::Type::Vertex, "main" };
-        vkr::ShaderModule fragShaderModule{ getApp(), "data/shaders/frag.spv", vkr::ShaderModule::Type::Fragment, "main" };
-
-        m_pipeline = std::make_unique<vkr::Pipeline>(getApp(), *m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), vertShaderModule, fragShaderModule);
-    }
-
-    void createDepthResources()
-    {
-        VkFormat depthFormat = m_renderPass->getDepthFormat();
-        VkExtent2D swapchainExtent = m_swapchain->getExtent();
-
-        vkr::utils::createImage(getApp(), swapchainExtent.width, swapchainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
-        m_depthImageView = m_depthImage->createImageView(VK_IMAGE_ASPECT_DEPTH_BIT);
-    }
-
-    void createCommandBuffers()
-    {
-        vkr::CommandPool const& commandPool = getApp().getCommandPool();
-        vkr::Queue const& queue = getApp().getDevice().getGraphicsQueue();
-
-        m_commandBuffers = std::make_unique<vkr::CommandBuffers>(getApp(), commandPool, queue, m_swapchain->getImageCount());
-
-        for (size_t i = 0; i < m_commandBuffers->getSize(); i++)
-        {
-            VkCommandBufferUsageFlags const flags = 0;
-            m_commandBuffers->begin(i, flags);
-
-            VkCommandBuffer handle = m_commandBuffers->getHandle(i);
-
-            VkRenderPassBeginInfo renderPassBeginInfo{};
-            renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            renderPassBeginInfo.renderPass = m_renderPass->getHandle();
-            renderPassBeginInfo.framebuffer = m_swapchain->getFramebuffers()[i]->getHandle();
-            renderPassBeginInfo.renderArea.offset = { 0, 0 };
-            renderPassBeginInfo.renderArea.extent = m_swapchain->getExtent();
-
-            std::array<VkClearValue, 2> clearValues{};
-            clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
-            clearValues[1].depthStencil = { 1.0f, 0 };
-
-            renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());;
-            renderPassBeginInfo.pClearValues = clearValues.data();
-
-            vkCmdBeginRenderPass(handle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-            vkCmdBindPipeline(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->getHandle());
-
-            m_mesh1->bindBuffers(handle);
-
-            m_instance1Model1->bindDescriptorSet(handle, i, *m_pipelineLayout);
-            vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh1->getIndexCount()), 1, 0, 0, 0);
-
-            m_instance2Model1->bindDescriptorSet(handle, i, *m_pipelineLayout);
-            vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh1->getIndexCount()), 1, 0, 0, 0);
-
-            //m_mesh2->bindBuffers(handle);
-
-            //m_instance1Model2->bindDescriptorSet(handle, i, *m_pipelineLayout);
-            //vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh2->getIndexCount()), 1, 0, 0, 0);
-
-            //m_instance2Model2->bindDescriptorSet(handle, i, *m_pipelineLayout);
-            //vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh2->getIndexCount()), 1, 0, 0, 0);
-
-            vkCmdEndRenderPass(handle);
-
-            m_commandBuffers->end(i);
-        }
-    }
-
-    void createSyncObjects()
-    {
-        for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-        {
-            m_imageAvailableSemaphores.emplace_back(getApp());
-            m_renderFinishedSemaphores.emplace_back(getApp());
-            m_inFlightFences.emplace_back(getApp());
-        }
-
-        m_currentFences.resize(m_swapchain->getImageCount(), nullptr);
+        m_renderer->setObjects(*m_mesh1, *m_instance1Model1, *m_instance2Model1);
     }
 
     void drawFrame()
     {
-        m_inFlightFences[m_currentFrame].wait();
-
-        uint32_t imageIndex;
-        VkResult aquireImageResult = vkAcquireNextImageKHR(getApp().getDevice().getHandle(), m_swapchain->getHandle(), UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame].getHandle(), VK_NULL_HANDLE, &imageIndex);
-
-        if (aquireImageResult == VK_ERROR_OUT_OF_DATE_KHR)
-        {
-            recreateSwapchain();
-            return;
-        }
-
-        if (aquireImageResult != VK_SUCCESS && aquireImageResult != VK_SUBOPTIMAL_KHR)
-            throw std::runtime_error("failed to acquire swapchain image!");
-
-        if (m_currentFences[imageIndex] != nullptr)
-            m_currentFences[imageIndex]->wait();
-
-        m_currentFences[imageIndex] = &m_inFlightFences[m_currentFrame];
-
-        updateUniformBuffer(imageIndex);
-
-        m_inFlightFences[m_currentFrame].reset();
-
-        m_commandBuffers->submit(imageIndex, m_renderFinishedSemaphores[m_currentFrame], m_imageAvailableSemaphores[m_currentFrame], m_inFlightFences[m_currentFrame]);
-
-        VkPresentInfoKHR presentInfo{};
-        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-        presentInfo.waitSemaphoreCount = 1;
-        presentInfo.pWaitSemaphores = &m_renderFinishedSemaphores[m_currentFrame].getHandle();
-
-        VkSwapchainKHR swapchains[] = { m_swapchain->getHandle() };
-        presentInfo.swapchainCount = 1;
-        presentInfo.pSwapchains = swapchains;
-        presentInfo.pImageIndices = &imageIndex;
-        presentInfo.pResults = nullptr;
-
-        vkQueuePresentKHR(getApp().getDevice().getPresentQueue().getHandle(), &presentInfo);
-
-        if (aquireImageResult == VK_SUBOPTIMAL_KHR || m_framebufferResized)
-        {
-            m_framebufferResized = false;
-            recreateSwapchain();
-        }
-
-        m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+        m_renderer->draw();
     }
 
     UniformBufferObject createUbo(float time, float posX, float amplitudeZ, float scale, glm::mat4 const& view, glm::mat4 const& proj)
@@ -292,10 +140,8 @@ private:
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
-        VkExtent2D swapchainExtent = m_swapchain->getExtent();
-
         auto view = glm::lookAt(glm::vec3(0.0f, -3.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        auto proj = glm::perspective(glm::radians(45.0f), 1.0f * swapchainExtent.width / swapchainExtent.height, 0.1f, 10.0f);
+        auto proj = glm::perspective(glm::radians(45.0f), m_renderer->getAspect(), 0.1f, 10.0f);
         proj[1][1] *= -1;
 
         auto ubo1Model1 = createUbo(time, MODEL1_INSTANCE1_POSITION_X, MODEL1_INSTANCE1_AMPLITUDE_Z, MODEL1_SCALE, view, proj);
@@ -325,27 +171,6 @@ private:
 
     std::unique_ptr<vkr::Application> m_application;
 
-    // Renderer
-    std::vector<vkr::Semaphore> m_imageAvailableSemaphores;
-    std::vector<vkr::Semaphore> m_renderFinishedSemaphores;
-    std::vector<vkr::Fence> m_inFlightFences;
-    std::vector<vkr::Fence*> m_currentFences;
-
-    std::size_t m_currentFrame = 0;
-    bool m_framebufferResized = false;
-
-    // Swapchain
-    std::unique_ptr<vkr::Swapchain> m_swapchain;
-    std::unique_ptr<vkr::RenderPass> m_renderPass;
-    std::unique_ptr<vkr::PipelineLayout> m_pipelineLayout;
-    std::unique_ptr<vkr::Pipeline> m_pipeline;
-
-    std::unique_ptr<vkr::Image> m_depthImage;
-    std::unique_ptr<vkr::DeviceMemory> m_depthImageMemory;
-    std::unique_ptr<vkr::ImageView> m_depthImageView;
-
-    std::unique_ptr<vkr::CommandBuffers> m_commandBuffers;
-
     // Per type
     std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayout;
 
@@ -362,6 +187,8 @@ private:
     //std::unique_ptr<vkr::Texture> m_texture2;
 
     std::unique_ptr<vkr::Sampler> m_sampler;
+
+    std::unique_ptr<vkr::Renderer> m_renderer;
 };
 
 int main()
