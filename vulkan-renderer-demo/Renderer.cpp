@@ -1,8 +1,13 @@
 #include "Renderer.h"
+
+#include <array>
+
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+
 #include "Application.h"
 #include "Device.h"
 #include "CommandBuffers.h"
-#include <array>
 #include "Queue.h"
 #include "Swapchain.h"
 #include "RenderPass.h"
@@ -16,25 +21,43 @@
 #include "ShaderModule.h"
 #include "Mesh.h"
 #include "ObjectInstance.h"
+#include "SceneObject.h"
+#include "DescriptorSetLayout.h"
+#include "DescriptorSets.h"
+#include "Buffer.h"
 
 namespace
 {
+    struct UniformBufferObject
+    {
+        glm::mat4 model;
+        glm::mat4 view;
+        glm::mat4 proj;
+    };
+
     const int MAX_FRAMES_IN_FLIGHT = 2;
 }
 
-vkr::Renderer::Renderer(Application const& app, vkr::DescriptorSetLayout const& descriptorSetLayout)
+vkr::Renderer::Renderer(Application const& app)
     : Object(app)
-    , m_descriptorSetLayout(descriptorSetLayout)
 {
+    m_descriptorSetLayout = std::make_unique<vkr::DescriptorSetLayout>(getApp());
+
     createSwapchain();
     createSyncObjects();
 }
 
 vkr::Renderer::~Renderer() = default;
 
-void vkr::Renderer::setObjects(Mesh const& mesh, ObjectInstance const& instance1, ObjectInstance const& instance2)
+void vkr::Renderer::addObject(std::shared_ptr<SceneObject> const& object)
 {
-    createCommandBuffers(mesh, instance1, instance2);
+    m_sceneObjects.push_back(std::make_unique<vkr::ObjectInstance>(getApp(), object, *m_descriptorSetLayout, sizeof(UniformBufferObject)));
+    m_sceneObjects.back()->onSwapchainCreated(*m_swapchain);
+}
+
+void vkr::Renderer::finalizeObjects()
+{
+    createCommandBuffers();
 }
 
 void vkr::Renderer::onFramebufferResized()
@@ -66,8 +89,7 @@ void vkr::Renderer::draw()
 
     m_currentFences[imageIndex] = &m_inFlightFences[m_currentFrame];
 
-    if (m_updateUniformBuffer)
-        m_updateUniformBuffer(imageIndex);
+    updateUniformBuffer(imageIndex);
 
     m_inFlightFences[m_currentFrame].reset();
 
@@ -110,7 +132,7 @@ void vkr::Renderer::createSwapchain()
     m_swapchain = std::make_unique<vkr::Swapchain>(getApp());
     m_renderPass = std::make_unique<vkr::RenderPass>(getApp(), *m_swapchain);
     
-    m_pipelineLayout = std::make_unique<vkr::PipelineLayout>(getApp(), m_descriptorSetLayout);
+    m_pipelineLayout = std::make_unique<vkr::PipelineLayout>(getApp(), *m_descriptorSetLayout);
 
     // TODO pass externally
     vkr::ShaderModule vertShaderModule{ getApp(), "data/shaders/vert.spv", vkr::ShaderModule::Type::Vertex, "main" };
@@ -133,15 +155,34 @@ void vkr::Renderer::recreateSwapchain()
     getDevice().waitIdle();
 
     createSwapchain();
+    createCommandBuffers();
+}
+
+void vkr::Renderer::updateUniformBuffer(uint32_t currentImage)
+{
+    for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
+    {
+        // TODO extract to Camera object
+        auto view = glm::lookAt(glm::vec3(0.0f, -3.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        auto proj = glm::perspective(glm::radians(45.0f), getAspect(), 0.1f, 10.0f);
+        proj[1][1] *= -1;
+
+        UniformBufferObject ubo{};
+        ubo.model = instance->getSceneObject().getMatrix();
+        ubo.view = view;
+        ubo.proj = proj;
+
+        instance->copyToUniformBuffer(currentImage, &ubo, sizeof(ubo));
+    }
 }
 
 void vkr::Renderer::onSwapchainCreated()
 {
-    if (m_onSwapchainCreated)
-        m_onSwapchainCreated(static_cast<uint32_t>(m_swapchain->getImageCount()));
+    for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
+        instance->onSwapchainCreated(*m_swapchain);
 }
 
-void vkr::Renderer::createCommandBuffers(Mesh const& mesh, ObjectInstance const& instance1, ObjectInstance const& instance2)
+void vkr::Renderer::createCommandBuffers()
 {
     vkr::CommandPool const& commandPool = getApp().getCommandPool();
     vkr::Queue const& queue = getDevice().getGraphicsQueue();
@@ -172,21 +213,16 @@ void vkr::Renderer::createCommandBuffers(Mesh const& mesh, ObjectInstance const&
         vkCmdBeginRenderPass(handle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->getHandle());
 
-        mesh.bindBuffers(handle);
+        for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
+        {
+            Mesh const& mesh = instance->getSceneObject().getMesh();
 
-        instance1.bindDescriptorSet(handle, i, *m_pipelineLayout);
-        vkCmdDrawIndexed(handle, static_cast<uint32_t>(mesh.getIndexCount()), 1, 0, 0, 0);
+            // TODO bind only if it's not already bound
+            mesh.bindBuffers(handle);
 
-        instance2.bindDescriptorSet(handle, i, *m_pipelineLayout);
-        vkCmdDrawIndexed(handle, static_cast<uint32_t>(mesh.getIndexCount()), 1, 0, 0, 0);
-
-        //m_mesh2->bindBuffers(handle);
-
-        //m_instance1Model2->bindDescriptorSet(handle, i, *m_pipelineLayout);
-        //vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh2->getIndexCount()), 1, 0, 0, 0);
-
-        //m_instance2Model2->bindDescriptorSet(handle, i, *m_pipelineLayout);
-        //vkCmdDrawIndexed(handle, static_cast<uint32_t>(m_mesh2->getIndexCount()), 1, 0, 0, 0);
+            instance->bindDescriptorSet(handle, i, *m_pipelineLayout);
+            vkCmdDrawIndexed(handle, static_cast<uint32_t>(mesh.getIndexCount()), 1, 0, 0, 0);
+        }
 
         vkCmdEndRenderPass(handle);
 

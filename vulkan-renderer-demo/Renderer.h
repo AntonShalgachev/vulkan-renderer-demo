@@ -21,27 +21,13 @@ namespace vkr
     class DescriptorSetLayout;
     class Mesh;
     class ObjectInstance;
+    class SceneObject;
 
     class Renderer : Object
     {
     public:
-    	Renderer(Application const& app, vkr::DescriptorSetLayout const& descriptorSetLayout);
+    	Renderer(Application const& app);
         ~Renderer();
-
-        template<typename Func>
-        void setUpdateUniformBufferCallback(Func&& func)
-        {
-            m_updateUniformBuffer = func;
-        }
-
-        template<typename Func>
-        void setOnSwapchainCreatedCallback(Func&& func)
-        {
-            m_onSwapchainCreated = func;
-
-            if (m_swapchain)
-                onSwapchainCreated();
-        }
 
         template<typename Func>
         void setWaitUntilWindowInForegroundCallback(Func&& func)
@@ -49,8 +35,8 @@ namespace vkr
             m_waitUntilWindowInForeground = func;
         }
 
-        // TODO make generic
-        void setObjects(Mesh const& mesh, ObjectInstance const& instance1, ObjectInstance const& instance2);
+        void addObject(std::shared_ptr<SceneObject> const& object);
+        void finalizeObjects();
 
         void onFramebufferResized();
         void draw();
@@ -60,15 +46,15 @@ namespace vkr
     private:
         void createSwapchain();
         void createSyncObjects();
-        void createCommandBuffers(Mesh const& mesh, ObjectInstance const& instance1, ObjectInstance const& instance2);
+        void createCommandBuffers();
 
         void recreateSwapchain();
 
         void onSwapchainCreated();
 
-    private:
-        DescriptorSetLayout const& m_descriptorSetLayout;
+        void updateUniformBuffer(uint32_t currentImage);
 
+    private:
         std::unique_ptr<vkr::CommandBuffers> m_commandBuffers;
 
         std::unique_ptr<vkr::Swapchain> m_swapchain;
@@ -88,8 +74,10 @@ namespace vkr
         std::size_t m_currentFrame = 0;
         bool m_framebufferResized = false;
 
-        std::function<void(uint32_t)> m_updateUniformBuffer;
-        std::function<void(uint32_t)> m_onSwapchainCreated;
         std::function<void()> m_waitUntilWindowInForeground;
+
+        std::vector<std::unique_ptr<vkr::ObjectInstance>> m_sceneObjects;
+
+        std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayout;
     };
 }
