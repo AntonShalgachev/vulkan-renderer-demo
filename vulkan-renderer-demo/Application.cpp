@@ -7,6 +7,7 @@
 #include "PhysicalDeviceSurfaceParameters.h"
 #include "QueueFamilyIndices.h"
 #include "CommandPool.h"
+#include "Window.h"
 
 namespace
 {
@@ -49,7 +50,7 @@ namespace vkr
     class ApplicationImpl
     {
     public:
-        ApplicationImpl(std::string const& name, std::vector<char const*> const extensions, bool enableValidation, bool enableApiDump, Window const& window);
+        ApplicationImpl(std::string const& name, bool enableValidation, bool enableApiDump, Window const& window);
 
         Instance const& getInstance() const { return m_instance; }
         Surface const& getSurface() const { return m_surface; }
@@ -73,8 +74,8 @@ namespace vkr
 
 }
 
-vkr::ApplicationImpl::ApplicationImpl(std::string const& name, std::vector<char const*> const extensions, bool enableValidation, bool enableApiDump, Window const& window)
-    : m_instance(name, extensions, enableValidation, enableApiDump)
+vkr::ApplicationImpl::ApplicationImpl(std::string const& name, bool enableValidation, bool enableApiDump, Window const& window)
+    : m_instance(name, window.getRequiredInstanceExtensions(), enableValidation, enableApiDump)
     , m_surface(m_instance, window)
     , m_physicalDevices(m_instance.findPhysicalDevices(m_surface))
     , m_currentPhysicalDeviceIndex(findSuitablePhysicalDeviceIndex(m_physicalDevices))
@@ -86,9 +87,9 @@ vkr::ApplicationImpl::ApplicationImpl(std::string const& name, std::vector<char 
 
 // /////////////////////////////////////////////////////////////////////
 
-vkr::Application::Application(std::string const& name, std::vector<char const*> const extensions, bool enableValidation, bool enableApiDump, Window const& window)
+vkr::Application::Application(std::string const& name, bool enableValidation, bool enableApiDump, Window const& window)
 {
-    m_impl = std::make_unique<ApplicationImpl>(name, extensions, enableValidation, enableApiDump, window);
+    m_impl = std::make_unique<ApplicationImpl>(name, enableValidation, enableApiDump, window);
 }
 
 vkr::Application::~Application() = default;

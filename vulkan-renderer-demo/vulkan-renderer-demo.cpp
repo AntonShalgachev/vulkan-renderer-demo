@@ -64,7 +64,7 @@ public:
     {
         m_window = std::make_unique<vkr::Window>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
         m_window->addResizeCallback([this](int, int) { onFramebufferResized(); });
-        m_application = std::make_unique<vkr::Application>("Vulkan demo", m_window->getRequiredInstanceExtensions(), VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window);
+        m_application = std::make_unique<vkr::Application>("Vulkan demo", VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window);
 
         loadResources();
         createRenderer();

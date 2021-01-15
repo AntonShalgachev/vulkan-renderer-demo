@@ -18,7 +18,7 @@ namespace vkr
     class Application
     {
     public:
-    	Application(std::string const& name, std::vector<char const*> const extensions, bool enableValidation, bool enableApiDump, Window const& window);
+    	Application(std::string const& name, bool enableValidation, bool enableApiDump, Window const& window);
         ~Application();
 
         Instance const& getInstance() const;
