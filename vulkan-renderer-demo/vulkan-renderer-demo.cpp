@@ -41,8 +41,8 @@ namespace
     bool const VALIDATION_ENABLED = true;
     bool const API_DUMP_ENABLED = false;
 
-    const std::string MODEL1_PATH = "data/models/viking_room.obj";
-    const std::string TEXTURE1_PATH = "data/textures/viking_room.png";
+    const std::string MODEL_ROOM_PATH = "data/models/viking_room.obj";
+    const std::string TEXTURE_ROOM_PATH = "data/textures/viking_room.png";
     const float MODEL1_SCALE = 1.0f;
     const float MODEL1_INSTANCE1_POSITION_X = -1.0f;
     const float MODEL1_INSTANCE1_AMPLITUDE_Z = 0.0f;
@@ -60,52 +60,61 @@ namespace
 class HelloTriangleApplication
 {
 public:
+    HelloTriangleApplication()
+    {
+        m_window = std::make_unique<vkr::Window>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
+        m_window->addResizeCallback([this](int, int) { onFramebufferResized(); });
+        m_application = std::make_unique<vkr::Application>("Vulkan demo", m_window->getRequiredInstanceExtensions(), VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window);
+
+        loadResources();
+        createRenderer();
+        createSceneObjects();
+    }
+
     void run()
     {
-        initWindow();
-        initVulkan();
-        mainLoop();
+        m_window->startEventLoop([this]() { drawFrame(); });
+
+        getApp().getDevice().waitIdle();
     }
 
 private:
-    void initWindow()
-    {
-        m_window = std::make_unique<vkr::Window>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
-
-        m_window->addResizeCallback([this](int, int) { onFramebufferResized(); });
-    }
-
     void onFramebufferResized()
     {
         m_renderer->onFramebufferResized();
-
         m_application->onSurfaceChanged();
     }
 
-    void initVulkan()
+    void createRenderer()
     {
-        m_application = std::make_unique<vkr::Application>("Vulkan demo", m_window->getRequiredInstanceExtensions(), VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window);
+        m_renderer = std::make_unique<vkr::Renderer>(getApp());
+        m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
+    }
 
-        auto m_sampler = std::make_shared<vkr::Sampler>(getApp());
+    void loadResources()
+    {
+        auto defaultSampler = std::make_shared<vkr::Sampler>(getApp());
 
-        m_mesh1 = std::make_shared<vkr::Mesh>(getApp(), MODEL1_PATH);
-        auto m_texture1 = std::make_shared<vkr::Texture>(getApp(), TEXTURE1_PATH);
+        m_roomMesh = std::make_shared<vkr::Mesh>(getApp(), MODEL_ROOM_PATH);
+
+        auto roomTexture = std::make_shared<vkr::Texture>(getApp(), TEXTURE_ROOM_PATH);
         m_roomMaterial = std::make_shared<vkr::Material>();
-        m_roomMaterial->setTexture(m_texture1);
-        m_roomMaterial->setSampler(m_sampler);
+        m_roomMaterial->setTexture(roomTexture);
+        m_roomMaterial->setSampler(defaultSampler);
+
         //m_mesh2 = std::make_unique<vkr::Mesh>(getApp(), MODEL2_PATH);
         //m_texture2 = std::make_unique<vkr::Texture>(getApp(), TEXTURE2_PATH);
+    }
 
+    void createSceneObjects()
+    {
         m_leftRoom = std::make_shared<vkr::SceneObject>();
-        m_leftRoom->setMesh(m_mesh1);
+        m_leftRoom->setMesh(m_roomMesh);
         m_leftRoom->setMaterial(m_roomMaterial);
 
         m_rightRoom = std::make_shared<vkr::SceneObject>();
-        m_rightRoom->setMesh(m_mesh1);
+        m_rightRoom->setMesh(m_roomMesh);
         m_rightRoom->setMaterial(m_roomMaterial);
-
-        m_renderer = std::make_unique<vkr::Renderer>(getApp());
-        m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
 
         m_renderer->addObject(m_leftRoom);
         m_renderer->addObject(m_rightRoom);
@@ -139,31 +148,24 @@ private:
         updateObject(*m_rightRoom, time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, MODEL1_SCALE);
     }
 
-    void mainLoop()
-    {
-        m_window->startEventLoop([this]() { drawFrame(); });
-
-        getApp().getDevice().waitIdle();
-    }
-
     vkr::Application const& getApp() { return *m_application; }
 
 private:
     std::unique_ptr<vkr::Window> m_window;
 
     std::unique_ptr<vkr::Application> m_application;
-
-    std::shared_ptr<vkr::SceneObject> m_leftRoom;
-    std::shared_ptr<vkr::SceneObject> m_rightRoom;
+    std::unique_ptr<vkr::Renderer> m_renderer;
 
     // Resources
-    std::shared_ptr<vkr::Mesh> m_mesh1;
+    std::shared_ptr<vkr::Mesh> m_roomMesh;
     //std::shared_ptr<vkr::Texture> m_texture1;
     std::shared_ptr<vkr::Material> m_roomMaterial;
     //std::unique_ptr<vkr::Mesh> m_mesh2;
     //std::unique_ptr<vkr::Texture> m_texture2;
 
-    std::unique_ptr<vkr::Renderer> m_renderer;
+    // Objects
+    std::shared_ptr<vkr::SceneObject> m_leftRoom;
+    std::shared_ptr<vkr::SceneObject> m_rightRoom;
 };
 
 int main()
