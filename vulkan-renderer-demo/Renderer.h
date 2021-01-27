@@ -22,6 +22,7 @@ namespace vkr
     class Mesh;
     class ObjectInstance;
     class SceneObject;
+    class Shader;
 
     class Renderer : Object
     {
@@ -34,6 +35,8 @@ namespace vkr
         {
             m_waitUntilWindowInForeground = func;
         }
+
+        void addShader(Shader const& shader);
 
         void addObject(std::shared_ptr<SceneObject> const& object);
         void finalizeObjects();
@@ -60,7 +63,8 @@ namespace vkr
         std::unique_ptr<vkr::Swapchain> m_swapchain;
         std::unique_ptr<vkr::RenderPass> m_renderPass;
         std::unique_ptr<vkr::PipelineLayout> m_pipelineLayout;
-        std::unique_ptr<vkr::Pipeline> m_pipeline;
+
+        std::unordered_map<Shader const*, std::unique_ptr<vkr::Pipeline>> m_pipelines;
 
         std::unique_ptr<vkr::Image> m_depthImage;
         std::unique_ptr<vkr::DeviceMemory> m_depthImageMemory;

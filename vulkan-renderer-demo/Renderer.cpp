@@ -25,6 +25,8 @@
 #include "DescriptorSetLayout.h"
 #include "DescriptorSets.h"
 #include "Buffer.h"
+#include "Shader.h"
+#include "Material.h"
 
 namespace
 {
@@ -41,6 +43,7 @@ namespace
 vkr::Renderer::Renderer(Application const& app)
     : Object(app)
 {
+    // TODO define externally
     m_descriptorSetLayout = std::make_unique<vkr::DescriptorSetLayout>(getApp());
 
     createSwapchain();
@@ -48,6 +51,12 @@ vkr::Renderer::Renderer(Application const& app)
 }
 
 vkr::Renderer::~Renderer() = default;
+
+void vkr::Renderer::addShader(Shader const& shader)
+{
+    auto pipeline = std::make_unique<vkr::Pipeline>(getApp(), *m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), shader.createVertexModule(), shader.createFragmentModule());
+    m_pipelines.emplace(&shader, std::move(pipeline));
+}
 
 void vkr::Renderer::addObject(std::shared_ptr<SceneObject> const& object)
 {
@@ -134,11 +143,7 @@ void vkr::Renderer::createSwapchain()
     
     m_pipelineLayout = std::make_unique<vkr::PipelineLayout>(getApp(), *m_descriptorSetLayout);
 
-    // TODO pass externally
-    vkr::ShaderModule vertShaderModule{ getApp(), "data/shaders/vert.spv", vkr::ShaderModule::Type::Vertex, "main" };
-    vkr::ShaderModule fragShaderModule{ getApp(), "data/shaders/frag.spv", vkr::ShaderModule::Type::Fragment, "main" };
-    m_pipeline = std::make_unique<vkr::Pipeline>(getApp(), *m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), vertShaderModule, fragShaderModule);
-
+    // TODO move depth resources to the swapchain?
     VkExtent2D swapchainExtent = m_swapchain->getExtent();
     vkr::utils::createImage(getApp(), swapchainExtent.width, swapchainExtent.height, m_renderPass->getDepthFormat(), VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
     m_depthImageView = m_depthImage->createImageView(VK_IMAGE_ASPECT_DEPTH_BIT);
@@ -211,10 +216,19 @@ void vkr::Renderer::createCommandBuffers()
         renderPassBeginInfo.pClearValues = clearValues.data();
 
         vkCmdBeginRenderPass(handle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdBindPipeline(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->getHandle());
 
         for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
         {
+            Material const& material = instance->getSceneObject().getMaterial();
+            Shader const& shader = material.getShader();
+
+            auto it = m_pipelines.find(&shader);
+            if (it == m_pipelines.end())
+                throw std::runtime_error("Failed to find a pipeline for the shader");
+
+            // TODO bind only if the shader changed
+            it->second->bind(handle);
+
             Mesh const& mesh = instance->getSceneObject().getMesh();
 
             // TODO bind only if it's not already bound

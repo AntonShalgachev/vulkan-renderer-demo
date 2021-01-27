@@ -216,6 +216,7 @@
     <ClCompile Include="SceneObject.cpp" />
     <ClCompile Include="ScopedOneTimeCommandBuffer.cpp" />
     <ClCompile Include="Semaphore.cpp" />
+    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderModule.cpp" />
     <ClCompile Include="Surface.cpp" />
     <ClCompile Include="Swapchain.cpp" />
@@ -258,6 +259,7 @@
     <ClInclude Include="SceneObject.h" />
     <ClInclude Include="ScopedOneTimeCommandBuffer.h" />
     <ClInclude Include="Semaphore.h" />
+    <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderModule.h" />
     <ClInclude Include="Surface.h" />
     <ClInclude Include="Swapchain.h" />

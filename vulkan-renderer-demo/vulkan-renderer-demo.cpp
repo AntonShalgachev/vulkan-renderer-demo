@@ -31,10 +31,10 @@
 #include "Renderer.h"
 #include "Material.h"
 #include "SceneObject.h"
+#include "Shader.h"
 
 namespace
 {
-
     const uint32_t TARGET_WINDOW_WIDTH = 800;
     const uint32_t TARGET_WINDOW_HEIGHT = 600;
 
@@ -68,6 +68,7 @@ public:
 
         loadResources();
         createRenderer();
+        setupShaders();
         createSceneObjects();
     }
 
@@ -93,6 +94,9 @@ private:
 
     void loadResources()
     {
+        m_defaultShader = std::make_shared<vkr::Shader>(getApp(), "data/shaders/vert.spv", "data/shaders/frag.spv");
+        m_grayscaleShader = std::make_shared<vkr::Shader>(getApp(), "data/shaders/grayscale_vert.spv", "data/shaders/grayscale_frag.spv");
+
         auto defaultSampler = std::make_shared<vkr::Sampler>(getApp());
 
         m_roomMesh = std::make_shared<vkr::Mesh>(getApp(), MODEL_ROOM_PATH);
@@ -101,9 +105,21 @@ private:
         m_roomMaterial = std::make_shared<vkr::Material>();
         m_roomMaterial->setTexture(roomTexture);
         m_roomMaterial->setSampler(defaultSampler);
+        m_roomMaterial->setShader(m_defaultShader);
+
+        m_grayscaleRoomMaterial = std::make_shared<vkr::Material>();
+        m_grayscaleRoomMaterial->setTexture(roomTexture);
+        m_grayscaleRoomMaterial->setSampler(defaultSampler);
+        m_grayscaleRoomMaterial->setShader(m_grayscaleShader);
 
         //m_mesh2 = std::make_unique<vkr::Mesh>(getApp(), MODEL2_PATH);
         //m_texture2 = std::make_unique<vkr::Texture>(getApp(), TEXTURE2_PATH);
+    }
+
+    void setupShaders()
+    {
+        m_renderer->addShader(*m_defaultShader);
+        m_renderer->addShader(*m_grayscaleShader);
     }
 
     void createSceneObjects()
@@ -114,7 +130,7 @@ private:
 
         m_rightRoom = std::make_shared<vkr::SceneObject>();
         m_rightRoom->setMesh(m_roomMesh);
-        m_rightRoom->setMaterial(m_roomMaterial);
+        m_rightRoom->setMaterial(m_grayscaleRoomMaterial);
 
         m_renderer->addObject(m_leftRoom);
         m_renderer->addObject(m_rightRoom);
@@ -157,9 +173,13 @@ private:
     std::unique_ptr<vkr::Renderer> m_renderer;
 
     // Resources
+    std::shared_ptr<vkr::Shader> m_defaultShader;
+    std::shared_ptr<vkr::Shader> m_grayscaleShader;
+
     std::shared_ptr<vkr::Mesh> m_roomMesh;
     //std::shared_ptr<vkr::Texture> m_texture1;
     std::shared_ptr<vkr::Material> m_roomMaterial;
+    std::shared_ptr<vkr::Material> m_grayscaleRoomMaterial;
     //std::unique_ptr<vkr::Mesh> m_mesh2;
     //std::unique_ptr<vkr::Texture> m_texture2;
 

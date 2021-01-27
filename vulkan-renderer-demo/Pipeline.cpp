@@ -128,3 +128,8 @@ vkr::Pipeline::~Pipeline()
 {
     vkDestroyPipeline(getDevice().getHandle(), m_handle, nullptr);
 }
+
+void vkr::Pipeline::bind(VkCommandBuffer commandBuffer) const
+{
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_handle);
+}

@@ -15,6 +15,8 @@ namespace vkr
     	explicit Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, ShaderModule const& vertShaderModule, ShaderModule const& fragShaderModule);
     	~Pipeline();
 
+        void bind(VkCommandBuffer commandBuffer) const;
+
         Pipeline(Pipeline const&) = delete;
         Pipeline(Pipeline&&) = delete;
         Pipeline& operator=(Pipeline const&) = delete;
