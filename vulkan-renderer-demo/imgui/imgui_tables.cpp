@@ -209,6 +209,10 @@ Index of this file:
 #if defined(_MSC_VER) && _MSC_VER >= 1922 // MSVC 2019 16.2 or later
 #pragma warning (disable: 5054)     // operator '|': deprecated between enumerations of different types
 #endif
+
+#pragma warning(disable:4365)
+#pragma warning(disable:5045)
+
 #endif
 
 // Clang/GCC warnings with -Weverything
