@@ -30,6 +30,9 @@ namespace vkr
     	Renderer(Application const& app);
         ~Renderer();
 
+        Swapchain const& getSwapchain() const { return *m_swapchain; }
+        RenderPass const& getRenderPass() const { return *m_renderPass; }
+
         template<typename Func>
         void setWaitUntilWindowInForegroundCallback(Func&& func)
         {

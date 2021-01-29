@@ -33,6 +33,13 @@
 #include "SceneObject.h"
 #include "Shader.h"
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_vulkan.h"
+#include "DescriptorPool.h"
+#include "Instance.h"
+#include "PhysicalDevice.h"
+
 namespace
 {
     const uint32_t TARGET_WINDOW_WIDTH = 800;
@@ -70,13 +77,53 @@ public:
         createRenderer();
         setupShaders();
         createSceneObjects();
+
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        ImGui::StyleColorsDark();
+
+        io.Fonts->AddFontDefault();
+
+        // Setup Platform/Renderer backends
+        ImGui_ImplGlfw_InitForVulkan(m_window->getHandle(), true);
+
+        m_descriptorPool = std::make_unique<vkr::DescriptorPool>(getApp(), 1);
+        ImGui_ImplVulkan_InitInfo init_info = {};
+        init_info.Instance = getApp().getInstance().getHandle();
+        init_info.PhysicalDevice = getApp().getPhysicalDevice().getHandle();
+        init_info.Device = getApp().getDevice().getHandle();
+        init_info.QueueFamily = getApp().getDevice().getGraphicsQueue().getFamily().getIndex();
+        init_info.Queue = getApp().getDevice().getGraphicsQueue().getHandle();
+        init_info.PipelineCache = VK_NULL_HANDLE;
+        init_info.DescriptorPool = m_descriptorPool->getHandle();
+        init_info.Allocator = nullptr;
+        init_info.MinImageCount = 2; // TOO fetch?
+        init_info.ImageCount = static_cast<uint32_t>(m_renderer->getSwapchain().getImageCount());
+        init_info.CheckVkResultFn = nullptr;
+        ImGui_ImplVulkan_Init(&init_info, m_renderer->getRenderPass().getHandle());
+
+        {
+            vkr::ScopedOneTimeCommandBuffer buffer{getApp()};
+            ImGui_ImplVulkan_CreateFontsTexture(buffer.getHandle());
+            buffer.submit();
+
+            ImGui_ImplVulkan_DestroyFontUploadObjects();
+        }
+    }
+
+    ~HelloTriangleApplication()
+    {
+        getApp().getDevice().waitIdle();
+
+        ImGui_ImplVulkan_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
     }
 
     void run()
     {
         m_window->startEventLoop([this]() { drawFrame(); });
-
-        getApp().getDevice().waitIdle();
     }
 
 private:
@@ -139,6 +186,17 @@ private:
 
     void drawFrame()
     {
+        ImGui_ImplVulkan_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::Begin("A");
+        ImGui::End();
+
+        ImGui::Render();
+        ImDrawData* draw_data = ImGui::GetDrawData();
+        (void*)draw_data;
+
         update();
         m_renderer->draw();
     }
@@ -186,6 +244,8 @@ private:
     // Objects
     std::shared_ptr<vkr::SceneObject> m_leftRoom;
     std::shared_ptr<vkr::SceneObject> m_rightRoom;
+
+    std::unique_ptr<vkr::DescriptorPool> m_descriptorPool;
 };
 
 int main()

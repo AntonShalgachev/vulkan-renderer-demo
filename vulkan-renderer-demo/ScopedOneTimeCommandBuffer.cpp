@@ -12,6 +12,16 @@ vkr::ScopedOneTimeCommandBuffer::ScopedOneTimeCommandBuffer(Application const& a
 
 vkr::ScopedOneTimeCommandBuffer::~ScopedOneTimeCommandBuffer()
 {
+    submit();
+}
+
+void vkr::ScopedOneTimeCommandBuffer::submit()
+{
+    if (m_submitted)
+        return;
+
     m_commandBuffers.end(0);
     m_commandBuffers.submitAndWait(0);
+
+    m_submitted = true;
 }

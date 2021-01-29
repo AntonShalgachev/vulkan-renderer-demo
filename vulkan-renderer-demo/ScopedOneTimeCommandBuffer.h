@@ -21,7 +21,11 @@ namespace vkr
 
         VkCommandBuffer const& getHandle() const { return m_commandBuffers.getHandle(0); }
 
+        void submit();
+
     private:
         CommandBuffers m_commandBuffers;
+
+        bool m_submitted = false;
     };
 }

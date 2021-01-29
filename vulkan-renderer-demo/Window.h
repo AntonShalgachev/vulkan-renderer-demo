@@ -20,6 +20,8 @@ namespace vkr
         Window& operator=(Window const&) = delete;
         Window& operator=(Window&&) = delete;
 
+        GLFWwindow* getHandle() const { return m_handle; }
+
         int getWidth() const { return m_width; }
         int getHeight() const { return m_height; }
 
