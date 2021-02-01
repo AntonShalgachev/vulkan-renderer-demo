@@ -154,6 +154,7 @@
     <ClCompile Include="imgui\imgui_draw.cpp">
       <Filter>ImGUI</Filter>
     </ClCompile>
+    <ClCompile Include="CommandBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h">
@@ -297,5 +298,6 @@
     <ClInclude Include="imgui\imgui.h">
       <Filter>ImGUI</Filter>
     </ClInclude>
+    <ClInclude Include="CommandBuffer.h" />
   </ItemGroup>
 </Project>

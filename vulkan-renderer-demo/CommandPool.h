@@ -1,17 +1,24 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
+#include <vector>
+#include "Object.h"
 
 namespace vkr
 {
     class Device;
     class QueueFamily;
+    class CommandBuffer;
+    class Queue;
 
-    class CommandPool
+    class CommandPool : vkr::Object
     {
     public:
-    	explicit CommandPool(Device const& device, QueueFamily const& queueFamily);
+    	explicit CommandPool(Application const& app);
     	~CommandPool();
+
+        CommandBuffer createCommandBuffer() const;
+        std::vector<CommandBuffer> createCommandBuffers(std::size_t size) const;
 
         CommandPool(CommandPool const&) = delete;
         CommandPool(CommandPool&&) = delete;
@@ -24,7 +31,6 @@ namespace vkr
     private:
     	VkCommandPool m_handle = VK_NULL_HANDLE;
 
-        Device const& m_device;
         QueueFamily const& m_queueFamily;
     };
 }

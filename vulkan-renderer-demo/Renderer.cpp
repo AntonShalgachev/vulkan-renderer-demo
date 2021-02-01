@@ -30,6 +30,7 @@
 #include "PhysicalDeviceSurfaceParameters.h"
 #include "QueueFamilyIndices.h"
 #include "CommandPool.h"
+#include "CommandBuffer.h"
 
 namespace
 {
@@ -79,9 +80,6 @@ void vkr::Renderer::onFramebufferResized()
 
 void vkr::Renderer::draw()
 {
-    if (!m_commandBuffers)
-        return;
-
     m_inFlightFences[m_currentFrame].wait();
 
     uint32_t imageIndex;
@@ -105,7 +103,7 @@ void vkr::Renderer::draw()
 
     m_inFlightFences[m_currentFrame].reset();
 
-    m_commandBuffers->submit(imageIndex, m_renderFinishedSemaphores[m_currentFrame], m_imageAvailableSemaphores[m_currentFrame], m_inFlightFences[m_currentFrame]);
+    m_commandBuffers[imageIndex].submit(getApp().getDevice().getGraphicsQueue(), m_renderFinishedSemaphores[m_currentFrame], m_imageAvailableSemaphores[m_currentFrame], m_inFlightFences[m_currentFrame]);
 
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -192,17 +190,18 @@ void vkr::Renderer::onSwapchainCreated()
 
 void vkr::Renderer::createCommandBuffers()
 {
-    m_commandPool = std::make_unique<vkr::CommandPool>(getApp().getDevice(), getApp().getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily());
-    vkr::Queue const& queue = getDevice().getGraphicsQueue();
+    m_commandPool = std::make_unique<vkr::CommandPool>(getApp());
 
-    m_commandBuffers = std::make_unique<vkr::CommandBuffers>(getApp(), *m_commandPool, queue, m_swapchain->getImageCount());
+    m_commandBuffers = m_commandPool->createCommandBuffers(m_swapchain->getImageCount());
 
-    for (size_t i = 0; i < m_commandBuffers->getSize(); i++)
+    for (size_t i = 0; i < m_commandBuffers.size(); i++)
     {
-        VkCommandBufferUsageFlags const flags = 0;
-        m_commandBuffers->begin(i, flags);
+        CommandBuffer& commandBuffer = m_commandBuffers[i];
 
-        VkCommandBuffer handle = m_commandBuffers->getHandle(i);
+        VkCommandBufferUsageFlags const flags = 0;
+        commandBuffer.begin(flags);
+
+        VkCommandBuffer handle = commandBuffer.getHandle();
 
         VkRenderPassBeginInfo renderPassBeginInfo{};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -243,7 +242,7 @@ void vkr::Renderer::createCommandBuffers()
 
         vkCmdEndRenderPass(handle);
 
-        m_commandBuffers->end(i);
+        commandBuffer.end();
     }
 }
 

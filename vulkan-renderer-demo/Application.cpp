@@ -88,7 +88,7 @@ vkr::Application::Application(std::string const& name, bool enableValidation, bo
 {
     m_impl = std::make_unique<ApplicationImpl>(name, enableValidation, enableApiDump, window);
 
-    m_shortLivedCommandPool = std::make_unique<CommandPool>(getDevice(), getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily());
+    m_shortLivedCommandPool = std::make_unique<CommandPool>(*this);
 }
 
 vkr::Application::~Application() = default;

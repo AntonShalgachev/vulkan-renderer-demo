@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "CommandBuffers.h"
+#include "CommandBuffer.h"
 #include "Object.h"
 
 namespace vkr
@@ -19,12 +19,12 @@ namespace vkr
         ScopedOneTimeCommandBuffer& operator=(ScopedOneTimeCommandBuffer const&) = delete;
         ScopedOneTimeCommandBuffer& operator=(ScopedOneTimeCommandBuffer&&) = delete;
 
-        VkCommandBuffer const& getHandle() const { return m_commandBuffers.getHandle(0); }
+        VkCommandBuffer const& getHandle() const { return m_commandBuffer.getHandle(); }
 
         void submit();
 
     private:
-        CommandBuffers m_commandBuffers;
+        CommandBuffer m_commandBuffer;
 
         bool m_submitted = false;
     };

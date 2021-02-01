@@ -24,6 +24,7 @@ namespace vkr
     class SceneObject;
     class Shader;
     class CommandPool;
+    class CommandBuffer;
 
     class Renderer : Object
     {
@@ -63,7 +64,7 @@ namespace vkr
 
     private:
         std::unique_ptr<vkr::CommandPool> m_commandPool;
-        std::unique_ptr<vkr::CommandBuffers> m_commandBuffers;
+        std::vector<vkr::CommandBuffer> m_commandBuffers;
 
         std::unique_ptr<vkr::Swapchain> m_swapchain;
         std::unique_ptr<vkr::RenderPass> m_renderPass;
