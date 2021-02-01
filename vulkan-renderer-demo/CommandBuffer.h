@@ -19,8 +19,7 @@ namespace vkr
 
         void begin(VkCommandBufferUsageFlags flags);
         void end();
-        void submitAndWait(Queue const& queue);
-        void submit(Queue const& queue, Semaphore const& signalSemaphore, Semaphore const& waitSemaphore, Fence const& signalFence);
+        void submit(Queue const& queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence, bool waitForColorAttachmentStage);
 
     private:
         std::shared_ptr<CommandBuffers> m_container;

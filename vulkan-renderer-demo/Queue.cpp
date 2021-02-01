@@ -6,3 +6,8 @@ vkr::Queue::Queue(VkQueue handle, QueueFamily const& queueFamily)
 {
 
 }
+
+void vkr::Queue::waitIdle() const
+{
+    vkQueueWaitIdle(m_handle);
+}

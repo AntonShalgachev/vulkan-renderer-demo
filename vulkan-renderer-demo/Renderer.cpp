@@ -103,7 +103,7 @@ void vkr::Renderer::draw()
 
     m_inFlightFences[m_currentFrame].reset();
 
-    m_commandBuffers[imageIndex].submit(getApp().getDevice().getGraphicsQueue(), m_renderFinishedSemaphores[m_currentFrame], m_imageAvailableSemaphores[m_currentFrame], m_inFlightFences[m_currentFrame]);
+    m_commandBuffers[imageIndex].submit(getApp().getDevice().getGraphicsQueue(), &m_renderFinishedSemaphores[m_currentFrame], &m_imageAvailableSemaphores[m_currentFrame], &m_inFlightFences[m_currentFrame], true);
 
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

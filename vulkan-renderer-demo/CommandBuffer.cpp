@@ -33,32 +33,33 @@ void vkr::CommandBuffer::end()
         throw std::runtime_error("failed to record command buffer!");
 }
 
-void vkr::CommandBuffer::submitAndWait(Queue const& queue)
+void vkr::CommandBuffer::submit(Queue const& queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence, bool waitForColorAttachmentStage)
 {
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &getHandle();
 
-    vkQueueSubmit(queue.getHandle(), 1, &submitInfo, VK_NULL_HANDLE);
+    if (signalSemaphore)
+    {
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores = &signalSemaphore->getHandle();
+    }
+    
+    if (waitSemaphore)
+    {
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores = &waitSemaphore->getHandle();
+    }
 
-    vkQueueWaitIdle(queue.getHandle());
-}
+    if (waitForColorAttachmentStage)
+    {
+        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+        submitInfo.pWaitDstStageMask = waitStages;
+    }
 
-void vkr::CommandBuffer::submit(Queue const& queue, Semaphore const& signalSemaphore, Semaphore const& waitSemaphore, Fence const& signalFence)
-{
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &getHandle();
+    VkFence signalFenceHandle = signalFence ? signalFence->getHandle() : VK_NULL_HANDLE;
 
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = &signalSemaphore.getHandle();
-    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = &waitSemaphore.getHandle();
-    submitInfo.pWaitDstStageMask = waitStages;
-
-    if (vkQueueSubmit(queue.getHandle(), 1, &submitInfo, signalFence.getHandle()) != VK_SUCCESS)
+    if (vkQueueSubmit(queue.getHandle(), 1, &submitInfo, signalFenceHandle) != VK_SUCCESS)
         throw std::runtime_error("failed to submit draw command buffer!");
 }
