@@ -1,7 +1,6 @@
 #include "Utils.h"
 #include "Buffer.h"
 #include "DeviceMemory.h"
-#include "ScopedOneTimeCommandBuffer.h"
 #include "Image.h"
 #include <algorithm>
 
