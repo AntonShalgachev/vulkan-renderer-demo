@@ -24,7 +24,8 @@ namespace vkr
         Instance const& getInstance() const;
         Surface const& getSurface() const;
         Device const& getDevice() const;
-        CommandPool const& getCommandPool() const;
+
+        CommandPool const& getShortLivedCommandPool() const;
 
         PhysicalDeviceSurfaceParameters const& getPhysicalDeviceSurfaceParameters() const;
         PhysicalDevice const& getPhysicalDevice() const;
@@ -33,5 +34,6 @@ namespace vkr
 
     private:
         std::unique_ptr<ApplicationImpl> m_impl;
+        std::unique_ptr<CommandPool> m_shortLivedCommandPool;
     };
 }

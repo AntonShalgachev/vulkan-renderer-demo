@@ -27,6 +27,9 @@
 #include "Buffer.h"
 #include "Shader.h"
 #include "Material.h"
+#include "PhysicalDeviceSurfaceParameters.h"
+#include "QueueFamilyIndices.h"
+#include "CommandPool.h"
 
 namespace
 {
@@ -189,10 +192,10 @@ void vkr::Renderer::onSwapchainCreated()
 
 void vkr::Renderer::createCommandBuffers()
 {
-    vkr::CommandPool const& commandPool = getApp().getCommandPool();
+    m_commandPool = std::make_unique<vkr::CommandPool>(getApp().getDevice(), getApp().getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily());
     vkr::Queue const& queue = getDevice().getGraphicsQueue();
 
-    m_commandBuffers = std::make_unique<vkr::CommandBuffers>(getApp(), commandPool, queue, m_swapchain->getImageCount());
+    m_commandBuffers = std::make_unique<vkr::CommandBuffers>(getApp(), *m_commandPool, queue, m_swapchain->getImageCount());
 
     for (size_t i = 0; i < m_commandBuffers->getSize(); i++)
     {

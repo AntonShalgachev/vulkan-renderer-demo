@@ -12,7 +12,7 @@
 namespace
 {
     const std::vector<const char*> DEVICE_EXTENSIONS = {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
 
     bool isDeviceSuitable(vkr::PhysicalDeviceSurfaceContainer const& container)
@@ -55,7 +55,6 @@ namespace vkr
         Instance const& getInstance() const { return m_instance; }
         Surface const& getSurface() const { return m_surface; }
         Device const& getDevice() const { return m_device; }
-        CommandPool const& getCommandPool() const { return m_commandPool; }
 
         PhysicalDeviceSurfaceContainer const& getPhysicalDeviceSurfaceContainer() const { return m_physicalDevices[m_currentPhysicalDeviceIndex]; }
         PhysicalDeviceSurfaceContainer& getPhysicalDeviceSurfaceContainer() { return m_physicalDevices[m_currentPhysicalDeviceIndex]; }
@@ -69,7 +68,6 @@ namespace vkr
         std::vector<vkr::PhysicalDeviceSurfaceContainer> m_physicalDevices;
         std::size_t m_currentPhysicalDeviceIndex;
         Device m_device;
-        CommandPool m_commandPool;
     };
 
 }
@@ -80,7 +78,6 @@ vkr::ApplicationImpl::ApplicationImpl(std::string const& name, bool enableValida
     , m_physicalDevices(m_instance.findPhysicalDevices(m_surface))
     , m_currentPhysicalDeviceIndex(findSuitablePhysicalDeviceIndex(m_physicalDevices))
     , m_device(getPhysicalDeviceSurfaceContainer(), DEVICE_EXTENSIONS)
-    , m_commandPool(m_device, getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily())
 {
 
 }
@@ -90,6 +87,8 @@ vkr::ApplicationImpl::ApplicationImpl(std::string const& name, bool enableValida
 vkr::Application::Application(std::string const& name, bool enableValidation, bool enableApiDump, Window const& window)
 {
     m_impl = std::make_unique<ApplicationImpl>(name, enableValidation, enableApiDump, window);
+
+    m_shortLivedCommandPool = std::make_unique<CommandPool>(getDevice(), getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily());
 }
 
 vkr::Application::~Application() = default;
@@ -109,9 +108,9 @@ vkr::Device const& vkr::Application::getDevice() const
     return m_impl->getDevice();
 }
 
-vkr::CommandPool const& vkr::Application::getCommandPool() const
+vkr::CommandPool const& vkr::Application::getShortLivedCommandPool() const
 {
-    return m_impl->getCommandPool();
+    return *m_shortLivedCommandPool;
 }
 
 vkr::PhysicalDeviceSurfaceParameters const& vkr::Application::getPhysicalDeviceSurfaceParameters() const

@@ -23,6 +23,7 @@ namespace vkr
     class ObjectInstance;
     class SceneObject;
     class Shader;
+    class CommandPool;
 
     class Renderer : Object
     {
@@ -61,6 +62,7 @@ namespace vkr
         void updateUniformBuffer(uint32_t currentImage);
 
     private:
+        std::unique_ptr<vkr::CommandPool> m_commandPool;
         std::unique_ptr<vkr::CommandBuffers> m_commandBuffers;
 
         std::unique_ptr<vkr::Swapchain> m_swapchain;
