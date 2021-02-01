@@ -52,6 +52,16 @@ namespace vkr
         float getAspect() const;
 
     private:
+        struct FrameResources
+        {
+            FrameResources(Application const& app);
+
+            vkr::Semaphore imageAvailableSemaphore;
+            vkr::Semaphore renderFinishedSemaphore;
+            vkr::Fence inFlightFence;
+        };
+
+    private:
         void createSwapchain();
         void createSyncObjects();
         void createCommandBuffers();
@@ -76,10 +86,8 @@ namespace vkr
         std::unique_ptr<vkr::DeviceMemory> m_depthImageMemory;
         std::unique_ptr<vkr::ImageView> m_depthImageView;
 
-        std::vector<vkr::Semaphore> m_imageAvailableSemaphores;
-        std::vector<vkr::Semaphore> m_renderFinishedSemaphores;
-        std::vector<vkr::Fence> m_inFlightFences;
-        std::vector<vkr::Fence*> m_currentFences;
+        std::vector<FrameResources> m_frameResources;
+        std::vector<vkr::Fence const*> m_currentFences;
 
         std::size_t m_currentFrame = 0;
         bool m_framebufferResized = false;

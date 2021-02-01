@@ -80,10 +80,12 @@ void vkr::Renderer::onFramebufferResized()
 
 void vkr::Renderer::draw()
 {
-    m_inFlightFences[m_currentFrame].wait();
+    FrameResources const& frameResources = m_frameResources[m_currentFrame];
+
+    frameResources.inFlightFence.wait();
 
     uint32_t imageIndex;
-    VkResult aquireImageResult = vkAcquireNextImageKHR(getDevice().getHandle(), m_swapchain->getHandle(), UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame].getHandle(), VK_NULL_HANDLE, &imageIndex);
+    VkResult aquireImageResult = vkAcquireNextImageKHR(getDevice().getHandle(), m_swapchain->getHandle(), UINT64_MAX, frameResources.imageAvailableSemaphore.getHandle(), VK_NULL_HANDLE, &imageIndex);
 
     if (aquireImageResult == VK_ERROR_OUT_OF_DATE_KHR)
     {
@@ -97,18 +99,18 @@ void vkr::Renderer::draw()
     if (m_currentFences[imageIndex] != nullptr)
         m_currentFences[imageIndex]->wait();
 
-    m_currentFences[imageIndex] = &m_inFlightFences[m_currentFrame];
+    m_currentFences[imageIndex] = &frameResources.inFlightFence;
 
     updateUniformBuffer(imageIndex);
 
-    m_inFlightFences[m_currentFrame].reset();
+    frameResources.inFlightFence.reset();
 
-    m_commandBuffers[imageIndex].submit(getApp().getDevice().getGraphicsQueue(), &m_renderFinishedSemaphores[m_currentFrame], &m_imageAvailableSemaphores[m_currentFrame], &m_inFlightFences[m_currentFrame], true);
+    m_commandBuffers[imageIndex].submit(getApp().getDevice().getGraphicsQueue(), &frameResources.renderFinishedSemaphore, &frameResources.imageAvailableSemaphore, &frameResources.inFlightFence, true);
 
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = &m_renderFinishedSemaphores[m_currentFrame].getHandle();
+    presentInfo.pWaitSemaphores = &frameResources.renderFinishedSemaphore.getHandle();
 
     VkSwapchainKHR swapchains[] = { m_swapchain->getHandle() };
     presentInfo.swapchainCount = 1;
@@ -249,11 +251,15 @@ void vkr::Renderer::createCommandBuffers()
 void vkr::Renderer::createSyncObjects()
 {
     for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-    {
-        m_imageAvailableSemaphores.emplace_back(getApp());
-        m_renderFinishedSemaphores.emplace_back(getApp());
-        m_inFlightFences.emplace_back(getApp());
-    }
+        m_frameResources.emplace_back(getApp());
 
     m_currentFences.resize(m_swapchain->getImageCount(), nullptr);
+}
+
+vkr::Renderer::FrameResources::FrameResources(Application const& app)
+    : imageAvailableSemaphore(app)
+    , renderFinishedSemaphore(app)
+    , inFlightFence(app)
+{
+
 }

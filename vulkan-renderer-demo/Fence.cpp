@@ -21,12 +21,12 @@ vkr::Fence::~Fence()
     vkDestroyFence(getDevice().getHandle(), m_handle, nullptr);
 }
 
-void vkr::Fence::wait()
+void vkr::Fence::wait() const
 {
     vkWaitForFences(getDevice().getHandle(), 1, &m_handle, VK_TRUE, UINT64_MAX);
 }
 
-void vkr::Fence::reset()
+void vkr::Fence::reset() const
 {
     vkResetFences(getDevice().getHandle(), 1, &m_handle);
 }

@@ -16,8 +16,8 @@ namespace vkr
         Fence& operator=(Fence const&) = delete;
         Fence& operator=(Fence&&) = delete;
 
-        void wait();
-        void reset();
+        void wait() const;
+        void reset() const;
 
         VkFence const& getHandle() const { return m_handle; }
 
