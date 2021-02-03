@@ -25,7 +25,7 @@ void vkr::ScopedOneTimeCommandBuffer::submit()
     Queue const& queue = getApp().getDevice().getGraphicsQueue();
 
     m_commandBuffer.end();
-    m_commandBuffer.submit(queue, nullptr, nullptr, nullptr, false);
+    m_commandBuffer.submit(queue, nullptr, nullptr, nullptr);
     queue.waitIdle();
 
     m_submitted = true;

@@ -85,7 +85,7 @@ void vkr::Renderer::draw()
     frameResources.inFlightFence.wait();
 
     uint32_t imageIndex;
-    VkResult aquireImageResult = vkAcquireNextImageKHR(getDevice().getHandle(), m_swapchain->getHandle(), UINT64_MAX, frameResources.imageAvailableSemaphore.getHandle(), VK_NULL_HANDLE, &imageIndex);
+    VkResult aquireImageResult = vkAcquireNextImageKHR(getDevice().getHandle(), m_swapchain->getHandle(), std::numeric_limits<uint64_t>::max(), frameResources.imageAvailableSemaphore.getHandle(), VK_NULL_HANDLE, &imageIndex);
 
     if (aquireImageResult == VK_ERROR_OUT_OF_DATE_KHR)
     {
@@ -105,7 +105,7 @@ void vkr::Renderer::draw()
 
     frameResources.inFlightFence.reset();
 
-    m_commandBuffers[imageIndex].submit(getApp().getDevice().getGraphicsQueue(), &frameResources.renderFinishedSemaphore, &frameResources.imageAvailableSemaphore, &frameResources.inFlightFence, true);
+    m_commandBuffers[imageIndex].submit(getApp().getDevice().getGraphicsQueue(), &frameResources.renderFinishedSemaphore, &frameResources.imageAvailableSemaphore, &frameResources.inFlightFence);
 
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -118,7 +118,7 @@ void vkr::Renderer::draw()
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr;
 
-    vkQueuePresentKHR(getDevice().getPresentQueue().getHandle(), &presentInfo);
+    vkQueuePresentKHR(getDevice().getPresentQueue().getHandle(), &presentInfo); // TODO move to the object
 
     if (aquireImageResult == VK_SUBOPTIMAL_KHR || m_framebufferResized)
     {
@@ -192,8 +192,8 @@ void vkr::Renderer::onSwapchainCreated()
 
 void vkr::Renderer::createCommandBuffers()
 {
-    m_commandPool = std::make_unique<vkr::CommandPool>(getApp());
-
+    m_commandBuffers.clear(); // because command buffers rely on the command pool
+    m_commandPool = std::make_unique<vkr::CommandPool>(getApp()); // TODO make command pool a shared_ptr
     m_commandBuffers = m_commandPool->createCommandBuffers(m_swapchain->getImageCount());
 
     for (size_t i = 0; i < m_commandBuffers.size(); i++)
