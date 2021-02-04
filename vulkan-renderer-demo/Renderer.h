@@ -42,6 +42,12 @@ namespace vkr
             m_waitUntilWindowInForeground = func;
         }
 
+        template<typename Func>
+        void setRecordImGuiCallback(Func&& func)
+        {
+            m_recordImGui = func;
+        }
+
         void addShader(Shader const& shader);
 
         void addObject(std::shared_ptr<SceneObject> const& object);
@@ -92,6 +98,7 @@ namespace vkr
         bool m_framebufferResized = false;
 
         std::function<void()> m_waitUntilWindowInForeground;
+        std::function<void(VkCommandBuffer)> m_recordImGui;
 
         std::vector<std::unique_ptr<vkr::ObjectInstance>> m_sceneObjects;
 

@@ -137,6 +137,7 @@ private:
     {
         m_renderer = std::make_unique<vkr::Renderer>(getApp());
         m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
+        m_renderer->setRecordImGuiCallback([this](VkCommandBuffer commandBuffer) { drawImGui(commandBuffer); });
     }
 
     void loadResources()
@@ -183,7 +184,7 @@ private:
         m_renderer->addObject(m_rightRoom);
     }
 
-    void drawFrame()
+    void drawImGui(VkCommandBuffer commandBuffer)
     {
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -193,9 +194,13 @@ private:
         ImGui::End();
 
         ImGui::Render();
-        ImDrawData* draw_data = ImGui::GetDrawData();
-        (void*)draw_data;
+        ImDrawData* drawData = ImGui::GetDrawData();
+        (void*)drawData;
+        ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
+    }
 
+    void drawFrame()
+    {
         update();
         m_renderer->draw();
     }
