@@ -17,9 +17,9 @@ namespace vkr
 
         VkCommandBuffer const& getHandle() const;
 
-        void begin(VkCommandBufferUsageFlags flags);
-        void end();
-        void submit(Queue const& queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence);
+        void begin(VkCommandBufferUsageFlags flags) const;
+        void end() const;
+        void submit(Queue const& queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence) const;
 
     private:
         std::shared_ptr<CommandBuffers> m_container;

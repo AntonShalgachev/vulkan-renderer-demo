@@ -16,7 +16,7 @@ VkCommandBuffer const& vkr::CommandBuffer::getHandle() const
     return m_container->getHandle(m_index);
 }
 
-void vkr::CommandBuffer::begin(VkCommandBufferUsageFlags flags)
+void vkr::CommandBuffer::begin(VkCommandBufferUsageFlags flags) const
 {
     VkCommandBufferBeginInfo commandBufferBeginInfo{};
     commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -27,13 +27,13 @@ void vkr::CommandBuffer::begin(VkCommandBufferUsageFlags flags)
         throw std::runtime_error("failed to begin recording command buffer!");
 }
 
-void vkr::CommandBuffer::end()
+void vkr::CommandBuffer::end() const
 {
     if (vkEndCommandBuffer(getHandle()) != VK_SUCCESS)
         throw std::runtime_error("failed to record command buffer!");
 }
 
-void vkr::CommandBuffer::submit(Queue const& queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence)
+void vkr::CommandBuffer::submit(Queue const& queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence) const
 {
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

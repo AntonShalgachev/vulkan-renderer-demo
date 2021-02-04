@@ -18,6 +18,7 @@ namespace vkr
 
         void wait() const;
         void reset() const;
+        bool isSignaled() const;
 
         VkFence const& getHandle() const { return m_handle; }
 

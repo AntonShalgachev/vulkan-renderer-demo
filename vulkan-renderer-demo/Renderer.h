@@ -7,6 +7,7 @@
 #include "Fence.h"
 #include <vector>
 #include <functional>
+#include "CommandBuffer.h"
 
 namespace vkr
 {
@@ -59,6 +60,9 @@ namespace vkr
             vkr::Semaphore imageAvailableSemaphore;
             vkr::Semaphore renderFinishedSemaphore;
             vkr::Fence inFlightFence;
+
+            std::unique_ptr<vkr::CommandPool> commandPool;
+            vkr::CommandBuffer commandBuffer;
         };
 
     private:
@@ -73,9 +77,6 @@ namespace vkr
         void updateUniformBuffer(uint32_t currentImage);
 
     private:
-        std::unique_ptr<vkr::CommandPool> m_commandPool;
-        std::vector<vkr::CommandBuffer> m_commandBuffers;
-
         std::unique_ptr<vkr::Swapchain> m_swapchain;
         std::unique_ptr<vkr::RenderPass> m_renderPass;
         std::unique_ptr<vkr::PipelineLayout> m_pipelineLayout;
@@ -87,9 +88,8 @@ namespace vkr
         std::unique_ptr<vkr::ImageView> m_depthImageView;
 
         std::vector<FrameResources> m_frameResources;
-        std::vector<vkr::Fence const*> m_currentFences;
 
-        std::size_t m_currentFrame = 0;
+        std::size_t m_nextFrameResourcesIndex = 0;
         bool m_framebufferResized = false;
 
         std::function<void()> m_waitUntilWindowInForeground;

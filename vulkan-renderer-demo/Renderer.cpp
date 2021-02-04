@@ -41,7 +41,7 @@ namespace
         glm::mat4 proj;
     };
 
-    const int MAX_FRAMES_IN_FLIGHT = 2;
+    const int FRAME_RESOURCE_COUNT = 8;
 }
 
 vkr::Renderer::Renderer(Application const& app)
@@ -80,9 +80,7 @@ void vkr::Renderer::onFramebufferResized()
 
 void vkr::Renderer::draw()
 {
-    FrameResources const& frameResources = m_frameResources[m_currentFrame];
-
-    frameResources.inFlightFence.wait();
+    FrameResources const& frameResources = m_frameResources[m_nextFrameResourcesIndex];
 
     uint32_t imageIndex;
     VkResult aquireImageResult = vkAcquireNextImageKHR(getDevice().getHandle(), m_swapchain->getHandle(), std::numeric_limits<uint64_t>::max(), frameResources.imageAvailableSemaphore.getHandle(), VK_NULL_HANDLE, &imageIndex);
@@ -96,16 +94,11 @@ void vkr::Renderer::draw()
     if (aquireImageResult != VK_SUCCESS && aquireImageResult != VK_SUBOPTIMAL_KHR)
         throw std::runtime_error("failed to acquire swapchain image!");
 
-    if (m_currentFences[imageIndex] != nullptr)
-        m_currentFences[imageIndex]->wait();
-
-    m_currentFences[imageIndex] = &frameResources.inFlightFence;
-
     updateUniformBuffer(imageIndex);
 
+    frameResources.inFlightFence.wait();
     frameResources.inFlightFence.reset();
-
-    m_commandBuffers[imageIndex].submit(getApp().getDevice().getGraphicsQueue(), &frameResources.renderFinishedSemaphore, &frameResources.imageAvailableSemaphore, &frameResources.inFlightFence);
+    frameResources.commandBuffer.submit(getApp().getDevice().getGraphicsQueue(), &frameResources.renderFinishedSemaphore, &frameResources.imageAvailableSemaphore, &frameResources.inFlightFence);
 
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -126,7 +119,7 @@ void vkr::Renderer::draw()
         recreateSwapchain();
     }
 
-    m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+    m_nextFrameResourcesIndex = (m_nextFrameResourcesIndex + 1) % FRAME_RESOURCE_COUNT;
 }
 
 float vkr::Renderer::getAspect() const
@@ -192,13 +185,9 @@ void vkr::Renderer::onSwapchainCreated()
 
 void vkr::Renderer::createCommandBuffers()
 {
-    m_commandBuffers.clear(); // because command buffers rely on the command pool
-    m_commandPool = std::make_unique<vkr::CommandPool>(getApp()); // TODO make command pool a shared_ptr
-    m_commandBuffers = m_commandPool->createCommandBuffers(m_swapchain->getImageCount());
-
-    for (size_t i = 0; i < m_commandBuffers.size(); i++)
+    for (size_t i = 0; i < m_frameResources.size(); i++)
     {
-        CommandBuffer& commandBuffer = m_commandBuffers[i];
+        CommandBuffer& commandBuffer = m_frameResources[i].commandBuffer;
 
         VkCommandBufferUsageFlags const flags = 0;
         commandBuffer.begin(flags);
@@ -208,7 +197,7 @@ void vkr::Renderer::createCommandBuffers()
         VkRenderPassBeginInfo renderPassBeginInfo{};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassBeginInfo.renderPass = m_renderPass->getHandle();
-        renderPassBeginInfo.framebuffer = m_swapchain->getFramebuffers()[i]->getHandle();
+        renderPassBeginInfo.framebuffer = m_swapchain->getFramebuffers()[i]->getHandle(); // CRASH: get correct framebuffer
         renderPassBeginInfo.renderArea.offset = { 0, 0 };
         renderPassBeginInfo.renderArea.extent = m_swapchain->getExtent();
 
@@ -250,16 +239,16 @@ void vkr::Renderer::createCommandBuffers()
 
 void vkr::Renderer::createSyncObjects()
 {
-    for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    for (auto i = 0; i < FRAME_RESOURCE_COUNT; i++)
         m_frameResources.emplace_back(getApp());
-
-    m_currentFences.resize(m_swapchain->getImageCount(), nullptr);
 }
 
 vkr::Renderer::FrameResources::FrameResources(Application const& app)
     : imageAvailableSemaphore(app)
     , renderFinishedSemaphore(app)
     , inFlightFence(app)
+    , commandPool(std::make_unique<CommandPool>(app))
+    , commandBuffer(commandPool->createCommandBuffer())
 {
 
 }

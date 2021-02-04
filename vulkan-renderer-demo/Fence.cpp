@@ -30,3 +30,13 @@ void vkr::Fence::reset() const
 {
     vkResetFences(getDevice().getHandle(), 1, &m_handle);
 }
+
+bool vkr::Fence::isSignaled() const
+{
+    VkResult result = vkGetFenceStatus(getDevice().getHandle(), m_handle);
+
+    if (result != VK_SUCCESS && result != VK_NOT_READY)
+        throw std::runtime_error("unexpected fence status result");
+
+    return result == VK_SUCCESS;
+}
