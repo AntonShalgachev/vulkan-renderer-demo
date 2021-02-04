@@ -16,8 +16,12 @@ VkCommandBuffer const& vkr::CommandBuffer::getHandle() const
     return m_container->getHandle(m_index);
 }
 
-void vkr::CommandBuffer::begin(VkCommandBufferUsageFlags flags) const
+void vkr::CommandBuffer::begin(bool oneTime) const
 {
+    VkCommandBufferUsageFlags flags = 0;
+    if (oneTime)
+        flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
     VkCommandBufferBeginInfo commandBufferBeginInfo{};
     commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     commandBufferBeginInfo.flags = flags;

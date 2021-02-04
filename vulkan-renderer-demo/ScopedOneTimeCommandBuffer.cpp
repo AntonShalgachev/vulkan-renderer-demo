@@ -9,7 +9,7 @@ vkr::ScopedOneTimeCommandBuffer::ScopedOneTimeCommandBuffer(Application const& a
     : Object(app)
     , m_commandBuffer(getApp().getShortLivedCommandPool().createCommandBuffer())
 {
-    m_commandBuffer.begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+    m_commandBuffer.begin(true);
 }
 
 vkr::ScopedOneTimeCommandBuffer::~ScopedOneTimeCommandBuffer()

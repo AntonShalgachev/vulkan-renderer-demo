@@ -189,8 +189,7 @@ void vkr::Renderer::createCommandBuffers()
     {
         CommandBuffer& commandBuffer = m_frameResources[i].commandBuffer;
 
-        VkCommandBufferUsageFlags const flags = 0;
-        commandBuffer.begin(flags);
+        commandBuffer.begin(false);
 
         VkCommandBuffer handle = commandBuffer.getHandle();
 

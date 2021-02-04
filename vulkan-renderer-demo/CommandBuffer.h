@@ -17,7 +17,7 @@ namespace vkr
 
         VkCommandBuffer const& getHandle() const;
 
-        void begin(VkCommandBufferUsageFlags flags) const;
+        void begin(bool oneTime = true) const;
         void end() const;
         void submit(Queue const& queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence) const;
 
