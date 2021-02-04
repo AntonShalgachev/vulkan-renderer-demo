@@ -24,13 +24,13 @@ namespace vkr
 
         SceneObject const& getSceneObject() const { return *m_sceneObject; }
 
-        std::unique_ptr<vkr::DeviceMemory> const& getUniformBufferMemory(std::size_t index) const { return m_uniformBuffersMemory[index]; }
+        std::unique_ptr<vkr::DeviceMemory> const& getUniformBufferMemory(std::size_t imageIndex) const { return m_uniformBuffersMemory[imageIndex]; }
         std::unique_ptr<vkr::DescriptorSets> const& getDescriptorSets() const { return m_descriptorSets; }
 
         void onSwapchainCreated(Swapchain const& swapchain);
 
         void copyToUniformBuffer(std::size_t index, void const* sourcePointer, std::size_t sourceSize) const;
-        void bindDescriptorSet(VkCommandBuffer commandBuffer, std::size_t index, PipelineLayout const& pipelineLayout) const;
+        void bindDescriptorSet(VkCommandBuffer commandBuffer, std::size_t imageIndex, PipelineLayout const& pipelineLayout) const;
 
     private:
         std::shared_ptr<SceneObject> m_sceneObject;

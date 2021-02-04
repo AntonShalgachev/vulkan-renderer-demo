@@ -68,11 +68,6 @@ void vkr::Renderer::addObject(std::shared_ptr<SceneObject> const& object)
     m_sceneObjects.back()->onSwapchainCreated(*m_swapchain);
 }
 
-void vkr::Renderer::finalizeObjects()
-{
-    createCommandBuffers();
-}
-
 void vkr::Renderer::onFramebufferResized()
 {
     m_framebufferResized = true;
@@ -98,6 +93,8 @@ void vkr::Renderer::draw()
 
     frameResources.inFlightFence.wait();
     frameResources.inFlightFence.reset();
+
+    recordCommandBuffer(imageIndex, frameResources);
     frameResources.commandBuffer.submit(getApp().getDevice().getGraphicsQueue(), &frameResources.renderFinishedSemaphore, &frameResources.imageAvailableSemaphore, &frameResources.inFlightFence);
 
     VkPresentInfoKHR presentInfo{};
@@ -156,7 +153,6 @@ void vkr::Renderer::recreateSwapchain()
     getDevice().waitIdle();
 
     createSwapchain();
-    createCommandBuffers();
 }
 
 void vkr::Renderer::updateUniformBuffer(uint32_t currentImage)
@@ -183,57 +179,56 @@ void vkr::Renderer::onSwapchainCreated()
         instance->onSwapchainCreated(*m_swapchain);
 }
 
-void vkr::Renderer::createCommandBuffers()
+void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources)
 {
-    for (size_t i = 0; i < m_frameResources.size(); i++)
+    frameResources.commandPool->reset();
+
+    CommandBuffer const& commandBuffer = frameResources.commandBuffer;
+
+    commandBuffer.begin(false);
+
+    VkCommandBuffer handle = commandBuffer.getHandle();
+
+    VkRenderPassBeginInfo renderPassBeginInfo{};
+    renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassBeginInfo.renderPass = m_renderPass->getHandle();
+    renderPassBeginInfo.framebuffer = m_swapchain->getFramebuffers()[imageIndex]->getHandle(); // CRASH: get correct framebuffer
+    renderPassBeginInfo.renderArea.offset = { 0, 0 };
+    renderPassBeginInfo.renderArea.extent = m_swapchain->getExtent();
+
+    std::array<VkClearValue, 2> clearValues{};
+    clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
+    clearValues[1].depthStencil = { 1.0f, 0 };
+
+    renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());;
+    renderPassBeginInfo.pClearValues = clearValues.data();
+
+    vkCmdBeginRenderPass(handle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
     {
-        CommandBuffer& commandBuffer = m_frameResources[i].commandBuffer;
+        Material const& material = instance->getSceneObject().getMaterial();
+        Shader const& shader = material.getShader();
 
-        commandBuffer.begin(false);
+        auto it = m_pipelines.find(&shader);
+        if (it == m_pipelines.end())
+            throw std::runtime_error("Failed to find a pipeline for the shader");
 
-        VkCommandBuffer handle = commandBuffer.getHandle();
+        // TODO bind only if the shader changed
+        it->second->bind(handle);
 
-        VkRenderPassBeginInfo renderPassBeginInfo{};
-        renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassBeginInfo.renderPass = m_renderPass->getHandle();
-        renderPassBeginInfo.framebuffer = m_swapchain->getFramebuffers()[i]->getHandle(); // CRASH: get correct framebuffer
-        renderPassBeginInfo.renderArea.offset = { 0, 0 };
-        renderPassBeginInfo.renderArea.extent = m_swapchain->getExtent();
+        Mesh const& mesh = instance->getSceneObject().getMesh();
 
-        std::array<VkClearValue, 2> clearValues{};
-        clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
-        clearValues[1].depthStencil = { 1.0f, 0 };
+        // TODO bind only if it's not already bound
+        mesh.bindBuffers(handle);
 
-        renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());;
-        renderPassBeginInfo.pClearValues = clearValues.data();
-
-        vkCmdBeginRenderPass(handle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-        for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
-        {
-            Material const& material = instance->getSceneObject().getMaterial();
-            Shader const& shader = material.getShader();
-
-            auto it = m_pipelines.find(&shader);
-            if (it == m_pipelines.end())
-                throw std::runtime_error("Failed to find a pipeline for the shader");
-
-            // TODO bind only if the shader changed
-            it->second->bind(handle);
-
-            Mesh const& mesh = instance->getSceneObject().getMesh();
-
-            // TODO bind only if it's not already bound
-            mesh.bindBuffers(handle);
-
-            instance->bindDescriptorSet(handle, i, *m_pipelineLayout);
-            vkCmdDrawIndexed(handle, static_cast<uint32_t>(mesh.getIndexCount()), 1, 0, 0, 0);
-        }
-
-        vkCmdEndRenderPass(handle);
-
-        commandBuffer.end();
+        instance->bindDescriptorSet(handle, imageIndex, *m_pipelineLayout);
+        vkCmdDrawIndexed(handle, static_cast<uint32_t>(mesh.getIndexCount()), 1, 0, 0, 0);
     }
+
+    vkCmdEndRenderPass(handle);
+
+    commandBuffer.end();
 }
 
 void vkr::Renderer::createSyncObjects()

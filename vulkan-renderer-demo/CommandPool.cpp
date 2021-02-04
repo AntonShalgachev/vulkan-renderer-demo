@@ -20,6 +20,12 @@ vkr::CommandPool::CommandPool(Application const& app)
         throw std::runtime_error("failed to create command pool!");
 }
 
+void vkr::CommandPool::reset() const
+{
+    VkCommandPoolResetFlags flags = 0;
+    vkResetCommandPool(getDevice().getHandle(), m_handle, flags);
+}
+
 vkr::CommandPool::~CommandPool()
 {
     vkDestroyCommandPool(getApp().getDevice().getHandle(), m_handle, nullptr);

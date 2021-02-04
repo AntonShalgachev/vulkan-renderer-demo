@@ -45,7 +45,6 @@ namespace vkr
         void addShader(Shader const& shader);
 
         void addObject(std::shared_ptr<SceneObject> const& object);
-        void finalizeObjects();
 
         void onFramebufferResized();
         void draw();
@@ -68,7 +67,7 @@ namespace vkr
     private:
         void createSwapchain();
         void createSyncObjects();
-        void createCommandBuffers();
+        void recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources);
 
         void recreateSwapchain();
 

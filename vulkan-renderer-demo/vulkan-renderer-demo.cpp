@@ -181,7 +181,6 @@ private:
 
         m_renderer->addObject(m_leftRoom);
         m_renderer->addObject(m_rightRoom);
-        m_renderer->finalizeObjects();
     }
 
     void drawFrame()

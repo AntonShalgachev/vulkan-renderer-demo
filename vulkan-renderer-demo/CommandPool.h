@@ -15,7 +15,7 @@ namespace vkr
     {
     public:
     	explicit CommandPool(Application const& app);
-    	~CommandPool();
+        ~CommandPool();
 
         CommandBuffer createCommandBuffer() const;
         std::vector<CommandBuffer> createCommandBuffers(std::size_t size) const;
@@ -27,6 +27,8 @@ namespace vkr
 
         VkCommandPool const& getHandle() const { return m_handle; }
         QueueFamily const& getQueueFamily() const { return m_queueFamily; }
+
+        void reset() const;
 
     private:
     	VkCommandPool m_handle = VK_NULL_HANDLE;

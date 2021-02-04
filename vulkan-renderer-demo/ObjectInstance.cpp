@@ -43,7 +43,7 @@ void vkr::ObjectInstance::copyToUniformBuffer(std::size_t index, void const* sou
     m_uniformBuffersMemory[index]->copyFrom(sourcePointer, sourceSize);
 }
 
-void vkr::ObjectInstance::bindDescriptorSet(VkCommandBuffer commandBuffer, std::size_t index, PipelineLayout const& pipelineLayout) const
+void vkr::ObjectInstance::bindDescriptorSet(VkCommandBuffer commandBuffer, std::size_t imageIndex, PipelineLayout const& pipelineLayout) const
 {
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout.getHandle(), 0, 1, &m_descriptorSets->getHandles()[index], 0, nullptr);
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout.getHandle(), 0, 1, &m_descriptorSets->getHandles()[imageIndex], 0, nullptr);
 }
