@@ -41,7 +41,7 @@ namespace
         glm::mat4 proj;
     };
 
-    const int FRAME_RESOURCE_COUNT = 8;
+    const int FRAME_RESOURCE_COUNT = 3;
 }
 
 vkr::Renderer::Renderer(Application const& app)
