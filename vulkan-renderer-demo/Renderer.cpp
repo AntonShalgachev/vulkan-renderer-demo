@@ -31,6 +31,8 @@
 #include "QueueFamilyIndices.h"
 #include "CommandPool.h"
 #include "CommandBuffer.h"
+#include "imgui/imgui_impl_vulkan.h"
+#include "imgui/imgui.h"
 
 namespace
 {
@@ -226,8 +228,9 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
         vkCmdDrawIndexed(handle, static_cast<uint32_t>(mesh.getIndexCount()), 1, 0, 0, 0);
     }
 
-    if (m_recordImGui)
-        m_recordImGui(handle);
+    ImDrawData* drawData = ImGui::GetDrawData();
+    if (drawData)
+        ImGui_ImplVulkan_RenderDrawData(drawData, handle);
 
     vkCmdEndRenderPass(handle);
 

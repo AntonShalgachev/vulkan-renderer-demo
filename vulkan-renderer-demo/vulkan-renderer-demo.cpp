@@ -137,7 +137,6 @@ private:
     {
         m_renderer = std::make_unique<vkr::Renderer>(getApp());
         m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
-        m_renderer->setRecordImGuiCallback([this](VkCommandBuffer commandBuffer) { drawImGui(commandBuffer); });
     }
 
     void loadResources()
@@ -184,19 +183,15 @@ private:
         m_renderer->addObject(m_rightRoom);
     }
 
-    void drawImGui(VkCommandBuffer commandBuffer)
+    void updateUI()
     {
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("A");
-        ImGui::End();
+        ImGui::ShowDemoWindow();
 
         ImGui::Render();
-        ImDrawData* drawData = ImGui::GetDrawData();
-        (void*)drawData;
-        ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
     }
 
     void drawFrame()
@@ -207,6 +202,8 @@ private:
 
     void update()
     {
+        updateUI();
+
         static auto startTime = std::chrono::high_resolution_clock::now();
 
         auto currentTime = std::chrono::high_resolution_clock::now();
