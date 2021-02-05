@@ -54,11 +54,10 @@ void vkr::CommandBuffer::submit(Queue const& queue, Semaphore const* signalSemap
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = &signalSemaphore->getHandle();
     }
-    
+
+    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     if (waitSemaphore)
     {
-        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-
         submitInfo.waitSemaphoreCount = 1;
         submitInfo.pWaitSemaphores = &waitSemaphore->getHandle();
         submitInfo.pWaitDstStageMask = waitStages;
