@@ -16,6 +16,11 @@ VkCommandBuffer const& vkr::CommandBuffer::getHandle() const
     return m_container->getHandle(m_index);
 }
 
+void vkr::CommandBuffer::reset() const
+{
+    vkResetCommandBuffer(getHandle(), 0);
+}
+
 void vkr::CommandBuffer::begin(bool oneTime) const
 {
     VkCommandBufferUsageFlags flags = 0;
