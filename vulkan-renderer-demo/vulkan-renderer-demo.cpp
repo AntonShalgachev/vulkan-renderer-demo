@@ -176,13 +176,15 @@ private:
         m_renderer->addObject(m_rightRoom);
     }
 
-    void updateUI()
+    void updateUI(float dt)
     {
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::ShowDemoWindow();
+        ImGui::Begin("Debug", nullptr);
+        ImGui::Text("Application average %.3f ms", dt * 1000.0f);
+        ImGui::End();
 
         ImGui::Render();
     }
@@ -195,12 +197,14 @@ private:
 
     void update()
     {
-        updateUI();
-
-        static auto startTime = std::chrono::high_resolution_clock::now();
-
+        static float time = 0.0f;
+        static auto previousTime = std::chrono::high_resolution_clock::now();
         auto currentTime = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+        float dt = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - previousTime).count();
+        previousTime = currentTime;
+        time += dt;
+
+        updateUI(dt);
 
         auto updateObject = [](vkr::SceneObject& object, float time, float posX, float amplitudeZ, float scale)
         {
