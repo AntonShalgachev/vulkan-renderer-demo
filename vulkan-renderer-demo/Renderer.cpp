@@ -58,12 +58,6 @@ vkr::Renderer::Renderer(Application const& app)
 
 vkr::Renderer::~Renderer() = default;
 
-void vkr::Renderer::addShader(Shader const& shader)
-{
-    auto pipeline = std::make_unique<vkr::Pipeline>(getApp(), *m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), shader.createVertexModule(), shader.createFragmentModule());
-    m_pipelines.emplace(&shader, std::move(pipeline));
-}
-
 void vkr::Renderer::addObject(std::shared_ptr<SceneObject> const& object)
 {
     m_sceneObjects.push_back(std::make_unique<vkr::ObjectInstance>(getApp(), object, *m_descriptorSetLayout, sizeof(UniformBufferObject)));
@@ -130,6 +124,8 @@ float vkr::Renderer::getAspect() const
 
 void vkr::Renderer::createSwapchain()
 {
+    m_pipelines.clear();
+
     // TODO research why Vulkan crashes without this line
     m_swapchain = nullptr;
 
@@ -214,7 +210,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
         auto it = m_pipelines.find(&shader);
         if (it == m_pipelines.end())
-            throw std::runtime_error("Failed to find a pipeline for the shader");
+            it = m_pipelines.emplace(&shader, createPipeline(shader)).first;
 
         // TODO bind only if the shader changed
         it->second->bind(handle);
@@ -235,6 +231,11 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
     vkCmdEndRenderPass(handle);
 
     commandBuffer.end();
+}
+
+std::unique_ptr<vkr::Pipeline> vkr::Renderer::createPipeline(Shader const& shader)
+{
+    return std::make_unique<vkr::Pipeline>(getApp(), *m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), shader.createVertexModule(), shader.createFragmentModule());
 }
 
 void vkr::Renderer::createSyncObjects()

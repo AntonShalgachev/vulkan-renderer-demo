@@ -42,8 +42,6 @@ namespace vkr
             m_waitUntilWindowInForeground = func;
         }
 
-        void addShader(Shader const& shader);
-
         void addObject(std::shared_ptr<SceneObject> const& object);
 
         void onFramebufferResized();
@@ -68,6 +66,7 @@ namespace vkr
         void createSwapchain();
         void createSyncObjects();
         void recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources);
+        std::unique_ptr<Pipeline> createPipeline(Shader const& shader);
 
         void recreateSwapchain();
 

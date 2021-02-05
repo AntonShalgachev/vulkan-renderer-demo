@@ -75,7 +75,6 @@ public:
 
         loadResources();
         createRenderer();
-        setupShaders();
         createSceneObjects();
 
         IMGUI_CHECKVERSION();
@@ -161,12 +160,6 @@ private:
 
         //m_mesh2 = std::make_unique<vkr::Mesh>(getApp(), MODEL2_PATH);
         //m_texture2 = std::make_unique<vkr::Texture>(getApp(), TEXTURE2_PATH);
-    }
-
-    void setupShaders()
-    {
-        m_renderer->addShader(*m_defaultShader);
-        m_renderer->addShader(*m_grayscaleShader);
     }
 
     void createSceneObjects()
