@@ -185,7 +185,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
     CommandBuffer const& commandBuffer = frameResources.commandBuffer;
 
-    commandBuffer.begin(false);
+    commandBuffer.begin(true);
 
     VkCommandBuffer handle = commandBuffer.getHandle();
 
