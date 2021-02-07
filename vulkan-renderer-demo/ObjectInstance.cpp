@@ -8,6 +8,9 @@
 #include "Material.h"
 #include "SceneObject.h"
 #include "DescriptorSetLayout.h"
+#include "Pipeline.h"
+
+VkDescriptorSet vkr::ObjectInstance::ms_boundDescriptorSet = VK_NULL_HANDLE;
 
 vkr::ObjectInstance::ObjectInstance(Application const& app, std::shared_ptr<SceneObject> const& sceneObject, DescriptorSetLayout const& setLayout, VkDeviceSize uniformBufferSize)
     : Object(app)
@@ -45,5 +48,15 @@ void vkr::ObjectInstance::copyToUniformBuffer(std::size_t index, void const* sou
 
 void vkr::ObjectInstance::bindDescriptorSet(VkCommandBuffer commandBuffer, std::size_t imageIndex, PipelineLayout const& pipelineLayout) const
 {
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout.getHandle(), 0, 1, &m_descriptorSets->getHandles()[imageIndex], 0, nullptr);
+    VkDescriptorSet handle = m_descriptorSets->getHandles()[imageIndex];
+    if (ms_boundDescriptorSet == handle)
+        return;
+
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout.getHandle(), 0, 1, &handle, 0, nullptr);
+    ms_boundDescriptorSet = handle;
+}
+
+void vkr::ObjectInstance::bindPipeline(VkCommandBuffer commandBuffer) const
+{
+    m_pipeline->bind(commandBuffer);
 }

@@ -7,10 +7,7 @@
 #include "DeviceMemory.h"
 #include "Utils.h"
 
-namespace
-{
-
-}
+vkr::Mesh const* vkr::Mesh::ms_boundMesh = nullptr;
 
 vkr::Mesh::Mesh(Application const& app, std::string const& path) : Object(app)
 {
@@ -21,10 +18,15 @@ vkr::Mesh::Mesh(Application const& app, std::string const& path) : Object(app)
 
 void vkr::Mesh::bindBuffers(VkCommandBuffer commandBuffer) const
 {
+    if (ms_boundMesh == this)
+        return;
+
     VkBuffer vertexBuffers[] = { m_vertexBuffer->getHandle() };
     VkDeviceSize offsets[] = { 0 };
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
     vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer->getHandle(), 0, VK_INDEX_TYPE_UINT32);
+
+    ms_boundMesh = this;
 }
 
 std::size_t vkr::Mesh::getVertexCount() const

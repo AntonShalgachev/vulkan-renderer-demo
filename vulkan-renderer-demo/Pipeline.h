@@ -24,7 +24,13 @@ namespace vkr
 
         VkPipeline const& getHandle() const { return m_handle; }
 
+    public:
+        static void resetBoundPipeline() { ms_boundPipeline = nullptr; }
+
     private:
     	VkPipeline m_handle = VK_NULL_HANDLE;
+
+    private:
+        static Pipeline const* ms_boundPipeline;
     };
 }

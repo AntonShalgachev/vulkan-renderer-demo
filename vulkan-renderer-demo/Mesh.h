@@ -25,6 +25,9 @@ namespace vkr
         std::size_t getVertexCount() const;
         std::size_t getIndexCount() const { return m_indices.size(); }
 
+    public:
+        static void resetBoundMesh() { ms_boundMesh = nullptr; }
+
     private:
         void loadMesh(std::string const& path);
         void createVertexBuffer();
@@ -38,5 +41,8 @@ namespace vkr
         std::unique_ptr<vkr::DeviceMemory> m_vertexBufferMemory;
         std::unique_ptr<vkr::Buffer> m_indexBuffer;
         std::unique_ptr<vkr::DeviceMemory> m_indexBufferMemory;
+
+    private:
+        static Mesh const* ms_boundMesh;
     };
 }

@@ -45,7 +45,11 @@ namespace
     const uint32_t TARGET_WINDOW_WIDTH = 800;
     const uint32_t TARGET_WINDOW_HEIGHT = 600;
 
+#ifdef _DEBUG
     bool const VALIDATION_ENABLED = true;
+#else
+    bool const VALIDATION_ENABLED = false;
+#endif
     bool const API_DUMP_ENABLED = false;
 
     const std::string MODEL_ROOM_PATH = "data/models/viking_room.obj";

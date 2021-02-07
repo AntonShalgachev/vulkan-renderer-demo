@@ -124,7 +124,8 @@ float vkr::Renderer::getAspect() const
 
 void vkr::Renderer::createSwapchain()
 {
-    m_pipelines.clear();
+    for (auto const& instance : m_sceneObjects)
+        instance->setPipeline(nullptr);
 
     // TODO research why Vulkan crashes without this line
     m_swapchain = nullptr;
@@ -179,6 +180,11 @@ void vkr::Renderer::onSwapchainCreated()
 
 void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources)
 {
+     // TODO remove hacks
+    Mesh::resetBoundMesh();
+    ObjectInstance::resetBoundDescriptorSet();
+    Pipeline::resetBoundPipeline();
+
     frameResources.commandPool->reset();
 
     CommandBuffer const& commandBuffer = frameResources.commandBuffer;
@@ -208,16 +214,11 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
         Material const& material = instance->getSceneObject().getMaterial();
         Shader const& shader = material.getShader();
 
-        auto it = m_pipelines.find(&shader);
-        if (it == m_pipelines.end())
-            it = m_pipelines.emplace(&shader, createPipeline(shader)).first;
-
-        // TODO bind only if the shader changed
-        it->second->bind(handle);
+        if (!instance->hasPipeline())
+            instance->setPipeline(createPipeline(shader));
+        instance->bindPipeline(handle);
 
         Mesh const& mesh = instance->getSceneObject().getMesh();
-
-        // TODO bind only if it's not already bound
         mesh.bindBuffers(handle);
 
         instance->bindDescriptorSet(handle, imageIndex, *m_pipelineLayout);

@@ -5,6 +5,8 @@
 #include "Vertex.h"
 #include "Device.h"
 
+vkr::Pipeline const* vkr::Pipeline::ms_boundPipeline = nullptr;
+
 vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, ShaderModule const& vertShaderModule, ShaderModule const& fragShaderModule) : Object(app)
 {
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = vertShaderModule.createStageCreateInfo();
@@ -131,5 +133,9 @@ vkr::Pipeline::~Pipeline()
 
 void vkr::Pipeline::bind(VkCommandBuffer commandBuffer) const
 {
+    if (ms_boundPipeline == this)
+        return;
+
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_handle);
+    ms_boundPipeline = this;
 }

@@ -79,8 +79,6 @@ namespace vkr
         std::unique_ptr<vkr::RenderPass> m_renderPass;
         std::unique_ptr<vkr::PipelineLayout> m_pipelineLayout;
 
-        std::unordered_map<Shader const*, std::unique_ptr<vkr::Pipeline>> m_pipelines;
-
         std::unique_ptr<vkr::Image> m_depthImage;
         std::unique_ptr<vkr::DeviceMemory> m_depthImageMemory;
         std::unique_ptr<vkr::ImageView> m_depthImageView;
