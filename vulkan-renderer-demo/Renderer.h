@@ -8,6 +8,7 @@
 #include <vector>
 #include <functional>
 #include "CommandBuffer.h"
+#include "Timer.h"
 
 namespace vkr
 {
@@ -48,6 +49,9 @@ namespace vkr
         void draw();
 
         float getAspect() const;
+        float getLastFenceTime() const { return m_lastFenceTime; }
+        float getCumulativeFenceTime() const { return m_cumulativeFenceTime; }
+        void resetCumulativeFenceTime() { m_cumulativeFenceTime = 0.0f; }
 
     private:
         struct FrameResources
@@ -93,5 +97,9 @@ namespace vkr
         std::vector<std::unique_ptr<vkr::ObjectInstance>> m_sceneObjects;
 
         std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayout;
+
+        vkr::Timer m_fenceTimer;
+        float m_lastFenceTime = 0.0f;
+        float m_cumulativeFenceTime = 0.0f;
     };
 }

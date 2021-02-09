@@ -26,7 +26,6 @@
 #include "Device.h"
 #include "Queue.h"
 #include <array>
-#include <chrono>
 #include <iostream>
 #include "Renderer.h"
 #include "Material.h"
@@ -39,11 +38,14 @@
 #include "DescriptorPool.h"
 #include "Instance.h"
 #include "PhysicalDevice.h"
+#include "Timer.h"
 
 namespace
 {
     const uint32_t TARGET_WINDOW_WIDTH = 800;
     const uint32_t TARGET_WINDOW_HEIGHT = 600;
+
+    const float FPS_PERIOD = 0.2f;
 
 #ifdef _DEBUG
     bool const VALIDATION_ENABLED = true;
@@ -79,8 +81,29 @@ public:
 
         loadResources();
         createRenderer();
-        createSceneObjects();
+        initImGui();
 
+        createSceneObjects();
+    }
+
+    ~HelloTriangleApplication()
+    {
+        getApp().getDevice().waitIdle();
+
+        ImGui_ImplVulkan_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+    }
+
+    void run()
+    {
+        m_frameTimer.start();
+        m_window->startEventLoop([this]() { drawFrame(); });
+    }
+
+private:
+    void initImGui()
+    {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -107,7 +130,7 @@ public:
         ImGui_ImplVulkan_Init(&init_info, m_renderer->getRenderPass().getHandle());
 
         {
-            vkr::ScopedOneTimeCommandBuffer buffer{getApp()};
+            vkr::ScopedOneTimeCommandBuffer buffer{ getApp() };
             ImGui_ImplVulkan_CreateFontsTexture(buffer.getHandle());
             buffer.submit();
 
@@ -115,21 +138,6 @@ public:
         }
     }
 
-    ~HelloTriangleApplication()
-    {
-        getApp().getDevice().waitIdle();
-
-        ImGui_ImplVulkan_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
-        ImGui::DestroyContext();
-    }
-
-    void run()
-    {
-        m_window->startEventLoop([this]() { drawFrame(); });
-    }
-
-private:
     void onFramebufferResized()
     {
         m_renderer->onFramebufferResized();
@@ -180,14 +188,18 @@ private:
         m_renderer->addObject(m_rightRoom);
     }
 
-    void updateUI(float dt)
+    void updateUI(float frameTime, float fenceTime)
     {
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("Debug", nullptr);
-        ImGui::Text("Application average %.3f ms", dt * 1000.0f);
+        float cpuUtilizationRatio = 1.0f - fenceTime/frameTime;
+
+        ImGui::Begin("Time", nullptr);
+        ImGui::Text("Frame time %.3f ms", frameTime * 1000.0f);
+        ImGui::Text("Fence time %.3f ms", fenceTime * 1000.0f);
+        ImGui::Text("CPU Utilization %.2f%%", cpuUtilizationRatio * 100.0f);
         ImGui::End();
 
         ImGui::Render();
@@ -197,18 +209,20 @@ private:
     {
         update();
         m_renderer->draw();
+        m_fpsDrawnFrames++;
     }
 
     void update()
     {
-        static float time = 0.0f;
-        static auto previousTime = std::chrono::high_resolution_clock::now();
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        float dt = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - previousTime).count();
-        previousTime = currentTime;
-        time += dt;
+        if (m_frameTimer.getTime() > FPS_PERIOD)
+        {
+            m_lastFrameTime = m_frameTimer.loop() / m_fpsDrawnFrames;
+            m_lastFenceTime = m_renderer->getCumulativeFenceTime() / m_fpsDrawnFrames;
+            m_renderer->resetCumulativeFenceTime();
+            m_fpsDrawnFrames = 0;
+        }
 
-        updateUI(dt);
+        updateUI(m_lastFrameTime, m_lastFenceTime);
 
         auto updateObject = [](vkr::SceneObject& object, float time, float posX, float amplitudeZ, float scale)
         {
@@ -220,6 +234,7 @@ private:
             object.setScale(glm::vec3(scale));
         };
 
+        float time = m_appTime.getTime();
         updateObject(*m_leftRoom, time, MODEL1_INSTANCE1_POSITION_X, MODEL1_INSTANCE1_AMPLITUDE_Z, MODEL1_SCALE);
         updateObject(*m_rightRoom, time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, MODEL1_SCALE);
     }
@@ -248,6 +263,12 @@ private:
     std::shared_ptr<vkr::SceneObject> m_rightRoom;
 
     std::unique_ptr<vkr::DescriptorPool> m_descriptorPool;
+
+    vkr::Timer m_frameTimer;
+    vkr::Timer m_appTime;
+    std::uint32_t m_fpsDrawnFrames = 0;
+    float m_lastFrameTime = 0.0f;
+    float m_lastFenceTime = 0.0f;
 };
 
 int main()

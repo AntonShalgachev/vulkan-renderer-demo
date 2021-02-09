@@ -155,6 +155,7 @@
       <Filter>ImGUI</Filter>
     </ClCompile>
     <ClCompile Include="CommandBuffer.cpp" />
+    <ClCompile Include="Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h">
@@ -299,5 +300,6 @@
       <Filter>ImGUI</Filter>
     </ClInclude>
     <ClInclude Include="CommandBuffer.h" />
+    <ClInclude Include="Timer.h" />
   </ItemGroup>
 </Project>

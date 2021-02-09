@@ -87,7 +87,11 @@ void vkr::Renderer::draw()
 
     updateUniformBuffer(imageIndex);
 
+    m_fenceTimer.start();
     frameResources.inFlightFence.wait();
+    m_lastFenceTime = m_fenceTimer.getTime();
+    m_cumulativeFenceTime += m_lastFenceTime;
+    
     frameResources.inFlightFence.reset();
 
     recordCommandBuffer(imageIndex, frameResources);
