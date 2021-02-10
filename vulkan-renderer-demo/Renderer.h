@@ -9,6 +9,7 @@
 #include <functional>
 #include "CommandBuffer.h"
 #include "Timer.h"
+#include "Camera.h"
 
 namespace vkr
 {
@@ -45,6 +46,9 @@ namespace vkr
 
         void addObject(std::shared_ptr<SceneObject> const& object);
 
+        vkr::Camera& getCamera() { return m_camera; }
+        vkr::Camera const& getCamera() const { return m_camera; }
+
         void onFramebufferResized();
         void draw();
 
@@ -79,6 +83,8 @@ namespace vkr
         void updateUniformBuffer(uint32_t currentImage);
 
     private:
+        vkr::Camera m_camera;
+
         std::unique_ptr<vkr::Swapchain> m_swapchain;
         std::unique_ptr<vkr::RenderPass> m_renderPass;
         std::unique_ptr<vkr::PipelineLayout> m_pipelineLayout;

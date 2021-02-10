@@ -148,6 +148,8 @@ private:
     {
         m_renderer = std::make_unique<vkr::Renderer>(getApp());
         m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
+
+        updateCamera();
     }
 
     void loadResources()
@@ -202,6 +204,11 @@ private:
         ImGui::Text("CPU Utilization %.2f%%", cpuUtilizationRatio * 100.0f);
         ImGui::End();
 
+        ImGui::Begin("Camera");
+        ImGui::SliderFloat3("Position", &m_cameraPos[0], -10.0f, 10.0f, "%.2f", 1.0f);
+        ImGui::SliderFloat3("Rotation", &m_cameraRotation[0], -180.0f, 180.0f, "%.1f", 1.0f);
+        ImGui::End();
+
         ImGui::Render();
     }
 
@@ -224,19 +231,28 @@ private:
 
         updateUI(m_lastFrameTime, m_lastFenceTime);
 
-        auto updateObject = [](vkr::SceneObject& object, float time, float posX, float amplitudeZ, float scale)
+        auto updateObject = [](vkr::Transform& transform, float time, float posX, float amplitudeZ, float scale)
         {
             float posZ = amplitudeZ * (std::sin(5.0f * time) * 0.5f + 0.5f);
-            object.setPos({ posX, 0.0f, posZ });
+            transform.setPos({ posX, 0.0f, posZ });
 
-            object.setRotation(glm::angleAxis(time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+            transform.setRotation(glm::angleAxis(time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
 
-            object.setScale(glm::vec3(scale));
+            transform.setScale(glm::vec3(scale));
         };
 
         float time = m_appTime.getTime();
-        updateObject(*m_leftRoom, time, MODEL1_INSTANCE1_POSITION_X, MODEL1_INSTANCE1_AMPLITUDE_Z, MODEL1_SCALE);
-        updateObject(*m_rightRoom, time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, MODEL1_SCALE);
+        updateObject(m_leftRoom->getTransform(), time, MODEL1_INSTANCE1_POSITION_X, MODEL1_INSTANCE1_AMPLITUDE_Z, MODEL1_SCALE);
+        updateObject(m_rightRoom->getTransform(), time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, MODEL1_SCALE);
+
+        updateCamera();
+    }
+
+    void updateCamera()
+    {
+        m_renderer->getCamera().getTransform().setPos(m_cameraPos);
+
+        m_renderer->getCamera().getTransform().setRotation(glm::radians(m_cameraRotation));
     }
 
     vkr::Application const& getApp() { return *m_application; }
@@ -269,6 +285,9 @@ private:
     std::uint32_t m_fpsDrawnFrames = 0;
     float m_lastFrameTime = 0.0f;
     float m_lastFenceTime = 0.0f;
+
+    glm::vec3 m_cameraPos = glm::vec3(0.0f, -3.0f, 3.0f);
+    glm::vec3 m_cameraRotation = glm::vec3(-45.0f, 0.0f, 0.0f);
 };
 
 int main()

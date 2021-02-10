@@ -156,6 +156,12 @@
     </ClCompile>
     <ClCompile Include="CommandBuffer.cpp" />
     <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="Transform.cpp">
+      <Filter>User</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>User</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h">
@@ -301,5 +307,11 @@
     </ClInclude>
     <ClInclude Include="CommandBuffer.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="Transform.h">
+      <Filter>User</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>User</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

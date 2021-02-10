@@ -162,15 +162,10 @@ void vkr::Renderer::updateUniformBuffer(uint32_t currentImage)
 {
     for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
     {
-        // TODO extract to Camera object
-        auto view = glm::lookAt(glm::vec3(0.0f, -3.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        auto proj = glm::perspective(glm::radians(45.0f), getAspect(), 0.1f, 10.0f);
-        proj[1][1] *= -1;
-
         UniformBufferObject ubo{};
-        ubo.model = instance->getSceneObject().getMatrix();
-        ubo.view = view;
-        ubo.proj = proj;
+        ubo.model = instance->getSceneObject().getTransform().getMatrix();
+        ubo.view = m_camera.getViewProjectionMatrix();
+        ubo.proj = glm::identity<glm::mat4x4>(); // TODO remove
 
         instance->copyToUniformBuffer(currentImage, &ubo, sizeof(ubo));
     }
@@ -180,6 +175,8 @@ void vkr::Renderer::onSwapchainCreated()
 {
     for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
         instance->onSwapchainCreated(*m_swapchain);
+
+    m_camera.setAspect(getAspect());
 }
 
 void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources)
