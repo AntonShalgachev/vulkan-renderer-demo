@@ -212,6 +212,9 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
     for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
     {
+        if (!instance->getSceneObject().isValid())
+            continue;
+
         Material const& material = instance->getSceneObject().getMaterial();
         Shader const& shader = material.getShader();
 

@@ -34,6 +34,9 @@ void vkr::ObjectInstance::onSwapchainCreated(Swapchain const& swapchain)
     for (size_t i = 0; i < swapchainImageCount; i++)
         vkr::utils::createBuffer(getApp(), m_uniformBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uniformBuffers[i], m_uniformBuffersMemory[i]);
 
+    if (!m_sceneObject->isValid())
+        return;
+
     Material const& material = m_sceneObject->getMaterial();
 
     m_descriptorSets = std::make_unique<vkr::DescriptorSets>(getApp(), swapchainImageCount, m_setLayout);

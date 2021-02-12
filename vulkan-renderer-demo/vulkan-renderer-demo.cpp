@@ -11,7 +11,6 @@
 #include "DescriptorSetLayout.h"
 #include "PipelineLayout.h"
 #include "Pipeline.h"
-#include "Vertex.h"
 #include "DescriptorSets.h"
 #include "Mesh.h"
 #include "Semaphore.h"
@@ -39,6 +38,8 @@
 #include "Instance.h"
 #include "PhysicalDevice.h"
 #include "Timer.h"
+
+#include <tiny_gltf.h>
 
 namespace
 {
@@ -68,6 +69,36 @@ namespace
     //const float MODEL2_INSTANCE1_POSITION_X = -1.0f;
     //const float MODEL2_INSTANCE1_AMPLITUDE_Z = 0.5f;
     //const float MODEL2_INSTANCE2_POSITION_x = 1.0f;
+
+    const std::string GLTF_MODEL_PATH = "data/models/BoxTextured/glTF/BoxTextured.gltf";
+
+    std::shared_ptr<tinygltf::Model> loadModel(std::string const& path)
+    {
+        std::shared_ptr<tinygltf::Model> model = std::make_shared<tinygltf::Model>();
+        tinygltf::TinyGLTF loader;
+        std::string err;
+        std::string warn;
+        bool success = loader.LoadASCIIFromFile(model.get(), &err, &warn, path);
+
+        if (!warn.empty())
+            std::cout << warn << std::endl;
+        if (!err.empty())
+            std::cout << err << std::endl;
+
+        if (!success)
+            return nullptr;
+
+        return model;
+    }
+
+    std::unique_ptr<vkr::SceneObject> createSceneObject(vkr::Application const& app, std::shared_ptr<tinygltf::Model> const& model)
+    {
+        std::unique_ptr<vkr::SceneObject> object = std::make_unique<vkr::SceneObject>();
+
+        object->setMesh(std::make_shared<vkr::Mesh>(app, model, 0, 0));
+
+        return object;
+    }
 }
 
 class HelloTriangleApplication
@@ -174,6 +205,8 @@ private:
 
         //m_mesh2 = std::make_unique<vkr::Mesh>(getApp(), MODEL2_PATH);
         //m_texture2 = std::make_unique<vkr::Texture>(getApp(), TEXTURE2_PATH);
+
+        m_gltfModel = loadModel(GLTF_MODEL_PATH);
     }
 
     void createSceneObjects()
@@ -188,6 +221,7 @@ private:
 
         m_renderer->addObject(m_leftRoom);
         m_renderer->addObject(m_rightRoom);
+        m_renderer->addObject(createSceneObject(getApp(), m_gltfModel));
     }
 
     void updateUI(float frameTime, float fenceTime)
@@ -273,6 +307,8 @@ private:
     std::shared_ptr<vkr::Material> m_grayscaleRoomMaterial;
     //std::unique_ptr<vkr::Mesh> m_mesh2;
     //std::unique_ptr<vkr::Texture> m_texture2;
+
+    std::shared_ptr<tinygltf::Model> m_gltfModel;
 
     // Objects
     std::shared_ptr<vkr::SceneObject> m_leftRoom;

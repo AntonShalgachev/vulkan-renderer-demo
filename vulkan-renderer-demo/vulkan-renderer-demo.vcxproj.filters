@@ -241,7 +241,6 @@
     </ClInclude>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Object.h" />
-    <ClInclude Include="Vertex.h" />
     <ClInclude Include="Material.h">
       <Filter>User</Filter>
     </ClInclude>

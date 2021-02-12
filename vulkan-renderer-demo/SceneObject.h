@@ -19,6 +19,7 @@ namespace vkr
 
         Mesh const& getMesh() const { return *m_mesh; }
         Material const& getMaterial() const { return *m_material; }
+        bool isValid() const { return m_mesh && m_material; }
 
     private:
         Transform m_transform;
