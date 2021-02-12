@@ -54,7 +54,7 @@ namespace
 #endif
     bool const API_DUMP_ENABLED = false;
 
-    const std::string MODEL_ROOM_PATH = "data/models/viking_room.obj";
+    const std::string MODEL_ROOM_PATH = "data/meshes/viking_room.obj";
     const std::string TEXTURE_ROOM_PATH = "data/textures/viking_room.png";
     const float MODEL1_SCALE = 1.0f;
     const float MODEL1_INSTANCE1_POSITION_X = -1.0f;
@@ -62,7 +62,7 @@ namespace
     const float MODEL1_INSTANCE2_POSITION_X = 1.0f;
     const float MODEL1_INSTANCE2_AMPLITUDE_Z = 0.0f;
 
-    //const std::string MODEL2_PATH = "data/models/cat.obj";
+    //const std::string MODEL2_PATH = "data/meshes/cat.obj";
     //const std::string TEXTURE2_PATH = "data/textures/cat.jpg";
     //const float MODEL2_SCALE = 0.01f;
     //const float MODEL2_INSTANCE1_POSITION_X = -1.0f;
