@@ -36,7 +36,7 @@ vkr::RenderPass::RenderPass(Application const& app, Swapchain const& swapchain) 
     m_depthFormat = findDepthFormat(getPhysicalDevice());
 
     VkAttachmentDescription colorAttachment{};
-    colorAttachment.format = swapchain.getSurfaceFormat().format;
+    colorAttachment.format = swapchain.getSurfaceFormat().format; // TODO it shouldn't depend on the swapchain
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
     colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;

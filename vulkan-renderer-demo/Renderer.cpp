@@ -33,6 +33,7 @@
 #include "CommandBuffer.h"
 #include "imgui/imgui_impl_vulkan.h"
 #include "imgui/imgui.h"
+#include "VertexLayout.h"
 
 namespace
 {
@@ -215,14 +216,14 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
         if (!instance->getSceneObject().isValid())
             continue;
 
+        Mesh const& mesh = instance->getSceneObject().getMesh();
         Material const& material = instance->getSceneObject().getMaterial();
         Shader const& shader = material.getShader();
 
         if (!instance->hasPipeline())
-            instance->setPipeline(createPipeline(shader));
+            instance->setPipeline(createPipeline(shader, mesh.getVertexLayout()));
         instance->bindPipeline(handle);
 
-        Mesh const& mesh = instance->getSceneObject().getMesh();
         mesh.bindBuffers(handle);
 
         instance->bindDescriptorSet(handle, imageIndex, *m_pipelineLayout);
@@ -238,9 +239,9 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
     commandBuffer.end();
 }
 
-std::unique_ptr<vkr::Pipeline> vkr::Renderer::createPipeline(Shader const& shader)
+std::unique_ptr<vkr::Pipeline> vkr::Renderer::createPipeline(Shader const& shader, VertexLayout const& vertexLayout)
 {
-    return std::make_unique<vkr::Pipeline>(getApp(), *m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), shader.createVertexModule(), shader.createFragmentModule());
+    return std::make_unique<vkr::Pipeline>(getApp(), *m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), shader.createVertexModule(), shader.createFragmentModule(), vertexLayout);
 }
 
 void vkr::Renderer::createSyncObjects()

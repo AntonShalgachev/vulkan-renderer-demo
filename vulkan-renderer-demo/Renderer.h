@@ -28,6 +28,7 @@ namespace vkr
     class Shader;
     class CommandPool;
     class CommandBuffer;
+    class VertexLayout;
 
     class Renderer : Object
     {
@@ -74,7 +75,7 @@ namespace vkr
         void createSwapchain();
         void createSyncObjects();
         void recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources);
-        std::unique_ptr<Pipeline> createPipeline(Shader const& shader);
+        std::unique_ptr<Pipeline> createPipeline(Shader const& shader, VertexLayout const& vertexLayout);
 
         void recreateSwapchain();
 

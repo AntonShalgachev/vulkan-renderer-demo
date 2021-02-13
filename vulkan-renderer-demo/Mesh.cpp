@@ -166,6 +166,16 @@ void vkr::Mesh::loadMesh(std::string const& path)
     std::memcpy(m_combinedData.data() + m_positionColorDataOffset, positionColors.data(), m_positionColorBufferSize);
     std::memcpy(m_combinedData.data() + m_texcoordDataOffset, texCoords.data(), m_texcoordBufferSize);
     std::memcpy(m_combinedData.data() + m_indexDataOffset, indices.data(), m_indexBufferSize);
+
+    std::vector<VertexLayout::Binding> bindings;
+    bindings.emplace_back(sizeof(glm::vec3) + sizeof(glm::vec3))
+        .addAttribute(0, VertexLayout::AttributeType::Vec3, VertexLayout::AttributeComponentType::Float, 0)
+        .addAttribute(1, VertexLayout::AttributeType::Vec3, VertexLayout::AttributeComponentType::Float, sizeof(glm::vec3));
+
+    bindings.emplace_back(sizeof(glm::vec2))
+        .addAttribute(2, VertexLayout::AttributeType::Vec2, VertexLayout::AttributeComponentType::Float, 0);
+
+    m_vertexLayout = VertexLayout{ bindings };
 }
 
 void vkr::Mesh::createBuffers(std::vector<unsigned char> const& rawData)

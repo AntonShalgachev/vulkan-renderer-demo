@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include "VertexLayout.h"
 
 namespace tinygltf { class Model; }
 
@@ -18,6 +19,8 @@ namespace vkr
     public:
     	Mesh(Application const& app, std::string const& path);
     	Mesh(Application const& app, std::shared_ptr<tinygltf::Model> const& model, std::size_t meshIndex, std::size_t primitiveIndex);
+
+        VertexLayout getVertexLayout() const { return m_vertexLayout; }
 
         void bindBuffers(VkCommandBuffer commandBuffer) const;
 
@@ -47,6 +50,8 @@ namespace vkr
         std::unique_ptr<vkr::DeviceMemory> m_bufferMemory;
 
         std::shared_ptr<tinygltf::Model> m_gltfModel;
+
+        VertexLayout m_vertexLayout;
 
     private:
         static Mesh const* ms_boundMesh;

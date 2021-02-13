@@ -8,11 +8,12 @@ namespace vkr
     class ShaderModule;
     class PipelineLayout;
     class RenderPass;
+    class VertexLayout;
 
     class Pipeline : public Object
     {
     public:
-    	explicit Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, ShaderModule const& vertShaderModule, ShaderModule const& fragShaderModule);
+    	explicit Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, ShaderModule const& vertShaderModule, ShaderModule const& fragShaderModule, VertexLayout const& vertexLayout);
     	~Pipeline();
 
         void bind(VkCommandBuffer commandBuffer) const;

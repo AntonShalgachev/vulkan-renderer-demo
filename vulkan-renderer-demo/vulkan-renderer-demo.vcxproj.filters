@@ -162,6 +162,7 @@
     <ClCompile Include="Camera.cpp">
       <Filter>User</Filter>
     </ClCompile>
+    <ClCompile Include="VertexLayout.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h">
@@ -312,5 +313,6 @@
     <ClInclude Include="Camera.h">
       <Filter>User</Filter>
     </ClInclude>
+    <ClInclude Include="VertexLayout.h" />
   </ItemGroup>
 </Project>

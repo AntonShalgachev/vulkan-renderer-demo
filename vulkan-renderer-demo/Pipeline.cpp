@@ -3,55 +3,11 @@
 #include "PipelineLayout.h"
 #include "RenderPass.h"
 #include "Device.h"
-
-#include <glm/glm.hpp>
-#include <glm/gtx/hash.hpp>
-
-namespace
-{
-    // TODO extract to an object
-    std::vector<VkVertexInputBindingDescription> getBindingDescriptions()
-    {
-        std::vector<VkVertexInputBindingDescription> bindingDescriptions{ 2 };
-
-        bindingDescriptions[0].binding = 0;
-        bindingDescriptions[0].stride = sizeof(glm::vec3) + sizeof(glm::vec3);
-        bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-        bindingDescriptions[1].binding = 1;
-        bindingDescriptions[1].stride = sizeof(glm::vec2);
-        bindingDescriptions[1].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-        return bindingDescriptions;
-    }
-
-    // TODO extract to an object
-    std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions()
-    {
-        std::vector<VkVertexInputAttributeDescription> attributeDescriptions{ 3 };
-
-        attributeDescriptions[0].binding = 0;
-        attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[0].offset = 0;
-
-        attributeDescriptions[1].binding = 0;
-        attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset = sizeof(glm::vec3);
-
-        attributeDescriptions[2].binding = 1;
-        attributeDescriptions[2].location = 2;
-        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[2].offset = 0;
-
-        return attributeDescriptions;
-    }
-}
+#include "VertexLayout.h"
 
 vkr::Pipeline const* vkr::Pipeline::ms_boundPipeline = nullptr;
 
-vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, ShaderModule const& vertShaderModule, ShaderModule const& fragShaderModule) : Object(app)
+vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, ShaderModule const& vertShaderModule, ShaderModule const& fragShaderModule, VertexLayout const& vertexLayout) : Object(app)
 {
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = vertShaderModule.createStageCreateInfo();
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = fragShaderModule.createStageCreateInfo();
@@ -65,11 +21,11 @@ vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, Re
     vertexInputCreateInfo.vertexAttributeDescriptionCount = 0;
     vertexInputCreateInfo.pVertexAttributeDescriptions = nullptr;
 
-    auto bindingDescriptions = ::getBindingDescriptions();
+    auto bindingDescriptions = vertexLayout.getBindingDescriptions();
     vertexInputCreateInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
     vertexInputCreateInfo.pVertexBindingDescriptions = bindingDescriptions.data();
 
-    auto attributeDescriptions = ::getAttributeDescriptions();
+    auto attributeDescriptions = vertexLayout.getAttributeDescriptions();
     vertexInputCreateInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
     vertexInputCreateInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
