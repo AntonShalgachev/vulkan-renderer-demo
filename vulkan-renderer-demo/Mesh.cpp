@@ -23,6 +23,64 @@ namespace
             return pos == other.pos && color == other.color && texCoord == other.texCoord;
         }
     };
+
+    vkr::VertexLayout::ComponentType findComponentType(int gltfComponentType)
+    {
+        switch(gltfComponentType)
+        {
+        case TINYGLTF_COMPONENT_TYPE_BYTE:
+            return vkr::VertexLayout::ComponentType::Byte;
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
+            return vkr::VertexLayout::ComponentType::UnsignedByte;
+        case TINYGLTF_COMPONENT_TYPE_SHORT:
+            return vkr::VertexLayout::ComponentType::Short;
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+            return vkr::VertexLayout::ComponentType::UnsignedShort;
+        case TINYGLTF_COMPONENT_TYPE_INT:
+            return vkr::VertexLayout::ComponentType::Int;
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
+            return vkr::VertexLayout::ComponentType::UnsignedInt;
+        case TINYGLTF_COMPONENT_TYPE_FLOAT:
+            return vkr::VertexLayout::ComponentType::Float;
+        case TINYGLTF_COMPONENT_TYPE_DOUBLE:
+            return vkr::VertexLayout::ComponentType::Double;
+        }
+
+        throw std::invalid_argument("gltfComponentType");
+    }
+
+    vkr::VertexLayout::AttributeType findAttributeType(int gltfAttributeType)
+    {
+        switch(gltfAttributeType)
+        {
+        case TINYGLTF_TYPE_VEC2:
+            return vkr::VertexLayout::AttributeType::Vec2;
+        case TINYGLTF_TYPE_VEC3:
+            return vkr::VertexLayout::AttributeType::Vec3;
+        case TINYGLTF_TYPE_VEC4:
+            return vkr::VertexLayout::AttributeType::Vec4;
+        case TINYGLTF_TYPE_MAT2:
+            return vkr::VertexLayout::AttributeType::Mat2;
+        case TINYGLTF_TYPE_MAT3:
+            return vkr::VertexLayout::AttributeType::Mat3;
+        case TINYGLTF_TYPE_MAT4:
+            return vkr::VertexLayout::AttributeType::Mat4;
+        }
+
+        throw std::invalid_argument("gltfAttributeType");
+    }
+
+    std::size_t findAttributeLocation(std::string const& name)
+    {
+        static std::vector<std::string> const attributeNames = {"POSITION", "COLOR_0", "TEXCOORD_0", "NORMAL"};
+
+        auto it = std::find(attributeNames.cbegin(), attributeNames.cend(), name);
+
+        if (it != attributeNames.end())
+            return static_cast<std::size_t>(std::distance(attributeNames.begin(), it));
+
+        throw std::runtime_error("Unkown attribute name: " + name);
+    }
 }
 
 namespace std
@@ -54,6 +112,32 @@ vkr::Mesh::Mesh(Application const& app, std::shared_ptr<tinygltf::Model> const& 
 
     tinygltf::Primitive const& primitive = model->meshes[meshIndex].primitives[primitiveIndex];
 
+    {
+        tinygltf::Accessor const& indexAccessor = model->accessors[static_cast<std::size_t>(primitive.indices)];
+        m_vertexLayout.setIndexType(findComponentType(indexAccessor.componentType));
+        m_indexCount = indexAccessor.count;
+    }
+
+    std::vector<VertexLayout::Binding> bindings;
+    //std::map<std::size_t, std::size_t> bindingsMap; // mapping between buffer view and bindings indices
+
+    bindings.reserve(model->bufferViews.size());
+
+    for (std::size_t bufferViewIndex = 0; bufferViewIndex < model->bufferViews.size(); bufferViewIndex++)
+    {
+        tinygltf::BufferView const& bufferView = model->bufferViews[bufferViewIndex];
+
+        if (bufferView.target == TINYGLTF_TARGET_ARRAY_BUFFER)
+        {
+            //bindingsMap.emplace(bufferViewIndex, bindings.size());
+            //bindings.emplace_back(bufferView.byteOffset, bufferView.byteLength, bufferView.byteStride);
+        }
+        else if (bufferView.target == TINYGLTF_TARGET_ELEMENT_ARRAY_BUFFER)
+        {
+            m_vertexLayout.setIndexDataOffset(bufferView.byteOffset);
+        }
+    }
+
     for (auto const& entry : primitive.attributes)
     {
         std::string const& name = entry.first;
@@ -61,11 +145,22 @@ vkr::Mesh::Mesh(Application const& app, std::shared_ptr<tinygltf::Model> const& 
 
         tinygltf::Accessor const& accessor = model->accessors[static_cast<std::size_t>(accessorIndex)];
         tinygltf::BufferView const& bufferView = model->bufferViews[static_cast<std::size_t>(accessor.bufferView)];
-        tinygltf::Buffer const& buffer = model->buffers[static_cast<std::size_t>(bufferView.buffer)];
 
-        (void*)&buffer;
-        (void*)&name;
+        std::size_t location = findAttributeLocation(name);
+        vkr::VertexLayout::AttributeType attributeType = findAttributeType(accessor.type);
+        vkr::VertexLayout::ComponentType componentType = findComponentType(accessor.componentType);
+        std::size_t offset = accessor.byteOffset;
+
+        //std::size_t bindingIndex = bindingsMap.at(static_cast<std::size_t>(accessor.bufferView));
+        //bindings[bindingIndex].addAttribute(location, attributeType, componentType, offset);
+
+        bindings.emplace_back(bufferView.byteOffset + offset, bufferView.byteLength, bufferView.byteStride)
+            .addAttribute(location, attributeType, componentType, 0);
     }
+
+    m_vertexLayout.setBindings(bindings);
+
+    m_vertexLayout.setIndexType(VertexLayout::ComponentType::UnsignedShort);
 
     std::size_t bufferIndex = 0; // TODO use all buffers
     std::vector<unsigned char> const& data = m_gltfModel->buffers[bufferIndex].data;
@@ -78,12 +173,14 @@ void vkr::Mesh::bindBuffers(VkCommandBuffer commandBuffer) const
     if (ms_boundMesh == this)
         return;
 
-    VkBuffer vertexBuffers[] = { m_buffer->getHandle(), m_buffer->getHandle() };
-    VkDeviceSize offsets[] = { m_positionColorDataOffset, m_texcoordDataOffset };
-    vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers, offsets);
+    auto const& bindingOffsets = m_vertexLayout.getBindingOffsets();
 
-    // TODO fix index type
-    vkCmdBindIndexBuffer(commandBuffer, m_buffer->getHandle(), m_indexDataOffset, VK_INDEX_TYPE_UINT32);
+    std::vector<VkBuffer> vertexBuffers;
+    vertexBuffers.resize(bindingOffsets.size(), m_buffer->getHandle());
+
+    vkCmdBindVertexBuffers(commandBuffer, 0, static_cast<uint32_t>(bindingOffsets.size()), vertexBuffers.data(), m_vertexLayout.getBindingOffsets().data());
+
+    vkCmdBindIndexBuffer(commandBuffer, m_buffer->getHandle(), m_vertexLayout.getIndexDataOffset(), m_vertexLayout.getIndexType());
 
     ms_boundMesh = this;
 }
@@ -134,6 +231,7 @@ void vkr::Mesh::loadMesh(std::string const& path)
         }
     }
 
+    // TODO remove this bullshit
     struct PositionColor
     {
         glm::vec3 pos;
@@ -152,30 +250,32 @@ void vkr::Mesh::loadMesh(std::string const& path)
         texCoords.push_back(vertex.texCoord);
     }
 
-    m_positionColorBufferSize = sizeof(positionColors[0]) * positionColors.size();
-    m_texcoordBufferSize = sizeof(texCoords[0]) * texCoords.size();
-    m_indexBufferSize = sizeof(indices[0]) * indices.size();
+    auto positionColorBufferSize = sizeof(positionColors[0]) * positionColors.size();
+    auto texcoordBufferSize = sizeof(texCoords[0]) * texCoords.size();
+    std::size_t indexBufferSize = sizeof(indices[0]) * indices.size();
 
-    m_positionColorDataOffset = 0;
-    m_texcoordDataOffset = m_positionColorBufferSize;
-    m_indexDataOffset = m_positionColorBufferSize + m_texcoordBufferSize;
+    auto positionColorDataOffset = 0;
+    auto texcoordDataOffset = positionColorBufferSize;
+    auto indexDataOffset = positionColorBufferSize + texcoordBufferSize;
 
     m_indexCount = indices.size();
+    m_vertexLayout.setIndexType(VertexLayout::ComponentType::UnsignedInt);
+    m_vertexLayout.setIndexDataOffset(indexDataOffset);
 
-    m_combinedData.resize(m_positionColorBufferSize + m_texcoordBufferSize + m_indexBufferSize);
-    std::memcpy(m_combinedData.data() + m_positionColorDataOffset, positionColors.data(), m_positionColorBufferSize);
-    std::memcpy(m_combinedData.data() + m_texcoordDataOffset, texCoords.data(), m_texcoordBufferSize);
-    std::memcpy(m_combinedData.data() + m_indexDataOffset, indices.data(), m_indexBufferSize);
+    m_combinedData.resize(positionColorBufferSize + texcoordBufferSize + indexBufferSize);
+    std::memcpy(m_combinedData.data() + positionColorDataOffset, positionColors.data(), positionColorBufferSize);
+    std::memcpy(m_combinedData.data() + texcoordDataOffset, texCoords.data(), texcoordBufferSize);
+    std::memcpy(m_combinedData.data() + indexDataOffset, indices.data(), indexBufferSize);
 
     std::vector<VertexLayout::Binding> bindings;
-    bindings.emplace_back(sizeof(glm::vec3) + sizeof(glm::vec3))
-        .addAttribute(0, VertexLayout::AttributeType::Vec3, VertexLayout::AttributeComponentType::Float, 0)
-        .addAttribute(1, VertexLayout::AttributeType::Vec3, VertexLayout::AttributeComponentType::Float, sizeof(glm::vec3));
+    bindings.emplace_back(positionColorDataOffset, positionColorBufferSize, sizeof(glm::vec3) + sizeof(glm::vec3))
+        .addAttribute(0, VertexLayout::AttributeType::Vec3, VertexLayout::ComponentType::Float, 0)
+        .addAttribute(1, VertexLayout::AttributeType::Vec3, VertexLayout::ComponentType::Float, sizeof(glm::vec3));
 
-    bindings.emplace_back(sizeof(glm::vec2))
-        .addAttribute(2, VertexLayout::AttributeType::Vec2, VertexLayout::AttributeComponentType::Float, 0);
+    bindings.emplace_back(texcoordDataOffset, texcoordBufferSize, sizeof(glm::vec2))
+        .addAttribute(2, VertexLayout::AttributeType::Vec2, VertexLayout::ComponentType::Float, 0);
 
-    m_vertexLayout = VertexLayout{ bindings };
+    m_vertexLayout.setBindings(bindings);
 }
 
 void vkr::Mesh::createBuffers(std::vector<unsigned char> const& rawData)

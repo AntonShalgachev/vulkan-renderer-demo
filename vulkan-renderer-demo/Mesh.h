@@ -38,13 +38,6 @@ namespace vkr
         std::vector<unsigned char> m_combinedData;
 
         std::size_t m_indexCount = 0;
-        VkDeviceSize m_indexBufferSize = 0;
-        VkDeviceSize m_indexDataOffset = 0;
-
-        VkDeviceSize m_positionColorDataOffset = 0;
-        VkDeviceSize m_positionColorBufferSize = 0;
-        VkDeviceSize m_texcoordDataOffset = 0;
-        VkDeviceSize m_texcoordBufferSize = 0;
 
         std::unique_ptr<vkr::Buffer> m_buffer;
         std::unique_ptr<vkr::DeviceMemory> m_bufferMemory;

@@ -70,7 +70,8 @@ namespace
     //const float MODEL2_INSTANCE1_AMPLITUDE_Z = 0.5f;
     //const float MODEL2_INSTANCE2_POSITION_x = 1.0f;
 
-    const std::string GLTF_MODEL_PATH = "data/models/BoxTextured/glTF/BoxTextured.gltf";
+    //const std::string GLTF_MODEL_PATH = "data/models/BoxTextured/glTF/BoxTextured.gltf";
+    const std::string GLTF_MODEL_PATH = "data/models/Box/glTF/Box.gltf";
 
     std::shared_ptr<tinygltf::Model> loadModel(std::string const& path)
     {
@@ -220,8 +221,11 @@ private:
         m_rightRoom->setMaterial(m_grayscaleRoomMaterial);
 
         m_renderer->addObject(m_leftRoom);
-        m_renderer->addObject(m_rightRoom);
-        m_renderer->addObject(createSceneObject(getApp(), m_gltfModel));
+        //m_renderer->addObject(m_rightRoom);
+
+        m_model = createSceneObject(getApp(), m_gltfModel);
+        m_model->setMaterial(m_roomMaterial);
+        m_renderer->addObject(m_model);
     }
 
     void updateUI(float frameTime, float fenceTime)
@@ -278,6 +282,7 @@ private:
         float time = m_appTime.getTime();
         updateObject(m_leftRoom->getTransform(), time, MODEL1_INSTANCE1_POSITION_X, MODEL1_INSTANCE1_AMPLITUDE_Z, MODEL1_SCALE);
         updateObject(m_rightRoom->getTransform(), time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, MODEL1_SCALE);
+        updateObject(m_model->getTransform(), time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, MODEL1_SCALE);
 
         updateCamera();
     }
@@ -313,6 +318,7 @@ private:
     // Objects
     std::shared_ptr<vkr::SceneObject> m_leftRoom;
     std::shared_ptr<vkr::SceneObject> m_rightRoom;
+    std::shared_ptr<vkr::SceneObject> m_model;
 
     std::unique_ptr<vkr::DescriptorPool> m_descriptorPool;
 

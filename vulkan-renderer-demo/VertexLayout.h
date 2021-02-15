@@ -1,8 +1,7 @@
 #pragma once
-#include <vector>
 
-struct VkVertexInputBindingDescription;
-struct VkVertexInputAttributeDescription;
+#include <vector>
+#include <vulkan/vulkan.h>
 
 namespace vkr
 {
@@ -19,7 +18,7 @@ namespace vkr
             Mat4,
         };
 
-        enum class AttributeComponentType
+        enum class ComponentType
         {
             Byte,
             UnsignedByte,
@@ -33,7 +32,7 @@ namespace vkr
 
         struct Attribute
         {
-            Attribute(std::size_t location, AttributeType type, AttributeComponentType componentType, std::size_t offset)
+            Attribute(std::size_t location, AttributeType type, ComponentType componentType, std::size_t offset)
                 : location(location)
                 , type(type)
                 , componentType(componentType)
@@ -42,15 +41,15 @@ namespace vkr
 
             }
 
-            std::size_t location;
-            AttributeType type;
-            AttributeComponentType componentType;
-            std::size_t offset;
+            std::size_t location = 0;
+            AttributeType type = AttributeType::Vec2;
+            ComponentType componentType = ComponentType::Float;
+            std::size_t offset = 0;
         };
 
         struct Binding
         {
-            Binding(std::size_t stride) : stride(stride) {}
+            Binding(std::size_t offset, std::size_t length, std::size_t stride) : offset(offset), length(length), stride(stride) {}
 
             template<class... Args>
             Binding& addAttribute(Args&&... args)
@@ -59,18 +58,29 @@ namespace vkr
                 return *this;
             }
 
-            std::size_t stride;
+            std::size_t offset = 0;
+            std::size_t length = 0;
+            std::size_t stride = 0;
             std::vector<Attribute> attributes;
         };
 
-        VertexLayout() = default;
-    	VertexLayout(std::vector<Binding> const& bindings);
-
+        void setBindings(std::vector<Binding> const& bindings);
+        std::vector<VkDeviceSize> const& getBindingOffsets() const { return m_bindingOffsets; }
         std::vector<VkVertexInputBindingDescription> const& getBindingDescriptions() const { return m_bindingDescriptions; }
         std::vector<VkVertexInputAttributeDescription> const& getAttributeDescriptions() const { return m_attributeDescriptions; };
 
+        void setIndexType(ComponentType indexType);
+        VkIndexType getIndexType() const { return m_indexType; }
+
+        void setIndexDataOffset(std::size_t offset) { m_indexDataOffset = offset; }
+        VkDeviceSize getIndexDataOffset() const { return m_indexDataOffset; }
+
     private:
+        std::vector<VkDeviceSize> m_bindingOffsets;
         std::vector<VkVertexInputBindingDescription> m_bindingDescriptions;
         std::vector<VkVertexInputAttributeDescription> m_attributeDescriptions;
+
+        VkIndexType m_indexType = VK_INDEX_TYPE_UINT16;
+        VkDeviceSize m_indexDataOffset = 0;
     };
 }
