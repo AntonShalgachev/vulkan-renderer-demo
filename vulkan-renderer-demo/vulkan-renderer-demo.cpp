@@ -71,7 +71,9 @@ namespace
     //const float MODEL2_INSTANCE2_POSITION_x = 1.0f;
 
     //const std::string GLTF_MODEL_PATH = "data/models/BoxTextured/glTF/BoxTextured.gltf";
-    const std::string GLTF_MODEL_PATH = "data/models/Box/glTF/Box.gltf";
+    //const std::string GLTF_MODEL_PATH = "data/models/Box/glTF/Box.gltf";
+    const std::string GLTF_MODEL_PATH = "data/models/Duck/glTF/Duck.gltf";
+    const float GLTF_MODEL_SCALE = 0.01f;
 
     std::shared_ptr<tinygltf::Model> loadModel(std::string const& path)
     {
@@ -269,20 +271,25 @@ private:
 
         updateUI(m_lastFrameTime, m_lastFenceTime);
 
-        auto updateObject = [](vkr::Transform& transform, float time, float posX, float amplitudeZ, float scale)
+        auto updateObject = [](vkr::Transform& transform, float time, float posX, float amplitudeZ, float scale, bool fixRotation)
         {
             float posZ = amplitudeZ * (std::sin(5.0f * time) * 0.5f + 0.5f);
             transform.setPos({ posX, 0.0f, posZ });
 
-            transform.setRotation(glm::angleAxis(time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+            glm::quat initialRotation = glm::identity<glm::quat>();
+            if (fixRotation)
+                initialRotation = glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+            transform.setRotation(glm::angleAxis(time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * initialRotation);
 
             transform.setScale(glm::vec3(scale));
         };
 
         float time = m_appTime.getTime();
-        updateObject(m_leftRoom->getTransform(), time, MODEL1_INSTANCE1_POSITION_X, MODEL1_INSTANCE1_AMPLITUDE_Z, MODEL1_SCALE);
-        updateObject(m_rightRoom->getTransform(), time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, MODEL1_SCALE);
-        updateObject(m_model->getTransform(), time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, MODEL1_SCALE);
+        updateObject(m_leftRoom->getTransform(), time, MODEL1_INSTANCE1_POSITION_X, MODEL1_INSTANCE1_AMPLITUDE_Z, MODEL1_SCALE, false);
+        updateObject(m_rightRoom->getTransform(), time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, MODEL1_SCALE, false);
+
+        updateObject(m_model->getTransform(), time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, GLTF_MODEL_SCALE, true);
 
         updateCamera();
     }
