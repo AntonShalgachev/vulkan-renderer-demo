@@ -93,15 +93,6 @@ namespace
 
         return model;
     }
-
-    std::unique_ptr<vkr::SceneObject> createSceneObject(vkr::Application const& app, std::shared_ptr<tinygltf::Model> const& model)
-    {
-        std::unique_ptr<vkr::SceneObject> object = std::make_unique<vkr::SceneObject>();
-
-        object->setMesh(std::make_shared<vkr::Mesh>(app, model, 0, 0));
-
-        return object;
-    }
 }
 
 class HelloTriangleApplication
@@ -191,25 +182,56 @@ private:
         m_defaultShader = std::make_shared<vkr::Shader>(getApp(), "data/shaders/vert.spv", "data/shaders/frag.spv");
         m_grayscaleShader = std::make_shared<vkr::Shader>(getApp(), "data/shaders/grayscale_vert.spv", "data/shaders/grayscale_frag.spv");
 
-        auto defaultSampler = std::make_shared<vkr::Sampler>(getApp());
+        m_defaultSampler = std::make_shared<vkr::Sampler>(getApp());
 
         m_roomMesh = std::make_shared<vkr::Mesh>(getApp(), MODEL_ROOM_PATH);
 
         auto roomTexture = std::make_shared<vkr::Texture>(getApp(), TEXTURE_ROOM_PATH);
         m_roomMaterial = std::make_shared<vkr::Material>();
         m_roomMaterial->setTexture(roomTexture);
-        m_roomMaterial->setSampler(defaultSampler);
+        m_roomMaterial->setSampler(m_defaultSampler);
         m_roomMaterial->setShader(m_defaultShader);
 
         m_grayscaleRoomMaterial = std::make_shared<vkr::Material>();
         m_grayscaleRoomMaterial->setTexture(roomTexture);
-        m_grayscaleRoomMaterial->setSampler(defaultSampler);
+        m_grayscaleRoomMaterial->setSampler(m_defaultSampler);
         m_grayscaleRoomMaterial->setShader(m_grayscaleShader);
 
         //m_mesh2 = std::make_unique<vkr::Mesh>(getApp(), MODEL2_PATH);
         //m_texture2 = std::make_unique<vkr::Texture>(getApp(), TEXTURE2_PATH);
 
         m_gltfModel = loadModel(GLTF_MODEL_PATH);
+    }
+
+    std::unique_ptr<vkr::SceneObject> createSceneObject(std::shared_ptr<tinygltf::Model> const& model)
+    {
+        std::unique_ptr<vkr::SceneObject> object = std::make_unique<vkr::SceneObject>();
+
+        std::size_t const meshIndex = 0;
+        std::size_t const primitiveIndex = 0;
+
+        object->setMesh(std::make_shared<vkr::Mesh>(getApp(), model, meshIndex, primitiveIndex));
+
+        {
+            std::size_t materialIndex = static_cast<std::size_t>(model->meshes[meshIndex].primitives[primitiveIndex].material);
+            tinygltf::Material const& material = model->materials[materialIndex];
+            (void*)&material;
+
+            int a = 0;
+            (void*)&a;
+        }
+
+        tinygltf::Image const& image = model->images[0];
+
+        auto texture = std::make_shared<vkr::Texture>(getApp(), image);
+        auto material = std::make_shared<vkr::Material>();
+        material->setTexture(texture);
+        material->setSampler(m_defaultSampler);
+        material->setShader(m_defaultShader);
+
+        object->setMaterial(material);
+
+        return object;
     }
 
     void createSceneObjects()
@@ -225,8 +247,7 @@ private:
         m_renderer->addObject(m_leftRoom);
         //m_renderer->addObject(m_rightRoom);
 
-        m_model = createSceneObject(getApp(), m_gltfModel);
-        m_model->setMaterial(m_roomMaterial);
+        m_model = createSceneObject(m_gltfModel);
         m_renderer->addObject(m_model);
     }
 
@@ -310,6 +331,7 @@ private:
     std::unique_ptr<vkr::Renderer> m_renderer;
 
     // Resources
+    std::shared_ptr<vkr::Sampler> m_defaultSampler;
     std::shared_ptr<vkr::Shader> m_defaultShader;
     std::shared_ptr<vkr::Shader> m_grayscaleShader;
 
