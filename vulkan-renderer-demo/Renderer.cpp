@@ -218,7 +218,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
         Mesh const& mesh = instance->getSceneObject().getMesh();
         Material const& material = instance->getSceneObject().getMaterial();
-        Shader const& shader = material.getShader();
+        Shader const& shader = *material.getShader();
 
         if (!instance->hasPipeline())
             instance->setPipeline(createPipeline(shader, mesh.getVertexLayout()));

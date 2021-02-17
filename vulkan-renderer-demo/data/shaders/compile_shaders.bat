@@ -1,6 +1,6 @@
 cd shaders/
-C:\VulkanSDK\1.2.154.1\Bin32\glslc.exe shader.vert -o vert.spv
-C:\VulkanSDK\1.2.154.1\Bin32\glslc.exe shader.frag -o frag.spv
-C:\VulkanSDK\1.2.154.1\Bin32\glslc.exe grayscale.vert -o grayscale_vert.spv
-C:\VulkanSDK\1.2.154.1\Bin32\glslc.exe grayscale.frag -o grayscale_frag.spv
+C:\VulkanSDK\1.2.154.1\Bin32\glslc.exe default.vert -o default.vert.spv
+C:\VulkanSDK\1.2.154.1\Bin32\glslc.exe default.frag -o default.frag.spv
+C:\VulkanSDK\1.2.154.1\Bin32\glslc.exe no-color.frag -o no-color.frag.spv
 cd ..
+pause

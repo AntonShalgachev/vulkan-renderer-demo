@@ -70,6 +70,57 @@ namespace
         throw std::invalid_argument("gltfAttributeType");
     }
 
+    std::size_t getNumberOfComponents(vkr::VertexLayout::AttributeType type)
+    {
+        switch (type)
+        {
+        case vkr::VertexLayout::AttributeType::Vec2:
+            return 2;
+        case vkr::VertexLayout::AttributeType::Vec3:
+            return 3;
+        case vkr::VertexLayout::AttributeType::Vec4:
+            return 4;
+        case vkr::VertexLayout::AttributeType::Mat2:
+            return 4;
+        case vkr::VertexLayout::AttributeType::Mat3:
+            return 9;
+        case vkr::VertexLayout::AttributeType::Mat4:
+            return 16;
+        }
+
+        throw std::invalid_argument("type");
+    }
+
+    std::size_t getComponentByteSize(vkr::VertexLayout::ComponentType type)
+    {
+        switch (type)
+        {
+        case vkr::VertexLayout::ComponentType::Byte:
+            return sizeof(int8_t);
+        case vkr::VertexLayout::ComponentType::UnsignedByte:
+            return sizeof(uint8_t);
+        case vkr::VertexLayout::ComponentType::Short:
+            return sizeof(int16_t);
+        case vkr::VertexLayout::ComponentType::UnsignedShort:
+            return sizeof(uint16_t);
+        case vkr::VertexLayout::ComponentType::Int:
+            return sizeof(int32_t);
+        case vkr::VertexLayout::ComponentType::UnsignedInt:
+            return sizeof(uint32_t);
+        case vkr::VertexLayout::ComponentType::Float:
+            return sizeof(float);
+        case vkr::VertexLayout::ComponentType::Double:
+            return sizeof(double);
+        }
+
+        throw std::invalid_argument("type");
+    }
+
+    std::size_t getAttributeStride(vkr::VertexLayout::AttributeType attributeType, vkr::VertexLayout::ComponentType componentType)
+    {
+        return getNumberOfComponents(attributeType) * getComponentByteSize(componentType);
+    }
+
     std::size_t findAttributeLocation(std::string const& name)
     {
         static std::vector<std::string> const attributeNames = {"POSITION", "COLOR_0", "TEXCOORD_0", "NORMAL"};
@@ -154,7 +205,11 @@ vkr::Mesh::Mesh(Application const& app, std::shared_ptr<tinygltf::Model> const& 
         //std::size_t bindingIndex = bindingsMap.at(static_cast<std::size_t>(accessor.bufferView));
         //bindings[bindingIndex].addAttribute(location, attributeType, componentType, offset);
 
-        bindings.emplace_back(bufferView.byteOffset + offset, bufferView.byteLength, bufferView.byteStride)
+        std::size_t stride = bufferView.byteStride;
+        if (stride == 0)
+            stride = getAttributeStride(attributeType, componentType);
+
+        bindings.emplace_back(bufferView.byteOffset + offset, bufferView.byteLength, stride)
             .addAttribute(location, attributeType, componentType, 0);
     }
 

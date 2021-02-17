@@ -63,15 +63,6 @@ namespace
     const float MODEL1_INSTANCE2_POSITION_X = 1.0f;
     const float MODEL1_INSTANCE2_AMPLITUDE_Z = 0.0f;
 
-    //const std::string MODEL2_PATH = "data/meshes/cat.obj";
-    //const std::string TEXTURE2_PATH = "data/textures/cat.jpg";
-    //const float MODEL2_SCALE = 0.01f;
-    //const float MODEL2_INSTANCE1_POSITION_X = -1.0f;
-    //const float MODEL2_INSTANCE1_AMPLITUDE_Z = 0.5f;
-    //const float MODEL2_INSTANCE2_POSITION_x = 1.0f;
-
-    //const std::string GLTF_MODEL_PATH = "data/models/BoxTextured/glTF/BoxTextured.gltf";
-    //const std::string GLTF_MODEL_PATH = "data/models/Box/glTF/Box.gltf";
     const std::string GLTF_MODEL_PATH = "data/models/Duck/glTF/Duck.gltf";
     const float GLTF_MODEL_SCALE = 0.01f;
 
@@ -179,8 +170,8 @@ private:
 
     void loadResources()
     {
-        m_defaultShader = std::make_shared<vkr::Shader>(getApp(), "data/shaders/vert.spv", "data/shaders/frag.spv");
-        m_grayscaleShader = std::make_shared<vkr::Shader>(getApp(), "data/shaders/grayscale_vert.spv", "data/shaders/grayscale_frag.spv");
+        m_defaultShader = std::make_shared<vkr::Shader>(getApp(), "data/shaders/default.vert.spv", "data/shaders/default.frag.spv");
+        m_noColorShader = std::make_shared<vkr::Shader>(getApp(), "data/shaders/default.vert.spv", "data/shaders/no-color.frag.spv");
 
         m_defaultSampler = std::make_shared<vkr::Sampler>(getApp());
 
@@ -195,10 +186,7 @@ private:
         m_grayscaleRoomMaterial = std::make_shared<vkr::Material>();
         m_grayscaleRoomMaterial->setTexture(roomTexture);
         m_grayscaleRoomMaterial->setSampler(m_defaultSampler);
-        m_grayscaleRoomMaterial->setShader(m_grayscaleShader);
-
-        //m_mesh2 = std::make_unique<vkr::Mesh>(getApp(), MODEL2_PATH);
-        //m_texture2 = std::make_unique<vkr::Texture>(getApp(), TEXTURE2_PATH);
+        m_grayscaleRoomMaterial->setShader(m_noColorShader);
 
         m_gltfModel = loadModel(GLTF_MODEL_PATH);
     }
@@ -212,22 +200,18 @@ private:
 
         object->setMesh(std::make_shared<vkr::Mesh>(getApp(), model, meshIndex, primitiveIndex));
 
-        {
-            std::size_t materialIndex = static_cast<std::size_t>(model->meshes[meshIndex].primitives[primitiveIndex].material);
-            tinygltf::Material const& material = model->materials[materialIndex];
-            (void*)&material;
-
-            int a = 0;
-            (void*)&a;
-        }
-
-        tinygltf::Image const& image = model->images[0];
-
-        auto texture = std::make_shared<vkr::Texture>(getApp(), image);
         auto material = std::make_shared<vkr::Material>();
-        material->setTexture(texture);
-        material->setSampler(m_defaultSampler);
-        material->setShader(m_defaultShader);
+        material->setShader(m_noColorShader);
+
+        // TODO choose shader properly
+        if (!model->images.empty())
+        {
+            tinygltf::Image const& image = model->images[0];
+            auto texture = std::make_shared<vkr::Texture>(getApp(), image);
+            material->setTexture(texture);
+            material->setSampler(m_defaultSampler);
+            material->setShader(m_defaultShader);
+        }
 
         object->setMaterial(material);
 
@@ -310,7 +294,7 @@ private:
         updateObject(m_leftRoom->getTransform(), time, MODEL1_INSTANCE1_POSITION_X, MODEL1_INSTANCE1_AMPLITUDE_Z, MODEL1_SCALE, false);
         updateObject(m_rightRoom->getTransform(), time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, MODEL1_SCALE, false);
 
-        updateObject(m_model->getTransform(), time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, GLTF_MODEL_SCALE, true);
+         updateObject(m_model->getTransform(), time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, GLTF_MODEL_SCALE, true);
 
         updateCamera();
     }
@@ -333,14 +317,11 @@ private:
     // Resources
     std::shared_ptr<vkr::Sampler> m_defaultSampler;
     std::shared_ptr<vkr::Shader> m_defaultShader;
-    std::shared_ptr<vkr::Shader> m_grayscaleShader;
+    std::shared_ptr<vkr::Shader> m_noColorShader;
 
     std::shared_ptr<vkr::Mesh> m_roomMesh;
-    //std::shared_ptr<vkr::Texture> m_texture1;
     std::shared_ptr<vkr::Material> m_roomMaterial;
     std::shared_ptr<vkr::Material> m_grayscaleRoomMaterial;
-    //std::unique_ptr<vkr::Mesh> m_mesh2;
-    //std::unique_ptr<vkr::Texture> m_texture2;
 
     std::shared_ptr<tinygltf::Model> m_gltfModel;
 

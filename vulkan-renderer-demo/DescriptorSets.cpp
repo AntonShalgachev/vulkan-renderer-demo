@@ -29,38 +29,47 @@ vkr::DescriptorSets::~DescriptorSets()
     // no need to explicitly free descriptor sets
 }
 
-void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer, Texture const& texture, Sampler const& sampler)
+void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer, std::shared_ptr<Texture> const& texture, std::shared_ptr<Sampler> const& sampler)
 {
-    VkDescriptorBufferInfo bufferInfo{};
-    bufferInfo.buffer = uniformBuffer.getHandle();
-    bufferInfo.offset = 0;
-    bufferInfo.range = uniformBuffer.getSize();
-
-    VkDescriptorImageInfo imageInfo{};
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = texture.getImageViewHandle();
-    imageInfo.sampler = sampler.getHandle();
-
     VkDescriptorSet setHandle = m_handles[index];
 
-    std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+    std::vector<VkWriteDescriptorSet> descriptorWrites;
 
     // TODO couple it with the data within DescriptorPool
-    descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrites[0].dstSet = setHandle;
-    descriptorWrites[0].dstBinding = 0;
-    descriptorWrites[0].dstArrayElement = 0;
-    descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptorWrites[0].descriptorCount = 1;
-    descriptorWrites[0].pBufferInfo = &bufferInfo;
+    {
+        VkWriteDescriptorSet& descriptorWrite = descriptorWrites.emplace_back();
 
-    descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrites[1].dstSet = setHandle;
-    descriptorWrites[1].dstBinding = 1;
-    descriptorWrites[1].dstArrayElement = 0;
-    descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    descriptorWrites[1].descriptorCount = 1;
-    descriptorWrites[1].pImageInfo = &imageInfo;
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = uniformBuffer.getHandle();
+        bufferInfo.offset = 0;
+        bufferInfo.range = uniformBuffer.getSize();
+
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = setHandle;
+        descriptorWrite.dstBinding = 0;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pBufferInfo = &bufferInfo;
+    }
+
+    if (texture && sampler)
+    {
+        VkWriteDescriptorSet& descriptorWrite = descriptorWrites.emplace_back();
+
+        VkDescriptorImageInfo imageInfo{};
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = texture->getImageViewHandle();
+        imageInfo.sampler = sampler->getHandle();
+
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = setHandle;
+        descriptorWrite.dstBinding = 1;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pImageInfo = &imageInfo;
+    }
 
     vkUpdateDescriptorSets(getDevice().getHandle(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 }
