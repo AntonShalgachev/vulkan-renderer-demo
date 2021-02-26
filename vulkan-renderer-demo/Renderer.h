@@ -10,6 +10,7 @@
 #include "CommandBuffer.h"
 #include "Timer.h"
 #include "Camera.h"
+#include "Light.h"
 
 namespace vkr
 {
@@ -46,6 +47,7 @@ namespace vkr
         }
 
         void addObject(std::shared_ptr<SceneObject> const& object);
+        void setLight(std::shared_ptr<Light> const& light) { m_light = light; }
 
         vkr::Camera& getCamera() { return m_camera; }
         vkr::Camera const& getCamera() const { return m_camera; }
@@ -102,6 +104,7 @@ namespace vkr
         std::function<void()> m_waitUntilWindowInForeground;
 
         std::vector<std::unique_ptr<vkr::ObjectInstance>> m_sceneObjects;
+        std::shared_ptr<Light> m_light;
 
         std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayout;
 

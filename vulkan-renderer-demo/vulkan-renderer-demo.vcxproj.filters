@@ -163,6 +163,7 @@
       <Filter>User</Filter>
     </ClCompile>
     <ClCompile Include="VertexLayout.cpp" />
+    <ClCompile Include="Light.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h">
@@ -314,5 +315,6 @@
       <Filter>User</Filter>
     </ClInclude>
     <ClInclude Include="VertexLayout.h" />
+    <ClInclude Include="Light.h" />
   </ItemGroup>
 </Project>

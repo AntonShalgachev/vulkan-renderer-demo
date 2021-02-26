@@ -40,8 +40,10 @@ namespace
     struct UniformBufferObject
     {
         glm::mat4 model;
-        glm::mat4 view;
-        glm::mat4 proj;
+        glm::mat4 normal;
+        glm::mat4 viewProjection;
+        glm::vec3 lightPosition;
+        glm::vec3 viewPosition;
     };
 
     const int FRAME_RESOURCE_COUNT = 3;
@@ -165,8 +167,10 @@ void vkr::Renderer::updateUniformBuffer(uint32_t currentImage)
     {
         UniformBufferObject ubo{};
         ubo.model = instance->getSceneObject().getTransform().getMatrix();
-        ubo.view = m_camera.getViewProjectionMatrix();
-        ubo.proj = glm::identity<glm::mat4x4>(); // TODO remove
+        ubo.normal = glm::transpose(glm::inverse(ubo.model));
+        ubo.viewProjection = m_camera.getViewProjectionMatrix();
+        ubo.lightPosition = m_light->getTransform().getPos();
+        ubo.viewPosition = m_camera.getTransform().getPos();
 
         instance->copyToUniformBuffer(currentImage, &ubo, sizeof(ubo));
     }

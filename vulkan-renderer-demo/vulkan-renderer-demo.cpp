@@ -40,6 +40,7 @@
 #include "Timer.h"
 
 #include <tiny_gltf.h>
+#include "Light.h"
 
 namespace
 {
@@ -60,11 +61,13 @@ namespace
     const float MODEL1_SCALE = 1.0f;
     const float MODEL1_INSTANCE1_POSITION_X = -1.0f;
     const float MODEL1_INSTANCE1_AMPLITUDE_Z = 0.0f;
-    const float MODEL1_INSTANCE2_POSITION_X = 1.0f;
+    const float MODEL1_INSTANCE2_POSITION_X = 0.0f;
     const float MODEL1_INSTANCE2_AMPLITUDE_Z = 0.0f;
 
     const std::string GLTF_MODEL_PATH = "data/models/Duck/glTF/Duck.gltf";
     const float GLTF_MODEL_SCALE = 0.01f;
+
+    const glm::vec3 LIGHT_POS = glm::vec3(-10.0, 0.0f, 0.0f);
 
     std::shared_ptr<tinygltf::Model> loadModel(std::string const& path)
     {
@@ -228,11 +231,15 @@ private:
         m_rightRoom->setMesh(m_roomMesh);
         m_rightRoom->setMaterial(m_grayscaleRoomMaterial);
 
-        m_renderer->addObject(m_leftRoom);
+//         m_renderer->addObject(m_leftRoom);
         //m_renderer->addObject(m_rightRoom);
 
         m_model = createSceneObject(m_gltfModel);
         m_renderer->addObject(m_model);
+
+        m_light = std::make_shared<vkr::Light>();
+        m_light->getTransform().setPos(LIGHT_POS);
+        m_renderer->setLight(m_light);
     }
 
     void updateUI(float frameTime, float fenceTime)
@@ -252,6 +259,14 @@ private:
         ImGui::Begin("Camera");
         ImGui::SliderFloat3("Position", &m_cameraPos[0], -10.0f, 10.0f, "%.2f", 1.0f);
         ImGui::SliderFloat3("Rotation", &m_cameraRotation[0], -180.0f, 180.0f, "%.1f", 1.0f);
+        ImGui::End();
+
+        ImGui::Begin("Light");
+        glm::vec3 lightPos = m_light->getTransform().getPos();
+        if (ImGui::SliderFloat3("Position", &lightPos[0], -10.0f, 10.0f, "%.2f", 1.0f))
+        {
+            m_light->getTransform().setPos(lightPos);
+        }
         ImGui::End();
 
         ImGui::Render();
@@ -294,7 +309,10 @@ private:
         updateObject(m_leftRoom->getTransform(), time, MODEL1_INSTANCE1_POSITION_X, MODEL1_INSTANCE1_AMPLITUDE_Z, MODEL1_SCALE, false);
         updateObject(m_rightRoom->getTransform(), time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, MODEL1_SCALE, false);
 
-         updateObject(m_model->getTransform(), time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, GLTF_MODEL_SCALE, true);
+//         updateObject(m_model->getTransform(), time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, GLTF_MODEL_SCALE, true);
+
+        m_model->getTransform().setRotation(glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+        m_model->getTransform().setScale(glm::vec3(GLTF_MODEL_SCALE));
 
         updateCamera();
     }
@@ -329,6 +347,7 @@ private:
     std::shared_ptr<vkr::SceneObject> m_leftRoom;
     std::shared_ptr<vkr::SceneObject> m_rightRoom;
     std::shared_ptr<vkr::SceneObject> m_model;
+    std::shared_ptr<vkr::Light> m_light;
 
     std::unique_ptr<vkr::DescriptorPool> m_descriptorPool;
 
