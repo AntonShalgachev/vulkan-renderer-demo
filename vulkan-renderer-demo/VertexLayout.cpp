@@ -1,7 +1,7 @@
 #include "VertexLayout.h"
 
 #include <vulkan/vulkan.h>
-#include <glm/glm.hpp>
+#include "glm.h"
 #include <glm/gtx/hash.hpp>
 #include <algorithm>
 

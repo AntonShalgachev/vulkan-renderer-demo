@@ -31,5 +31,5 @@ void main()
     fragNormal = (ubo.normal * vec4(inNormal, 0.0)).xyz;
 
 	lightVec = ubo.lightPosition - worldPos.xyz;
-	viewVec = ubo.viewPos - worldPos.xyz;
+	viewVec = worldPos.xyz - ubo.viewPos;
 }

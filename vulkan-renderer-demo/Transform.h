@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include "glm.h"
 #include <glm/gtc/quaternion.hpp>
 
 namespace vkr

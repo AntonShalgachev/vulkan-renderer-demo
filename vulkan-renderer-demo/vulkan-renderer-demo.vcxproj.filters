@@ -316,5 +316,6 @@
     </ClInclude>
     <ClInclude Include="VertexLayout.h" />
     <ClInclude Include="Light.h" />
+    <ClInclude Include="glm.h" />
   </ItemGroup>
 </Project>
