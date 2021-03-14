@@ -4,15 +4,14 @@
 #include "RenderPass.h"
 #include "Device.h"
 #include "VertexLayout.h"
+#include "Shader.h"
 
 vkr::Pipeline const* vkr::Pipeline::ms_boundPipeline = nullptr;
 
-vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, ShaderModule const& vertShaderModule, ShaderModule const& fragShaderModule, VertexLayout const& vertexLayout) : Object(app)
+vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, Shader const& shader, VertexLayout const& vertexLayout) : Object(app)
 {
-    VkPipelineShaderStageCreateInfo vertShaderStageInfo = vertShaderModule.createStageCreateInfo();
-    VkPipelineShaderStageCreateInfo fragShaderStageInfo = fragShaderModule.createStageCreateInfo();
-
-    VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+    auto compiledShader = shader.compile();
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStages = compiledShader.createStageDescriptions();
 
     VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo{};
     vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -106,8 +105,8 @@ vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, Re
 
     VkGraphicsPipelineCreateInfo pipelineCreateInfo{};
     pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineCreateInfo.stageCount = 2;
-    pipelineCreateInfo.pStages = shaderStages;
+    pipelineCreateInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
+    pipelineCreateInfo.pStages = shaderStages.data();
     pipelineCreateInfo.pVertexInputState = &vertexInputCreateInfo;
     pipelineCreateInfo.pInputAssemblyState = &inputAssemblyCreateInfo;
     pipelineCreateInfo.pViewportState = &viewportStateCreateInfo;

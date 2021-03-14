@@ -12,15 +12,23 @@ namespace vkr
         enum class Type
         {
             Vertex,
+            Geometry,
             Fragment,
         };
 
+        struct Key
+        {
+            Type type = Type::Vertex;
+            std::string path;
+            std::string entryPoint;
+        };
+
     public:
-        explicit ShaderModule(Application const& app, std::string const& path, Type type, std::string const& entryPoint);
+        explicit ShaderModule(Application const& app, Key const& key);
         ~ShaderModule();
 
         ShaderModule(ShaderModule const&) = delete;
-        ShaderModule(ShaderModule&&) = delete;
+        ShaderModule(ShaderModule&&);
         ShaderModule& operator=(ShaderModule const&) = delete;
         ShaderModule& operator=(ShaderModule&&) = delete;
 
@@ -31,8 +39,7 @@ namespace vkr
     private:
         VkShaderModule m_handle = VK_NULL_HANDLE;
 
-        Type m_type;
-        std::string m_entryPoint;
+        Key m_key;
     };
 }
 

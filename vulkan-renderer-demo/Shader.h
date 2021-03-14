@@ -1,23 +1,43 @@
 #pragma once
 #include <string>
 
-#include "ShaderModule.h"
 #include "Object.h"
+#include <vector>
+#include <algorithm>
+#include "ShaderModule.h"
+
+struct VkPipelineShaderStageCreateInfo;
 
 namespace vkr
 {
+    class CompiledShader
+    {
+    public:
+        CompiledShader(std::vector<ShaderModule> shaderModules) : m_shaderModules(std::move(shaderModules)) {}
+        std::vector<VkPipelineShaderStageCreateInfo> createStageDescriptions() const;
+
+    private:
+        std::vector<ShaderModule> m_shaderModules;
+    };
+
     class Shader : vkr::Object
     {
     public:
-    	Shader(Application const& app, std::string const& vertexPath, std::string const& fragmentPath, std::string const& vertexEntryPoint = "main", std::string const& fragmentEntryPoint = "main");
+    	Shader(Application const& app, std::vector<ShaderModule::Key> moduleKeys);
 
-        ShaderModule createVertexModule() const;
-        ShaderModule createFragmentModule() const;
+        CompiledShader compile() const;
 
     private:
-        std::string m_vertexPath;
-        std::string m_fragmentPath;
-        std::string m_vertexEntryPoint;
-        std::string m_fragmentEntryPoint;
+        std::vector<ShaderModule::Key> m_moduleKeys;
+    };
+
+    class ShaderBuilder
+    {
+    public:
+        ShaderBuilder& addStage(ShaderModule::Type type, std::string const& path, std::string entryPoint = "main");
+        std::unique_ptr<Shader> build(Application const& app) const;
+
+    private:
+        std::vector<ShaderModule::Key> m_moduleKeys;
     };
 }

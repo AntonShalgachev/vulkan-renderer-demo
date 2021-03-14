@@ -13,7 +13,8 @@ namespace vkr
         void setAspect(float aspect) { m_aspect = aspect; }
         float setPlanes(float nearZ, float farZ) { m_nearZ = nearZ; m_farZ = farZ; }
 
-        glm::mat4 getViewProjectionMatrix() const;
+        glm::mat4 getViewMatrix() const;
+        glm::mat4 getProjectionMatrix() const;
 
     private:
         Transform m_transform;

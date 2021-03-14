@@ -12,6 +12,8 @@ namespace
         {
         case vkr::ShaderModule::Type::Vertex:
             return VK_SHADER_STAGE_VERTEX_BIT;
+        case vkr::ShaderModule::Type::Geometry:
+            return VK_SHADER_STAGE_GEOMETRY_BIT;
         case vkr::ShaderModule::Type::Fragment:
             return VK_SHADER_STAGE_FRAGMENT_BIT;
         }
@@ -37,12 +39,9 @@ namespace
     }
 }
 
-vkr::ShaderModule::ShaderModule(Application const& app, std::string const& path, Type type, std::string const& entryPoint) : Object(app)
+vkr::ShaderModule::ShaderModule(Application const& app, Key const& key) : Object(app), m_key(key)
 {
-    m_type = type;
-    m_entryPoint = entryPoint;
-
-    std::vector<char> code = readFile(path);
+    std::vector<char> code = readFile(m_key.path);
 
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -58,13 +57,21 @@ vkr::ShaderModule::~ShaderModule()
     vkDestroyShaderModule(getDevice().getHandle(), m_handle, nullptr);
 }
 
+vkr::ShaderModule::ShaderModule(ShaderModule&& rhs) : Object(rhs.getApp()), m_handle(rhs.m_handle), m_key(std::move(rhs.m_key))
+{
+    // TODO create a smart handle
+
+    rhs.m_handle = VK_NULL_HANDLE;
+    rhs.m_key = {};
+}
+
 VkPipelineShaderStageCreateInfo vkr::ShaderModule::createStageCreateInfo() const
 {
     VkPipelineShaderStageCreateInfo stageCreateInfo{};
     stageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    stageCreateInfo.stage = getStageFlags(m_type);
+    stageCreateInfo.stage = getStageFlags(m_key.type);
     stageCreateInfo.module = m_handle;
-    stageCreateInfo.pName = m_entryPoint.c_str();
+    stageCreateInfo.pName = m_key.entryPoint.c_str();
 
     return stageCreateInfo;
 }

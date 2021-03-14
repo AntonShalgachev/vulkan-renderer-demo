@@ -173,8 +173,19 @@ private:
 
     void loadResources()
     {
-        m_defaultShader = std::make_shared<vkr::Shader>(getApp(), "data/shaders/default.vert.spv", "data/shaders/default.frag.spv");
-        m_noColorShader = std::make_shared<vkr::Shader>(getApp(), "data/shaders/default.vert.spv", "data/shaders/no-color.frag.spv");
+        m_defaultShader = vkr::ShaderBuilder()
+            .addStage(vkr::ShaderModule::Type::Vertex, "data/shaders/default.vert.spv")
+            .addStage(vkr::ShaderModule::Type::Fragment, "data/shaders/default.frag.spv")
+            .build(getApp());
+        m_noColorShader = vkr::ShaderBuilder()
+            .addStage(vkr::ShaderModule::Type::Vertex, "data/shaders/default.vert.spv")
+            .addStage(vkr::ShaderModule::Type::Fragment, "data/shaders/no-color.frag.spv")
+            .build(getApp());
+        m_testGeometryShader = vkr::ShaderBuilder()
+            .addStage(vkr::ShaderModule::Type::Vertex, "data/shaders/normaldebug.vert.spv")
+            .addStage(vkr::ShaderModule::Type::Geometry, "data/shaders/normaldebug.geom.spv")
+            .addStage(vkr::ShaderModule::Type::Fragment, "data/shaders/color.frag.spv")
+            .build(getApp());
 
         m_defaultSampler = std::make_shared<vkr::Sampler>(getApp());
 
@@ -215,6 +226,9 @@ private:
             material->setSampler(m_defaultSampler);
             material->setShader(m_defaultShader);
         }
+
+        // TODO temp geometry shader test
+        material->setShader(m_testGeometryShader);
 
         object->setMaterial(material);
 
@@ -336,6 +350,7 @@ private:
     std::shared_ptr<vkr::Sampler> m_defaultSampler;
     std::shared_ptr<vkr::Shader> m_defaultShader;
     std::shared_ptr<vkr::Shader> m_noColorShader;
+    std::shared_ptr<vkr::Shader> m_testGeometryShader;
 
     std::shared_ptr<vkr::Mesh> m_roomMesh;
     std::shared_ptr<vkr::Material> m_roomMaterial;

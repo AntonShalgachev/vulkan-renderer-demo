@@ -24,7 +24,6 @@
 #include "DescriptorSetLayout.h"
 #include "DescriptorSets.h"
 #include "Buffer.h"
-#include "Shader.h"
 #include "Material.h"
 #include "PhysicalDeviceSurfaceParameters.h"
 #include "QueueFamilyIndices.h"
@@ -38,9 +37,9 @@ namespace
 {
     struct UniformBufferObject
     {
-        glm::mat4 model;
+        glm::mat4 modelView;
         glm::mat4 normal;
-        glm::mat4 viewProjection;
+        glm::mat4 projection;
         glm::vec3 lightPosition;
         glm::vec3 viewPosition;
     };
@@ -165,11 +164,11 @@ void vkr::Renderer::updateUniformBuffer(uint32_t currentImage)
     for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
     {
         UniformBufferObject ubo{};
-        ubo.model = instance->getSceneObject().getTransform().getMatrix();
-        ubo.normal = glm::transpose(glm::inverse(ubo.model));
-        ubo.viewProjection = m_camera.getViewProjectionMatrix();
-        ubo.lightPosition = m_light->getTransform().getPos();
-        ubo.viewPosition = m_camera.getTransform().getPos();
+        ubo.modelView = m_camera.getViewMatrix() * instance->getSceneObject().getTransform().getMatrix();
+        ubo.normal = glm::transpose(glm::inverse(ubo.modelView));
+        ubo.projection = m_camera.getProjectionMatrix();
+        ubo.lightPosition = m_camera.getViewMatrix() * glm::vec4(m_light->getTransform().getPos(), 1.0f);
+        ubo.viewPosition = glm::vec3(0.0f, 0.0f, 0.0f); // TODO remove, always 0 in eye space
 
         instance->copyToUniformBuffer(currentImage, &ubo, sizeof(ubo));
     }
@@ -244,7 +243,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
 std::unique_ptr<vkr::Pipeline> vkr::Renderer::createPipeline(Shader const& shader, VertexLayout const& vertexLayout)
 {
-    return std::make_unique<vkr::Pipeline>(getApp(), *m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), shader.createVertexModule(), shader.createFragmentModule(), vertexLayout);
+    return std::make_unique<vkr::Pipeline>(getApp(), *m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), shader, vertexLayout);
 }
 
 void vkr::Renderer::createSyncObjects()
