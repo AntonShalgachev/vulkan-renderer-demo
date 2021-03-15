@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include "Object.h"
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -20,18 +21,18 @@ namespace vkr
         CommandBuffer createCommandBuffer() const;
         std::vector<CommandBuffer> createCommandBuffers(std::size_t size) const;
 
-        CommandPool(CommandPool const&) = delete;
-        CommandPool(CommandPool&&) = delete;
-        CommandPool& operator=(CommandPool const&) = delete;
-        CommandPool& operator=(CommandPool&&) = delete;
+        CommandPool(CommandPool const&) = default;
+        CommandPool(CommandPool&&) = default;
+        CommandPool& operator=(CommandPool const&) = default;
+        CommandPool& operator=(CommandPool&&) = default;
 
-        VkCommandPool const& getHandle() const { return m_handle; }
+        VkCommandPool getHandle() const { return m_handle; }
         QueueFamily const& getQueueFamily() const { return m_queueFamily; }
 
         void reset() const;
 
     private:
-    	VkCommandPool m_handle = VK_NULL_HANDLE;
+        UniqueHandle<VkCommandPool> m_handle;
 
         QueueFamily const& m_queueFamily;
     };

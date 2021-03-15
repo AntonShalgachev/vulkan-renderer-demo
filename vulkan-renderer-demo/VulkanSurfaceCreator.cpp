@@ -4,11 +4,11 @@
 #include "Instance.h"
 #include "Window.h"
 
-VkSurfaceKHR vkr::VulkanSurfaceCreator::createVulkanSurface(Instance const& instance, Window const& window)
+vkr::UniqueHandle<VkSurfaceKHR> vkr::VulkanSurfaceCreator::createVulkanSurface(Instance const& instance, Window const& window)
 {
-    VkSurfaceKHR handle = VK_NULL_HANDLE;
+    UniqueHandle<VkSurfaceKHR> handle;
 
-    if (glfwCreateWindowSurface(instance.getHandle(), window.m_handle, nullptr, &handle) != VK_SUCCESS)
+    if (glfwCreateWindowSurface(instance.getHandle(), window.m_handle, nullptr, &handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create window surface!");
 
     return handle;

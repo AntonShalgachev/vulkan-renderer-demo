@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.h>
 #include "Object.h"
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -13,14 +14,14 @@ namespace vkr
     	explicit PipelineLayout(Application const& app, DescriptorSetLayout const& descriptorSetLayout);
     	~PipelineLayout();
 
-        PipelineLayout(PipelineLayout const&) = delete;
-        PipelineLayout(PipelineLayout&&) = delete;
-        PipelineLayout& operator=(PipelineLayout const&) = delete;
-        PipelineLayout& operator=(PipelineLayout&&) = delete;
+        PipelineLayout(PipelineLayout const&) = default;
+        PipelineLayout(PipelineLayout&&) = default;
+        PipelineLayout& operator=(PipelineLayout const&) = default;
+        PipelineLayout& operator=(PipelineLayout&&) = default;
 
-        VkPipelineLayout const& getHandle() const { return m_handle; }
+        VkPipelineLayout getHandle() const { return m_handle; }
 
     private:
-    	VkPipelineLayout m_handle = VK_NULL_HANDLE;
+    	UniqueHandle<VkPipelineLayout> m_handle;
     };
 }

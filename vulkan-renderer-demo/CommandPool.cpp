@@ -16,7 +16,7 @@ vkr::CommandPool::CommandPool(Application const& app)
     poolCreateInfo.queueFamilyIndex = m_queueFamily.getIndex();
     poolCreateInfo.flags = 0; // TODO make use of it
 
-    if (vkCreateCommandPool(getApp().getDevice().getHandle(), &poolCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateCommandPool(getApp().getDevice().getHandle(), &poolCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create command pool!");
 }
 

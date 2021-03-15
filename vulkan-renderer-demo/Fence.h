@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.h>
 #include "Object.h"
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -11,18 +12,18 @@ namespace vkr
     	Fence(Application const& app);
     	~Fence();
 
-        Fence(Fence const&) = delete;
-        Fence(Fence&&);
-        Fence& operator=(Fence const&) = delete;
-        Fence& operator=(Fence&&) = delete;
+        Fence(Fence const&) = default;
+        Fence(Fence&&) = default;
+        Fence& operator=(Fence const&) = default;
+        Fence& operator=(Fence&&) = default;
 
         void wait() const;
         void reset() const;
         bool isSignaled() const;
 
-        VkFence const& getHandle() const { return m_handle; }
+        VkFence getHandle() const { return m_handle; }
 
     private:
-    	VkFence m_handle = VK_NULL_HANDLE;
+    	UniqueHandle<VkFence> m_handle;
     };
 }

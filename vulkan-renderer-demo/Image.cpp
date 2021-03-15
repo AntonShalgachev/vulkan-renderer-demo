@@ -25,7 +25,7 @@ namespace vkr
         imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 
-        if (vkCreateImage(getDevice().getHandle(), &imageCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+        if (vkCreateImage(getDevice().getHandle(), &imageCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
             throw std::runtime_error("failed to create image!");
     }
 

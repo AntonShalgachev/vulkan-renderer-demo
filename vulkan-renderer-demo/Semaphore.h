@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.h>
 #include "Object.h"
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -11,14 +12,14 @@ namespace vkr
     	Semaphore(Application const& app);
     	~Semaphore();
 
-        Semaphore(Semaphore const&) = delete;
-        Semaphore(Semaphore&&);
-        Semaphore& operator=(Semaphore const&) = delete;
-        Semaphore& operator=(Semaphore&&) = delete;
+        Semaphore(Semaphore const&) = default;
+        Semaphore(Semaphore&&) = default;
+        Semaphore& operator=(Semaphore const&) = default;
+        Semaphore& operator=(Semaphore&&) = default;
 
-        VkSemaphore const& getHandle() const { return m_handle; }
+        VkSemaphore getHandle() const { return m_handle; }
 
     private:
-    	VkSemaphore m_handle = VK_NULL_HANDLE;
+    	UniqueHandle<VkSemaphore> m_handle;
     };
 }

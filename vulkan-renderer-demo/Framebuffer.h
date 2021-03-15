@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.h>
 #include "Object.h"
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -14,14 +15,14 @@ namespace vkr
         explicit Framebuffer(Application const& app, vkr::ImageView const& colorImageView, vkr::ImageView const& depthImageView, vkr::RenderPass const& renderPass, VkExtent2D extent);
         ~Framebuffer();
 
-        Framebuffer(Framebuffer const&) = delete;
-        Framebuffer(Framebuffer&&) = delete;
-        Framebuffer& operator=(Framebuffer const&) = delete;
-        Framebuffer& operator=(Framebuffer&&) = delete;
+        Framebuffer(Framebuffer const&) = default;
+        Framebuffer(Framebuffer&&) = default;
+        Framebuffer& operator=(Framebuffer const&) = default;
+        Framebuffer& operator=(Framebuffer&&) = default;
 
         VkFramebuffer getHandle() const { return m_handle; }
 
     private:
-        VkFramebuffer m_handle = VK_NULL_HANDLE;
+        UniqueHandle<VkFramebuffer> m_handle;
     };
 }

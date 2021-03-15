@@ -18,7 +18,7 @@ vkr::DescriptorPool::DescriptorPool(Application const& app, std::size_t size) : 
     poolCreateInfo.pPoolSizes = poolSizes.data();
     poolCreateInfo.maxSets = static_cast<uint32_t>(size);
 
-    if (vkCreateDescriptorPool(getDevice().getHandle(), &poolCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateDescriptorPool(getDevice().getHandle(), &poolCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create descriptor pool");
 }
 

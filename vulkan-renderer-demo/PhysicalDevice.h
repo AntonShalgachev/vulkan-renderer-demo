@@ -10,14 +10,8 @@ namespace vkr
     {
     public:
         explicit PhysicalDevice(VkPhysicalDevice handle);
-        ~PhysicalDevice() = default;
 
-        PhysicalDevice(PhysicalDevice const&) = delete;
-        PhysicalDevice(PhysicalDevice&&);
-        PhysicalDevice& operator=(PhysicalDevice const&) = delete;
-        PhysicalDevice& operator=(PhysicalDevice&&) = delete;
-
-        VkPhysicalDevice const& getHandle() const { return m_handle; }
+        VkPhysicalDevice getHandle() const { return m_handle; }
 
         VkPhysicalDeviceProperties const& getProperties() const { return m_properties; }
         VkPhysicalDeviceFeatures const& getFeatures() const { return m_features; }
@@ -34,7 +28,7 @@ namespace vkr
         void queryQueueFamilyProperties();
 
     private:
-        VkPhysicalDevice m_handle;
+        VkPhysicalDevice m_handle = VK_NULL_HANDLE;
 
         std::vector<VkExtensionProperties> m_availableExtensions;
         std::vector<char const*> m_availableExtensionNames;

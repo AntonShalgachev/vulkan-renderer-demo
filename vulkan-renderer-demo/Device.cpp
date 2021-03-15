@@ -41,7 +41,7 @@ vkr::Device::Device(PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceC
     deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
     deviceCreateInfo.ppEnabledExtensionNames = extensions.data();
 
-    if (vkCreateDevice(physicalDevice.getHandle(), &deviceCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateDevice(physicalDevice.getHandle(), &deviceCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create logical device!");
 
     for(QueueFamily const* queueFamily : uniqueQueueFamilies)

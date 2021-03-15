@@ -27,7 +27,7 @@ vkr::DescriptorSetLayout::DescriptorSetLayout(Application const& app) : Object(a
     descriptorSetLayoutCreateInfo.bindingCount = static_cast<uint32_t>(bindings.size());
     descriptorSetLayoutCreateInfo.pBindings = bindings.data();
 
-    if (vkCreateDescriptorSetLayout(getDevice().getHandle(), &descriptorSetLayoutCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateDescriptorSetLayout(getDevice().getHandle(), &descriptorSetLayoutCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create descriptor set layout!");
 }
 

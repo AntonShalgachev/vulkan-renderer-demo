@@ -7,13 +7,8 @@ vkr::Fence::Fence(Application const& app) : Object(app)
     fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    if (vkCreateFence(getDevice().getHandle(), &fenceCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateFence(getDevice().getHandle(), &fenceCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create fence!");
-}
-
-vkr::Fence::Fence(Fence&& other) : Object(std::move(other))
-{
-    std::swap(m_handle, other.m_handle);
 }
 
 vkr::Fence::~Fence()
@@ -23,12 +18,12 @@ vkr::Fence::~Fence()
 
 void vkr::Fence::wait() const
 {
-    vkWaitForFences(getDevice().getHandle(), 1, &m_handle, VK_TRUE, UINT64_MAX);
+    vkWaitForFences(getDevice().getHandle(), 1, &m_handle.get(), VK_TRUE, UINT64_MAX);
 }
 
 void vkr::Fence::reset() const
 {
-    vkResetFences(getDevice().getHandle(), 1, &m_handle);
+    vkResetFences(getDevice().getHandle(), 1, &m_handle.get());
 }
 
 bool vkr::Fence::isSignaled() const

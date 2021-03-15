@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.h>
 #include "Object.h"
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -13,16 +14,16 @@ namespace vkr
         explicit RenderPass(Application const& app, Swapchain const& swapchain);
         ~RenderPass();
 
-        RenderPass(RenderPass const&) = delete;
-        RenderPass(RenderPass&&) = delete;
-        RenderPass& operator=(RenderPass const&) = delete;
-        RenderPass& operator=(RenderPass&&) = delete;
+        RenderPass(RenderPass const&) = default;
+        RenderPass(RenderPass&&) = default;
+        RenderPass& operator=(RenderPass const&) = default;
+        RenderPass& operator=(RenderPass&&) = default;
 
         VkRenderPass getHandle() const { return m_handle; }
         VkFormat getDepthFormat() const { return m_depthFormat; }
 
     private:
-        VkRenderPass m_handle = VK_NULL_HANDLE;
+        UniqueHandle<VkRenderPass> m_handle;
         VkFormat m_depthFormat;
     };
 }

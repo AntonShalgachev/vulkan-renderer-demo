@@ -15,11 +15,6 @@ namespace vkr
     public:
         Object(Application const& app) : m_app(app) {}
 
-        Object(Object const&) = delete;
-        Object(Object&&) = default;
-        Object& operator=(Object const&) = delete;
-        Object& operator=(Object&&) = delete;
-
         Application const& getApp() const { return m_app; }
 
         Instance const& getInstance() const;

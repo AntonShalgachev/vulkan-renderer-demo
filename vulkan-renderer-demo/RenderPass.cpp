@@ -88,7 +88,7 @@ vkr::RenderPass::RenderPass(Application const& app, Swapchain const& swapchain) 
     renderPassCreateInfo.dependencyCount = 1;
     renderPassCreateInfo.pDependencies = &dependency;
 
-    if (vkCreateRenderPass(getDevice().getHandle(), &renderPassCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateRenderPass(getDevice().getHandle(), &renderPassCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create render pass!");
 }
 

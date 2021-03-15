@@ -117,7 +117,7 @@ void vkr::Swapchain::createSwapchain()
     swapchainCreateInfo.clipped = VK_TRUE;
     swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    if (vkCreateSwapchainKHR(getDevice().getHandle(), &swapchainCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateSwapchainKHR(getDevice().getHandle(), &swapchainCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create swap chain!");
 }
 

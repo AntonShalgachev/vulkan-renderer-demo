@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include "Object.h"
 #include <memory>
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -16,10 +17,10 @@ namespace vkr
         explicit Image(Application const& app, VkImage image, VkFormat format);
         ~Image();
 
-        Image(Image const&) = delete;
-        Image(Image&&) = delete;
-        Image& operator=(Image const&) = delete;
-        Image& operator=(Image&&) = delete;
+        Image(Image const&) = default;
+        Image(Image&&) = default;
+        Image& operator=(Image const&) = default;
+        Image& operator=(Image&&) = default;
 
         VkMemoryRequirements getMemoryRequirements() const;
         void bindMemory(DeviceMemory const& memory) const;
@@ -31,7 +32,7 @@ namespace vkr
 
     private:
         bool m_isOwned = true;
-        VkImage m_handle = VK_NULL_HANDLE;
+        UniqueHandle<VkImage> m_handle;
         VkFormat m_format;
     };
 }

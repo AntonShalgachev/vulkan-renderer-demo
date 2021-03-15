@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.h>
 #include "Object.h"
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -19,18 +20,18 @@ namespace vkr
 
         void bind(VkCommandBuffer commandBuffer) const;
 
-        Pipeline(Pipeline const&) = delete;
-        Pipeline(Pipeline&&) = delete;
-        Pipeline& operator=(Pipeline const&) = delete;
-        Pipeline& operator=(Pipeline&&) = delete;
+        Pipeline(Pipeline const&) = default;
+        Pipeline(Pipeline&&) = default;
+        Pipeline& operator=(Pipeline const&) = default;
+        Pipeline& operator=(Pipeline&&) = default;
 
-        VkPipeline const& getHandle() const { return m_handle; }
+        VkPipeline getHandle() const { return m_handle; }
 
     public:
         static void resetBoundPipeline() { ms_boundPipeline = nullptr; }
 
     private:
-    	VkPipeline m_handle = VK_NULL_HANDLE;
+    	UniqueHandle<VkPipeline> m_handle;
 
     private:
         static Pipeline const* ms_boundPipeline;

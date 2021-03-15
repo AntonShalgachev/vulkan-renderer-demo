@@ -13,8 +13,6 @@ vkr::Surface::~Surface()
     vkDestroySurfaceKHR(m_instance.getHandle(), m_handle, nullptr);
 }
 
-vkr::Surface::Surface(Surface&&) = default;
-
 int vkr::Surface::getWidth() const
 {
     return m_window.getWidth();

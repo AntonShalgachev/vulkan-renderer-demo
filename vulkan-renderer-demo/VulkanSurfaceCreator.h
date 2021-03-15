@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -10,6 +11,6 @@ namespace vkr
     class VulkanSurfaceCreator
     {
     public:
-        static VkSurfaceKHR createVulkanSurface(Instance const& instance, Window const& window);
+        static UniqueHandle<VkSurfaceKHR> createVulkanSurface(Instance const& instance, Window const& window);
     };
 }

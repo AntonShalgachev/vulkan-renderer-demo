@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.h>
 #include "Object.h"
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -11,14 +12,14 @@ namespace vkr
         Sampler(Application const& app);
         ~Sampler();
 
-        Sampler(Sampler const&) = delete;
-        Sampler(Sampler&&) = delete;
-        Sampler& operator=(Sampler const&) = delete;
-        Sampler& operator=(Sampler&&) = delete;
+        Sampler(Sampler const&) = default;
+        Sampler(Sampler&&) = default;
+        Sampler& operator=(Sampler const&) = default;
+        Sampler& operator=(Sampler&&) = default;
 
         VkSampler getHandle() const { return m_handle; }
 
     private:
-        VkSampler m_handle = VK_NULL_HANDLE;
+        UniqueHandle<VkSampler> m_handle;
     };
 }

@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include "Object.h"
 #include <string>
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -27,17 +28,15 @@ namespace vkr
         explicit ShaderModule(Application const& app, Key const& key);
         ~ShaderModule();
 
-        ShaderModule(ShaderModule const&) = delete;
-        ShaderModule(ShaderModule&&);
-        ShaderModule& operator=(ShaderModule const&) = delete;
-        ShaderModule& operator=(ShaderModule&&) = delete;
+        ShaderModule(ShaderModule&&) = default;
+        ShaderModule& operator=(ShaderModule&&) = default;
 
         VkPipelineShaderStageCreateInfo createStageCreateInfo() const;
 
         VkShaderModule getHandle() const { return m_handle; }
 
     private:
-        VkShaderModule m_handle = VK_NULL_HANDLE;
+        UniqueHandle<VkShaderModule> m_handle;
 
         Key m_key;
     };

@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include "Object.h"
 #include <vector>
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -12,10 +13,10 @@ namespace vkr
         explicit DeviceMemory(Application const& app, VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties);
         ~DeviceMemory();
 
-        DeviceMemory(DeviceMemory const&) = delete;
-        DeviceMemory(DeviceMemory&&) = delete;
-        DeviceMemory& operator=(DeviceMemory const&) = delete;
-        DeviceMemory& operator=(DeviceMemory&&) = delete;
+        DeviceMemory(DeviceMemory const&) = default;
+        DeviceMemory(DeviceMemory&&) = default;
+        DeviceMemory& operator=(DeviceMemory const&) = default;
+        DeviceMemory& operator=(DeviceMemory&&) = default;
 
         void copyFrom(void const* sourcePointer, std::size_t sourceSize);
 
@@ -28,6 +29,6 @@ namespace vkr
         VkDeviceMemory getHandle() const { return m_handle; };
 
     private:
-        VkDeviceMemory m_handle = VK_NULL_HANDLE;
+        UniqueHandle<VkDeviceMemory> m_handle;
     };
 }

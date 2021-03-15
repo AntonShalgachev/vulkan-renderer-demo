@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.h>
 #include "Object.h"
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -13,10 +14,10 @@ namespace vkr
         explicit Buffer(Application const& app, VkDeviceSize size, VkBufferUsageFlags usage);
         ~Buffer();
 
-        Buffer(Buffer const&) = delete;
-        Buffer(Buffer&&) = delete;
-        Buffer& operator=(Buffer const&) = delete;
-        Buffer& operator=(Buffer&&) = delete;
+        Buffer(Buffer const&) = default;
+        Buffer(Buffer&&) = default;
+        Buffer& operator=(Buffer const&) = default;
+        Buffer& operator=(Buffer&&) = default;
 
         VkMemoryRequirements getMemoryRequirements() const;
         void bindMemory(DeviceMemory const& memory) const;
@@ -28,7 +29,7 @@ namespace vkr
         static void copy(Buffer const& source, Buffer const& destination);
 
     private:
-        VkBuffer m_handle = VK_NULL_HANDLE;
+        UniqueHandle<VkBuffer> m_handle;
         VkDeviceSize m_size;
     };
 }

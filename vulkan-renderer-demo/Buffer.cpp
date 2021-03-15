@@ -14,7 +14,7 @@ vkr::Buffer::Buffer(Application const& app, VkDeviceSize size, VkBufferUsageFlag
     bufferCreateInfo.usage = usage;
     bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    if (vkCreateBuffer(getDevice().getHandle(), &bufferCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateBuffer(getDevice().getHandle(), &bufferCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create buffer!");
 }
 

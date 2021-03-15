@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.h>
 #include "Object.h"
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -13,15 +14,15 @@ namespace vkr
 		explicit ImageView(Application const& app, vkr::Image const& image, VkImageAspectFlags aspectFlags);
 		~ImageView();
 
-        ImageView(ImageView const&) = delete;
-        ImageView(ImageView&&) = delete;
-        ImageView& operator=(ImageView const&) = delete;
-        ImageView& operator=(ImageView&&) = delete;
+        ImageView(ImageView const&) = default;
+        ImageView(ImageView&&) = default;
+        ImageView& operator=(ImageView const&) = default;
+        ImageView& operator=(ImageView&&) = default;
 
         VkImageView getHandle() const { return m_handle; }
 
 	private:
-		VkImageView m_handle = VK_NULL_HANDLE;
+		UniqueHandle<VkImageView> m_handle;
 	};
 }
 

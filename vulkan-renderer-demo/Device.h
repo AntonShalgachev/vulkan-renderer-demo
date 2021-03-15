@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -14,20 +15,20 @@ namespace vkr
         explicit Device(PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceContainer, std::vector<const char*> const& extensions);
     	~Device();
 
-        Device(Device const&) = delete;
-        Device(Device&&) = delete;
-        Device& operator=(Device const&) = delete;
-        Device& operator=(Device&&) = delete;
+        Device(Device const&) = default;
+        Device(Device&&) = default;
+        Device& operator=(Device const&) = default;
+        Device& operator=(Device&&) = default;
 
         void waitIdle() const;
 
-        VkDevice const& getHandle() const { return m_handle; }
+        VkDevice getHandle() const { return m_handle; }
 
         Queue const& getGraphicsQueue() const { return *m_graphicsQueue; }
         Queue const& getPresentQueue() const { return *m_presentQueue; }
 
     private:
-    	VkDevice m_handle = VK_NULL_HANDLE;
+    	UniqueHandle<VkDevice> m_handle;
 
         std::vector<Queue> m_queues;
 

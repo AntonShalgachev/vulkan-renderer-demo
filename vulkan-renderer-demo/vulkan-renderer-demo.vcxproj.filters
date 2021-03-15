@@ -164,6 +164,7 @@
     </ClCompile>
     <ClCompile Include="VertexLayout.cpp" />
     <ClCompile Include="Light.cpp" />
+    <ClCompile Include="UniqueHandle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h">
@@ -317,5 +318,6 @@
     <ClInclude Include="VertexLayout.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="glm.h" />
+    <ClInclude Include="UniqueHandle.h" />
   </ItemGroup>
 </Project>

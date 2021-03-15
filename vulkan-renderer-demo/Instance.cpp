@@ -78,7 +78,7 @@ void vkr::Instance::createInstance(std::string const& appName, std::vector<char 
     instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(requestedLayers.size());
     instanceCreateInfo.ppEnabledLayerNames = requestedLayers.data();
 
-    if (vkCreateInstance(&instanceCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateInstance(&instanceCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("Failed to create Vulkan instance");
 }
 

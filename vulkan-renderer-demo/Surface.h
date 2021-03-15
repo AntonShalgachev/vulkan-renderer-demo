@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -13,18 +14,18 @@ namespace vkr
         explicit Surface(Instance const& instance, Window const& window);
         ~Surface();
 
-        Surface(Surface const&) = delete;
-        Surface(Surface&&);
-        Surface& operator=(Surface const&) = delete;
-        Surface& operator=(Surface&&) = delete;
+        Surface(Surface const&) = default;
+        Surface(Surface&&) = default;
+        Surface& operator=(Surface const&) = default;
+        Surface& operator=(Surface&&) = default;
 
-        VkSurfaceKHR const& getHandle() const { return m_handle; }
+        VkSurfaceKHR getHandle() const { return m_handle; }
 
         int getWidth() const;
         int getHeight() const;
 
     private:
-        VkSurfaceKHR m_handle;
+        UniqueHandle<VkSurfaceKHR> m_handle;
 
         Instance const& m_instance;
         Window const& m_window;

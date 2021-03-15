@@ -4,6 +4,7 @@
 #include "Object.h"
 #include <vector>
 #include <memory>
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -18,10 +19,10 @@ namespace vkr
         Swapchain(Application const& app);
         ~Swapchain();
 
-        Swapchain(Swapchain const&) = delete;
-        Swapchain(Swapchain&&) = delete;
-        Swapchain& operator=(Swapchain const&) = delete;
-        Swapchain& operator=(Swapchain&&) = delete;
+        Swapchain(Swapchain const&) = default;
+        Swapchain(Swapchain&&) = default;
+        Swapchain& operator=(Swapchain const&) = default;
+        Swapchain& operator=(Swapchain&&) = default;
 
         void createFramebuffers(vkr::RenderPass const& renderPass, vkr::ImageView const& depthImageView);
 
@@ -40,7 +41,7 @@ namespace vkr
         void createImageViews();
 
     private:
-        VkSwapchainKHR m_handle = VK_NULL_HANDLE;
+        UniqueHandle<VkSwapchainKHR> m_handle;
 
         VkExtent2D m_extent;
         VkSurfaceFormatKHR m_surfaceFormat;

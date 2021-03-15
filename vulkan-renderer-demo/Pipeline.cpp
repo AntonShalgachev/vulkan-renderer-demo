@@ -121,7 +121,7 @@ vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, Re
     pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
     pipelineCreateInfo.basePipelineIndex = -1;
 
-    if (vkCreateGraphicsPipelines(getDevice().getHandle(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateGraphicsPipelines(getDevice().getHandle(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create graphics pipeline!");
 }
 

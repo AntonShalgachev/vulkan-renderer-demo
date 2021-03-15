@@ -18,7 +18,7 @@ namespace vkr
 		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		imageViewCreateInfo.subresourceRange.layerCount = 1;
 
-		if (vkCreateImageView(getDevice().getHandle(), &imageViewCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+		if (vkCreateImageView(getDevice().getHandle(), &imageViewCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
 			throw std::runtime_error("failed to create texture image view!");
 	}
 

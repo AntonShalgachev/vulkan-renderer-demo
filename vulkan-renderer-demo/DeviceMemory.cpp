@@ -32,7 +32,7 @@ vkr::DeviceMemory::DeviceMemory(Application const& app, VkMemoryRequirements mem
     allocInfo.allocationSize = memoryRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(getPhysicalDevice(), memoryRequirements.memoryTypeBits, memoryProperties);
 
-    if (vkAllocateMemory(getDevice().getHandle(), &allocInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkAllocateMemory(getDevice().getHandle(), &allocInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to allocate image memory!");
 }
 

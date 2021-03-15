@@ -20,7 +20,7 @@ vkr::Framebuffer::Framebuffer(Application const& app, vkr::ImageView const& colo
     framebufferCreateInfo.height = extent.height;
     framebufferCreateInfo.layers = 1;
 
-    if (vkCreateFramebuffer(getDevice().getHandle(), &framebufferCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateFramebuffer(getDevice().getHandle(), &framebufferCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create framebuffer!");
 }
 

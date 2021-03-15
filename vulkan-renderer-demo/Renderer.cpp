@@ -98,10 +98,11 @@ void vkr::Renderer::draw()
     recordCommandBuffer(imageIndex, frameResources);
     frameResources.commandBuffer.submit(getApp().getDevice().getGraphicsQueue(), &frameResources.renderFinishedSemaphore, &frameResources.imageAvailableSemaphore, &frameResources.inFlightFence);
 
+    std::array waitSemaphores{ frameResources.renderFinishedSemaphore.getHandle() };
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = &frameResources.renderFinishedSemaphore.getHandle();
+    presentInfo.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
+    presentInfo.pWaitSemaphores = waitSemaphores.data();
 
     VkSwapchainKHR swapchains[] = { m_swapchain->getHandle() };
     presentInfo.swapchainCount = 1;

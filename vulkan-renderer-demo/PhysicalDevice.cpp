@@ -6,14 +6,6 @@ vkr::PhysicalDevice::PhysicalDevice(VkPhysicalDevice handle) : m_handle(handle)
     init();
 }
 
-vkr::PhysicalDevice::PhysicalDevice(PhysicalDevice&& other)
-{
-    std::swap(other.m_handle, m_handle);
-    
-    // swap data instead of initializing it
-    init();
-}
-
 bool vkr::PhysicalDevice::areExtensionsSupported(std::vector<char const*> const& requestedExtensions) const
 {
     return utils::hasEveryOption(m_availableExtensionNames, requestedExtensions);

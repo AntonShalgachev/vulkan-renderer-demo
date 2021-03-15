@@ -48,21 +48,14 @@ vkr::ShaderModule::ShaderModule(Application const& app, Key const& key) : Object
     createInfo.codeSize = code.size();
     createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
-    if (vkCreateShaderModule(getDevice().getHandle(), &createInfo, nullptr, &m_handle) != VK_SUCCESS)
+    if (vkCreateShaderModule(getDevice().getHandle(), &createInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create shader module!");
 }
 
 vkr::ShaderModule::~ShaderModule()
 {
     vkDestroyShaderModule(getDevice().getHandle(), m_handle, nullptr);
-}
-
-vkr::ShaderModule::ShaderModule(ShaderModule&& rhs) : Object(rhs.getApp()), m_handle(rhs.m_handle), m_key(std::move(rhs.m_key))
-{
-    // TODO create a smart handle
-
-    rhs.m_handle = VK_NULL_HANDLE;
-    rhs.m_key = {};
+    m_handle = nullptr;
 }
 
 VkPipelineShaderStageCreateInfo vkr::ShaderModule::createStageCreateInfo() const

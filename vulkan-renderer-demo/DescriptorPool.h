@@ -4,6 +4,7 @@
 #include <cstddef>
 
 #include "Object.h"
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -13,16 +14,16 @@ namespace vkr
     	explicit DescriptorPool(Application const& app, std::size_t size);
     	~DescriptorPool();
 
-        DescriptorPool(DescriptorPool const&) = delete;
-        DescriptorPool(DescriptorPool&&) = delete;
-        DescriptorPool& operator=(DescriptorPool const&) = delete;
-        DescriptorPool& operator=(DescriptorPool&&) = delete;
+        DescriptorPool(DescriptorPool const&) = default;
+        DescriptorPool(DescriptorPool&&) = default;
+        DescriptorPool& operator=(DescriptorPool const&) = default;
+        DescriptorPool& operator=(DescriptorPool&&) = default;
 
-        VkDescriptorPool const& getHandle() const { return m_handle; }
+        VkDescriptorPool getHandle() const { return m_handle; }
         std::size_t getSize() const { return m_size; }
 
     private:
-    	VkDescriptorPool m_handle = VK_NULL_HANDLE;
+        UniqueHandle<VkDescriptorPool> m_handle;
         std::size_t m_size;
     };
 }
