@@ -9,6 +9,34 @@ namespace
     {
         return reinterpret_cast<vkr::Window*>(glfwGetWindowUserPointer(window));
     }
+
+    vkr::Window::Action getAction(int glfwAction)
+    {
+        static std::vector<vkr::Window::Action> const actions = []() {
+            std::vector<vkr::Window::Action> result;
+            result.resize(3);
+            result[GLFW_RELEASE] = vkr::Window::Action::Release;
+            result[GLFW_PRESS] = vkr::Window::Action::Press;
+            result[GLFW_REPEAT] = vkr::Window::Action::Repeat;
+            return result;
+        }();
+
+        return actions[static_cast<std::size_t>(glfwAction)];
+    }
+
+    vkr::Window::Modifiers getModifiers(int mods)
+    {
+        vkr::Window::Modifiers modifiers = vkr::Window::Modifiers::None;
+
+        if (mods & GLFW_MOD_CONTROL)
+            modifiers = modifiers | vkr::Window::Modifiers::Ctrl;
+        if (mods & GLFW_MOD_SHIFT)
+            modifiers = modifiers | vkr::Window::Modifiers::Shift;
+        if (mods & GLFW_MOD_ALT)
+            modifiers = modifiers | vkr::Window::Modifiers::Alt;
+
+        return modifiers;
+    }
 }
 
 vkr::Window::Window(int width, int height, std::string const& title)
@@ -20,6 +48,7 @@ vkr::Window::Window(int width, int height, std::string const& title)
 
     createWindow(title);
     glfwSetFramebufferSizeCallback(m_handle, Window::framebufferResizeCallback);
+    glfwSetKeyCallback(m_handle, Window::keyCallback);
     queryRequiredInstanceExtensions();
 }
 
@@ -72,6 +101,34 @@ void vkr::Window::onFramebufferResized(int width, int height)
         if (callback)
             callback(width, height);
     }
+}
+
+void vkr::Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) noexcept
+{
+    if (auto app = ::getAppFromWindow(window))
+        app->onKey(key, scancode, action, mods);
+}
+
+void vkr::Window::onKey(int glfwKey, int, int glfwAction, int glfwMods)
+{
+    Action action = getAction(glfwAction);
+
+    if (action == Action::Repeat)
+        return;
+
+    char c = '\0';
+    Key key = Key::Unknown;
+    if (glfwKey >= 0 && glfwKey < std::numeric_limits<char>::max())
+    {
+        key = Key::Char;
+        c = static_cast<char>(glfwKey);
+    }
+    
+    Modifiers mods = getModifiers(glfwMods);
+
+    for (auto const& callback : m_keyCallbacks)
+        if (callback)
+            callback(action, key, c, mods);
 }
 
 bool vkr::Window::shouldClose() const

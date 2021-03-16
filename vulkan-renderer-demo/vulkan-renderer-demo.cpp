@@ -42,6 +42,13 @@
 #include <tiny_gltf.h>
 #include "Light.h"
 
+#include <glm/gtx/euler_angles.hpp>
+#include "glm/gtx/quaternion.hpp"
+#include <vector>
+#include <sstream>
+
+#include "magic_enum.hpp"
+
 namespace
 {
     const uint32_t TARGET_WINDOW_WIDTH = 800;
@@ -56,18 +63,14 @@ namespace
 #endif
     bool const API_DUMP_ENABLED = false;
 
-    const std::string MODEL_ROOM_PATH = "data/meshes/viking_room.obj";
-    const std::string TEXTURE_ROOM_PATH = "data/textures/viking_room.png";
-    const float MODEL1_SCALE = 1.0f;
-    const float MODEL1_INSTANCE1_POSITION_X = -1.0f;
-    const float MODEL1_INSTANCE1_AMPLITUDE_Z = 0.0f;
-    const float MODEL1_INSTANCE2_POSITION_X = 0.0f;
-    const float MODEL1_INSTANCE2_AMPLITUDE_Z = 0.0f;
-
     const std::string GLTF_MODEL_PATH = "data/models/Duck/glTF/Duck.gltf";
+    //const float GLTF_MODEL_SCALE = 1.0f;
     const float GLTF_MODEL_SCALE = 0.01f;
 
     const glm::vec3 LIGHT_POS = glm::vec3(-10.0, 0.0f, 0.0f);
+    const glm::vec3 CAMERA_POS = glm::vec3(0.0f, -3.0f, 3.0f);
+    const glm::vec3 CAMERA_ANGLES = glm::vec3(-45.0f, 0.0f, 0.0f);
+    const float CAMERA_SPEED = 1.0f;
 
     std::shared_ptr<tinygltf::Model> loadModel(std::string const& path)
     {
@@ -94,8 +97,11 @@ class HelloTriangleApplication
 public:
     HelloTriangleApplication()
     {
+        m_keyState.resize(1 << 8 * sizeof(char), false);
+
         m_window = std::make_unique<vkr::Window>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
         m_window->addResizeCallback([this](int, int) { onFramebufferResized(); });
+        m_window->addKeyCallback([this](vkr::Window::Action action, vkr::Window::Key key, char c, vkr::Window::Modifiers modifiers) { onKey(action, key, c, modifiers); });
         m_application = std::make_unique<vkr::Application>("Vulkan demo", VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window);
 
         loadResources();
@@ -163,12 +169,42 @@ private:
         m_application->onSurfaceChanged();
     }
 
+    void onKey(vkr::Window::Action action, vkr::Window::Key key, char c, vkr::Window::Modifiers mods)
+    {
+        std::stringstream ss;
+        auto separator = "";
+
+        for (vkr::Window::Modifiers value : magic_enum::enum_values<vkr::Window::Modifiers>())
+        {
+            if (mods & value)
+            {
+                ss << separator << magic_enum::enum_name(value);
+                separator = " | ";
+            }
+        }
+
+        std::cout << magic_enum::enum_name(action) << ' ' << magic_enum::enum_name(key) << ' ' << ss.str() << ": " << "'" << c << "'" << std::endl;
+
+        std::size_t index = static_cast<std::size_t>(c);
+        m_keyState[index] = action == vkr::Window::Action::Press;
+        m_modifiers = mods;
+    }
+
     void createRenderer()
     {
         m_renderer = std::make_unique<vkr::Renderer>(getApp());
         m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
 
-        updateCamera();
+        vkr::Transform& cameraTransform = m_renderer->getCamera().getTransform();
+        cameraTransform.setPos(CAMERA_POS);
+        m_cameraRotation = CAMERA_ANGLES;
+        cameraTransform.setRotation(createRotation(m_cameraRotation));
+    }
+
+    glm::quat createRotation(glm::vec3 const& eulerDegrees)
+    {
+        glm::vec3 radians = glm::radians(eulerDegrees);
+        return glm::toQuat(glm::eulerAngleYXZ(radians.y, radians.x, radians.z));
     }
 
     void loadResources()
@@ -188,20 +224,6 @@ private:
             .build(getApp());
 
         m_defaultSampler = std::make_shared<vkr::Sampler>(getApp());
-
-        m_roomMesh = std::make_shared<vkr::Mesh>(getApp(), MODEL_ROOM_PATH);
-
-        auto roomTexture = std::make_shared<vkr::Texture>(getApp(), TEXTURE_ROOM_PATH);
-        m_roomMaterial = std::make_shared<vkr::Material>();
-        m_roomMaterial->setTexture(roomTexture);
-        m_roomMaterial->setSampler(m_defaultSampler);
-        m_roomMaterial->setShader(m_defaultShader);
-
-        m_grayscaleRoomMaterial = std::make_shared<vkr::Material>();
-        m_grayscaleRoomMaterial->setTexture(roomTexture);
-        m_grayscaleRoomMaterial->setSampler(m_defaultSampler);
-        m_grayscaleRoomMaterial->setShader(m_noColorShader);
-
         m_gltfModel = loadModel(GLTF_MODEL_PATH);
     }
 
@@ -228,7 +250,7 @@ private:
         }
 
         // TODO temp geometry shader test
-        material->setShader(m_testGeometryShader);
+        //material->setShader(m_testGeometryShader);
 
         object->setMaterial(material);
 
@@ -237,17 +259,6 @@ private:
 
     void createSceneObjects()
     {
-        m_leftRoom = std::make_shared<vkr::SceneObject>();
-        m_leftRoom->setMesh(m_roomMesh);
-        m_leftRoom->setMaterial(m_roomMaterial);
-
-        m_rightRoom = std::make_shared<vkr::SceneObject>();
-        m_rightRoom->setMesh(m_roomMesh);
-        m_rightRoom->setMaterial(m_grayscaleRoomMaterial);
-
-//         m_renderer->addObject(m_leftRoom);
-        //m_renderer->addObject(m_rightRoom);
-
         m_model = createSceneObject(m_gltfModel);
         m_renderer->addObject(m_model);
 
@@ -271,8 +282,16 @@ private:
         ImGui::End();
 
         ImGui::Begin("Camera");
-        ImGui::SliderFloat3("Position", &m_cameraPos[0], -10.0f, 10.0f, "%.2f", 1.0f);
-        ImGui::SliderFloat3("Rotation", &m_cameraRotation[0], -180.0f, 180.0f, "%.1f", 1.0f);
+        vkr::Transform& cameraTransform = m_renderer->getCamera().getTransform();
+        glm::vec3 cameraPos = cameraTransform.getPos();
+        if (ImGui::SliderFloat3("Position", &cameraPos[0], -10.0f, 10.0f, "%.2f", 1.0f))
+        {
+            cameraTransform.setPos(cameraPos);
+        }
+        if (ImGui::SliderFloat3("Rotation", &m_cameraRotation[0], -180.0f, 180.0f, "%.1f", 1.0f))
+        {
+            cameraTransform.setRotation(createRotation(m_cameraRotation));
+        }
         ImGui::End();
 
         ImGui::Begin("Light");
@@ -304,38 +323,53 @@ private:
         }
 
         updateUI(m_lastFrameTime, m_lastFenceTime);
+        updateScene(m_lastFrameTime);
+    }
 
-        auto updateObject = [](vkr::Transform& transform, float time, float posX, float amplitudeZ, float scale, bool fixRotation)
+    void updateScene(float dt)
+    {
+        auto updateObject = [](vkr::Transform& transform, float time, bool fixRotation)
         {
-            float posZ = amplitudeZ * (std::sin(5.0f * time) * 0.5f + 0.5f);
-            transform.setPos({ posX, 0.0f, posZ });
-
             glm::quat initialRotation = glm::identity<glm::quat>();
             if (fixRotation)
                 initialRotation = glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
             transform.setRotation(glm::angleAxis(time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * initialRotation);
-
-            transform.setScale(glm::vec3(scale));
         };
 
         float time = m_appTime.getTime();
-        updateObject(m_leftRoom->getTransform(), time, MODEL1_INSTANCE1_POSITION_X, MODEL1_INSTANCE1_AMPLITUDE_Z, MODEL1_SCALE, false);
-        updateObject(m_rightRoom->getTransform(), time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, MODEL1_SCALE, false);
 
-//         updateObject(m_model->getTransform(), time * 0.5f, MODEL1_INSTANCE2_POSITION_X, MODEL1_INSTANCE2_AMPLITUDE_Z, GLTF_MODEL_SCALE, true);
+        (void*)&time;
 
         m_model->getTransform().setRotation(glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+        //updateObject(m_model->getTransform(), time * 0.5f, true);
+
         m_model->getTransform().setScale(glm::vec3(GLTF_MODEL_SCALE));
 
-        updateCamera();
+        updateCamera(dt);
     }
 
-    void updateCamera()
+    void updateCamera(float dt)
     {
-        m_renderer->getCamera().getTransform().setPos(m_cameraPos);
+        glm::vec3 localDirection = glm::zero<glm::vec3>();
 
-        m_renderer->getCamera().getTransform().setRotation(glm::radians(m_cameraRotation));
+        if (m_keyState['A'])
+            localDirection.x -= 1.0f;
+        if (m_keyState['D'])
+            localDirection.x += 1.0f;
+        if (m_keyState['S'])
+            localDirection.y -= 1.0f;
+        if (m_keyState['W'])
+            localDirection.y += 1.0f;
+        if (m_keyState['Q'])
+            localDirection.z -= 1.0f;
+        if (m_keyState['E'])
+            localDirection.z += 1.0f;
+
+        vkr::Transform& cameraTransform = m_renderer->getCamera().getTransform();
+
+        glm::vec3 worldDirection = cameraTransform.transformVectorLocalToWorld(localDirection);
+        cameraTransform.setPos(cameraTransform.getPos() + worldDirection * dt);
     }
 
     vkr::Application const& getApp() { return *m_application; }
@@ -352,15 +386,9 @@ private:
     std::shared_ptr<vkr::Shader> m_noColorShader;
     std::shared_ptr<vkr::Shader> m_testGeometryShader;
 
-    std::shared_ptr<vkr::Mesh> m_roomMesh;
-    std::shared_ptr<vkr::Material> m_roomMaterial;
-    std::shared_ptr<vkr::Material> m_grayscaleRoomMaterial;
-
     std::shared_ptr<tinygltf::Model> m_gltfModel;
 
     // Objects
-    std::shared_ptr<vkr::SceneObject> m_leftRoom;
-    std::shared_ptr<vkr::SceneObject> m_rightRoom;
     std::shared_ptr<vkr::SceneObject> m_model;
     std::shared_ptr<vkr::Light> m_light;
 
@@ -372,8 +400,10 @@ private:
     float m_lastFrameTime = 0.0f;
     float m_lastFenceTime = 0.0f;
 
-    glm::vec3 m_cameraPos = glm::vec3(0.0f, -3.0f, 3.0f);
-    glm::vec3 m_cameraRotation = glm::vec3(-45.0f, 0.0f, 0.0f);
+    glm::vec3 m_cameraRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+
+    std::vector<bool> m_keyState;
+    vkr::Window::Modifiers m_modifiers = vkr::Window::Modifiers::None;
 };
 
 int main()
