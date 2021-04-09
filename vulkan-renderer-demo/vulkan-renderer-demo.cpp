@@ -104,6 +104,7 @@ public:
         m_window = std::make_unique<vkr::Window>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
         m_window->addResizeCallback([this](int, int) { onFramebufferResized(); });
         m_window->addKeyCallback([this](vkr::Window::Action action, vkr::Window::Key key, char c, vkr::Window::Modifiers modifiers) { onKey(action, key, c, modifiers); });
+        m_window->addMouseMoveCallback([this](glm::vec2 const& delta) { onMouseMove(delta); });
         m_application = std::make_unique<vkr::Application>("Vulkan demo", VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window);
 
         loadResources();
@@ -133,7 +134,7 @@ private:
     {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        ImGuiIO& io = ImGui::GetIO();
         ImGui::StyleColorsDark();
 
         io.Fonts->AddFontDefault();
@@ -190,6 +191,15 @@ private:
         std::size_t index = static_cast<std::size_t>(c);
         m_keyState[index] = action == vkr::Window::Action::Press;
         m_modifiers = mods;
+    }
+
+    void onMouseMove(glm::vec2 const& delta)
+    {
+        glm::vec3 angleDelta = m_mouseSensitivity * glm::vec3{ -delta.y, 0.0f, -delta.x };
+        glm::quat rotationDelta = createRotation(angleDelta);
+
+        vkr::Transform& cameraTransform = m_renderer->getCamera().getTransform();
+        cameraTransform.setRotation(cameraTransform.getRotation() * rotationDelta);
     }
 
     void createRenderer()
@@ -271,6 +281,8 @@ private:
 
     void updateUI(float frameTime, float fenceTime)
     {
+        ImGuiIO& io = ImGui::GetIO();
+
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -304,7 +316,14 @@ private:
         }
         ImGui::End();
 
+        ImGui::Begin("Input");
+        ImGui::SliderFloat("Mouse sensitivity", &m_mouseSensitivity, 0.01f, 1.0f, "%.2f", 1.0f);
+        ImGui::SliderFloat("Camera speed", &m_cameraSpeed, 0.1f, 10.0f, "%.2f", 1.0f);
+        ImGui::End();
+
         ImGui::Render();
+
+        m_window->setCanCaptureCursor(!io.WantCaptureMouse);
     }
 
     void drawFrame()
@@ -372,7 +391,7 @@ private:
         vkr::Transform& cameraTransform = m_renderer->getCamera().getTransform();
 
         glm::vec3 worldDirection = cameraTransform.transformVectorLocalToWorld(localDirection);
-        cameraTransform.setPos(cameraTransform.getPos() + worldDirection * dt);
+        cameraTransform.setPos(cameraTransform.getPos() + m_cameraSpeed * dt * worldDirection);
     }
 
     vkr::Application const& getApp() { return *m_application; }
@@ -404,6 +423,8 @@ private:
     float m_lastFenceTime = 0.0f;
 
     glm::vec3 m_cameraRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+    float m_mouseSensitivity = 0.3f;
+    float m_cameraSpeed = 5.0f;
 
     std::vector<bool> m_keyState;
     vkr::Window::Modifiers m_modifiers = vkr::Window::Modifiers::None;

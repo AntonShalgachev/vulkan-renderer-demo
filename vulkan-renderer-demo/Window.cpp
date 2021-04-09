@@ -49,6 +49,8 @@ vkr::Window::Window(int width, int height, std::string const& title)
     createWindow(title);
     glfwSetFramebufferSizeCallback(m_handle, Window::framebufferResizeCallback);
     glfwSetKeyCallback(m_handle, Window::keyCallback);
+    glfwSetMouseButtonCallback(m_handle, Window::mouseButtonCallback);
+    glfwSetCursorPosCallback(m_handle, Window::cursorPositionCallback);
     queryRequiredInstanceExtensions();
 }
 
@@ -129,6 +131,42 @@ void vkr::Window::onKey(int glfwKey, int, int glfwAction, int glfwMods)
     for (auto const& callback : m_keyCallbacks)
         if (callback)
             callback(action, key, c, mods);
+}
+
+void vkr::Window::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) noexcept
+{
+	if (auto app = ::getAppFromWindow(window))
+		app->onMouseButton(button, action, mods);
+}
+
+void vkr::Window::onMouseButton(int glfwButton, int glfwAction, int)
+{
+    if (m_canCaptureCursor && glfwButton == GLFW_MOUSE_BUTTON_LEFT)
+    {
+		Action action = getAction(glfwAction);
+
+		m_cursorCaptured = action == Action::Press;
+    }
+}
+
+void vkr::Window::cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) noexcept
+{
+	if (auto app = ::getAppFromWindow(window))
+		app->onCursorPosition(xpos, ypos);
+}
+
+void vkr::Window::onCursorPosition(double xpos, double ypos)
+{
+    glm::vec2 pos = { static_cast<float>(xpos), static_cast<float>(ypos) };
+	glm::vec2 delta = pos - m_lastCursorPosition;
+	m_lastCursorPosition = pos;
+
+    if (m_cursorCaptured)
+    {
+		for (auto const& callback : m_mouseMoveCallbacks)
+			if (callback)
+				callback(delta);
+    }
 }
 
 bool vkr::Window::shouldClose() const

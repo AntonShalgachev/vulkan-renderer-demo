@@ -4,6 +4,8 @@
 #include <vector>
 #include <functional>
 
+#include "glm.h"
+
 struct GLFWwindow;
 
 namespace vkr
@@ -50,6 +52,9 @@ namespace vkr
 
         std::vector<char const*> const& getRequiredInstanceExtensions() const { return m_requiredInstanceExtensions; }
 
+        bool getCanCaptureCursor() const { return m_canCaptureCursor; }
+        void setCanCaptureCursor(bool canCaptureCursor) { m_canCaptureCursor = canCaptureCursor; }
+
         template <typename Func>
         void startEventLoop(Func&& onUpdate)
         {
@@ -70,7 +75,13 @@ namespace vkr
         void addKeyCallback(Func&& callback)
         {
             m_keyCallbacks.emplace_back(std::forward<Func>(callback));
-        }
+		}
+
+		template<typename Func>
+		void addMouseMoveCallback(Func&& callback)
+		{
+			m_mouseMoveCallbacks.emplace_back(std::forward<Func>(callback));
+		}
 
         void waitUntilInForeground() const;
 
@@ -84,6 +95,12 @@ namespace vkr
         static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) noexcept;
         void onKey(int key, int scancode, int action, int mods);
 
+		static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) noexcept;
+        void onMouseButton(int button, int action, int mods);
+
+		static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) noexcept;
+        void onCursorPosition(double xpos, double ypos);
+
         bool shouldClose() const;
         void pollEvents() const;
 
@@ -93,10 +110,15 @@ namespace vkr
         int m_width = -1;
         int m_height = -1;
 
+        bool m_canCaptureCursor = true;
+        bool m_cursorCaptured = false;
+        glm::vec2 m_lastCursorPosition;
+
         std::vector<char const*> m_requiredInstanceExtensions;
 
         std::vector<std::function<void(int, int)>> m_resizeCallbacks;
         std::vector<std::function<void(Action, Key, char, Modifiers)>> m_keyCallbacks;
+        std::vector<std::function<void(glm::vec2)>> m_mouseMoveCallbacks;
     };
 }
 
