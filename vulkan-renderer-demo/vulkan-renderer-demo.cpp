@@ -53,8 +53,8 @@
 
 namespace
 {
-    const uint32_t TARGET_WINDOW_WIDTH = 800;
-    const uint32_t TARGET_WINDOW_HEIGHT = 600;
+    const uint32_t TARGET_WINDOW_WIDTH = 1900;
+    const uint32_t TARGET_WINDOW_HEIGHT = 1000;
 
     const float FPS_PERIOD = 0.2f;
 
