@@ -1,6 +1,7 @@
 #include "Shader.h"
 
 #include "ShaderModule.h"
+#include <iterator>
 
 std::vector<VkPipelineShaderStageCreateInfo> vkr::CompiledShader::createStageDescriptions() const
 {

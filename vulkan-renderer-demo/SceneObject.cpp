@@ -1,8 +1,5 @@
 #include "SceneObject.h"
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/quaternion.hpp>
-
 void vkr::SceneObject::setMesh(std::shared_ptr<Mesh> const& mesh)
 {
     m_mesh = mesh;

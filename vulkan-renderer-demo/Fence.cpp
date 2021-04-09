@@ -1,5 +1,6 @@
 #include "Fence.h"
 #include "Device.h"
+#include <stdexcept>
 
 vkr::Fence::Fence(Application const& app) : Object(app)
 {

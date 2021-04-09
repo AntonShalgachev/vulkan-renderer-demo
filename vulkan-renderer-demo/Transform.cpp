@@ -1,8 +1,5 @@
 #include "Transform.h"
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/quaternion.hpp>
-
 vkr::Transform::Transform(glm::vec3 const& pos, glm::quat const& rotation, glm::vec3 const& scale)
     : m_pos(pos)
     , m_rotation(rotation)

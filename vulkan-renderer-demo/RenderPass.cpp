@@ -4,6 +4,7 @@
 #include "PhysicalDevice.h"
 #include "Device.h"
 #include <array>
+#include <stdexcept>
 
 namespace
 {

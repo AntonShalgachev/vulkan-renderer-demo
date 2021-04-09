@@ -3,6 +3,7 @@
 #include "DeviceMemory.h"
 #include "ImageView.h"
 #include "Device.h"
+#include <stdexcept>
 
 namespace vkr
 {

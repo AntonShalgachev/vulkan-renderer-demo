@@ -1,5 +1,6 @@
 #include "Semaphore.h"
 #include "Device.h"
+#include <stdexcept>
 
 vkr::Semaphore::Semaphore(Application const& app) : Object(app)
 {

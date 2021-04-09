@@ -8,6 +8,7 @@
 #include "QueueFamilyIndices.h"
 #include "CommandPool.h"
 #include "Window.h"
+#include <stdexcept>
 
 namespace
 {

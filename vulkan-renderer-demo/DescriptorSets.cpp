@@ -6,6 +6,7 @@
 #include "Sampler.h"
 #include "Device.h"
 #include <array>
+#include <stdexcept>
 
 vkr::DescriptorSets::DescriptorSets(Application const& app, std::size_t size, DescriptorSetLayout const& layout)
     : Object(app)

@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include "UniqueHandle.h"
+#include <string>
 
 namespace vkr
 {

@@ -39,6 +39,7 @@
 
 #pragma warning(disable:5039)
 #pragma warning(disable:5045)
+#pragma warning(disable:5219)
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"

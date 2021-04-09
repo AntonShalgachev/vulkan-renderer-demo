@@ -125,7 +125,7 @@ float vkr::Renderer::getAspect() const
 {
     VkExtent2D extent = m_swapchain->getExtent();
 
-    return 1.0f * extent.width / extent.height;
+    return static_cast<float>(extent.width) / static_cast<float>(extent.height);
 }
 
 void vkr::Renderer::createSwapchain()

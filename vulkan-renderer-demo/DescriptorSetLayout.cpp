@@ -1,6 +1,7 @@
 #include "DescriptorSetLayout.h"
 #include "Device.h"
 #include <array>
+#include <stdexcept>
 
 vkr::DescriptorSetLayout::DescriptorSetLayout(Application const& app) : Object(app)
 {

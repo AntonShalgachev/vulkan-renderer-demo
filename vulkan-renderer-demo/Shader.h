@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include "ShaderModule.h"
+#include <memory>
 
 struct VkPipelineShaderStageCreateInfo;
 

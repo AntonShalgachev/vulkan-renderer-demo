@@ -7,7 +7,7 @@
 
 namespace tinygltf
 {
-    class Image;
+    struct Image;
 }
 
 namespace vkr

@@ -1,5 +1,6 @@
 #include "Sampler.h"
 #include "Device.h"
+#include <stdexcept>
 
 vkr::Sampler::Sampler(Application const& app) : Object(app)
 {

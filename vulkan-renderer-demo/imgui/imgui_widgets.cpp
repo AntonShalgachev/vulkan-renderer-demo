@@ -64,6 +64,7 @@ Index of this file:
 #pragma warning(disable:5039)
 #pragma warning(disable:4774)
 #pragma warning(disable:5045)
+#pragma warning(disable:5219)
 
 #endif
 

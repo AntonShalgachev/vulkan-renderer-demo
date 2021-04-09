@@ -3,6 +3,7 @@
 #include "DeviceMemory.h"
 #include "ScopedOneTimeCommandBuffer.h"
 #include "Device.h"
+#include <stdexcept>
 
 vkr::Buffer::Buffer(Application const& app, VkDeviceSize size, VkBufferUsageFlags usage) : Object(app)
 {

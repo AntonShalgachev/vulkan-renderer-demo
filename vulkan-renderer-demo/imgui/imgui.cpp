@@ -739,6 +739,7 @@ CODE
 #pragma warning(disable:4365)
 #pragma warning(disable:5039)
 #pragma warning(disable:5045)
+#pragma warning(disable:5219)
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS

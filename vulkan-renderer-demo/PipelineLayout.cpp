@@ -2,6 +2,7 @@
 #include "DescriptorSetLayout.h"
 #include "Device.h"
 #include <array>
+#include <stdexcept>
 
 vkr::PipelineLayout::PipelineLayout(Application const& app, DescriptorSetLayout const& descriptorSetLayout) : Object(app)
 {

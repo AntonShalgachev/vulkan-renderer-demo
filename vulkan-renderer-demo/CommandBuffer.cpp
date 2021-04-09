@@ -4,6 +4,7 @@
 #include "Fence.h"
 #include "Queue.h"
 #include <array>
+#include <stdexcept>
 
 vkr::CommandBuffer::CommandBuffer(std::shared_ptr<CommandBuffers> const& container, std::size_t index)
     : m_container(container)

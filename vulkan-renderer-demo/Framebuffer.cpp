@@ -6,6 +6,7 @@
 #include "Swapchain.h"
 #include "ImageView.h"
 #include "Device.h"
+#include <stdexcept>
 
 vkr::Framebuffer::Framebuffer(Application const& app, vkr::ImageView const& colorImageView, vkr::ImageView const& depthImageView, vkr::RenderPass const& renderPass, VkExtent2D extent) : Object(app)
 {

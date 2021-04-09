@@ -4,6 +4,7 @@
 #include "QueueFamilyIndices.h"
 #include "Queue.h"
 #include <set>
+#include <stdexcept>
 
 vkr::Device::Device(PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceContainer, std::vector<const char*> const& extensions)
 {

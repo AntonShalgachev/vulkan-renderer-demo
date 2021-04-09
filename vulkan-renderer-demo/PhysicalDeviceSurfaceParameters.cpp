@@ -77,6 +77,6 @@ void vkr::PhysicalDeviceSurfaceParameters::queryPresentationSupport()
         if (index >= m_queuePresentationSupport.size())
             m_queuePresentationSupport.resize(index + 1);
 
-        m_queuePresentationSupport[index] = presentSupport;
+        m_queuePresentationSupport[index] = presentSupport > 0;
     }
 }

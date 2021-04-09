@@ -9,6 +9,7 @@
 #include "Surface.h"
 #include "QueueFamily.h"
 #include <algorithm>
+#include <stdexcept>
 
 namespace
 {

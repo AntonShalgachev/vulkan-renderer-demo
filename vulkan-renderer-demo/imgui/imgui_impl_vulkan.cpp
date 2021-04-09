@@ -51,6 +51,7 @@
 
 #pragma warning(disable:4365)
 #pragma warning(disable:5045)
+#pragma warning(disable:5219)
 
 #include "imgui_impl_vulkan.h"
 #include <stdio.h>

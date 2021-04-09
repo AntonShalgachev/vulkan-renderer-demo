@@ -2,6 +2,7 @@
 
 #include "PhysicalDevice.h"
 #include "Device.h"
+#include <stdexcept>
 
 namespace
 {

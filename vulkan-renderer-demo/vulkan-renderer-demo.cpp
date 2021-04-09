@@ -31,9 +31,12 @@
 #include "SceneObject.h"
 #include "Shader.h"
 
+#pragma warning(push, 0)
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_vulkan.h"
+#pragma warning(pop)
+
 #include "DescriptorPool.h"
 #include "Instance.h"
 #include "PhysicalDevice.h"
@@ -42,8 +45,7 @@
 #include <tiny_gltf.h>
 #include "Light.h"
 
-#include <glm/gtx/euler_angles.hpp>
-#include "glm/gtx/quaternion.hpp"
+#include "glm.h"
 #include <vector>
 #include <sstream>
 
@@ -316,8 +318,9 @@ private:
     {
         if (m_frameTimer.getTime() > FPS_PERIOD)
         {
-            m_lastFrameTime = m_frameTimer.loop() / m_fpsDrawnFrames;
-            m_lastFenceTime = m_renderer->getCumulativeFenceTime() / m_fpsDrawnFrames;
+            float multiplier = 1.0f / static_cast<float>(m_fpsDrawnFrames);
+            m_lastFrameTime = m_frameTimer.loop() * multiplier;
+            m_lastFenceTime = m_renderer->getCumulativeFenceTime() * multiplier;
             m_renderer->resetCumulativeFenceTime();
             m_fpsDrawnFrames = 0;
         }

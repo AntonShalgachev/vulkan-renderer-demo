@@ -94,6 +94,7 @@ Index of this file:
 #pragma warning (disable: 4996) // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
 #pragma warning(disable:5039)
 #pragma warning(disable:5045)
+#pragma warning(disable:5219)
 #endif
 
 // Clang/GCC warnings with -Weverything

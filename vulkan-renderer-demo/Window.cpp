@@ -133,7 +133,7 @@ void vkr::Window::onKey(int glfwKey, int, int glfwAction, int glfwMods)
 
 bool vkr::Window::shouldClose() const
 {
-    return glfwWindowShouldClose(m_handle);
+    return glfwWindowShouldClose(m_handle) > 0;
 }
 
 void vkr::Window::pollEvents() const

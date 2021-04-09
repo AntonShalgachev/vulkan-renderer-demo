@@ -2,6 +2,7 @@
 #include "PhysicalDevice.h"
 #include "Utils.h"
 #include "PhysicalDeviceSurfaceContainer.h"
+#include <stdexcept>
 
 namespace
 {

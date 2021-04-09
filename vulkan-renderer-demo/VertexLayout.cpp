@@ -1,9 +1,9 @@
 #include "VertexLayout.h"
 
 #include <vulkan/vulkan.h>
-#include "glm.h"
-#include <glm/gtx/hash.hpp>
 #include <algorithm>
+#include <stdexcept>
+#include <iterator>
 
 namespace
 {

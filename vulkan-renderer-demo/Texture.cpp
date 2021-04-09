@@ -9,6 +9,7 @@
 #include "ScopedOneTimeCommandBuffer.h"
 #include "ImageView.h"
 #include "tiny_gltf.h"
+#include <stdexcept>
 
 namespace
 {

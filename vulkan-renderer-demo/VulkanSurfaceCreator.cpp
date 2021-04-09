@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include "Instance.h"
 #include "Window.h"
+#include <stdexcept>
 
 vkr::UniqueHandle<VkSurfaceKHR> vkr::VulkanSurfaceCreator::createVulkanSurface(Instance const& instance, Window const& window)
 {

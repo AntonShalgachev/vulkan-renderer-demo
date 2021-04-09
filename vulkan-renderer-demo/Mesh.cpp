@@ -7,8 +7,8 @@
 #include "Utils.h"
 #include "tiny_gltf.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtx/hash.hpp>
+#include "glm.h"
+#include <stdexcept>
 
 namespace
 {

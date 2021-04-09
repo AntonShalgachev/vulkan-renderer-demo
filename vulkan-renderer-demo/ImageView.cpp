@@ -2,6 +2,7 @@
 
 #include "Image.h"
 #include "Device.h"
+#include <stdexcept>
 
 namespace vkr
 {

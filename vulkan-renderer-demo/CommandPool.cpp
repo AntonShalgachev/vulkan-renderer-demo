@@ -6,6 +6,7 @@
 #include "QueueFamilyIndices.h"
 #include "CommandBuffers.h"
 #include "CommandBuffer.h"
+#include <stdexcept>
 
 vkr::CommandPool::CommandPool(Application const& app)
     : Object(app)

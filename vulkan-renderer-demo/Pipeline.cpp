@@ -5,6 +5,7 @@
 #include "Device.h"
 #include "VertexLayout.h"
 #include "Shader.h"
+#include <stdexcept>
 
 vkr::Pipeline const* vkr::Pipeline::ms_boundPipeline = nullptr;
 
@@ -36,8 +37,8 @@ vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, Re
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = extent.width * 1.0f;
-    viewport.height = extent.height * 1.0f;
+    viewport.width = static_cast<float>(extent.width);
+    viewport.height = static_cast<float>(extent.height);
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
