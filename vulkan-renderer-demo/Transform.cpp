@@ -1,4 +1,5 @@
 #include "Transform.h"
+#include <stdexcept>
 
 vkr::Transform::Transform(glm::vec3 const& pos, glm::quat const& rotation, glm::vec3 const& scale)
     : m_pos(pos)
@@ -6,6 +7,22 @@ vkr::Transform::Transform(glm::vec3 const& pos, glm::quat const& rotation, glm::
     , m_scale(scale)
 {
 
+}
+
+void vkr::Transform::setLocalMatrix(glm::mat4 const& matrix)
+{
+	glm::vec3 skew;
+	glm::vec4 perspective;
+    glm::decompose(matrix, m_scale, m_rotation, m_pos, skew, perspective);
+}
+
+void vkr::Transform::addChild(Transform& child)
+{
+    if (child.m_parent != nullptr)
+        throw std::runtime_error("child already has a parent");
+
+    child.m_parent = this;
+	m_children.emplace_back(child);
 }
 
 glm::vec3 vkr::Transform::transformPointLocalToWorld(glm::vec3 const& point) const
@@ -61,7 +78,17 @@ glm::vec3 vkr::Transform::getUpPoint() const
 glm::mat4 vkr::Transform::getMatrix() const
 {
     // TODO cache
-    return glm::translate(glm::mat4(1.0f), m_pos) * glm::toMat4(m_rotation) * glm::scale(glm::mat4(1.0f), m_scale);
+    glm::mat4 parentMatrix = glm::identity<glm::mat4>();
+    if (m_parent)
+        parentMatrix = m_parent->getMatrix();
+
+    return parentMatrix * getLocalMatrix();
+}
+
+glm::mat4 vkr::Transform::getLocalMatrix() const
+{
+	// TODO cache
+	return glm::translate(glm::mat4(1.0f), m_pos) * glm::toMat4(m_rotation) * glm::scale(glm::mat4(1.0f), m_scale);
 }
 
 glm::mat4 vkr::Transform::getInverseMatrix() const

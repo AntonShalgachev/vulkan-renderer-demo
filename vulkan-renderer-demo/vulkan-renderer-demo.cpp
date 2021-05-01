@@ -65,9 +65,9 @@ namespace
 #endif
     bool const API_DUMP_ENABLED = false;
 
-    const std::string GLTF_MODEL_PATH = "data/models/Duck/glTF/Duck.gltf";
+	const std::string GLTF_MODEL_PATH = "data/models/GearboxAssy/glTF/GearboxAssy.gltf";
     //const float GLTF_MODEL_SCALE = 1.0f;
-    const float GLTF_MODEL_SCALE = 0.01f;
+    const float GLTF_MODEL_SCALE = 0.1f;
 
     const glm::vec3 LIGHT_POS = glm::vec3(-10.0, 0.0f, 0.0f);
     const glm::vec3 CAMERA_POS = glm::vec3(0.0f, -3.0f, 3.0f);
@@ -237,42 +237,136 @@ private:
 
         m_defaultSampler = std::make_shared<vkr::Sampler>(getApp());
         m_gltfModel = loadModel(GLTF_MODEL_PATH);
-    }
+	}
 
-    std::unique_ptr<vkr::SceneObject> createSceneObject(std::shared_ptr<tinygltf::Model> const& model)
+    // TOOD move to utils or anonymous namespace
+	glm::mat4 createMatrix(std::vector<double> const& linearMatrix)
+	{
+		if (linearMatrix.empty())
+			return glm::identity<glm::mat4>();
+		if (linearMatrix.size() == 16)
+			return glm::make_mat4(linearMatrix.data());
+
+		throw std::runtime_error("unexpected linear matrix size");
+	}
+
+    std::unique_ptr<vkr::SceneObject> createSceneObject(std::shared_ptr<tinygltf::Model> const& model, tinygltf::Node const& node)
     {
-        std::unique_ptr<vkr::SceneObject> object = std::make_unique<vkr::SceneObject>();
+		std::unique_ptr<vkr::SceneObject> object = std::make_unique<vkr::SceneObject>();
 
-        std::size_t const meshIndex = 0;
-        std::size_t const primitiveIndex = 0;
+        object->getTransform().setLocalMatrix(createMatrix(node.matrix));
 
-        object->setMesh(std::make_shared<vkr::Mesh>(getApp(), model, meshIndex, primitiveIndex));
-
-        auto material = std::make_shared<vkr::Material>();
-        material->setShader(m_noColorShader);
-
-        // TODO choose shader properly
-        if (!model->images.empty())
+        if (node.mesh >= 0)
         {
-            tinygltf::Image const& image = model->images[0];
-            auto texture = std::make_shared<vkr::Texture>(getApp(), image);
-            material->setTexture(texture);
-            material->setSampler(m_defaultSampler);
-            material->setShader(m_defaultShader);
+            std::size_t const meshIndex = static_cast<std::size_t>(node.mesh);
+
+			std::size_t const primitiveIndex = 0;
+
+			object->setMesh(std::make_shared<vkr::Mesh>(getApp(), model, meshIndex, primitiveIndex));
+
+			auto material = std::make_shared<vkr::Material>();
+			material->setShader(m_noColorShader);
+
+			// TODO choose shader properly
+			if (!model->images.empty())
+			{
+				tinygltf::Image const& image = model->images[0];
+				auto texture = std::make_shared<vkr::Texture>(getApp(), image);
+				material->setTexture(texture);
+				material->setSampler(m_defaultSampler);
+				material->setShader(m_defaultShader);
+			}
+
+			// TODO temp geometry shader test
+			//material->setShader(m_testGeometryShader);
+
+			object->setMaterial(material);
         }
 
-        // TODO temp geometry shader test
-        //material->setShader(m_testGeometryShader);
-
-        object->setMaterial(material);
-
         return object;
+	}
+
+    std::shared_ptr<vkr::SceneObject> createSceneObjectWithChildren(std::shared_ptr<tinygltf::Model> const& model, std::vector<std::shared_ptr<vkr::SceneObject>>& hierarchy, std::size_t nodeIndex)
+    {
+		tinygltf::Node const& node = model->nodes[nodeIndex];
+
+        std::shared_ptr<vkr::SceneObject> parent = createSceneObject(model, node);
+		hierarchy.push_back(parent);
+		for (auto childNodeIndex : node.children)
+		{
+            std::shared_ptr<vkr::SceneObject> child = createSceneObjectWithChildren(model, hierarchy, static_cast<std::size_t>(childNodeIndex));
+            parent->getTransform().addChild(child->getTransform());
+		}
+
+        return parent;
+    }
+
+	std::vector<std::shared_ptr<vkr::SceneObject>> createSceneObjectHierarchy(std::shared_ptr<tinygltf::Model> const& model)
+	{
+        std::vector<std::shared_ptr<vkr::SceneObject>> hierarchy;
+
+        std::size_t const sceneIndex = static_cast<std::size_t>(model->defaultScene);
+        tinygltf::Scene const& scene = model->scenes[sceneIndex];
+        for (std::size_t i = 0; i < scene.nodes.size(); i++)
+        {
+            std::size_t const nodeIndex = static_cast<std::size_t>(scene.nodes[i]);
+            std::shared_ptr<vkr::SceneObject> root = createSceneObjectWithChildren(model, hierarchy, nodeIndex);
+            root->getTransform().setPos(glm::zero<glm::vec3>());
+        }
+
+        return hierarchy;
+	}
+
+    void setCamera(vkr::Camera& camera, std::shared_ptr<tinygltf::Model> const& model)
+    {
+		std::size_t const sceneIndex = static_cast<std::size_t>(model->defaultScene);
+		tinygltf::Scene const& scene = model->scenes[sceneIndex];
+		for (std::size_t i = 0; i < scene.nodes.size(); i++)
+		{
+			std::size_t const nodeIndex = static_cast<std::size_t>(scene.nodes[i]);
+            tinygltf::Node const& node = model->nodes[nodeIndex];
+
+            if (node.camera < 0)
+                continue;
+
+			std::size_t const cameraIndex = static_cast<std::size_t>(node.camera);
+            tinygltf::Camera const& cameraParams = model->cameras[cameraIndex];
+
+            if (cameraParams.type != "perspective")
+                continue;
+
+            float const aspect = static_cast<float>(cameraParams.perspective.aspectRatio);
+            float const fov = static_cast<float>(cameraParams.perspective.yfov);
+            float const znear = static_cast<float>(cameraParams.perspective.znear);
+            float const zfar = static_cast<float>(cameraParams.perspective.zfar);
+
+            camera.getTransform().setLocalMatrix(createMatrix(node.matrix));
+            camera.setAspect(aspect);
+            camera.setFov(glm::degrees(fov));
+            camera.setPlanes(znear, zfar);
+
+            return;
+		}
     }
 
     void createSceneObjects()
     {
-        m_model = createSceneObject(m_gltfModel);
-        m_renderer->addObject(m_model);
+        auto hierarchy = createSceneObjectHierarchy(m_gltfModel);
+        for (auto const& object : hierarchy)
+            m_renderer->addObject(object);
+
+//         setCamera(m_renderer->getCamera(), m_gltfModel);
+
+        // TODO
+//         m_model = hierarchy[0];
+
+//         for (std::uint8_t i = 1; i <= 5; i++)
+//         {
+// 			std::shared_ptr child = createSceneObjectHierarchy(m_gltfModel);
+// 			child->getTransform().setPos({ i * 100.0f, i * 100.0f, 0.0f });
+// 			m_model->getTransform().addChild(child->getTransform());
+// 			m_renderer->addObject(child);
+//         }
 
         m_light = std::make_shared<vkr::Light>();
         m_light->getTransform().setPos(LIGHT_POS);
@@ -293,6 +387,10 @@ private:
         ImGui::Text("Frame time %.3f ms", frameTime * 1000.0f);
         ImGui::Text("Fence time %.3f ms", fenceTime * 1000.0f);
         ImGui::Text("CPU Utilization %.2f%%", cpuUtilizationRatio * 100.0f);
+        if (ImGui::Button(m_paused ? "Unpause" : "Pause"))
+        {
+            m_paused = !m_paused;
+        }
         ImGui::End();
 
         ImGui::Begin("Camera");
@@ -344,12 +442,18 @@ private:
             m_fpsDrawnFrames = 0;
         }
 
+        float const dt = m_lastFrameTime;
+
         updateUI(m_lastFrameTime, m_lastFenceTime);
-        updateScene(m_lastFrameTime);
+		updateScene(dt);
+		updateCamera(dt);
     }
 
-    void updateScene(float dt)
+    void updateScene(float)
     {
+        if (m_paused)
+            return;
+
         auto updateObject = [](vkr::Transform& transform, float time, bool fixRotation)
         {
             glm::quat initialRotation = glm::identity<glm::quat>();
@@ -363,12 +467,10 @@ private:
 
         (void*)&time;
 
-        m_model->getTransform().setRotation(glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
-        //updateObject(m_model->getTransform(), time * 0.5f, true);
+//         m_model->getTransform().setRotation(glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+//         updateObject(m_model->getTransform(), time * 0.5f, true);
 
-        m_model->getTransform().setScale(glm::vec3(GLTF_MODEL_SCALE));
-
-        updateCamera(dt);
+//         m_model->getTransform().setScale(glm::vec3(GLTF_MODEL_SCALE));
     }
 
     void updateCamera(float dt)
@@ -425,6 +527,7 @@ private:
     glm::vec3 m_cameraRotation = glm::vec3(0.0f, 0.0f, 0.0f);
     float m_mouseSensitivity = 0.3f;
     float m_cameraSpeed = 5.0f;
+    bool m_paused = false;
 
     std::vector<bool> m_keyState;
     vkr::Window::Modifiers m_modifiers = vkr::Window::Modifiers::None;

@@ -10,12 +10,14 @@ namespace vkr
     public:
         Transform(glm::vec3 const& pos = glm::vec3(0.0f), glm::quat const& rotation = glm::identity<glm::quat>(), glm::vec3 const& scale = glm::vec3(1.0f));
 
-        void setPos(glm::vec3 const& pos)
-        {
-            m_pos = pos;
-        }
+        void setPos(glm::vec3 const& pos) { m_pos = pos; }
         void setRotation(glm::quat const& rotation) { m_rotation = rotation; }
         void setScale(glm::vec3 const& scale) { m_scale = scale; }
+
+        void setLocalMatrix(glm::mat4 const& matrix);
+
+        void addChild(Transform& child);
+        std::vector<std::reference_wrapper<Transform>> const& getChildren() const { return m_children; }
 
         glm::vec3 const& getPos() const { return m_pos; }
         glm::quat const& getRotation() const { return m_rotation; }
@@ -34,11 +36,15 @@ namespace vkr
         glm::vec3 getUpPoint() const;
 
         glm::mat4 getMatrix() const;
+        glm::mat4 getLocalMatrix() const;
         glm::mat4 getInverseMatrix() const;
 
     private:
         glm::vec3 m_pos = glm::vec3(0.0f);
         glm::quat m_rotation = glm::identity<glm::quat>();
         glm::vec3 m_scale = glm::vec3(1.0f);
+
+        Transform* m_parent = nullptr;
+        std::vector<std::reference_wrapper<Transform>> m_children;
     };
 }

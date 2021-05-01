@@ -164,6 +164,9 @@ void vkr::Renderer::updateUniformBuffer(uint32_t currentImage)
 {
     for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
     {
+        if (!instance->getSceneObject().isValid())
+            continue;
+
         UniformBufferObject ubo{};
         ubo.modelView = m_camera.getViewMatrix() * instance->getSceneObject().getTransform().getMatrix();
         ubo.normal = glm::transpose(glm::inverse(ubo.modelView));
