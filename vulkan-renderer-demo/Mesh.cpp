@@ -165,29 +165,15 @@ vkr::Mesh::Mesh(Application const& app, std::shared_ptr<tinygltf::Model> const& 
 
     {
         tinygltf::Accessor const& indexAccessor = model->accessors[static_cast<std::size_t>(primitive.indices)];
+        tinygltf::BufferView const& indexBufferView = model->bufferViews[static_cast<std::size_t>(indexAccessor.bufferView)];
         m_vertexLayout.setIndexType(findComponentType(indexAccessor.componentType));
+        m_vertexLayout.setIndexDataOffset(indexBufferView.byteOffset + indexAccessor.byteOffset);
         m_indexCount = indexAccessor.count;
     }
 
     std::vector<VertexLayout::Binding> bindings;
-    //std::map<std::size_t, std::size_t> bindingsMap; // mapping between buffer view and bindings indices
 
     bindings.reserve(model->bufferViews.size());
-
-    for (std::size_t bufferViewIndex = 0; bufferViewIndex < model->bufferViews.size(); bufferViewIndex++)
-    {
-        tinygltf::BufferView const& bufferView = model->bufferViews[bufferViewIndex];
-
-        if (bufferView.target == TINYGLTF_TARGET_ARRAY_BUFFER)
-        {
-            //bindingsMap.emplace(bufferViewIndex, bindings.size());
-            //bindings.emplace_back(bufferView.byteOffset, bufferView.byteLength, bufferView.byteStride);
-        }
-        else if (bufferView.target == TINYGLTF_TARGET_ELEMENT_ARRAY_BUFFER)
-        {
-            m_vertexLayout.setIndexDataOffset(bufferView.byteOffset);
-        }
-    }
 
     for (auto const& entry : primitive.attributes)
     {
@@ -201,9 +187,6 @@ vkr::Mesh::Mesh(Application const& app, std::shared_ptr<tinygltf::Model> const& 
         vkr::VertexLayout::AttributeType attributeType = findAttributeType(accessor.type);
         vkr::VertexLayout::ComponentType componentType = findComponentType(accessor.componentType);
         std::size_t offset = accessor.byteOffset;
-
-        //std::size_t bindingIndex = bindingsMap.at(static_cast<std::size_t>(accessor.bufferView));
-        //bindings[bindingIndex].addAttribute(location, attributeType, componentType, offset);
 
         std::size_t stride = bufferView.byteStride;
         if (stride == 0)
