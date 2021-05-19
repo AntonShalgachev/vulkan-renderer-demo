@@ -72,6 +72,9 @@ void vkr::Renderer::onFramebufferResized()
 
 void vkr::Renderer::draw()
 {
+    if (!m_activeCameraObject)
+        throw std::runtime_error("No camera is set");
+
     FrameResources const& frameResources = m_frameResources[m_nextFrameResourcesIndex];
 
     uint32_t imageIndex;
@@ -164,26 +167,42 @@ void vkr::Renderer::updateUniformBuffer(uint32_t currentImage)
 {
     for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
     {
-        if (!instance->getSceneObject().isValid())
+        if (!instance->getSceneObject().isDrawable())
             continue;
 
+        std::shared_ptr<Camera> const& camera = m_activeCameraObject->getCamera();
+        if (!camera)
+            continue;
+
+		Transform const& cameraTransform = m_activeCameraObject->getTransform();
+
         UniformBufferObject ubo{};
-        ubo.modelView = m_camera.getViewMatrix() * instance->getSceneObject().getTransform().getMatrix();
+        ubo.modelView = cameraTransform.getViewMatrix() * instance->getSceneObject().getTransform().getMatrix();
         ubo.normal = glm::transpose(glm::inverse(ubo.modelView));
-        ubo.projection = m_camera.getProjectionMatrix();
-        ubo.lightPosition = m_camera.getViewMatrix() * glm::vec4(m_light->getTransform().getPos(), 1.0f);
+        ubo.projection = camera->getProjectionMatrix();
+        ubo.lightPosition = cameraTransform.getViewMatrix() * glm::vec4(m_light->getTransform().getLocalPos(), 1.0f);
         ubo.viewPosition = glm::vec3(0.0f, 0.0f, 0.0f); // TODO remove, always 0 in eye space
 
         instance->copyToUniformBuffer(currentImage, &ubo, sizeof(ubo));
     }
 }
 
+void vkr::Renderer::updateCameraAspect()
+{
+    if (!m_activeCameraObject)
+        return;
+
+	if (std::shared_ptr<Camera> const& camera = m_activeCameraObject->getCamera())
+		camera->setAspect(getAspect());
+}
+
 void vkr::Renderer::onSwapchainCreated()
 {
+    // TODO only need to call it once if number of images didn't change
     for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
         instance->onSwapchainCreated(*m_swapchain);
 
-    m_camera.setAspect(getAspect());
+    updateCameraAspect();
 }
 
 void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources)
@@ -219,21 +238,24 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
     for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
     {
-        if (!instance->getSceneObject().isValid())
-            continue;
+        SceneObject const& sceneObject = instance->getSceneObject();
 
-        Mesh const& mesh = instance->getSceneObject().getMesh();
-        Material const& material = instance->getSceneObject().getMaterial();
-        Shader const& shader = *material.getShader();
+        std::shared_ptr<Mesh> const& mesh = sceneObject.getMesh();
+        std::shared_ptr<Material> const& material = sceneObject.getMaterial();
+
+        if (!mesh || !material)
+            continue;;
+
+        Shader const& shader = *material->getShader();
 
         if (!instance->hasPipeline())
-            instance->setPipeline(createPipeline(shader, mesh.getVertexLayout()));
+			instance->setPipeline(createPipeline(shader, mesh->getVertexLayout()));
         instance->bindPipeline(handle);
 
-        mesh.bindBuffers(handle);
+        mesh->bindBuffers(handle);
 
         instance->bindDescriptorSet(handle, imageIndex, *m_pipelineLayout);
-        vkCmdDrawIndexed(handle, static_cast<uint32_t>(mesh.getIndexCount()), 1, 0, 0, 0);
+        vkCmdDrawIndexed(handle, static_cast<uint32_t>(mesh->getIndexCount()), 1, 0, 0, 0);
     }
 
     ImDrawData* drawData = ImGui::GetDrawData();

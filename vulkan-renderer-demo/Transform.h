@@ -10,18 +10,23 @@ namespace vkr
     public:
         Transform(glm::vec3 const& pos = glm::vec3(0.0f), glm::quat const& rotation = glm::identity<glm::quat>(), glm::vec3 const& scale = glm::vec3(1.0f));
 
-        void setPos(glm::vec3 const& pos) { m_pos = pos; }
-        void setRotation(glm::quat const& rotation) { m_rotation = rotation; }
-        void setScale(glm::vec3 const& scale) { m_scale = scale; }
+        void setLocalPos(glm::vec3 const& pos) { m_pos = pos; }
+        void setLocalRotation(glm::quat const& rotation) { m_rotation = rotation; }
+        void setLocalScale(glm::vec3 const& scale) { m_scale = scale; }
 
         void setLocalMatrix(glm::mat4 const& matrix);
 
         void addChild(Transform& child);
         std::vector<std::reference_wrapper<Transform>> const& getChildren() const { return m_children; }
 
-        glm::vec3 const& getPos() const { return m_pos; }
-        glm::quat const& getRotation() const { return m_rotation; }
-        glm::vec3 const& getScale() const { return m_scale; }
+        glm::vec3 const& getLocalPos() const { return m_pos; }
+        glm::quat const& getLocalRotation() const { return m_rotation; }
+        glm::vec3 const& getLocalScale() const { return m_scale; }
+
+        glm::vec3 getWorldPos() const;
+        glm::quat getWorldRotation() const;
+
+        void setWorldPos(glm::vec3 const& worldPos);
 
         glm::vec3 transformPointLocalToWorld(glm::vec3 const& point) const;
         glm::vec3 transformPointWorldToLocal(glm::vec3 const& point) const;
@@ -38,6 +43,7 @@ namespace vkr
         glm::mat4 getMatrix() const;
         glm::mat4 getLocalMatrix() const;
         glm::mat4 getInverseMatrix() const;
+        glm::mat4 getViewMatrix() const;
 
     private:
         glm::vec3 m_pos = glm::vec3(0.0f);

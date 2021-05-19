@@ -65,13 +65,13 @@ namespace
 #endif
     bool const API_DUMP_ENABLED = false;
 
-	const std::string GLTF_MODEL_PATH = "data/models/GearboxAssy/glTF/GearboxAssy.gltf";
-    //const float GLTF_MODEL_SCALE = 1.0f;
-    const float GLTF_MODEL_SCALE = 0.1f;
+	const std::string GLTF_MODEL_PATH = "data/models/Duck/glTF/Duck.gltf";
+// 	const std::string GLTF_MODEL_PATH = "data/models/GearboxAssy/glTF/GearboxAssy.gltf";
+// 	const std::string GLTF_MODEL_PATH = "data/models/ReciprocatingSaw/glTF/ReciprocatingSaw.gltf";
 
     const glm::vec3 LIGHT_POS = glm::vec3(-10.0, 0.0f, 0.0f);
-    const glm::vec3 CAMERA_POS = glm::vec3(0.0f, -3.0f, 3.0f);
-    const glm::vec3 CAMERA_ANGLES = glm::vec3(-45.0f, 0.0f, 0.0f);
+    const glm::vec3 CAMERA_POS = glm::vec3(0.0f, 0.0f, 4.0f);
+    const glm::vec3 CAMERA_ANGLES = glm::vec3(0.0f, 0.0f, 0.0f);
     const float CAMERA_SPEED = 1.0f;
 
     std::shared_ptr<tinygltf::Model> loadModel(std::string const& path)
@@ -194,23 +194,21 @@ private:
     }
 
     void onMouseMove(glm::vec2 const& delta)
-    {
-        glm::vec3 angleDelta = m_mouseSensitivity * glm::vec3{ -delta.y, 0.0f, -delta.x };
+	{
+		if (!m_activeCameraObject)
+			return;
+
+        glm::vec3 angleDelta = m_mouseSensitivity * glm::vec3{ -delta.y, -delta.x, 0.0f };
         glm::quat rotationDelta = createRotation(angleDelta);
 
-        vkr::Transform& cameraTransform = m_renderer->getCamera().getTransform();
-        cameraTransform.setRotation(cameraTransform.getRotation() * rotationDelta);
+        vkr::Transform& cameraTransform = m_activeCameraObject->getTransform();
+        cameraTransform.setLocalRotation(cameraTransform.getLocalRotation() * rotationDelta);
     }
 
     void createRenderer()
     {
         m_renderer = std::make_unique<vkr::Renderer>(getApp());
         m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
-
-        vkr::Transform& cameraTransform = m_renderer->getCamera().getTransform();
-        cameraTransform.setPos(CAMERA_POS);
-        m_cameraRotation = CAMERA_ANGLES;
-        cameraTransform.setRotation(createRotation(m_cameraRotation));
     }
 
     glm::quat createRotation(glm::vec3 const& eulerDegrees)
@@ -222,17 +220,8 @@ private:
     void loadResources()
     {
         m_defaultShader = vkr::ShaderBuilder()
-            .addStage(vkr::ShaderModule::Type::Vertex, "data/shaders/default.vert.spv")
-            .addStage(vkr::ShaderModule::Type::Fragment, "data/shaders/default.frag.spv")
-            .build(getApp());
-        m_noColorShader = vkr::ShaderBuilder()
-            .addStage(vkr::ShaderModule::Type::Vertex, "data/shaders/default.vert.spv")
-            .addStage(vkr::ShaderModule::Type::Fragment, "data/shaders/no-color.frag.spv")
-            .build(getApp());
-        m_testGeometryShader = vkr::ShaderBuilder()
-            .addStage(vkr::ShaderModule::Type::Vertex, "data/shaders/normaldebug.vert.spv")
-            .addStage(vkr::ShaderModule::Type::Geometry, "data/shaders/normaldebug.geom.spv")
-            .addStage(vkr::ShaderModule::Type::Fragment, "data/shaders/color.frag.spv")
+			.addStage(vkr::ShaderModule::Type::Vertex, "data/shaders/compiled/default.vert.spv")
+            .addStage(vkr::ShaderModule::Type::Fragment, "data/shaders/compiled/default.frag.spv")
             .build(getApp());
 
         m_defaultSampler = std::make_shared<vkr::Sampler>(getApp());
@@ -262,10 +251,12 @@ private:
 
 			std::size_t const primitiveIndex = 0;
 
-			object->setMesh(std::make_shared<vkr::Mesh>(getApp(), model, meshIndex, primitiveIndex));
+            auto mesh = std::make_shared<vkr::Mesh>(getApp(), model, meshIndex, primitiveIndex);
+			object->setMesh(mesh);
 
 			auto material = std::make_shared<vkr::Material>();
-			material->setShader(m_noColorShader);
+
+			material->setShader(m_defaultShader);
 
 			// TODO choose shader properly
 			if (!model->images.empty())
@@ -277,10 +268,28 @@ private:
 				material->setShader(m_defaultShader);
 			}
 
-			// TODO temp geometry shader test
-			//material->setShader(m_testGeometryShader);
-
 			object->setMaterial(material);
+        }
+
+        if (node.camera >= 0)
+        {
+			std::size_t const cameraIndex = static_cast<std::size_t>(node.camera);
+			tinygltf::Camera const& cameraParams = model->cameras[cameraIndex];
+
+            if (cameraParams.type == "perspective")
+            {
+				float const aspect = static_cast<float>(cameraParams.perspective.aspectRatio);
+				float const fov = static_cast<float>(cameraParams.perspective.yfov);
+				float const znear = static_cast<float>(cameraParams.perspective.znear);
+				float const zfar = static_cast<float>(cameraParams.perspective.zfar);
+
+				auto camera = std::make_shared<vkr::Camera>();
+				camera->setAspect(aspect);
+				camera->setFov(glm::degrees(fov));
+				camera->setPlanes(znear, zfar);
+
+                object->setCamera(camera);
+            }
         }
 
         return object;
@@ -310,66 +319,42 @@ private:
         for (std::size_t i = 0; i < scene.nodes.size(); i++)
         {
             std::size_t const nodeIndex = static_cast<std::size_t>(scene.nodes[i]);
-            std::shared_ptr<vkr::SceneObject> root = createSceneObjectWithChildren(model, hierarchy, nodeIndex);
-            root->getTransform().setPos(glm::zero<glm::vec3>());
+            createSceneObjectWithChildren(model, hierarchy, nodeIndex);
         }
 
         return hierarchy;
 	}
 
-    void setCamera(vkr::Camera& camera, std::shared_ptr<tinygltf::Model> const& model)
-    {
-		std::size_t const sceneIndex = static_cast<std::size_t>(model->defaultScene);
-		tinygltf::Scene const& scene = model->scenes[sceneIndex];
-		for (std::size_t i = 0; i < scene.nodes.size(); i++)
-		{
-			std::size_t const nodeIndex = static_cast<std::size_t>(scene.nodes[i]);
-            tinygltf::Node const& node = model->nodes[nodeIndex];
-
-            if (node.camera < 0)
-                continue;
-
-			std::size_t const cameraIndex = static_cast<std::size_t>(node.camera);
-            tinygltf::Camera const& cameraParams = model->cameras[cameraIndex];
-
-            if (cameraParams.type != "perspective")
-                continue;
-
-            float const aspect = static_cast<float>(cameraParams.perspective.aspectRatio);
-            float const fov = static_cast<float>(cameraParams.perspective.yfov);
-            float const znear = static_cast<float>(cameraParams.perspective.znear);
-            float const zfar = static_cast<float>(cameraParams.perspective.zfar);
-
-            camera.getTransform().setLocalMatrix(createMatrix(node.matrix));
-            camera.setAspect(aspect);
-            camera.setFov(glm::degrees(fov));
-            camera.setPlanes(znear, zfar);
-
-            return;
-		}
-    }
-
     void createSceneObjects()
     {
         auto hierarchy = createSceneObjectHierarchy(m_gltfModel);
         for (auto const& object : hierarchy)
+        {
             m_renderer->addObject(object);
 
-//         setCamera(m_renderer->getCamera(), m_gltfModel);
+            if (std::shared_ptr<vkr::Camera> const& camera = object->getCamera())
+                m_cameraObjects.push_back(object);
+        }
 
-        // TODO
-//         m_model = hierarchy[0];
+        if (!m_cameraObjects.empty())
+            m_activeCameraObject = m_cameraObjects.front();
 
-//         for (std::uint8_t i = 1; i <= 5; i++)
-//         {
-// 			std::shared_ptr child = createSceneObjectHierarchy(m_gltfModel);
-// 			child->getTransform().setPos({ i * 100.0f, i * 100.0f, 0.0f });
-// 			m_model->getTransform().addChild(child->getTransform());
-// 			m_renderer->addObject(child);
-//         }
+		if (!m_activeCameraObject)
+		{
+            auto cameraObject = std::make_shared<vkr::SceneObject>();
+            cameraObject->setCamera(std::make_shared<vkr::Camera>());
+
+			vkr::Transform& cameraTransform = cameraObject->getTransform();
+			cameraTransform.setLocalPos(CAMERA_POS);
+			cameraTransform.setLocalRotation(createRotation(CAMERA_ANGLES));
+
+            m_activeCameraObject = cameraObject;
+		}
+
+        m_renderer->setCamera(m_activeCameraObject);
 
         m_light = std::make_shared<vkr::Light>();
-        m_light->getTransform().setPos(LIGHT_POS);
+        m_light->getTransform().setLocalPos(LIGHT_POS);
         m_renderer->setLight(m_light);
     }
 
@@ -394,29 +379,35 @@ private:
         ImGui::End();
 
         ImGui::Begin("Camera");
-        vkr::Transform& cameraTransform = m_renderer->getCamera().getTransform();
-        glm::vec3 cameraPos = cameraTransform.getPos();
-        if (ImGui::SliderFloat3("Position", &cameraPos[0], -10.0f, 10.0f, "%.2f", 1.0f))
+        if (m_activeCameraObject)
         {
-            cameraTransform.setPos(cameraPos);
-        }
-        if (ImGui::SliderFloat3("Rotation", &m_cameraRotation[0], -180.0f, 180.0f, "%.1f", 1.0f))
-        {
-            cameraTransform.setRotation(createRotation(m_cameraRotation));
+			vkr::Transform& cameraTransform = m_activeCameraObject->getTransform();
+			glm::vec3 cameraPos = cameraTransform.getWorldPos();
+			if (ImGui::SliderFloat3("Position", &cameraPos[0], -10.0f, 10.0f, "%.2f", 1.0f))
+			{
+				cameraTransform.setWorldPos(cameraPos);
+			}
+
+            glm::vec3 cameraRotation = glm::degrees(glm::eulerAngles(cameraTransform.getLocalRotation()));
+			if (ImGui::SliderFloat3("Rotation", &cameraRotation[0], -180.0f, 180.0f, "%.1f", 1.0f))
+			{
+                // TODO set world rotation
+// 				cameraTransform.setLocalRotation(createRotation(m_cameraRotation));
+			}
         }
         ImGui::End();
 
         ImGui::Begin("Light");
-        glm::vec3 lightPos = m_light->getTransform().getPos();
+        glm::vec3 lightPos = m_light->getTransform().getWorldPos();
         if (ImGui::SliderFloat3("Position", &lightPos[0], -10.0f, 10.0f, "%.2f", 1.0f))
         {
-            m_light->getTransform().setPos(lightPos);
+            m_light->getTransform().setWorldPos(lightPos);
         }
         ImGui::End();
 
         ImGui::Begin("Input");
         ImGui::SliderFloat("Mouse sensitivity", &m_mouseSensitivity, 0.01f, 1.0f, "%.2f", 1.0f);
-        ImGui::SliderFloat("Camera speed", &m_cameraSpeed, 0.1f, 10.0f, "%.2f", 1.0f);
+        ImGui::SliderFloat("Camera speed", &m_cameraSpeed, 0.1f, 100.0f, "%.2f", 1.0f);
         ImGui::End();
 
         ImGui::Render();
@@ -451,49 +442,32 @@ private:
 
     void updateScene(float)
     {
-        if (m_paused)
-            return;
 
-        auto updateObject = [](vkr::Transform& transform, float time, bool fixRotation)
-        {
-            glm::quat initialRotation = glm::identity<glm::quat>();
-            if (fixRotation)
-                initialRotation = glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
-            transform.setRotation(glm::angleAxis(time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * initialRotation);
-        };
-
-        float time = m_appTime.getTime();
-
-        (void*)&time;
-
-//         m_model->getTransform().setRotation(glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
-//         updateObject(m_model->getTransform(), time * 0.5f, true);
-
-//         m_model->getTransform().setScale(glm::vec3(GLTF_MODEL_SCALE));
     }
 
     void updateCamera(float dt)
     {
-        glm::vec3 localDirection = glm::zero<glm::vec3>();
+        if (!m_activeCameraObject)
+			return;
+
+		vkr::Transform& cameraTransform = m_activeCameraObject->getTransform();
+
+        glm::vec3 posDelta = glm::zero<glm::vec3>();
 
         if (m_keyState['A'])
-            localDirection.x -= 1.0f;
+			posDelta += -cameraTransform.getRightVector();
         if (m_keyState['D'])
-            localDirection.x += 1.0f;
-        if (m_keyState['S'])
-            localDirection.y -= 1.0f;
-        if (m_keyState['W'])
-            localDirection.y += 1.0f;
-        if (m_keyState['Q'])
-            localDirection.z -= 1.0f;
+            posDelta += cameraTransform.getRightVector();
+		if (m_keyState['S'])
+			posDelta += -cameraTransform.getForwardVector();
+		if (m_keyState['W'])
+			posDelta += cameraTransform.getForwardVector();
+		if (m_keyState['Q'])
+			posDelta += -cameraTransform.getUpVector();
         if (m_keyState['E'])
-            localDirection.z += 1.0f;
+            posDelta += cameraTransform.getUpVector();
 
-        vkr::Transform& cameraTransform = m_renderer->getCamera().getTransform();
-
-        glm::vec3 worldDirection = cameraTransform.transformVectorLocalToWorld(localDirection);
-        cameraTransform.setPos(cameraTransform.getPos() + m_cameraSpeed * dt * worldDirection);
+        cameraTransform.setWorldPos(cameraTransform.getWorldPos() + m_cameraSpeed * dt * posDelta);
     }
 
     vkr::Application const& getApp() { return *m_application; }
@@ -504,16 +478,18 @@ private:
     std::unique_ptr<vkr::Application> m_application;
     std::unique_ptr<vkr::Renderer> m_renderer;
 
+    std::shared_ptr<vkr::SceneObject> m_activeCameraObject;
+
     // Resources
     std::shared_ptr<vkr::Sampler> m_defaultSampler;
+
     std::shared_ptr<vkr::Shader> m_defaultShader;
-    std::shared_ptr<vkr::Shader> m_noColorShader;
-    std::shared_ptr<vkr::Shader> m_testGeometryShader;
 
     std::shared_ptr<tinygltf::Model> m_gltfModel;
 
     // Objects
     std::shared_ptr<vkr::SceneObject> m_model;
+    std::vector<std::shared_ptr<vkr::SceneObject>> m_cameraObjects;
     std::shared_ptr<vkr::Light> m_light;
 
     std::unique_ptr<vkr::DescriptorPool> m_descriptorPool;

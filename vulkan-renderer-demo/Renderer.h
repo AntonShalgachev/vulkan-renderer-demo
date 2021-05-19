@@ -49,8 +49,11 @@ namespace vkr
         void addObject(std::shared_ptr<SceneObject> const& object);
         void setLight(std::shared_ptr<Light> const& light) { m_light = light; }
 
-        vkr::Camera& getCamera() { return m_camera; }
-        vkr::Camera const& getCamera() const { return m_camera; }
+        void setCamera(std::shared_ptr<SceneObject> const& cameraObject)
+        {
+            m_activeCameraObject = cameraObject;
+            updateCameraAspect();
+        }
 
         void onFramebufferResized();
         void draw();
@@ -85,8 +88,10 @@ namespace vkr
 
         void updateUniformBuffer(uint32_t currentImage);
 
+        void updateCameraAspect();
+
     private:
-        vkr::Camera m_camera;
+        std::shared_ptr<SceneObject> m_activeCameraObject;
 
         std::unique_ptr<vkr::Swapchain> m_swapchain;
         std::unique_ptr<vkr::RenderPass> m_renderPass;

@@ -25,6 +25,25 @@ void vkr::Transform::addChild(Transform& child)
 	m_children.emplace_back(child);
 }
 
+glm::vec3 vkr::Transform::getWorldPos() const
+{
+    return transformPointLocalToWorld(glm::vec3(0.0f, 0.0f, 0.0f));
+}
+
+glm::quat vkr::Transform::getWorldRotation() const
+{
+    return glm::toQuat(getMatrix());
+}
+
+void vkr::Transform::setWorldPos(glm::vec3 const& worldPos)
+{
+    auto localPos = worldPos;
+    if (m_parent)
+        localPos = m_parent->transformPointWorldToLocal(worldPos);
+
+    setLocalPos(localPos);
+}
+
 glm::vec3 vkr::Transform::transformPointLocalToWorld(glm::vec3 const& point) const
 {
     return (getMatrix() * glm::vec4(point, 1.0f)).xyz();
@@ -57,22 +76,22 @@ glm::vec3 vkr::Transform::getRightPoint() const
 
 glm::vec3 vkr::Transform::getForwardVector() const
 {
-    return transformVectorLocalToWorld(glm::vec3(0.0f, 1.0f, 0.0f));
+    return transformVectorLocalToWorld(glm::vec3(0.0f, 0.0f, -1.0f));
 }
 
 glm::vec3 vkr::Transform::getForwardPoint() const
 {
-    return transformPointLocalToWorld(glm::vec3(0.0f, 1.0f, 0.0f));
+    return transformPointLocalToWorld(glm::vec3(0.0f, 0.0f, -1.0f));
 }
 
 glm::vec3 vkr::Transform::getUpVector() const
 {
-    return transformVectorLocalToWorld(glm::vec3(0.0f, 0.0f, 1.0f));
+    return transformVectorLocalToWorld(glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 glm::vec3 vkr::Transform::getUpPoint() const
 {
-    return transformPointLocalToWorld(glm::vec3(0.0f, 0.0f, 1.0f));
+    return transformPointLocalToWorld(glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 glm::mat4 vkr::Transform::getMatrix() const
@@ -95,4 +114,10 @@ glm::mat4 vkr::Transform::getInverseMatrix() const
 {
     // TODO cache
     return glm::inverse(getMatrix());
+}
+
+glm::mat4 vkr::Transform::getViewMatrix() const
+{
+	// TODO cache
+    return glm::lookAt(getWorldPos(), getForwardPoint(), getUpVector());
 }
