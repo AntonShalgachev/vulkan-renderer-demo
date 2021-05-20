@@ -1,7 +1,7 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-// #define HAS_COLOR 0
+// #define HAS_VERTEX_COLOR 0
 // #define HAS_TEXTURE 0
 // #define HAS_NORMAL 0
 // #define HAS_TEXTURE 0
@@ -14,7 +14,7 @@ layout(binding = 1) uniform sampler2D texSampler;
 #define HAS_LIGHT
 #endif
 
-#ifdef HAS_COLOR
+#ifdef HAS_VERTEX_COLOR
 layout(location = 0) in vec3 fragColor;
 #endif
 
@@ -29,17 +29,19 @@ layout(location = 2) in vec3 fragNormal;
 layout(location = 3) in vec3 viewVec;
 layout(location = 4) in vec3 lightVec;
 
+layout(location = 5) in vec4 objectColor;
+
 layout(location = 0) out vec4 outColor;
 
 vec3 getBaseColor()
 {
-	vec3 result = vec3(1.0, 1.0, 1.0);
+	vec3 result = objectColor.rgb;
 
 #if defined(HAS_TEX_COORD) && defined(HAS_TEXTURE)
 	result *= texture(texSampler, fragTexCoord).rgb;
 #endif
 
-#ifdef HAS_COLOR
+#ifdef HAS_VERTEX_COLOR
 	result *= fragColor;
 #endif
 

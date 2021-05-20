@@ -7,7 +7,11 @@
 #include <string>
 #include "VertexLayout.h"
 
-namespace tinygltf { class Model; }
+namespace tinygltf
+{
+    class Model;
+    struct Primitive;
+}
 
 namespace vkr
 {
@@ -17,10 +21,18 @@ namespace vkr
     class Mesh : Object
     {
     public:
-    	Mesh(Application const& app, std::string const& path);
-    	Mesh(Application const& app, std::shared_ptr<tinygltf::Model> const& model, std::size_t meshIndex, std::size_t primitiveIndex);
+        struct VertexTraits
+        {
+            bool hasColor = false;
+            bool hasNormal = false;
+            bool hasTexCoord = false;
+        };
 
-        VertexLayout getVertexLayout() const { return m_vertexLayout; }
+    	Mesh(Application const& app, std::string const& path);
+    	Mesh(Application const& app, std::shared_ptr<tinygltf::Model> const& model, tinygltf::Primitive const& primitive);
+
+        VertexLayout const& getVertexLayout() const { return m_vertexLayout; }
+        VertexTraits const& getVertexTraits() const { return m_vertexTraits; }
 
         void bindBuffers(VkCommandBuffer commandBuffer) const;
 
@@ -45,6 +57,7 @@ namespace vkr
         std::shared_ptr<tinygltf::Model> m_gltfModel;
 
         VertexLayout m_vertexLayout;
+        VertexTraits m_vertexTraits;
 
     private:
         static Mesh const* ms_boundMesh;

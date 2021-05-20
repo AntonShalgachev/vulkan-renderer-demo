@@ -42,6 +42,7 @@ namespace
         glm::mat4 projection;
         glm::vec3 lightPosition;
         glm::vec3 viewPosition;
+        glm::vec4 objectColor;
     };
 
     const int FRAME_RESOURCE_COUNT = 3;
@@ -172,16 +173,22 @@ void vkr::Renderer::updateUniformBuffer(uint32_t currentImage)
 
         std::shared_ptr<Camera> const& camera = m_activeCameraObject->getCamera();
         if (!camera)
-            continue;
+			continue;
+
+		SceneObject const& sceneObject = instance->getSceneObject();
+		std::shared_ptr<Material> const& material = sceneObject.getMaterial();
+		if (!material)
+			continue;
 
 		Transform const& cameraTransform = m_activeCameraObject->getTransform();
 
         UniformBufferObject ubo{};
-        ubo.modelView = cameraTransform.getViewMatrix() * instance->getSceneObject().getTransform().getMatrix();
+        ubo.modelView = cameraTransform.getViewMatrix() * sceneObject.getTransform().getMatrix();
         ubo.normal = glm::transpose(glm::inverse(ubo.modelView));
         ubo.projection = camera->getProjectionMatrix();
         ubo.lightPosition = cameraTransform.getViewMatrix() * glm::vec4(m_light->getTransform().getLocalPos(), 1.0f);
         ubo.viewPosition = glm::vec3(0.0f, 0.0f, 0.0f); // TODO remove, always 0 in eye space
+        ubo.objectColor = material->getColor();
 
         instance->copyToUniformBuffer(currentImage, &ubo, sizeof(ubo));
     }

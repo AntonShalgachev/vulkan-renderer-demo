@@ -132,6 +132,23 @@ namespace
 
         throw std::runtime_error("Unkown attribute name: " + name);
     }
+
+    // TODO improve logic, remove string duplication and merge with findAttributeLocation
+    void updateVertexTrait(vkr::Mesh::VertexTraits& vertexTraits, std::string const& attributeName)
+    {
+        if (attributeName == "COLOR_0")
+        {
+            vertexTraits.hasColor = true;
+        }
+        else if (attributeName == "TEXCOORD_0")
+        {
+            vertexTraits.hasTexCoord = true;
+        }
+        else if (attributeName == "NORMAL")
+        {
+            vertexTraits.hasNormal = true;
+        }
+    }
 }
 
 namespace std
@@ -157,11 +174,9 @@ vkr::Mesh::Mesh(Application const& app, std::string const& path) : Object(app)
     createBuffers(m_combinedData);
 }
 
-vkr::Mesh::Mesh(Application const& app, std::shared_ptr<tinygltf::Model> const& model, std::size_t meshIndex, std::size_t primitiveIndex) : Object(app)
+vkr::Mesh::Mesh(Application const& app, std::shared_ptr<tinygltf::Model> const& model, tinygltf::Primitive const& primitive) : Object(app)
 {
     m_gltfModel = model;
-
-    tinygltf::Primitive const& primitive = model->meshes[meshIndex].primitives[primitiveIndex];
 
     {
         tinygltf::Accessor const& indexAccessor = model->accessors[static_cast<std::size_t>(primitive.indices)];
@@ -183,6 +198,8 @@ vkr::Mesh::Mesh(Application const& app, std::shared_ptr<tinygltf::Model> const& 
         tinygltf::Accessor const& accessor = model->accessors[static_cast<std::size_t>(accessorIndex)];
         tinygltf::BufferView const& bufferView = model->bufferViews[static_cast<std::size_t>(accessor.bufferView)];
 
+        updateVertexTrait(m_vertexTraits, name);
+
         std::size_t location = findAttributeLocation(name);
         vkr::VertexLayout::AttributeType attributeType = findAttributeType(accessor.type);
         vkr::VertexLayout::ComponentType componentType = findComponentType(accessor.componentType);
@@ -203,6 +220,7 @@ vkr::Mesh::Mesh(Application const& app, std::shared_ptr<tinygltf::Model> const& 
     std::size_t bufferIndex = 0; // TODO use all buffers
     std::vector<unsigned char> const& data = m_gltfModel->buffers[bufferIndex].data;
 
+    // Don't create a buffer for every mesh
     createBuffers(data);
 }
 

@@ -239,6 +239,16 @@ private:
 		throw std::runtime_error("unexpected linear matrix size");
 	}
 
+    glm::vec4 createColor(std::vector<double> const& flatColor)
+    {
+        if (flatColor.empty())
+            return glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        if (flatColor.size() == 4)
+			return glm::make_vec4(flatColor.data());
+
+		throw std::runtime_error("unexpected flat color size");
+    }
+
     std::unique_ptr<vkr::SceneObject> createSceneObject(std::shared_ptr<tinygltf::Model> const& model, tinygltf::Node const& node)
     {
 		std::unique_ptr<vkr::SceneObject> object = std::make_unique<vkr::SceneObject>();
@@ -251,22 +261,31 @@ private:
 
 			std::size_t const primitiveIndex = 0;
 
-            auto mesh = std::make_shared<vkr::Mesh>(getApp(), model, meshIndex, primitiveIndex);
+            tinygltf::Mesh const& gltfMesh = model->meshes[meshIndex];
+			tinygltf::Primitive const& gltfPrimitive = gltfMesh.primitives[primitiveIndex];
+
+			auto mesh = std::make_shared<vkr::Mesh>(getApp(), model, gltfPrimitive);
 			object->setMesh(mesh);
 
+            std::size_t const materialIndex = static_cast<std::size_t>(gltfPrimitive.material);
+            tinygltf::Material const& gltfMaterial = model->materials[materialIndex];
+
+            tinygltf::PbrMetallicRoughness const& gltfRoughness = gltfMaterial.pbrMetallicRoughness;
+
 			auto material = std::make_shared<vkr::Material>();
-
 			material->setShader(m_defaultShader);
+            material->setColor(createColor(gltfRoughness.baseColorFactor));
 
-			// TODO choose shader properly
-			if (!model->images.empty())
+            if (gltfRoughness.baseColorTexture.index >= 0)
 			{
-				tinygltf::Image const& image = model->images[0];
-				auto texture = std::make_shared<vkr::Texture>(getApp(), image);
+				// TODO don't create image here, it could be used by several meshes
+				std::size_t const imageIndex = static_cast<std::size_t>(gltfRoughness.baseColorTexture.index);
+				tinygltf::Image const& gltfImage = model->images[imageIndex];
+				auto texture = std::make_shared<vkr::Texture>(getApp(), gltfImage);
 				material->setTexture(texture);
 				material->setSampler(m_defaultSampler);
 				material->setShader(m_defaultShader);
-			}
+            }
 
 			object->setMaterial(material);
         }
@@ -274,14 +293,14 @@ private:
         if (node.camera >= 0)
         {
 			std::size_t const cameraIndex = static_cast<std::size_t>(node.camera);
-			tinygltf::Camera const& cameraParams = model->cameras[cameraIndex];
+			tinygltf::Camera const& gltfCamera = model->cameras[cameraIndex];
 
-            if (cameraParams.type == "perspective")
+            if (gltfCamera.type == "perspective")
             {
-				float const aspect = static_cast<float>(cameraParams.perspective.aspectRatio);
-				float const fov = static_cast<float>(cameraParams.perspective.yfov);
-				float const znear = static_cast<float>(cameraParams.perspective.znear);
-				float const zfar = static_cast<float>(cameraParams.perspective.zfar);
+				float const aspect = static_cast<float>(gltfCamera.perspective.aspectRatio);
+				float const fov = static_cast<float>(gltfCamera.perspective.yfov);
+				float const znear = static_cast<float>(gltfCamera.perspective.znear);
+				float const zfar = static_cast<float>(gltfCamera.perspective.zfar);
 
 				auto camera = std::make_shared<vkr::Camera>();
 				camera->setAspect(aspect);
