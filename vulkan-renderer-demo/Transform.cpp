@@ -66,7 +66,7 @@ glm::vec3 vkr::Transform::transformVectorWorldToLocal(glm::vec3 const& vector) c
 
 glm::vec3 vkr::Transform::getRightVector() const
 {
-    return transformVectorLocalToWorld(glm::vec3(1.0f, 0.0f, 0.0f));
+    return glm::normalize(transformVectorLocalToWorld(glm::vec3(1.0f, 0.0f, 0.0f)));
 }
 
 glm::vec3 vkr::Transform::getRightPoint() const
@@ -76,7 +76,7 @@ glm::vec3 vkr::Transform::getRightPoint() const
 
 glm::vec3 vkr::Transform::getForwardVector() const
 {
-    return transformVectorLocalToWorld(glm::vec3(0.0f, 0.0f, -1.0f));
+    return glm::normalize(transformVectorLocalToWorld(glm::vec3(0.0f, 0.0f, -1.0f)));
 }
 
 glm::vec3 vkr::Transform::getForwardPoint() const
@@ -86,7 +86,7 @@ glm::vec3 vkr::Transform::getForwardPoint() const
 
 glm::vec3 vkr::Transform::getUpVector() const
 {
-    return transformVectorLocalToWorld(glm::vec3(0.0f, 1.0f, 0.0f));
+    return glm::normalize(transformVectorLocalToWorld(glm::vec3(0.0f, 1.0f, 0.0f)));
 }
 
 glm::vec3 vkr::Transform::getUpPoint() const
