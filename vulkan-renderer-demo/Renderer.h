@@ -14,6 +14,7 @@
 
 // TODO maybe remove?
 #include "Shader.h"
+#include "VertexLayout.h"
 
 namespace vkr
 {
@@ -31,7 +32,6 @@ namespace vkr
     class SceneObject;
     class CommandPool;
     class CommandBuffer;
-    class VertexLayout;
 
     class Renderer : Object
     {
@@ -82,7 +82,7 @@ namespace vkr
         void createSwapchain();
         void createSyncObjects();
         void recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources);
-        std::unique_ptr<Pipeline> createPipeline(Shader::Key const& shader, VertexLayout const& vertexLayout);
+        std::unique_ptr<Pipeline> createPipeline(Shader::Key const& shader, VertexLayout::Descriptions const& vertexLayoutDescriptions);
 
         void recreateSwapchain();
 

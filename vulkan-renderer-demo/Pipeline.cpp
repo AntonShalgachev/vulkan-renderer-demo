@@ -9,7 +9,7 @@
 
 vkr::Pipeline const* vkr::Pipeline::ms_boundPipeline = nullptr;
 
-vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, Shader::Key const& shaderKey, VertexLayout const& vertexLayout) : Object(app)
+vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, Shader::Key const& shaderKey, VertexLayout::Descriptions const& vertexLayoutDescriptions) : Object(app)
 {
     Shader shader{ app, shaderKey };
 
@@ -22,11 +22,11 @@ vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, Re
     vertexInputCreateInfo.vertexAttributeDescriptionCount = 0;
     vertexInputCreateInfo.pVertexAttributeDescriptions = nullptr;
 
-    auto bindingDescriptions = vertexLayout.getBindingDescriptions();
+    auto const& bindingDescriptions = vertexLayoutDescriptions.getBindingDescriptions();
     vertexInputCreateInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
     vertexInputCreateInfo.pVertexBindingDescriptions = bindingDescriptions.data();
 
-    auto attributeDescriptions = vertexLayout.getAttributeDescriptions();
+    auto const& attributeDescriptions = vertexLayoutDescriptions.getAttributeDescriptions();
     vertexInputCreateInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
     vertexInputCreateInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 

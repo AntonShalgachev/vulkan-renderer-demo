@@ -46,22 +46,22 @@ void vkr::VertexLayout::setBindings(std::vector<Binding> const& bindings)
     std::transform(bindings.begin(), bindings.end(), std::back_inserter(m_bindingOffsets),
                    [](VertexLayout::Binding const& binding) { return static_cast<VkDeviceSize>(binding.offset); });
 
-    m_bindingDescriptions.reserve(bindings.size());
+    m_descriptions.m_bindingDescriptions.reserve(bindings.size());
 
     for (std::size_t i = 0; i < bindings.size(); i++)
     {
         Binding const& binding = bindings[i];
-        VkVertexInputBindingDescription& bindingDescription = m_bindingDescriptions.emplace_back();
+        VkVertexInputBindingDescription& bindingDescription = m_descriptions.m_bindingDescriptions.emplace_back();
 
         bindingDescription.binding = static_cast<uint32_t>(i);
         bindingDescription.stride = static_cast<uint32_t>(binding.stride);
         bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-        m_attributeDescriptions.reserve(m_attributeDescriptions.size() + binding.attributes.size());
+        m_descriptions.m_attributeDescriptions.reserve(m_descriptions.m_attributeDescriptions.size() + binding.attributes.size());
 
         for (Attribute const& attribute : binding.attributes)
         {
-            VkVertexInputAttributeDescription& attributeDescription = m_attributeDescriptions.emplace_back();
+            VkVertexInputAttributeDescription& attributeDescription = m_descriptions.m_attributeDescriptions.emplace_back();
 
             attributeDescription.binding = static_cast<uint32_t>(i);
             attributeDescription.location = static_cast<uint32_t>(attribute.location);

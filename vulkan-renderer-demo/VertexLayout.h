@@ -64,10 +64,23 @@ namespace vkr
             std::vector<Attribute> attributes;
         };
 
+        struct Descriptions
+		{
+            friend class VertexLayout;
+
+        public:
+			std::vector<VkVertexInputBindingDescription> const& getBindingDescriptions() const { return m_bindingDescriptions; }
+			std::vector<VkVertexInputAttributeDescription> const& getAttributeDescriptions() const { return m_attributeDescriptions; };
+
+        private:
+			std::vector<VkVertexInputBindingDescription> m_bindingDescriptions;
+			std::vector<VkVertexInputAttributeDescription> m_attributeDescriptions;
+        };
+
+        Descriptions const& getDescriptions() const { return m_descriptions; }
+
         void setBindings(std::vector<Binding> const& bindings);
         std::vector<VkDeviceSize> const& getBindingOffsets() const { return m_bindingOffsets; }
-        std::vector<VkVertexInputBindingDescription> const& getBindingDescriptions() const { return m_bindingDescriptions; }
-        std::vector<VkVertexInputAttributeDescription> const& getAttributeDescriptions() const { return m_attributeDescriptions; };
 
         void setIndexType(ComponentType indexType);
         VkIndexType getIndexType() const { return m_indexType; }
@@ -76,10 +89,9 @@ namespace vkr
         VkDeviceSize getIndexDataOffset() const { return m_indexDataOffset; }
 
     private:
-        std::vector<VkDeviceSize> m_bindingOffsets;
-        std::vector<VkVertexInputBindingDescription> m_bindingDescriptions;
-        std::vector<VkVertexInputAttributeDescription> m_attributeDescriptions;
+        Descriptions m_descriptions;
 
+        std::vector<VkDeviceSize> m_bindingOffsets;
         VkIndexType m_indexType = VK_INDEX_TYPE_UINT16;
         VkDeviceSize m_indexDataOffset = 0;
     };
