@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
 namespace vkr
 {
     // Its main purpose is to make it easier to implement move constructors of vulkan objects
@@ -16,7 +14,7 @@ namespace vkr
         UniqueHandle(UniqueHandle const&) = delete;
         UniqueHandle(UniqueHandle&& rhs) : m_handle(rhs.m_handle)
         {
-            rhs.m_handle = VK_NULL_HANDLE;
+            rhs.m_handle = nullptr;
         }
         UniqueHandle& operator=(UniqueHandle const&) = delete;
         UniqueHandle& operator=(UniqueHandle&& rhs)
@@ -24,7 +22,7 @@ namespace vkr
             if (this != &rhs)
             {
                 m_handle = rhs.m_handle;
-                rhs.m_handle = VK_NULL_HANDLE;
+                rhs.m_handle = nullptr;
             }
 
             return *this;
@@ -32,7 +30,7 @@ namespace vkr
 
         UniqueHandle& operator=(std::nullptr_t)
         {
-            m_handle = VK_NULL_HANDLE;
+            m_handle = nullptr;
             return *this;
         }
 
@@ -50,6 +48,6 @@ namespace vkr
         }
 
     private:
-        T m_handle = VK_NULL_HANDLE;
+        T m_handle = nullptr;
     };
 }
