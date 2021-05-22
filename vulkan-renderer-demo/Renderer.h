@@ -12,6 +12,9 @@
 #include "Camera.h"
 #include "Light.h"
 
+// TODO maybe remove?
+#include "Shader.h"
+
 namespace vkr
 {
     class CommandBuffers;
@@ -26,7 +29,6 @@ namespace vkr
     class Mesh;
     class ObjectInstance;
     class SceneObject;
-    class Shader;
     class CommandPool;
     class CommandBuffer;
     class VertexLayout;
@@ -80,7 +82,7 @@ namespace vkr
         void createSwapchain();
         void createSyncObjects();
         void recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources);
-        std::unique_ptr<Pipeline> createPipeline(Shader const& shader, VertexLayout const& vertexLayout);
+        std::unique_ptr<Pipeline> createPipeline(Shader::Key const& shader, VertexLayout const& vertexLayout);
 
         void recreateSwapchain();
 

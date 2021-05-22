@@ -65,8 +65,8 @@ namespace
 #endif
     bool const API_DUMP_ENABLED = false;
 
-	const std::string GLTF_MODEL_PATH = "data/models/Duck/glTF/Duck.gltf";
-// 	const std::string GLTF_MODEL_PATH = "data/models/GearboxAssy/glTF/GearboxAssy.gltf";
+// 	const std::string GLTF_MODEL_PATH = "data/models/Duck/glTF/Duck.gltf";
+	const std::string GLTF_MODEL_PATH = "data/models/GearboxAssy/glTF/GearboxAssy.gltf";
 // 	const std::string GLTF_MODEL_PATH = "data/models/ReciprocatingSaw/glTF/ReciprocatingSaw.gltf";
 
     const glm::vec3 LIGHT_POS = glm::vec3(-10.0, 0.0f, 0.0f);
@@ -219,10 +219,9 @@ private:
 
     void loadResources()
     {
-        m_defaultShader = vkr::ShaderBuilder()
-			.addStage(vkr::ShaderModule::Type::Vertex, "data/shaders/compiled/default.vert.spv")
-            .addStage(vkr::ShaderModule::Type::Fragment, "data/shaders/compiled/default.frag.spv")
-            .build(getApp());
+        m_defaultShaderKey = vkr::Shader::Key{}
+            .addStage(vkr::ShaderModule::Type::Vertex, "data/shaders/compiled/default.vert.spv")
+            .addStage(vkr::ShaderModule::Type::Fragment, "data/shaders/compiled/default.frag.spv");
 
         m_defaultSampler = std::make_shared<vkr::Sampler>(getApp());
         m_gltfModel = loadModel(GLTF_MODEL_PATH);
@@ -273,7 +272,7 @@ private:
             tinygltf::PbrMetallicRoughness const& gltfRoughness = gltfMaterial.pbrMetallicRoughness;
 
 			auto material = std::make_shared<vkr::Material>();
-			material->setShader(m_defaultShader);
+			material->setShaderKey(m_defaultShaderKey);
             material->setColor(createColor(gltfRoughness.baseColorFactor));
 
             if (gltfRoughness.baseColorTexture.index >= 0)
@@ -284,7 +283,6 @@ private:
 				auto texture = std::make_shared<vkr::Texture>(getApp(), gltfImage);
 				material->setTexture(texture);
 				material->setSampler(m_defaultSampler);
-				material->setShader(m_defaultShader);
             }
 
 			object->setMaterial(material);
@@ -502,7 +500,7 @@ private:
     // Resources
     std::shared_ptr<vkr::Sampler> m_defaultSampler;
 
-    std::shared_ptr<vkr::Shader> m_defaultShader;
+    vkr::Shader::Key m_defaultShaderKey;
 
     std::shared_ptr<tinygltf::Model> m_gltfModel;
 

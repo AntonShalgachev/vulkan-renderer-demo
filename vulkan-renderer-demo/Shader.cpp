@@ -3,7 +3,7 @@
 #include "ShaderModule.h"
 #include <iterator>
 
-std::vector<VkPipelineShaderStageCreateInfo> vkr::CompiledShader::createStageDescriptions() const
+std::vector<VkPipelineShaderStageCreateInfo> vkr::Shader::createStageDescriptions() const
 {
     std::vector<VkPipelineShaderStageCreateInfo> stageDescriptions;
     std::transform(m_shaderModules.begin(), m_shaderModules.end(), std::back_inserter(stageDescriptions),
@@ -11,26 +11,10 @@ std::vector<VkPipelineShaderStageCreateInfo> vkr::CompiledShader::createStageDes
     return stageDescriptions;
 }
 
-vkr::Shader::Shader(Application const& app, std::vector<ShaderModule::Key> moduleKeys) : Object(app), m_moduleKeys(std::move(moduleKeys))
+vkr::Shader::Shader(Application const& app, Shader::Key const& key) : vkr::Object(app)
 {
-
-}
-
-vkr::CompiledShader vkr::Shader::compile() const
-{
-    std::vector<ShaderModule> modules;
-    for (ShaderModule::Key const& key : m_moduleKeys)
-        modules.emplace_back(getApp(), key);
-    return CompiledShader(std::move(modules));
-}
-
-vkr::ShaderBuilder& vkr::ShaderBuilder::addStage(ShaderModule::Type type, std::string const& path, std::string entryPoint)
-{
-    m_moduleKeys.push_back({ type, path, entryPoint });
-    return *this;
-}
-
-std::unique_ptr<vkr::Shader> vkr::ShaderBuilder::build(Application const& app) const
-{
-    return std::make_unique<vkr::Shader>(app, m_moduleKeys);
+    std::vector<ShaderModule::Key> const& moduleKeys = key.getModuleKeys();
+    m_shaderModules.reserve(moduleKeys.size());
+	for (ShaderModule::Key const& moduleKey : moduleKeys)
+		m_shaderModules.emplace_back(getApp(), moduleKey);
 }

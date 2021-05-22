@@ -9,10 +9,11 @@
 
 vkr::Pipeline const* vkr::Pipeline::ms_boundPipeline = nullptr;
 
-vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, Shader const& shader, VertexLayout const& vertexLayout) : Object(app)
+vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, Shader::Key const& shaderKey, VertexLayout const& vertexLayout) : Object(app)
 {
-    auto compiledShader = shader.compile();
-    std::vector<VkPipelineShaderStageCreateInfo> shaderStages = compiledShader.createStageDescriptions();
+    Shader shader{ app, shaderKey };
+
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStages = shader.createStageDescriptions();
 
     VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo{};
     vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;

@@ -251,12 +251,11 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
         std::shared_ptr<Material> const& material = sceneObject.getMaterial();
 
         if (!mesh || !material)
-            continue;;
+            continue;
 
-        Shader const& shader = *material->getShader();
-
+        // TODO don't create a pipeline for each object
         if (!instance->hasPipeline())
-			instance->setPipeline(createPipeline(shader, mesh->getVertexLayout()));
+			instance->setPipeline(createPipeline(material->getShaderKey(), mesh->getVertexLayout()));
         instance->bindPipeline(handle);
 
         mesh->bindBuffers(handle);
@@ -274,9 +273,9 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
     commandBuffer.end();
 }
 
-std::unique_ptr<vkr::Pipeline> vkr::Renderer::createPipeline(Shader const& shader, VertexLayout const& vertexLayout)
+std::unique_ptr<vkr::Pipeline> vkr::Renderer::createPipeline(Shader::Key const& shaderKey, VertexLayout const& vertexLayout)
 {
-    return std::make_unique<vkr::Pipeline>(getApp(), *m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), shader, vertexLayout);
+    return std::make_unique<vkr::Pipeline>(getApp(), *m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), shaderKey, vertexLayout);
 }
 
 void vkr::Renderer::createSyncObjects()
