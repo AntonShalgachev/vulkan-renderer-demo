@@ -166,6 +166,7 @@
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="UniqueHandle.cpp" />
     <ClCompile Include="VertexLayoutDescriptions.cpp" />
+    <ClCompile Include="PipelineConfiguration.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h">
@@ -321,5 +322,6 @@
     <ClInclude Include="glm.h" />
     <ClInclude Include="UniqueHandle.h" />
     <ClInclude Include="VertexLayoutDescriptions.h" />
+    <ClInclude Include="PipelineConfiguration.h" />
   </ItemGroup>
 </Project>

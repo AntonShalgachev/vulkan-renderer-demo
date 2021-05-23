@@ -4,9 +4,6 @@
 #include "Object.h"
 #include "UniqueHandle.h"
 
-// TODO maybe remove?
-#include "Shader.h"
-
 namespace vkr
 {
     class ShaderModule;
@@ -14,10 +11,12 @@ namespace vkr
     class RenderPass;
     class VertexLayoutDescriptions;
 
+    struct PipelineConfiguration;
+
     class Pipeline : public Object
     {
     public:
-    	explicit Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D const& extent, Shader::Key const& shaderKey, VertexLayoutDescriptions const& vertexLayoutDescriptions);
+    	explicit Pipeline(Application const& app, PipelineConfiguration const& config);
     	~Pipeline();
 
         void bind(VkCommandBuffer commandBuffer) const;

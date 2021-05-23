@@ -192,6 +192,7 @@
     <ClCompile Include="DeviceMemory.cpp" />
     <ClCompile Include="Fence.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
+    <ClCompile Include="PipelineConfiguration.cpp" />
     <ClCompile Include="UniqueHandle.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_demo.cpp" />
@@ -252,6 +253,7 @@
     <ClInclude Include="Fence.h" />
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="glm.h" />
+    <ClInclude Include="PipelineConfiguration.h" />
     <ClInclude Include="UniqueHandle.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImageView.h" />

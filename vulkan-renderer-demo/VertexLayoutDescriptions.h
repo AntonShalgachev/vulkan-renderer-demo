@@ -9,9 +9,6 @@ namespace vkr
 	{
 		friend class VertexLayout;
 
-	private:
-		VertexLayoutDescriptions() = default;
-
 	public:
 		std::vector<VkVertexInputBindingDescription> const& getBindingDescriptions() const { return m_bindingDescriptions; }
 		std::vector<VkVertexInputAttributeDescription> const& getAttributeDescriptions() const { return m_attributeDescriptions; };

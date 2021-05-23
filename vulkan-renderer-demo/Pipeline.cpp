@@ -6,6 +6,7 @@
 #include "VertexLayout.h"
 #include "Shader.h"
 #include <stdexcept>
+#include "PipelineConfiguration.h"
 
 namespace
 {
@@ -152,18 +153,18 @@ namespace
 
 vkr::Pipeline const* vkr::Pipeline::ms_boundPipeline = nullptr;
 
-vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D const& extent, Shader::Key const& shaderKey, VertexLayoutDescriptions const& vertexLayoutDescriptions) : Object(app)
+vkr::Pipeline::Pipeline(Application const& app, PipelineConfiguration const& config) : Object(app)
 {
-	Shader shader{ app, shaderKey };
+	Shader shader{ app, config.shaderKey };
 
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages = shader.createStageDescriptions();
 
-	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = initVertexInputCreateInfo(vertexLayoutDescriptions);
+	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = initVertexInputCreateInfo(config.vertexLayoutDescriptions);
 
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = initInputAssemblyCreateInfo();
 
-    VkViewport viewport = initViewport(extent);
-    VkRect2D scissor = initScissor(extent);
+    VkViewport viewport = initViewport(config.extent);
+    VkRect2D scissor = initScissor(config.extent);
     VkPipelineViewportStateCreateInfo viewportStateCreateInfo = initViewportStateCreateInfo(viewport, scissor);
 
     VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo = initRasterizerCreateInfo();
@@ -187,8 +188,8 @@ vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, Re
     pipelineCreateInfo.pDepthStencilState = &depthStencilCreateInfo;
     pipelineCreateInfo.pColorBlendState = &colorBlendingCreateInfo;
     pipelineCreateInfo.pDynamicState = nullptr;
-    pipelineCreateInfo.layout = layout.getHandle();
-    pipelineCreateInfo.renderPass = renderPass.getHandle();
+    pipelineCreateInfo.layout = config.pipelineLayout->getHandle();
+    pipelineCreateInfo.renderPass = config.renderPass->getHandle();
     pipelineCreateInfo.subpass = 0;
     pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
     pipelineCreateInfo.basePipelineIndex = -1;

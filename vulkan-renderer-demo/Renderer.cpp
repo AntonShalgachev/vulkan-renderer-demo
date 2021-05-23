@@ -36,6 +36,7 @@
 #pragma warning(pop)
 
 #include "VertexLayout.h"
+#include "PipelineConfiguration.h"
 
 namespace
 {
@@ -279,7 +280,8 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
 std::unique_ptr<vkr::Pipeline> vkr::Renderer::createPipeline(Shader::Key const& shaderKey, VertexLayoutDescriptions const& vertexLayoutDescriptions)
 {
-    return std::make_unique<vkr::Pipeline>(getApp(), *m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), shaderKey, vertexLayoutDescriptions);
+    vkr::PipelineConfiguration const configuration = { m_pipelineLayout.get(), m_renderPass.get(), m_swapchain->getExtent(), shaderKey, vertexLayoutDescriptions };
+    return std::make_unique<vkr::Pipeline>(getApp(), configuration);
 }
 
 void vkr::Renderer::createSyncObjects()
