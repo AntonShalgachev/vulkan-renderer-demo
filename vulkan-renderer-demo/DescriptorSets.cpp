@@ -36,11 +36,15 @@ void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer,
 
     std::vector<VkWriteDescriptorSet> descriptorWrites;
 
+    // to keep these objects around during a Vulkan call
+    std::vector<VkDescriptorBufferInfo> bufferInfos;
+    std::vector<VkDescriptorImageInfo> imageInfos;
+
     // TODO couple it with the data within DescriptorPool
     {
         VkWriteDescriptorSet& descriptorWrite = descriptorWrites.emplace_back();
 
-        VkDescriptorBufferInfo bufferInfo{};
+        VkDescriptorBufferInfo& bufferInfo = bufferInfos.emplace_back();
         bufferInfo.buffer = uniformBuffer.getHandle();
         bufferInfo.offset = 0;
         bufferInfo.range = uniformBuffer.getSize();
@@ -58,7 +62,7 @@ void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer,
     {
         VkWriteDescriptorSet& descriptorWrite = descriptorWrites.emplace_back();
 
-        VkDescriptorImageInfo imageInfo{};
+        VkDescriptorImageInfo& imageInfo = imageInfos.emplace_back();
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         imageInfo.imageView = texture->getImageViewHandle();
         imageInfo.sampler = sampler->getHandle();
