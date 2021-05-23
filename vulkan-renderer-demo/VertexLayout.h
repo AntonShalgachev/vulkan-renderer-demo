@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <vulkan/vulkan.h>
+#include "VertexLayoutDescriptions.h"
 
 namespace vkr
 {
@@ -64,20 +65,7 @@ namespace vkr
             std::vector<Attribute> attributes;
         };
 
-        struct Descriptions
-		{
-            friend class VertexLayout;
-
-        public:
-			std::vector<VkVertexInputBindingDescription> const& getBindingDescriptions() const { return m_bindingDescriptions; }
-			std::vector<VkVertexInputAttributeDescription> const& getAttributeDescriptions() const { return m_attributeDescriptions; };
-
-        private:
-			std::vector<VkVertexInputBindingDescription> m_bindingDescriptions;
-			std::vector<VkVertexInputAttributeDescription> m_attributeDescriptions;
-        };
-
-        Descriptions const& getDescriptions() const { return m_descriptions; }
+        VertexLayoutDescriptions const& getDescriptions() const { return m_descriptions; }
 
         void setBindings(std::vector<Binding> const& bindings);
         std::vector<VkDeviceSize> const& getBindingOffsets() const { return m_bindingOffsets; }
@@ -89,7 +77,7 @@ namespace vkr
         VkDeviceSize getIndexDataOffset() const { return m_indexDataOffset; }
 
     private:
-        Descriptions m_descriptions;
+        VertexLayoutDescriptions m_descriptions;
 
         std::vector<VkDeviceSize> m_bindingOffsets;
         VkIndexType m_indexType = VK_INDEX_TYPE_UINT16;

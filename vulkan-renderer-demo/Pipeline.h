@@ -6,18 +6,18 @@
 
 // TODO maybe remove?
 #include "Shader.h"
-#include "VertexLayout.h"
 
 namespace vkr
 {
     class ShaderModule;
     class PipelineLayout;
     class RenderPass;
+    class VertexLayoutDescriptions;
 
     class Pipeline : public Object
     {
     public:
-    	explicit Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, Shader::Key const& shaderKey, VertexLayout::Descriptions const& vertexLayoutDescriptions);
+    	explicit Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D const& extent, Shader::Key const& shaderKey, VertexLayoutDescriptions const& vertexLayoutDescriptions);
     	~Pipeline();
 
         void bind(VkCommandBuffer commandBuffer) const;

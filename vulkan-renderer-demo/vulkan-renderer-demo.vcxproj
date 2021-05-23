@@ -232,6 +232,7 @@
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="VertexLayout.cpp" />
+    <ClCompile Include="VertexLayoutDescriptions.cpp" />
     <ClCompile Include="vulkan-renderer-demo.cpp" />
     <ClCompile Include="VulkanSurfaceCreator.cpp" />
     <ClCompile Include="Window.cpp" />
@@ -291,6 +292,7 @@
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="VertexLayout.h" />
+    <ClInclude Include="VertexLayoutDescriptions.h" />
     <ClInclude Include="VulkanSurfaceCreator.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>

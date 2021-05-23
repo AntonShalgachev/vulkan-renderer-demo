@@ -9,7 +9,7 @@
 
 vkr::Pipeline const* vkr::Pipeline::ms_boundPipeline = nullptr;
 
-vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D extent, Shader::Key const& shaderKey, VertexLayout::Descriptions const& vertexLayoutDescriptions) : Object(app)
+vkr::Pipeline::Pipeline(Application const& app, PipelineLayout const& layout, RenderPass const& renderPass, VkExtent2D const& extent, Shader::Key const& shaderKey, VertexLayoutDescriptions const& vertexLayoutDescriptions) : Object(app)
 {
     Shader shader{ app, shaderKey };
 

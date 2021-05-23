@@ -277,7 +277,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
     commandBuffer.end();
 }
 
-std::unique_ptr<vkr::Pipeline> vkr::Renderer::createPipeline(Shader::Key const& shaderKey, VertexLayout::Descriptions const& vertexLayoutDescriptions)
+std::unique_ptr<vkr::Pipeline> vkr::Renderer::createPipeline(Shader::Key const& shaderKey, VertexLayoutDescriptions const& vertexLayoutDescriptions)
 {
     return std::make_unique<vkr::Pipeline>(getApp(), *m_pipelineLayout, *m_renderPass, m_swapchain->getExtent(), shaderKey, vertexLayoutDescriptions);
 }
