@@ -29,8 +29,12 @@
 #include "QueueFamilyIndices.h"
 #include "CommandPool.h"
 #include "CommandBuffer.h"
+
+#pragma warning(push, 0)
 #include "imgui/imgui_impl_vulkan.h"
 #include "imgui/imgui.h"
+#pragma warning(pop)
+
 #include "VertexLayout.h"
 
 namespace
