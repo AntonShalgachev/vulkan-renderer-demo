@@ -139,8 +139,7 @@ float vkr::Renderer::getAspect() const
 
 void vkr::Renderer::createSwapchain()
 {
-    for (auto const& instance : m_sceneObjects)
-        instance->setPipeline(nullptr);
+    m_pipelines.clear();
 
     // TODO research why Vulkan crashes without this line
     m_swapchain = nullptr;
@@ -258,10 +257,14 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
         if (!mesh || !material)
             continue;
 
-        // TODO don't create a pipeline for each object
-        if (!instance->hasPipeline())
-			instance->setPipeline(createPipeline(material->getShaderKey(), mesh->getVertexLayout().getDescriptions()));
-        instance->bindPipeline(handle);
+        // TODO don't create heavy configuration for each object instance
+        vkr::PipelineConfiguration const configuration = { m_pipelineLayout.get(), m_renderPass.get(), m_swapchain->getExtent(), material->getShaderKey(), mesh->getVertexLayout().getDescriptions() };
+
+        auto it = m_pipelines.find(configuration);
+        if (it == m_pipelines.end())
+            it = m_pipelines.emplace(configuration, createPipeline(configuration)).first;
+
+        it->second->bind(handle);
 
         mesh->bindBuffers(handle);
 
@@ -278,9 +281,8 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
     commandBuffer.end();
 }
 
-std::unique_ptr<vkr::Pipeline> vkr::Renderer::createPipeline(Shader::Key const& shaderKey, VertexLayoutDescriptions const& vertexLayoutDescriptions)
+std::unique_ptr<vkr::Pipeline> vkr::Renderer::createPipeline(PipelineConfiguration const& configuration)
 {
-    vkr::PipelineConfiguration const configuration = { m_pipelineLayout.get(), m_renderPass.get(), m_swapchain->getExtent(), shaderKey, vertexLayoutDescriptions };
     return std::make_unique<vkr::Pipeline>(getApp(), configuration);
 }
 

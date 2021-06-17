@@ -4,6 +4,7 @@
 #include "Object.h"
 #include <string>
 #include "UniqueHandle.h"
+#include "Hash.h"
 
 namespace vkr
 {
@@ -22,6 +23,15 @@ namespace vkr
             Type type = Type::Vertex;
             std::string path;
             std::string entryPoint;
+
+			std::size_t computeHash() const
+			{
+				std::size_t seed = 0;
+                vkr::hash::combine(seed, type);
+                vkr::hash::combine(seed, path);
+                vkr::hash::combine(seed, entryPoint);
+				return seed;
+			}
         };
 
     public:
@@ -42,3 +52,14 @@ namespace vkr
     };
 }
 
+namespace std
+{
+	template<>
+	struct hash<vkr::ShaderModule::Key>
+	{
+		std::size_t operator()(vkr::ShaderModule::Key const& rhs) const
+		{
+			return rhs.computeHash();
+		}
+	};
+}

@@ -1,4 +1,5 @@
 #include "VertexLayoutDescriptions.h"
+#include "Hash.h"
 
 namespace
 {
@@ -28,4 +29,12 @@ namespace
 bool vkr::VertexLayoutDescriptions::operator==(VertexLayoutDescriptions const& rhs) const
 {
 	return ::equal(m_bindingDescriptions, rhs.m_bindingDescriptions) && ::equal(m_attributeDescriptions, rhs.m_attributeDescriptions);
+}
+
+std::size_t vkr::VertexLayoutDescriptions::computeHash() const
+{
+	std::size_t seed = 0;
+	vkr::hash::combine(seed, m_bindingDescriptions);
+	vkr::hash::combine(seed, m_attributeDescriptions);
+	return seed;
 }

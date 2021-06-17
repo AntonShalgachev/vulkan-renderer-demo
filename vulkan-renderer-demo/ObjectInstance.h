@@ -16,7 +16,6 @@ namespace vkr
     class PipelineLayout;
     class SceneObject;
     class Swapchain;
-    class Pipeline;
 
     class ObjectInstance : public Object
     {
@@ -33,10 +32,6 @@ namespace vkr
         void copyToUniformBuffer(std::size_t index, void const* sourcePointer, std::size_t sourceSize) const;
         void bindDescriptorSet(VkCommandBuffer commandBuffer, std::size_t imageIndex, PipelineLayout const& pipelineLayout) const;
 
-        void setPipeline(std::unique_ptr<Pipeline> pipeline) { m_pipeline = std::move(pipeline); }
-        bool hasPipeline() const { return m_pipeline != nullptr; }
-        void bindPipeline(VkCommandBuffer commandBuffer) const;
-
     public:
         static void resetBoundDescriptorSet() { ms_boundDescriptorSet = VK_NULL_HANDLE; }
 
@@ -49,8 +44,6 @@ namespace vkr
         std::vector<std::unique_ptr<vkr::Buffer>> m_uniformBuffers;
         std::vector<std::unique_ptr<vkr::DeviceMemory>> m_uniformBuffersMemory;
         std::unique_ptr<vkr::DescriptorSets> m_descriptorSets;
-
-        std::unique_ptr<Pipeline> m_pipeline;
 
     private:
         static VkDescriptorSet ms_boundDescriptorSet;

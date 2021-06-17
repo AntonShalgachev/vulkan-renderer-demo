@@ -58,8 +58,3 @@ void vkr::ObjectInstance::bindDescriptorSet(VkCommandBuffer commandBuffer, std::
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout.getHandle(), 0, 1, &handle, 0, nullptr);
     ms_boundDescriptorSet = handle;
 }
-
-void vkr::ObjectInstance::bindPipeline(VkCommandBuffer commandBuffer) const
-{
-    m_pipeline->bind(commandBuffer);
-}

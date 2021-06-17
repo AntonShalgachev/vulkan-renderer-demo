@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "ShaderModule.h"
 #include <memory>
+#include "Hash.h"
 
 struct VkPipelineShaderStageCreateInfo;
 
@@ -25,6 +26,13 @@ namespace vkr
                 return *this;
             }
 
+			std::size_t computeHash() const
+			{
+				std::size_t seed = 0;
+				vkr::hash::combine(seed, m_moduleKeys);
+				return seed;
+			}
+
 		private:
 			std::vector<ShaderModule::Key> m_moduleKeys;
 		};
@@ -36,4 +44,16 @@ namespace vkr
     private:
         std::vector<ShaderModule> m_shaderModules;
     };
+}
+
+namespace std
+{
+	template<>
+	struct hash<vkr::Shader::Key>
+	{
+		std::size_t operator()(vkr::Shader::Key const& rhs) const
+		{
+			return rhs.computeHash();
+		}
+	};
 }

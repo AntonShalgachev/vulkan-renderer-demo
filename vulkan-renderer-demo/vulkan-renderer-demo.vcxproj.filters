@@ -167,6 +167,9 @@
     <ClCompile Include="UniqueHandle.cpp" />
     <ClCompile Include="VertexLayoutDescriptions.cpp" />
     <ClCompile Include="PipelineConfiguration.cpp" />
+    <ClCompile Include="Hash.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h">
@@ -323,5 +326,8 @@
     <ClInclude Include="UniqueHandle.h" />
     <ClInclude Include="VertexLayoutDescriptions.h" />
     <ClInclude Include="PipelineConfiguration.h" />
+    <ClInclude Include="Hash.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

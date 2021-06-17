@@ -15,6 +15,9 @@
 // TODO maybe remove?
 #include "Shader.h"
 
+#include <unordered_map>
+#include "PipelineConfiguration.h"
+
 namespace vkr
 {
     class CommandBuffers;
@@ -82,7 +85,7 @@ namespace vkr
         void createSwapchain();
         void createSyncObjects();
         void recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources);
-        std::unique_ptr<Pipeline> createPipeline(Shader::Key const& shader, VertexLayoutDescriptions const& vertexLayoutDescriptions);
+        std::unique_ptr<Pipeline> createPipeline(PipelineConfiguration const& configuration);
 
         void recreateSwapchain();
 
@@ -114,6 +117,8 @@ namespace vkr
         std::shared_ptr<Light> m_light;
 
         std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayout;
+
+        std::unordered_map<PipelineConfiguration, std::unique_ptr<Pipeline>> m_pipelines;
 
         vkr::Timer m_fenceTimer;
         float m_lastFenceTime = 0.0f;
