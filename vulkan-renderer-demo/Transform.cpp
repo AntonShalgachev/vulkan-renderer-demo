@@ -14,6 +14,7 @@ void vkr::Transform::setLocalMatrix(glm::mat4 const& matrix)
 	glm::vec3 skew;
 	glm::vec4 perspective;
     glm::decompose(matrix, m_scale, m_rotation, m_pos, skew, perspective);
+    onLocalMatrixChanged();
 }
 
 void vkr::Transform::addChild(Transform& child)
@@ -23,6 +24,8 @@ void vkr::Transform::addChild(Transform& child)
 
     child.m_parent = this;
 	m_children.emplace_back(child);
+
+    notifyChildrenOnParentMatrixInvalidated();
 }
 
 glm::vec3 vkr::Transform::getWorldPos() const
@@ -96,28 +99,66 @@ glm::vec3 vkr::Transform::getUpPoint() const
 
 glm::mat4 vkr::Transform::getMatrix() const
 {
-    // TODO cache
-    glm::mat4 parentMatrix = glm::identity<glm::mat4>();
-    if (m_parent)
-        parentMatrix = m_parent->getMatrix();
+    if (!m_cache.matrix)
+        m_cache.matrix = getParentMatrix() * getLocalMatrix();
 
-    return parentMatrix * getLocalMatrix();
+    return *m_cache.matrix;
+}
+
+glm::mat4 vkr::Transform::getParentMatrix() const
+{
+    if (!m_cache.parentMatrix)
+    {
+		glm::mat4 parentMatrix = glm::identity<glm::mat4>();
+		if (m_parent)
+			parentMatrix = m_parent->getMatrix();
+
+        m_cache.parentMatrix = parentMatrix;
+    }
+
+    return *m_cache.parentMatrix;
 }
 
 glm::mat4 vkr::Transform::getLocalMatrix() const
 {
-	// TODO cache
-	return glm::translate(glm::mat4(1.0f), m_pos) * glm::toMat4(m_rotation) * glm::scale(glm::mat4(1.0f), m_scale);
+    if (!m_cache.localMatrix)
+        m_cache.localMatrix = glm::translate(glm::mat4(1.0f), m_pos) * glm::toMat4(m_rotation) * glm::scale(glm::mat4(1.0f), m_scale);
+
+    return *m_cache.localMatrix;
 }
 
 glm::mat4 vkr::Transform::getInverseMatrix() const
 {
-    // TODO cache
-    return glm::inverse(getMatrix());
+    if (!m_cache.inverseMatrix)
+        m_cache.inverseMatrix = glm::inverse(getMatrix());
+    
+    return *m_cache.inverseMatrix;
 }
 
 glm::mat4 vkr::Transform::getViewMatrix() const
 {
-	// TODO cache
-    return glm::lookAt(getWorldPos(), getForwardPoint(), getUpVector());
+	if (!m_cache.viewMatrix)
+        m_cache.viewMatrix = glm::lookAt(getWorldPos(), getForwardPoint(), getUpVector());
+
+    return *m_cache.viewMatrix;
+}
+
+void vkr::Transform::onLocalMatrixChanged()
+{
+	m_cache.invalidateLocal();
+
+    notifyChildrenOnParentMatrixInvalidated();
+}
+
+void vkr::Transform::notifyChildrenOnParentMatrixInvalidated()
+{
+	for (Transform& child : m_children)
+		child.onParentMatrixInvalidated();
+}
+
+void vkr::Transform::onParentMatrixInvalidated()
+{
+    m_cache.invalidateParent();
+
+    notifyChildrenOnParentMatrixInvalidated();
 }
