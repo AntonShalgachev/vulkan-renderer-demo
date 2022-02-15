@@ -1,6 +1,7 @@
 #include "Renderer.h"
 
 #include <array>
+#include <stdexcept>
 
 #include "glm.h"
 
