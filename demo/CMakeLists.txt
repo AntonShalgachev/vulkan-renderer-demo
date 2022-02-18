@@ -18,7 +18,6 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CM
 target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/lib/x64_Debug)
 target_link_libraries(${PROJECT_NAME}
     glfw3.lib
-    vulkan-1.lib
 
     librenderer
     libimgui
