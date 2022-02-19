@@ -28,7 +28,6 @@ namespace vkr
             bool hasTexCoord = false;
         };
 
-    	Mesh(Application const& app, std::string const& path);
     	Mesh(Application const& app, std::shared_ptr<tinygltf::Model> const& model, tinygltf::Primitive const& primitive);
 
         VertexLayout const& getVertexLayout() const { return m_vertexLayout; }
@@ -42,8 +41,6 @@ namespace vkr
         static void resetBoundMesh() { ms_boundMesh = nullptr; }
 
     private:
-        void loadMesh(std::string const& path);
-
         void createBuffers(std::vector<unsigned char> const& rawData);
 
     private:

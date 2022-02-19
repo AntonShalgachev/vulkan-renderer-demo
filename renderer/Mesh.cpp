@@ -1,7 +1,5 @@
 #include "Mesh.h"
 
-#include <tiny_obj_loader.h>
-
 #include "Buffer.h"
 #include "DeviceMemory.h"
 #include "Utils.h"
@@ -168,12 +166,6 @@ namespace std
 
 vkr::Mesh const* vkr::Mesh::ms_boundMesh = nullptr;
 
-vkr::Mesh::Mesh(Application const& app, std::string const& path) : Object(app)
-{
-    loadMesh(path);
-    createBuffers(m_combinedData);
-}
-
 vkr::Mesh::Mesh(Application const& app, std::shared_ptr<tinygltf::Model> const& model, tinygltf::Primitive const& primitive) : Object(app)
 {
     m_gltfModel = model;
@@ -239,99 +231,6 @@ void vkr::Mesh::bindBuffers(VkCommandBuffer commandBuffer) const
     vkCmdBindIndexBuffer(commandBuffer, m_buffer->getHandle(), m_vertexLayout.getIndexDataOffset(), m_vertexLayout.getIndexType());
 
     ms_boundMesh = this;
-}
-
-void vkr::Mesh::loadMesh(std::string const& path)
-{
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    std::string warnings, errors;
-
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warnings, &errors, path.c_str()))
-        throw std::runtime_error(warnings + errors);
-
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
-    std::unordered_map<Vertex, uint32_t> uniqueVertices{};
-
-    for (const auto& shape : shapes)
-    {
-        for (const auto& index : shape.mesh.indices)
-        {
-            std::size_t vertexIndex = static_cast<std::size_t>(index.vertex_index);
-            std::size_t texcoordIndex = static_cast<std::size_t>(index.texcoord_index);
-
-            Vertex vertex{};
-
-            vertex.pos = {
-                attrib.vertices[3 * vertexIndex + 0],
-                attrib.vertices[3 * vertexIndex + 1],
-                attrib.vertices[3 * vertexIndex + 2],
-            };
-
-            vertex.texCoord = {
-                attrib.texcoords[2 * texcoordIndex + 0],
-                1.0f - attrib.texcoords[2 * texcoordIndex + 1],
-            };
-
-            vertex.color = { 1.0f, 1.0f, 1.0f };
-
-            if (uniqueVertices.count(vertex) == 0)
-            {
-                uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-                vertices.push_back(vertex);
-            }
-
-            indices.push_back(uniqueVertices[vertex]);
-        }
-    }
-
-    // TODO remove this bullshit
-    struct PositionColor
-    {
-        glm::vec3 pos;
-        glm::vec3 color;
-    };
-
-    std::vector<PositionColor> positionColors;
-    std::vector<glm::vec2> texCoords;
-
-    for (Vertex const& vertex : vertices)
-    {
-        PositionColor& positionColor = positionColors.emplace_back();
-        positionColor.pos = vertex.pos;
-        positionColor.color = vertex.color;
-
-        texCoords.push_back(vertex.texCoord);
-    }
-
-    auto positionColorBufferSize = sizeof(positionColors[0]) * positionColors.size();
-    auto texcoordBufferSize = sizeof(texCoords[0]) * texCoords.size();
-    std::size_t indexBufferSize = sizeof(indices[0]) * indices.size();
-
-    auto positionColorDataOffset = 0;
-    auto texcoordDataOffset = positionColorBufferSize;
-    auto indexDataOffset = positionColorBufferSize + texcoordBufferSize;
-
-    m_indexCount = indices.size();
-    m_vertexLayout.setIndexType(VertexLayout::ComponentType::UnsignedInt);
-    m_vertexLayout.setIndexDataOffset(indexDataOffset);
-
-    m_combinedData.resize(positionColorBufferSize + texcoordBufferSize + indexBufferSize);
-    std::memcpy(m_combinedData.data() + positionColorDataOffset, positionColors.data(), positionColorBufferSize);
-    std::memcpy(m_combinedData.data() + texcoordDataOffset, texCoords.data(), texcoordBufferSize);
-    std::memcpy(m_combinedData.data() + indexDataOffset, indices.data(), indexBufferSize);
-
-    std::vector<VertexLayout::Binding> bindings;
-    bindings.emplace_back(positionColorDataOffset, positionColorBufferSize, sizeof(glm::vec3) + sizeof(glm::vec3))
-        .addAttribute(0, VertexLayout::AttributeType::Vec3, VertexLayout::ComponentType::Float, 0)
-        .addAttribute(1, VertexLayout::AttributeType::Vec3, VertexLayout::ComponentType::Float, sizeof(glm::vec3));
-
-    bindings.emplace_back(texcoordDataOffset, texcoordBufferSize, sizeof(glm::vec2))
-        .addAttribute(2, VertexLayout::AttributeType::Vec2, VertexLayout::ComponentType::Float, 0);
-
-    m_vertexLayout.setBindings(bindings);
 }
 
 void vkr::Mesh::createBuffers(std::vector<unsigned char> const& rawData)
