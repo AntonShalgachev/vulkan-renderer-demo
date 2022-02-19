@@ -35,7 +35,7 @@ set(GLFW_BUILD_DOCS OFF CACHE INTERNAL "")
 set(GLFW_INSTALL OFF CACHE INTERNAL "")
 set(GLFW_VULKAN_STATIC ON CACHE INTERNAL "")
 
-message(STATUS "Fetchin glfw...")
+message(STATUS "Fetching glfw...")
 FetchContent_MakeAvailable(glfw)
 ############################### ############ ###############################
 
