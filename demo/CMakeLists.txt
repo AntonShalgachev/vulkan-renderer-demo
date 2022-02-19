@@ -16,7 +16,8 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CM
 
 target_link_libraries(${PROJECT_NAME}
     librenderer
-    libimgui
+    libimguibackend
     libthirdparty
+    imgui
     glm::glm
 )

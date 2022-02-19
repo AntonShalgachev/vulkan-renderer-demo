@@ -32,9 +32,9 @@
 #include "Shader.h"
 
 #pragma warning(push, 0)
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_vulkan.h"
+#include "imgui.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_vulkan.h"
 #pragma warning(pop)
 
 #include "DescriptorPool.h"
