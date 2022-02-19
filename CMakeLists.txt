@@ -41,6 +41,12 @@ FetchContent_Declare(
     GIT_TAG        c71a50deb5ddf1ea386b91e60fa2e4a26d080074 # 1.87
 )
 
+FetchContent_Declare(
+    tinygltf
+    GIT_REPOSITORY https://github.com/syoyo/tinygltf
+    GIT_TAG        17e6e310ce3cd43d7895be3c0116908d1afa8a91 # Merge pull request #341 from mushrom/loopfix
+)
+
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
 set(BUILD_STATIC_LIBS ON CACHE INTERNAL "")
 
@@ -49,6 +55,13 @@ set(GLFW_BUILD_TESTS OFF CACHE INTERNAL "")
 set(GLFW_BUILD_DOCS OFF CACHE INTERNAL "")
 set(GLFW_INSTALL OFF CACHE INTERNAL "")
 set(GLFW_VULKAN_STATIC ON CACHE INTERNAL "")
+
+set(TINYGLTF_BUILD_LOADER_EXAMPLE OFF CACHE INTERNAL "")
+set(TINYGLTF_BUILD_GL_EXAMPLES OFF CACHE INTERNAL "")
+set(TINYGLTF_BUILD_VALIDATOR_EXAMPLE OFF CACHE INTERNAL "")
+set(TINYGLTF_BUILD_BUILDER_EXAMPLE OFF CACHE INTERNAL "")
+set(TINYGLTF_HEADER_ONLY OFF CACHE INTERNAL "")
+set(TINYGLTF_INSTALL OFF CACHE INTERNAL "")
 
 message(STATUS "Fetching glfw...")
 FetchContent_MakeAvailable(glfw)
@@ -61,11 +74,13 @@ message(STATUS "glm directory: ${glm_SOURCE_DIR}")
 message(STATUS "Fetching imgui...")
 FetchContent_MakeAvailable(imgui)
 message(STATUS "imgui directory: ${imgui_SOURCE_DIR}")
-############################### ############ ###############################
-
 add_subdirectory(imgui)
+
+message(STATUS "Fetching tinygltf...")
+FetchContent_MakeAvailable(tinygltf)
+message(STATUS "tinygltf directory: ${tinygltf_SOURCE_DIR}")
+############################### ############ ###############################
 
 add_subdirectory(imgui-backend)
 add_subdirectory(renderer)
 add_subdirectory(demo)
-add_subdirectory(third_party)

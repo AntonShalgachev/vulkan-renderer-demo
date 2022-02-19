@@ -122,4 +122,5 @@ target_link_libraries(${PROJECT_NAME}
     glfw
     Vulkan::Vulkan
     glm::glm
+    tinygltf
 )
