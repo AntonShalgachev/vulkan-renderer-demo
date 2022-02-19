@@ -20,12 +20,11 @@ set(ALL_FILES
 
 add_library(${PROJECT_NAME} ${ALL_FILES})
 
-find_package(Vulkan REQUIRED)
-
 target_include_directories(${PROJECT_NAME} PRIVATE
     "${CMAKE_SOURCE_DIR}/include"
 )
 
 target_link_libraries(${PROJECT_NAME}
+    glfw
     Vulkan::Vulkan
 )

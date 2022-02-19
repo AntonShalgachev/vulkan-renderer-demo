@@ -14,11 +14,7 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 
-# TODO don't hardcode configuration
-target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/lib/x64_Debug)
 target_link_libraries(${PROJECT_NAME}
-    glfw3.lib
-
     librenderer
     libimgui
     libthirdparty

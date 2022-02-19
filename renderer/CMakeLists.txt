@@ -115,12 +115,10 @@ target_include_directories(${PROJECT_NAME}
     "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-find_package(Vulkan REQUIRED)
-
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
 target_link_libraries(${PROJECT_NAME}
     libimgui
-
+    glfw
     Vulkan::Vulkan
 )
