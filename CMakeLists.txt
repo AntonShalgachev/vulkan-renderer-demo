@@ -22,13 +22,22 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 find_package(Vulkan REQUIRED)
 
 include(FetchContent)
+
 FetchContent_Declare(
-        glfw
-        GIT_REPOSITORY https://github.com/glfw/glfw
-        GIT_TAG        7d5a16ce714f0b5f4efa3262de22e4d948851525 # 3.3.6
+    glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw
+    GIT_TAG        7d5a16ce714f0b5f4efa3262de22e4d948851525 # 3.3.6
+)
+
+FetchContent_Declare(
+    glm
+    GIT_REPOSITORY https://github.com/g-truc/glm
+    GIT_TAG        bf71a834948186f4097caa076cd2663c69a10e1e # 0.9.9.8
 )
 
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
+set(BUILD_STATIC_LIBS ON CACHE INTERNAL "")
+
 set(GLFW_BUILD_EXAMPLES OFF CACHE INTERNAL "")
 set(GLFW_BUILD_TESTS OFF CACHE INTERNAL "")
 set(GLFW_BUILD_DOCS OFF CACHE INTERNAL "")
@@ -37,6 +46,8 @@ set(GLFW_VULKAN_STATIC ON CACHE INTERNAL "")
 
 message(STATUS "Fetching glfw...")
 FetchContent_MakeAvailable(glfw)
+message(STATUS "Fetching glm...")
+FetchContent_MakeAvailable(glm)
 ############################### ############ ###############################
 
 add_subdirectory(imgui)

@@ -121,4 +121,5 @@ target_link_libraries(${PROJECT_NAME}
     libimgui
     glfw
     Vulkan::Vulkan
+    glm::glm
 )
