@@ -47,6 +47,12 @@ FetchContent_Declare(
     GIT_TAG        17e6e310ce3cd43d7895be3c0116908d1afa8a91 # Merge pull request #341 from mushrom/loopfix
 )
 
+FetchContent_Declare(
+    magic_enum
+    GIT_REPOSITORY https://github.com/Neargye/magic_enum
+    GIT_TAG        3d1f6a5a2a3fbcba077e00ad0ccc2dd9fefc2ca7 # 0.7.3
+)
+
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
 set(BUILD_STATIC_LIBS ON CACHE INTERNAL "")
 
@@ -79,6 +85,10 @@ add_subdirectory(imgui)
 message(STATUS "Fetching tinygltf...")
 FetchContent_MakeAvailable(tinygltf)
 message(STATUS "tinygltf directory: ${tinygltf_SOURCE_DIR}")
+
+message(STATUS "Fetching magic_enum...")
+FetchContent_MakeAvailable(magic_enum)
+message(STATUS "magic_enum directory: ${magic_enum_SOURCE_DIR}")
 ############################### ############ ###############################
 
 add_subdirectory(imgui-backend)
