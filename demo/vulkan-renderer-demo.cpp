@@ -152,7 +152,7 @@ private:
         init_info.PipelineCache = VK_NULL_HANDLE;
         init_info.DescriptorPool = m_descriptorPool->getHandle();
         init_info.Allocator = nullptr;
-        init_info.MinImageCount = 2; // TOO fetch?
+        init_info.MinImageCount = 2; // TODO fetch?
         init_info.ImageCount = static_cast<uint32_t>(m_renderer->getSwapchain().getImageCount());
         init_info.CheckVkResultFn = nullptr;
         ImGui_ImplVulkan_Init(&init_info, m_renderer->getRenderPass().getHandle());
@@ -379,6 +379,7 @@ private:
     {
         ImGuiIO& io = ImGui::GetIO();
 
+        // TODO implement ImGui bindings manually
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
