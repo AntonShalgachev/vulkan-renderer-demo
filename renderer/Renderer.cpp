@@ -273,8 +273,8 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
         vkCmdDrawIndexed(handle, static_cast<uint32_t>(mesh->getIndexCount()), 1, 0, 0, 0);
     }
 
-    ImDrawData* drawData = ImGui::GetDrawData();
-    if (drawData)
+    // TODO abstract this away
+    if (ImDrawData* drawData = ImGui::GetDrawData())
         ImGui_ImplVulkan_RenderDrawData(drawData, handle);
 
     vkCmdEndRenderPass(handle);

@@ -383,9 +383,17 @@ private:
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        float cpuUtilizationRatio = 1.0f - fenceTime/frameTime;
+        float cpuUtilizationRatio = frameTime > 0 ? 1.0f - fenceTime/frameTime : 1.0f;
 
-        ImGui::Begin("Time", nullptr);
+        {
+            const float padding = 10.0f;
+            ImVec2 workPos = ImGui::GetMainViewport()->WorkPos;
+            ImVec2 windowPos{ workPos.x + padding, workPos.y + padding };
+            ImGui::SetNextWindowPos(windowPos);
+        }
+
+        ImGuiWindowFlags fpsWindowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove;
+        ImGui::Begin("Time", nullptr, fpsWindowFlags);
         ImGui::Text("Frame time %.3f ms", frameTime * 1000.0f);
         ImGui::Text("Fence time %.3f ms", fenceTime * 1000.0f);
         ImGui::Text("CPU Utilization %.2f%%", cpuUtilizationRatio * 100.0f);
@@ -393,38 +401,6 @@ private:
         {
             m_paused = !m_paused;
         }
-        ImGui::End();
-
-        ImGui::Begin("Camera");
-        if (m_activeCameraObject)
-        {
-			vkr::Transform& cameraTransform = m_activeCameraObject->getTransform();
-			glm::vec3 cameraPos = cameraTransform.getWorldPos();
-			if (ImGui::SliderFloat3("Position", &cameraPos[0], -10.0f, 10.0f, "%.2f", 1.0f))
-			{
-				cameraTransform.setWorldPos(cameraPos);
-			}
-
-            glm::vec3 cameraRotation = glm::degrees(glm::eulerAngles(cameraTransform.getLocalRotation()));
-			if (ImGui::SliderFloat3("Rotation", &cameraRotation[0], -180.0f, 180.0f, "%.1f", 1.0f))
-			{
-                // TODO set world rotation
-// 				cameraTransform.setLocalRotation(createRotation(m_cameraRotation));
-			}
-        }
-        ImGui::End();
-
-        ImGui::Begin("Light");
-        glm::vec3 lightPos = m_light->getTransform().getWorldPos();
-        if (ImGui::SliderFloat3("Position", &lightPos[0], -10.0f, 10.0f, "%.2f", 1.0f))
-        {
-            m_light->getTransform().setWorldPos(lightPos);
-        }
-        ImGui::End();
-
-        ImGui::Begin("Input");
-        ImGui::SliderFloat("Mouse sensitivity", &m_mouseSensitivity, 0.01f, 1.0f, "%.2f", 1.0f);
-        ImGui::SliderFloat("Camera speed", &m_cameraSpeed, 0.1f, 100.0f, "%.2f", 1.0f);
         ImGui::End();
 
         ImGui::Render();
