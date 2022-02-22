@@ -2,6 +2,9 @@ set(PROJECT_NAME demo)
 
 set(ALL_FILES
     "vulkan-renderer-demo.cpp"
+
+    "ui/NotificationManager.h"
+    "ui/NotificationManager.cpp"
 )
 
 add_executable(${PROJECT_NAME} ${ALL_FILES})

@@ -50,6 +50,7 @@
 #include <sstream>
 
 #include "magic_enum.hpp"
+#include "ui/NotificationManager.h"
 
 namespace
 {
@@ -106,6 +107,11 @@ public:
         m_window->addKeyCallback([this](vkr::Window::Action action, vkr::Window::Key key, char c, vkr::Window::Modifiers modifiers) { onKey(action, key, c, modifiers); });
         m_window->addMouseMoveCallback([this](glm::vec2 const& delta) { onMouseMove(delta); });
         m_application = std::make_unique<vkr::Application>("Vulkan demo", VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window);
+
+        m_notifications.add("Some notification");
+        m_notifications.add("Another notification");
+        m_notifications.add("A long long long long long long long long notification");
+        m_notifications.add("A rather long notification");
 
         loadResources();
         createRenderer();
@@ -388,13 +394,15 @@ private:
 
         {
             const float padding = 10.0f;
-            ImVec2 workPos = ImGui::GetMainViewport()->WorkPos;
-            ImVec2 windowPos{ workPos.x + padding, workPos.y + padding };
-            ImGui::SetNextWindowPos(windowPos);
+            auto viewport = ImGui::GetMainViewport();
+            ImVec2 workPos = viewport->WorkPos;
+            ImVec2 workSize = viewport->WorkSize;
+            ImVec2 windowPos{ workPos.x + workSize.x - padding, workPos.y + padding };
+            ImGui::SetNextWindowPos(windowPos, 0, { 1.0f, 0.0f });
         }
 
         ImGuiWindowFlags fpsWindowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove;
-        ImGui::Begin("Time", nullptr, fpsWindowFlags);
+        ImGui::Begin("Debug", nullptr, fpsWindowFlags);
         ImGui::Text("Frame time %.3f ms", frameTime * 1000.0f);
         ImGui::Text("Fence time %.3f ms", fenceTime * 1000.0f);
         ImGui::Text("CPU Utilization %.2f%%", cpuUtilizationRatio * 100.0f);
@@ -402,7 +410,20 @@ private:
         {
             m_paused = !m_paused;
         }
+        static std::vector<std::string> texts = {
+            "Lorem ipsum dolor sit amet",
+            "consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore",
+            "et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation",
+        };
+        static std::size_t nextIndex = 0;
+        if (ImGui::Button("Add notification"))
+        {
+            m_notifications.add(texts[nextIndex % texts.size()]);
+            nextIndex++;
+        }
         ImGui::End();
+
+        m_notifications.draw();
 
         ImGui::Render();
 
@@ -428,6 +449,8 @@ private:
         }
 
         float const dt = m_lastFrameTime;
+
+        m_notifications.update(dt);
 
         updateUI(m_lastFrameTime, m_lastFenceTime);
 		updateScene(dt);
@@ -501,6 +524,8 @@ private:
 
     std::vector<bool> m_keyState;
     vkr::Window::Modifiers m_modifiers = vkr::Window::Modifiers::None;
+
+    ui::NotificationManager m_notifications;
 };
 
 int main()
