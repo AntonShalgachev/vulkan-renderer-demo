@@ -7,11 +7,13 @@
 
 namespace
 {
-    float heightPercentage = 0.5f;
+    float heightPercentage = 0.3f;
 }
 
 void ui::DebugConsole::draw()
 {
+    ImGui::ShowDemoWindow();
+
     auto viewport = ImGui::GetMainViewport();
     ImVec2 workPos = viewport->WorkPos;
     ImVec2 workSize = viewport->WorkSize;
@@ -33,14 +35,16 @@ void ui::DebugConsole::draw()
 
     ImGui::EndChild();
 
-    auto logRectSize = ImGui::GetItemRectSize();
-
     auto editCallback = [](ImGuiInputTextCallbackData* data) {
         if (auto console = static_cast<DebugConsole*>(data->UserData))
             console->onInputChanged(data->BufTextLen);
         return 0;
     };
 
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, ImGui::GetStyle().ItemSpacing.y));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, ImGui::GetStyle().FramePadding.y));
+
+    ImGui::AlignTextToFramePadding();
     ImGui::Text("> ");
     ImGui::SameLine();
 
@@ -48,11 +52,10 @@ void ui::DebugConsole::draw()
     ImVec4 frameBackgroundColor = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
     frameBackgroundColor.w = 0.0f;
 
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, frameBackgroundColor);
-    auto cursorLimitX = ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x;
-    ImGui::PushItemWidth(cursorLimitX - ImGui::GetCursorPosX());
+    ImGui::PushItemWidth(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x - ImGui::GetCursorPosX());
 
-    if (ImGui::InputText("##Input", m_inputBuffer.data(), m_inputBuffer.size(), inputFlags, editCallback, this))
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, frameBackgroundColor);
+    if (ImGui::InputText("Input", m_inputBuffer.data(), m_inputBuffer.size(), inputFlags, editCallback, this))
     {
         addLine("Submitted input: " + std::string(getCurrentInput()));
 
@@ -60,8 +63,8 @@ void ui::DebugConsole::draw()
         m_inputBuffer = {};
         m_inputChanged = true;
     }
-
     ImGui::PopStyleColor();
+    ImGui::PopStyleVar(2);
 
     // TODO don't force focus
 //     ImGui::SetKeyboardFocusHere(-1);

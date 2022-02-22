@@ -17,8 +17,6 @@ void ui::NotificationManager::update(float dt)
 
 void ui::NotificationManager::draw() const
 {
-    ImGui::ShowDemoWindow();
-
     {
         const float padding = 10.0f;
         ImVec2 workPos = ImGui::GetMainViewport()->WorkPos;
