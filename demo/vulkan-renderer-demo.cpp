@@ -51,6 +51,7 @@
 
 #include "magic_enum.hpp"
 #include "ui/NotificationManager.h"
+#include "ui/DebugConsole.h"
 
 namespace
 {
@@ -424,6 +425,7 @@ private:
         ImGui::End();
 
         m_notifications.draw();
+        m_debugConsole.draw();
 
         ImGui::Render();
 
@@ -526,6 +528,7 @@ private:
     vkr::Window::Modifiers m_modifiers = vkr::Window::Modifiers::None;
 
     ui::NotificationManager m_notifications;
+    ui::DebugConsole m_debugConsole;
 };
 
 int main()

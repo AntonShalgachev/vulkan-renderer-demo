@@ -5,6 +5,8 @@ set(ALL_FILES
 
     "ui/NotificationManager.h"
     "ui/NotificationManager.cpp"
+    "ui/DebugConsole.h"
+    "ui/DebugConsole.cpp"
 )
 
 add_executable(${PROJECT_NAME} ${ALL_FILES})
