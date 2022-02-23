@@ -1,6 +1,7 @@
 #include "DebugConsole.h"
 
 #include "imgui.h"
+#include "magic_enum.hpp"
 
 #include <string>
 #include <string_view>
@@ -29,15 +30,31 @@ void ui::DebugConsole::draw()
     for (std::string const& line : m_lines)
         ImGui::Text(line.c_str());
 
-    if (m_linesChanged)
+    if (m_scrollToLast)
         ImGui::SetScrollHereY();
-    m_linesChanged = false;
+    m_scrollToLast = false;
 
     ImGui::EndChild();
 
     auto editCallback = [](ImGuiInputTextCallbackData* data) {
-        if (auto console = static_cast<DebugConsole*>(data->UserData))
+        auto console = static_cast<DebugConsole*>(data->UserData);
+        if (!console)
+            return 0;
+
+        if (data->EventFlag == ImGuiInputTextFlags_CallbackEdit)
             console->onInputChanged(data->BufTextLen);
+
+        if (data->EventFlag == ImGuiInputTextFlags_CallbackCompletion)
+            console->onInputCompletion();
+
+        if (data->EventFlag == ImGuiInputTextFlags_CallbackHistory)
+        {
+            if (data->EventKey == ImGuiKey_UpArrow)
+                console->onInputHistory(HistoryDirection::Up);
+            if (data->EventKey == ImGuiKey_DownArrow)
+                console->onInputHistory(HistoryDirection::Down);
+        }
+
         return 0;
     };
 
@@ -51,27 +68,21 @@ void ui::DebugConsole::draw()
     ImGuiInputTextFlags inputFlags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackEdit | ImGuiInputTextFlags_CallbackHistory | ImGuiInputTextFlags_CallbackCompletion;
     ImVec4 frameBackgroundColor = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
     frameBackgroundColor.w = 0.0f;
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, frameBackgroundColor);
 
     ImGui::PushItemWidth(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x - ImGui::GetCursorPosX());
 
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, frameBackgroundColor);
+    bool shouldFocus = ImGui::IsWindowAppearing();
     if (ImGui::InputText("Input", m_inputBuffer.data(), m_inputBuffer.size(), inputFlags, editCallback, this))
     {
-        addLine("Submitted input: " + std::string(getCurrentInput()));
-
-        m_inputLength = 0;
-        m_inputBuffer = {};
-        m_inputChanged = true;
+        onInputSubmitted();
+        shouldFocus = true;
     }
     ImGui::PopStyleColor();
     ImGui::PopStyleVar(2);
 
-    // TODO don't force focus
-//     ImGui::SetKeyboardFocusHere(-1);
-
-    if (m_inputChanged)
-        addLine("Input changed: " + std::string(getCurrentInput()));
-    m_inputChanged = false;
+    if (shouldFocus)
+        ImGui::SetKeyboardFocusHere(-1);
 
     ImGui::End();
 }
@@ -84,11 +95,34 @@ std::string_view ui::DebugConsole::getCurrentInput() const
 void ui::DebugConsole::addLine(std::string line)
 {
     m_lines.push_back(std::move(line));
-    m_linesChanged = true;
+    m_scrollToLast = true;
 }
 
 void ui::DebugConsole::onInputChanged(std::size_t length)
 {
     m_inputLength = length;
-    m_inputChanged = true;
+    addLine("Input changed");
+}
+
+void ui::DebugConsole::onInputHistory(HistoryDirection direction)
+{
+    addLine(std::string("Input history ") + std::string(magic_enum::enum_name(direction)));
+}
+
+void ui::DebugConsole::onInputCompletion()
+{
+    addLine("Input completion");
+}
+
+void ui::DebugConsole::onInputSubmitted()
+{
+    addLine("> " + std::string(getCurrentInput()));
+
+    clearInput();
+}
+
+void ui::DebugConsole::clearInput()
+{
+    m_inputLength = 0;
+    m_inputBuffer = {};
 }
