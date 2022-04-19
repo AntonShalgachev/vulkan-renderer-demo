@@ -9,6 +9,15 @@
 namespace
 {
     float heightPercentage = 0.3f;
+
+    std::size_t clamp(std::size_t value, std::size_t from, std::size_t to)
+    {
+        if (value > to)
+            return to;
+        if (value < from)
+            return from;
+        return value;
+    };
 }
 
 void ui::DebugConsole::draw()
@@ -49,10 +58,19 @@ void ui::DebugConsole::draw()
 
         if (data->EventFlag == ImGuiInputTextFlags_CallbackHistory)
         {
+            std::string* replacement = nullptr;
+
             if (data->EventKey == ImGuiKey_UpArrow)
-                console->onInputHistory(HistoryDirection::Up);
+                replacement = console->onInputHistory(HistoryDirection::Up);
             if (data->EventKey == ImGuiKey_DownArrow)
-                console->onInputHistory(HistoryDirection::Down);
+                replacement = console->onInputHistory(HistoryDirection::Down);
+
+            if (replacement)
+            {
+                data->DeleteChars(0, data->BufTextLen);
+                data->InsertChars(0, replacement->c_str());
+                console->onInputChanged(data->BufTextLen);
+            }
         }
 
         return 0;
@@ -101,12 +119,36 @@ void ui::DebugConsole::addLine(std::string line)
 void ui::DebugConsole::onInputChanged(std::size_t length)
 {
     m_inputLength = length;
-    addLine("Input changed");
 }
 
-void ui::DebugConsole::onInputHistory(HistoryDirection direction)
+std::string* ui::DebugConsole::onInputHistory(HistoryDirection direction)
 {
-    addLine(std::string("Input history ") + std::string(magic_enum::enum_name(direction)));
+    auto computeNewIndex = [this, direction]() -> std::optional<std::size_t>
+    {
+        if (m_inputHistory.size() == 0)
+            return {};
+
+        switch (direction)
+        {
+        case HistoryDirection::Up:
+            if (!m_historyIndex)
+                return m_inputHistory.size() - 1;
+            if (*m_historyIndex == 0)
+                return m_historyIndex;
+            return clamp(*m_historyIndex - 1, 0, m_inputHistory.size() - 1);
+        case HistoryDirection::Down:
+            return clamp(*m_historyIndex + 1, 0, m_inputHistory.size() - 1);
+        }
+
+        return {};
+    };
+
+    m_historyIndex = computeNewIndex();
+
+    if (!m_historyIndex)
+        return nullptr;
+
+    return &m_inputHistory[*m_historyIndex];
 }
 
 void ui::DebugConsole::onInputCompletion()
@@ -116,7 +158,12 @@ void ui::DebugConsole::onInputCompletion()
 
 void ui::DebugConsole::onInputSubmitted()
 {
-    addLine("> " + std::string(getCurrentInput()));
+    std::string input = std::string{ getCurrentInput() };
+    m_inputHistory.push_back(input);
+
+    addLine("> " + input);
+
+    // TODO execute command
 
     clearInput();
 }
@@ -125,4 +172,5 @@ void ui::DebugConsole::clearInput()
 {
     m_inputLength = 0;
     m_inputBuffer = {};
+    m_historyIndex = {};
 }

@@ -3,6 +3,7 @@
 #include <array>
 #include <vector>
 #include <string>
+#include <optional>
 
 namespace ui
 {
@@ -17,7 +18,7 @@ namespace ui
         void addLine(std::string line);
 
         void onInputChanged(std::size_t length);
-        void onInputHistory(HistoryDirection direction);
+        std::string* onInputHistory(HistoryDirection direction);
         void onInputCompletion();
         void onInputSubmitted();
 
@@ -30,5 +31,8 @@ namespace ui
 
         std::vector<std::string> m_lines;
         bool m_scrollToLast = false;
+
+        std::vector<std::string> m_inputHistory;
+        std::optional<std::size_t> m_historyIndex;
     };
 }
