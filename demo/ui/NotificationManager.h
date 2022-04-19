@@ -14,6 +14,8 @@ namespace ui
     class NotificationManager
     {
     public:
+        NotificationManager();
+
         void update(float dt);
         void draw() const;
 

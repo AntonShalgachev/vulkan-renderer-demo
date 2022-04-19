@@ -2,11 +2,13 @@ set(PROJECT_NAME demo)
 
 set(ALL_FILES
     "vulkan-renderer-demo.cpp"
+    "DebugConsole.h"
+    "DebugConsole.cpp"
 
     "ui/NotificationManager.h"
     "ui/NotificationManager.cpp"
-    "ui/DebugConsole.h"
-    "ui/DebugConsole.cpp"
+    "ui/DebugConsoleWidget.h"
+    "ui/DebugConsoleWidget.cpp"
 )
 
 add_executable(${PROJECT_NAME} ${ALL_FILES})
@@ -26,4 +28,5 @@ target_link_libraries(${PROJECT_NAME}
     glm::glm
     tinygltf
     magic_enum
+    coil
 )

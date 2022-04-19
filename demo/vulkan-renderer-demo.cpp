@@ -51,7 +51,7 @@
 
 #include "magic_enum.hpp"
 #include "ui/NotificationManager.h"
-#include "ui/DebugConsole.h"
+#include "ui/DebugConsoleWidget.h"
 
 namespace
 {
@@ -198,6 +198,9 @@ private:
         std::size_t index = static_cast<std::size_t>(c);
         m_keyState[index] = action == vkr::Window::Action::Press;
         m_modifiers = mods;
+
+        if (c == '`' && action == vkr::Window::Action::Press)
+            m_debugConsole.toggle();
     }
 
     void onMouseMove(glm::vec2 const& delta)
@@ -528,7 +531,7 @@ private:
     vkr::Window::Modifiers m_modifiers = vkr::Window::Modifiers::None;
 
     ui::NotificationManager m_notifications;
-    ui::DebugConsole m_debugConsole;
+    ui::DebugConsoleWidget m_debugConsole;
 };
 
 int main()

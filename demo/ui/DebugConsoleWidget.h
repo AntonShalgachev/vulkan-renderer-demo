@@ -7,18 +7,20 @@
 
 namespace ui
 {
-    class DebugConsole
+    class DebugConsoleWidget
     {
     public:
+        DebugConsoleWidget();
+
         void draw();
+
+        void toggle() { m_visible = !m_visible; }
 
     private:
         enum class HistoryDirection { Up, Down };
 
-        void addLine(std::string line);
-
         void onInputChanged(std::size_t length);
-        std::string* onInputHistory(HistoryDirection direction);
+        std::string const* onInputHistory(HistoryDirection direction);
         void onInputCompletion();
         void onInputSubmitted();
 
@@ -26,13 +28,14 @@ namespace ui
 
         std::string_view getCurrentInput() const;
 
+    private:
+        bool m_visible = false;
+
         std::array<char, 256> m_inputBuffer = {};
         std::size_t m_inputLength = 0;
 
-        std::vector<std::string> m_lines;
         bool m_scrollToLast = false;
 
-        std::vector<std::string> m_inputHistory;
         std::optional<std::size_t> m_historyIndex;
     };
 }

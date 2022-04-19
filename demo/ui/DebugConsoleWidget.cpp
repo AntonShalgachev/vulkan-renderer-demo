@@ -1,10 +1,11 @@
-#include "DebugConsole.h"
+#include "DebugConsoleWidget.h"
 
 #include "imgui.h"
 #include "magic_enum.hpp"
 
 #include <string>
 #include <string_view>
+#include "../DebugConsole.h"
 
 namespace
 {
@@ -18,11 +19,38 @@ namespace
             return from;
         return value;
     };
+
+    auto getLineColor(DebugConsole::Line::Type type)
+    {
+        switch (type)
+        {
+        case DebugConsole::Line::Type::Input:
+            return IM_COL32(127, 127, 127, 255);
+        case DebugConsole::Line::Type::ReturnValue:
+            return IM_COL32(0, 255, 0, 255);
+        case DebugConsole::Line::Type::Output:
+            return IM_COL32(255, 255, 255, 255);
+        case DebugConsole::Line::Type::Error:
+            return IM_COL32(255, 0, 0, 255);
+        }
+
+        return IM_COL32(255, 255, 255, 255);
+    }
 }
 
-void ui::DebugConsole::draw()
+ui::DebugConsoleWidget::DebugConsoleWidget()
 {
-    ImGui::ShowDemoWindow();
+    coil::Bindings& bindings = DebugConsole::instance().bindings();
+
+    bindings["ui.console.toggle"] = coil::bind(&DebugConsoleWidget::toggle, this);
+}
+
+void ui::DebugConsoleWidget::draw()
+{
+    if (!m_visible)
+        return;
+
+    DebugConsole& console = DebugConsole::instance();
 
     auto viewport = ImGui::GetMainViewport();
     ImVec2 workPos = viewport->WorkPos;
@@ -36,8 +64,12 @@ void ui::DebugConsole::draw()
     auto const inputHeight = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
     ImGui::BeginChild("ScrollingRegion", ImVec2(0, -inputHeight), true, ImGuiWindowFlags_HorizontalScrollbar);
 
-    for (std::string const& line : m_lines)
-        ImGui::Text(line.c_str());
+    for (DebugConsole::Line const& line : console.lines())
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, getLineColor(line.type));
+        ImGui::Text(line.text.c_str());
+        ImGui::PopStyleColor();
+    }
 
     if (m_scrollToLast)
         ImGui::SetScrollHereY();
@@ -46,7 +78,7 @@ void ui::DebugConsole::draw()
     ImGui::EndChild();
 
     auto editCallback = [](ImGuiInputTextCallbackData* data) {
-        auto console = static_cast<DebugConsole*>(data->UserData);
+        auto console = static_cast<DebugConsoleWidget*>(data->UserData);
         if (!console)
             return 0;
 
@@ -58,7 +90,7 @@ void ui::DebugConsole::draw()
 
         if (data->EventFlag == ImGuiInputTextFlags_CallbackHistory)
         {
-            std::string* replacement = nullptr;
+            std::string const* replacement = nullptr;
 
             if (data->EventKey == ImGuiKey_UpArrow)
                 replacement = console->onInputHistory(HistoryDirection::Up);
@@ -105,39 +137,41 @@ void ui::DebugConsole::draw()
     ImGui::End();
 }
 
-std::string_view ui::DebugConsole::getCurrentInput() const
+std::string_view ui::DebugConsoleWidget::getCurrentInput() const
 {
     return std::string_view(m_inputBuffer.data(), m_inputLength);
 }
 
-void ui::DebugConsole::addLine(std::string line)
-{
-    m_lines.push_back(std::move(line));
-    m_scrollToLast = true;
-}
+// void ui::DebugConsoleWidget::addLine(std::string line)
+// {
+//     m_lines.push_back(std::move(line));
+//     m_scrollToLast = true;
+// }
 
-void ui::DebugConsole::onInputChanged(std::size_t length)
+void ui::DebugConsoleWidget::onInputChanged(std::size_t length)
 {
     m_inputLength = length;
 }
 
-std::string* ui::DebugConsole::onInputHistory(HistoryDirection direction)
+std::string const* ui::DebugConsoleWidget::onInputHistory(HistoryDirection direction)
 {
-    auto computeNewIndex = [this, direction]() -> std::optional<std::size_t>
+    auto const& inputHistory = DebugConsole::instance().history();
+
+    auto computeNewIndex = [this, direction, &inputHistory]() -> std::optional<std::size_t>
     {
-        if (m_inputHistory.size() == 0)
+        if (inputHistory.size() == 0)
             return {};
 
         switch (direction)
         {
         case HistoryDirection::Up:
             if (!m_historyIndex)
-                return m_inputHistory.size() - 1;
+                return inputHistory.size() - 1;
             if (*m_historyIndex == 0)
                 return m_historyIndex;
-            return clamp(*m_historyIndex - 1, 0, m_inputHistory.size() - 1);
+            return clamp(*m_historyIndex - 1, 0, inputHistory.size() - 1);
         case HistoryDirection::Down:
-            return clamp(*m_historyIndex + 1, 0, m_inputHistory.size() - 1);
+            return clamp(*m_historyIndex + 1, 0, inputHistory.size() - 1);
         }
 
         return {};
@@ -148,27 +182,29 @@ std::string* ui::DebugConsole::onInputHistory(HistoryDirection direction)
     if (!m_historyIndex)
         return nullptr;
 
-    return &m_inputHistory[*m_historyIndex];
+    return &inputHistory[*m_historyIndex];
 }
 
-void ui::DebugConsole::onInputCompletion()
+void ui::DebugConsoleWidget::onInputCompletion()
 {
-    addLine("Input completion");
+//     addLine("Input completion");
 }
 
-void ui::DebugConsole::onInputSubmitted()
+void ui::DebugConsoleWidget::onInputSubmitted()
 {
-    std::string input = std::string{ getCurrentInput() };
-    m_inputHistory.push_back(input);
+//     std::string input = std::string{ getCurrentInput() };
+//     m_inputHistory.push_back(input);
 
-    addLine("> " + input);
+//     addLine("> " + input);
 
     // TODO execute command
+
+    DebugConsole::instance().execute(getCurrentInput());
 
     clearInput();
 }
 
-void ui::DebugConsole::clearInput()
+void ui::DebugConsoleWidget::clearInput()
 {
     m_inputLength = 0;
     m_inputBuffer = {};

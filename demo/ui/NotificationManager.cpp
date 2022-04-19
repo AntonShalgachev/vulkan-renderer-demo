@@ -1,9 +1,17 @@
 #include "NotificationManager.h"
 #include "imgui.h"
+#include "../DebugConsole.h"
 
 namespace
 {
     float defaultDuration = 5.0f;
+}
+
+ui::NotificationManager::NotificationManager()
+{
+    coil::Bindings& bindings = DebugConsole::instance().bindings();
+
+    bindings["ui.notifications.add"] = coil::bind(&NotificationManager::add, this);
 }
 
 void ui::NotificationManager::update(float dt)

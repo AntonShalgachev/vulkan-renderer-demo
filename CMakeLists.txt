@@ -53,6 +53,12 @@ FetchContent_Declare(
     GIT_TAG        3d1f6a5a2a3fbcba077e00ad0ccc2dd9fefc2ca7 # 0.7.3
 )
 
+FetchContent_Declare(
+    coil
+    GIT_REPOSITORY https://github.com/AntonShalgachev/coil
+    GIT_TAG        adbf0888c32f6e945ee240e411721e3beca6a781 # change CMake target name to just coil
+)
+
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
 set(BUILD_STATIC_LIBS ON CACHE INTERNAL "")
 
@@ -68,6 +74,8 @@ set(TINYGLTF_BUILD_VALIDATOR_EXAMPLE OFF CACHE INTERNAL "")
 set(TINYGLTF_BUILD_BUILDER_EXAMPLE OFF CACHE INTERNAL "")
 set(TINYGLTF_HEADER_ONLY OFF CACHE INTERNAL "")
 set(TINYGLTF_INSTALL OFF CACHE INTERNAL "")
+
+set(COIL_EXAMPLES OFF CACHE INTERNAL "")
 
 message(STATUS "Fetching glfw...")
 FetchContent_MakeAvailable(glfw)
@@ -89,6 +97,10 @@ message(STATUS "tinygltf directory: ${tinygltf_SOURCE_DIR}")
 message(STATUS "Fetching magic_enum...")
 FetchContent_MakeAvailable(magic_enum)
 message(STATUS "magic_enum directory: ${magic_enum_SOURCE_DIR}")
+
+message(STATUS "Fetching coil...")
+FetchContent_MakeAvailable(coil)
+message(STATUS "coil directory: ${coil_SOURCE_DIR}")
 ############################### ############ ###############################
 
 add_subdirectory(imgui-backend)
