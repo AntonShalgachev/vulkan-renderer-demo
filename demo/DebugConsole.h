@@ -80,6 +80,8 @@ public:
 
     static DebugConsole& instance();
 
+    DebugConsole();
+
     void execute(std::string_view command);
 
     std::vector<Line> const& lines() { return m_lines; }

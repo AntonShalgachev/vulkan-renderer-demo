@@ -142,12 +142,6 @@ std::string_view ui::DebugConsoleWidget::getCurrentInput() const
     return std::string_view(m_inputBuffer.data(), m_inputLength);
 }
 
-// void ui::DebugConsoleWidget::addLine(std::string line)
-// {
-//     m_lines.push_back(std::move(line));
-//     m_scrollToLast = true;
-// }
-
 void ui::DebugConsoleWidget::onInputChanged(std::size_t length)
 {
     m_inputLength = length;
@@ -187,19 +181,19 @@ std::string const* ui::DebugConsoleWidget::onInputHistory(HistoryDirection direc
 
 void ui::DebugConsoleWidget::onInputCompletion()
 {
-//     addLine("Input completion");
+
 }
 
 void ui::DebugConsoleWidget::onInputSubmitted()
 {
-//     std::string input = std::string{ getCurrentInput() };
-//     m_inputHistory.push_back(input);
+    std::string_view input = getCurrentInput();
 
-//     addLine("> " + input);
+    if (input.empty())
+        return;
 
-    // TODO execute command
+    DebugConsole::instance().execute(input);
 
-    DebugConsole::instance().execute(getCurrentInput());
+    m_scrollToLast = true;
 
     clearInput();
 }
