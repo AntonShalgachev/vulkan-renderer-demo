@@ -29,4 +29,5 @@ target_link_libraries(${PROJECT_NAME}
     tinygltf
     magic_enum
     coil
+    rapidfuzz::rapidfuzz
 )

@@ -56,7 +56,13 @@ FetchContent_Declare(
 FetchContent_Declare(
     coil
     GIT_REPOSITORY https://github.com/AntonShalgachev/coil
-    GIT_TAG        adbf0888c32f6e945ee240e411721e3beca6a781 # change CMake target name to just coil
+    GIT_TAG        efa7d59686c42027fd0cfb68c2952279f1673adb # add an ability to query registered command names
+)
+
+FetchContent_Declare(
+    rapidfuzz
+    GIT_REPOSITORY https://github.com/maxbachmann/rapidfuzz-cpp
+    GIT_TAG        6642000b428b952de0fdf4d1f4be34e0b7b1eca3 # 1.0.1
 )
 
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
@@ -101,6 +107,10 @@ message(STATUS "magic_enum directory: ${magic_enum_SOURCE_DIR}")
 message(STATUS "Fetching coil...")
 FetchContent_MakeAvailable(coil)
 message(STATUS "coil directory: ${coil_SOURCE_DIR}")
+
+message(STATUS "Fetching rapidfuzz...")
+FetchContent_MakeAvailable(rapidfuzz)
+message(STATUS "rapidfuzz directory: ${rapidfuzz_SOURCE_DIR}")
 ############################### ############ ###############################
 
 add_subdirectory(imgui-backend)
