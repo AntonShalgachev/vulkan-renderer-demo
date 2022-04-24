@@ -52,6 +52,7 @@
 #include "magic_enum.hpp"
 #include "ui/NotificationManager.h"
 #include "ui/DebugConsoleWidget.h"
+#include "DebugConsole.h"
 
 namespace
 {
@@ -101,6 +102,11 @@ class HelloTriangleApplication
 public:
     HelloTriangleApplication()
     {
+        coil::Bindings& bindings = DebugConsole::instance().bindings();
+
+        bindings["imgui.demo"] = [this]() { m_drawImguiDemo = !m_drawImguiDemo; };
+        bindings["imgui.debugger"] = [this]() { m_drawImguiDebugger = !m_drawImguiDebugger; };
+
         m_keyState.resize(1 << 8 * sizeof(char), false);
 
         m_window = std::make_unique<vkr::Window>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
@@ -123,6 +129,8 @@ public:
 
     ~HelloTriangleApplication()
     {
+        // TODO unregister debug commands
+
         getApp().getDevice().waitIdle();
 
         ImGui_ImplVulkan_Shutdown();
@@ -394,6 +402,11 @@ private:
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        if (m_drawImguiDemo)
+            ImGui::ShowDemoWindow(&m_drawImguiDemo);
+        if (m_drawImguiDebugger)
+            ImGui::ShowMetricsWindow(&m_drawImguiDebugger);
+
         float cpuUtilizationRatio = frameTime > 0 ? 1.0f - fenceTime/frameTime : 1.0f;
 
         {
@@ -532,6 +545,9 @@ private:
 
     ui::NotificationManager m_notifications;
     ui::DebugConsoleWidget m_debugConsole;
+
+    bool m_drawImguiDemo = false;
+    bool m_drawImguiDebugger = false;
 };
 
 int main()
