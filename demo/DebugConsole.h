@@ -78,11 +78,20 @@ public:
         Type type;
     };
 
+    struct Suggestion
+    {
+        std::string_view command;
+        float score;
+    };
+
     static DebugConsole& instance();
 
     DebugConsole();
 
     void execute(std::string_view command);
+    std::vector<Suggestion> getSuggestions(std::string_view input) const;
+    std::optional<std::string_view> autoComplete(std::string_view input) const;
+    void clear();
 
     std::vector<Line> const& lines() { return m_lines; }
     std::vector<std::string> const& history() { return m_inputHistory; }

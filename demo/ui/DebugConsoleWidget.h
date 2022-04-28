@@ -17,16 +17,22 @@ namespace ui
         void toggle() { m_visible = !m_visible; }
 
     private:
-        enum class HistoryDirection { Up, Down };
+        void drawOutput();
+        void drawInput();
+        void drawSuggestions();
 
-        void onInputChanged(std::size_t length);
-        std::string const* onInputHistory(HistoryDirection direction);
-        void onInputCompletion();
-        void onInputSubmitted();
+        void onInputChanged(std::string_view input);
+        void onInputReplaced(std::string_view input);
+        std::optional<std::string_view> onInputHistory(std::string_view input, int delta);
+        std::optional<std::string_view> onInputCompletion(std::string_view input);
+        void onInputSubmitted(std::string_view input);
+
+        std::optional<std::size_t> getHistoryIndex(std::size_t historySize) const;
+        std::optional<std::size_t> getSuggestionIndex() const;
+
+        void updateSuggestionsWindow(std::size_t selectedIndex);
 
         void clearInput();
-
-        std::string_view getCurrentInput() const;
 
     private:
         bool m_visible = false;
@@ -36,6 +42,11 @@ namespace ui
 
         bool m_scrollToLast = false;
 
-        std::optional<std::size_t> m_historyIndex;
+        std::optional<std::string> m_oldInput;
+        int m_replacementIndex = 0;
+
+        std::vector<std::string> m_suggestions;
+        std::size_t m_suggestionsWindowStart = 0;
+        std::size_t m_suggestionsWindowEnd = 0;
     };
 }

@@ -106,6 +106,7 @@ public:
 
         bindings["imgui.demo"] = [this]() { m_drawImguiDemo = !m_drawImguiDemo; };
         bindings["imgui.debugger"] = [this]() { m_drawImguiDebugger = !m_drawImguiDebugger; };
+        bindings["imgui.styles"] = [this]() { m_drawImguiStyleEditor = !m_drawImguiStyleEditor; };
 
         m_keyState.resize(1 << 8 * sizeof(char), false);
 
@@ -406,6 +407,8 @@ private:
             ImGui::ShowDemoWindow(&m_drawImguiDemo);
         if (m_drawImguiDebugger)
             ImGui::ShowMetricsWindow(&m_drawImguiDebugger);
+        if (m_drawImguiStyleEditor)
+            ImGui::ShowStyleEditor();
 
         float cpuUtilizationRatio = frameTime > 0 ? 1.0f - fenceTime/frameTime : 1.0f;
 
@@ -548,6 +551,7 @@ private:
 
     bool m_drawImguiDemo = false;
     bool m_drawImguiDebugger = false;
+    bool m_drawImguiStyleEditor = false;
 };
 
 int main()

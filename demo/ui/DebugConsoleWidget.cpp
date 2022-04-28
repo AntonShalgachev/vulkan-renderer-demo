@@ -5,11 +5,15 @@
 
 #include <string>
 #include <string_view>
+#include <set>
+#include <algorithm>
+
 #include "../DebugConsole.h"
 
 namespace
 {
-    float heightPercentage = 0.3f;
+    std::size_t outputLinesCount = 15;
+    std::size_t suggestionsLinesCountMax = 5;
 
     std::size_t clamp(std::size_t value, std::size_t from, std::size_t to)
     {
@@ -36,6 +40,8 @@ namespace
 
         return IM_COL32(255, 255, 255, 255);
     }
+
+    auto selectedSuggestionColor = IM_COL32(255, 255, 0, 255);
 }
 
 ui::DebugConsoleWidget::DebugConsoleWidget()
@@ -43,6 +49,13 @@ ui::DebugConsoleWidget::DebugConsoleWidget()
     coil::Bindings& bindings = DebugConsole::instance().bindings();
 
     bindings["ui.console.toggle"] = coil::bind(&DebugConsoleWidget::toggle, this);
+
+    // TODO remove
+    bindings["ui.console.test"] = [](coil::Context context)
+    {
+        for (auto i = 0; i < 14; i++)
+            context.out() << "Line " << i << std::endl;
+    };
 }
 
 void ui::DebugConsoleWidget::draw()
@@ -50,21 +63,26 @@ void ui::DebugConsoleWidget::draw()
     if (!m_visible)
         return;
 
-    DebugConsole& console = DebugConsole::instance();
-
     auto viewport = ImGui::GetMainViewport();
-    ImVec2 workPos = viewport->WorkPos;
-    ImVec2 workSize = viewport->WorkSize;
-    ImGui::SetNextWindowPos(workPos);
-    ImGui::SetNextWindowSize({ workSize.x, workSize.y * heightPercentage });
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize({ viewport->WorkSize.x, 0.0f });
 
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove;
     ImGui::Begin("DebugConsole", nullptr, windowFlags);
 
-    auto const inputHeight = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
-    ImGui::BeginChild("ScrollingRegion", ImVec2(0, -inputHeight), true, ImGuiWindowFlags_HorizontalScrollbar);
+    drawOutput();
+    drawInput();
+    drawSuggestions();
 
-    for (DebugConsole::Line const& line : console.lines())
+    ImGui::End();
+}
+
+void ui::DebugConsoleWidget::drawOutput()
+{
+    auto const outputHeight = ImGui::GetTextLineHeightWithSpacing() * outputLinesCount + ImGui::GetStyle().WindowPadding.y * 2 - ImGui::GetStyle().ItemSpacing.y;
+    ImGui::BeginChild("OutputArea", ImVec2(0, outputHeight), true, ImGuiWindowFlags_HorizontalScrollbar);
+
+    for (DebugConsole::Line const& line : DebugConsole::instance().lines())
     {
         ImGui::PushStyleColor(ImGuiCol_Text, getLineColor(line.type));
         ImGui::Text(line.text.c_str());
@@ -76,33 +94,44 @@ void ui::DebugConsoleWidget::draw()
     m_scrollToLast = false;
 
     ImGui::EndChild();
+}
 
-    auto editCallback = [](ImGuiInputTextCallbackData* data) {
+void ui::DebugConsoleWidget::drawInput()
+{
+    auto editCallback = [](ImGuiInputTextCallbackData* data)
+    {
         auto console = static_cast<DebugConsoleWidget*>(data->UserData);
         if (!console)
             return 0;
 
+        auto getView = [](ImGuiInputTextCallbackData* data) { return std::string_view{ data->Buf, static_cast<std::size_t>(data->BufTextLen) }; };
+
+        std::string_view input = getView(data);
+
         if (data->EventFlag == ImGuiInputTextFlags_CallbackEdit)
-            console->onInputChanged(data->BufTextLen);
+            console->onInputChanged(input);
+
+        std::optional<std::string_view> replacement;
 
         if (data->EventFlag == ImGuiInputTextFlags_CallbackCompletion)
-            console->onInputCompletion();
+        {
+            replacement = console->onInputCompletion(input);
+        }
 
         if (data->EventFlag == ImGuiInputTextFlags_CallbackHistory)
         {
-            std::string const* replacement = nullptr;
-
             if (data->EventKey == ImGuiKey_UpArrow)
-                replacement = console->onInputHistory(HistoryDirection::Up);
+                replacement = console->onInputHistory(input, -1);
             if (data->EventKey == ImGuiKey_DownArrow)
-                replacement = console->onInputHistory(HistoryDirection::Down);
+                replacement = console->onInputHistory(input, 1);
+        }
 
-            if (replacement)
-            {
-                data->DeleteChars(0, data->BufTextLen);
-                data->InsertChars(0, replacement->c_str());
-                console->onInputChanged(data->BufTextLen);
-            }
+        if (replacement)
+        {
+            std::string replacementCopy = std::string{ *replacement };
+            data->DeleteChars(0, data->BufTextLen);
+            data->InsertChars(0, replacementCopy.data(), replacementCopy.data() + replacementCopy.size());
+            console->onInputReplaced(getView(data));
         }
 
         return 0;
@@ -122,72 +151,92 @@ void ui::DebugConsoleWidget::draw()
 
     ImGui::PushItemWidth(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x - ImGui::GetCursorPosX());
 
-    bool shouldFocus = ImGui::IsWindowAppearing();
     if (ImGui::InputText("Input", m_inputBuffer.data(), m_inputBuffer.size(), inputFlags, editCallback, this))
-    {
-        onInputSubmitted();
-        shouldFocus = true;
-    }
+        onInputSubmitted({ m_inputBuffer.data(), m_inputLength });
+
+    if (ImGui::IsItemDeactivatedAfterEdit())
+        clearInput();
+
     ImGui::PopStyleColor();
     ImGui::PopStyleVar(2);
 
-    if (shouldFocus)
-        ImGui::SetKeyboardFocusHere(-1);
-
-    ImGui::End();
+    ImGui::SetKeyboardFocusHere(-1);
 }
 
-std::string_view ui::DebugConsoleWidget::getCurrentInput() const
+void ui::DebugConsoleWidget::drawSuggestions()
 {
-    return std::string_view(m_inputBuffer.data(), m_inputLength);
+    if (m_suggestionsWindowStart > 0)
+        ImGui::Text("  ...");
+
+    for (std::size_t i = m_suggestionsWindowStart; i < m_suggestionsWindowEnd; i++)
+    {
+        bool const selected = i == getSuggestionIndex();
+        if (selected)
+            ImGui::PushStyleColor(ImGuiCol_Text, selectedSuggestionColor);
+
+        ImGui::Text("  %s", m_suggestions[i].c_str());
+
+        if (selected)
+            ImGui::PopStyleColor();
+    }
+
+    if (m_suggestionsWindowEnd < m_suggestions.size())
+        ImGui::Text("  ...");
 }
 
-void ui::DebugConsoleWidget::onInputChanged(std::size_t length)
+void ui::DebugConsoleWidget::onInputChanged(std::string_view input)
 {
-    m_inputLength = length;
+    m_oldInput = {};
+    m_replacementIndex = 0;
+
+    m_inputLength = input.size();
+
+    m_suggestions.clear();
+    for (DebugConsole::Suggestion const& candidate : DebugConsole::instance().getSuggestions(input))
+        m_suggestions.push_back(std::string{ candidate.command });
+
+    auto const linesCount = std::min(m_suggestions.size(), suggestionsLinesCountMax);
+    m_suggestionsWindowStart = 0;
+    m_suggestionsWindowEnd = linesCount;
 }
 
-std::string const* ui::DebugConsoleWidget::onInputHistory(HistoryDirection direction)
+void ui::DebugConsoleWidget::onInputReplaced(std::string_view input)
+{
+    m_inputLength = input.size();
+}
+
+std::optional<std::string_view> ui::DebugConsoleWidget::onInputHistory(std::string_view input, int delta)
 {
     auto const& inputHistory = DebugConsole::instance().history();
 
-    auto computeNewIndex = [this, direction, &inputHistory]() -> std::optional<std::size_t>
-    {
-        if (inputHistory.size() == 0)
-            return {};
+    int minIndex = -inputHistory.size();
+    int maxIndex = m_suggestions.size();
+    m_replacementIndex = std::min(std::max(m_replacementIndex + delta, minIndex), maxIndex);
 
-        switch (direction)
-        {
-        case HistoryDirection::Up:
-            if (!m_historyIndex)
-                return inputHistory.size() - 1;
-            if (*m_historyIndex == 0)
-                return m_historyIndex;
-            return clamp(*m_historyIndex - 1, 0, inputHistory.size() - 1);
-        case HistoryDirection::Down:
-            return clamp(*m_historyIndex + 1, 0, inputHistory.size() - 1);
-        }
+    if (m_replacementIndex != 0 && !m_oldInput)
+        m_oldInput = std::string{ input };
 
-        return {};
-    };
+    if (auto index = getSuggestionIndex())
+        updateSuggestionsWindow(*index);
 
-    m_historyIndex = computeNewIndex();
+    if (auto index = getHistoryIndex(inputHistory.size()))
+        return inputHistory[*index];
+    if (auto index = getSuggestionIndex())
+        return m_suggestions[*index];
 
-    if (!m_historyIndex)
-        return nullptr;
+    if (m_oldInput)
+        return *m_oldInput;
 
-    return &inputHistory[*m_historyIndex];
+    return {};
 }
 
-void ui::DebugConsoleWidget::onInputCompletion()
+std::optional<std::string_view> ui::DebugConsoleWidget::onInputCompletion(std::string_view input)
 {
-
+    return DebugConsole::instance().autoComplete(input);
 }
 
-void ui::DebugConsoleWidget::onInputSubmitted()
+void ui::DebugConsoleWidget::onInputSubmitted(std::string_view input)
 {
-    std::string_view input = getCurrentInput();
-
     if (input.empty())
         return;
 
@@ -198,9 +247,42 @@ void ui::DebugConsoleWidget::onInputSubmitted()
     clearInput();
 }
 
+std::optional<std::size_t> ui::DebugConsoleWidget::getHistoryIndex(std::size_t historySize) const
+{
+    return m_replacementIndex < 0 ? historySize + m_replacementIndex : std::optional<std::size_t>{};
+}
+
+std::optional<std::size_t> ui::DebugConsoleWidget::getSuggestionIndex() const
+{
+    return m_replacementIndex > 0 ? m_replacementIndex - 1 : std::optional<std::size_t>{};
+}
+
+void ui::DebugConsoleWidget::updateSuggestionsWindow(std::size_t selectedIndex)
+{
+    if (selectedIndex < m_suggestionsWindowStart)
+    {
+        std::size_t delta = m_suggestionsWindowStart - selectedIndex;
+        m_suggestionsWindowStart -= delta;
+        m_suggestionsWindowEnd -= delta;
+        return;
+    }
+
+    if (selectedIndex >= m_suggestionsWindowEnd)
+    {
+        std::size_t delta = selectedIndex - m_suggestionsWindowEnd + 1;
+        m_suggestionsWindowStart += delta;
+        m_suggestionsWindowEnd += delta;
+        return;
+    }
+}
+
 void ui::DebugConsoleWidget::clearInput()
 {
     m_inputLength = 0;
     m_inputBuffer = {};
-    m_historyIndex = {};
+
+    m_oldInput = {};
+    m_replacementIndex = 0;
+
+    onInputChanged({});
 }
