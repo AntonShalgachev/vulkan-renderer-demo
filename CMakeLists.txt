@@ -56,13 +56,19 @@ FetchContent_Declare(
 FetchContent_Declare(
     coil
     GIT_REPOSITORY https://github.com/AntonShalgachev/coil
-    GIT_TAG        efa7d59686c42027fd0cfb68c2952279f1673adb # add an ability to query registered command names
+    GIT_TAG        ee6f25d7b0d48f9fe76beeb6f6ccf27a41cc695a # Merge pull request #7 from AntonShalgachev/fb-command-names 
 )
 
 FetchContent_Declare(
     rapidfuzz
     GIT_REPOSITORY https://github.com/maxbachmann/rapidfuzz-cpp
     GIT_TAG        6642000b428b952de0fdf4d1f4be34e0b7b1eca3 # 1.0.1
+)
+
+FetchContent_Declare(
+    argparse
+    GIT_REPOSITORY https://github.com/p-ranav/argparse
+    GIT_TAG        4af831ef724224f751a25aea43689b92969ae612 # 2.4
 )
 
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
@@ -111,6 +117,10 @@ message(STATUS "coil directory: ${coil_SOURCE_DIR}")
 message(STATUS "Fetching rapidfuzz...")
 FetchContent_MakeAvailable(rapidfuzz)
 message(STATUS "rapidfuzz directory: ${rapidfuzz_SOURCE_DIR}")
+
+message(STATUS "Fetching argparse...")
+FetchContent_MakeAvailable(argparse)
+message(STATUS "argparse directory: ${argparse_SOURCE_DIR}")
 ############################### ############ ###############################
 
 add_subdirectory(imgui-backend)

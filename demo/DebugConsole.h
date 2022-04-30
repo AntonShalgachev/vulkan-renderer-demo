@@ -84,7 +84,7 @@ public:
         float score;
     };
 
-    static DebugConsole& instance();
+    static DebugConsole& instance(); // TODO remove
 
     DebugConsole();
 

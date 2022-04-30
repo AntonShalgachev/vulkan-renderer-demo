@@ -53,6 +53,7 @@
 #include "ui/NotificationManager.h"
 #include "ui/DebugConsoleWidget.h"
 #include "DebugConsole.h"
+#include "CommandLine.h"
 
 namespace
 {
@@ -97,11 +98,29 @@ namespace
     }
 }
 
+struct ICommandLineOptionProvider
+{
+    virtual void setup(CommandLine& commandLine) const = 0;
+};
+
+struct ApplicationOptionProvider : public ICommandLineOptionProvider
+{
+    void setup(CommandLine& commandLine) const override
+    {
+        commandLine.add("--execute")
+            .default_value(std::vector<std::string>{})
+            .append()
+            .help("execute a given command");
+    }
+};
+
 class HelloTriangleApplication
 {
 public:
     HelloTriangleApplication()
     {
+        registerCommandLineOptionProviders();
+
         coil::Bindings& bindings = DebugConsole::instance().bindings();
 
         bindings["imgui.demo"] = [this]() { m_drawImguiDemo = !m_drawImguiDemo; };
@@ -139,13 +158,35 @@ public:
         ImGui::DestroyContext();
     }
 
+    void setupCommandLine(CommandLine& commandLine)
+    {
+        for (auto const& provider : m_commandLineOptionProviders)
+            provider->setup(commandLine);
+    }
+
     void run()
     {
+        auto lines = CommandLine::instance().get<std::vector<std::string>>("--execute");
+        for (auto const& line : lines)
+            DebugConsole::instance().execute(line);
+
         m_frameTimer.start();
         m_window->startEventLoop([this]() { drawFrame(); });
     }
 
 private:
+    void registerCommandLineOptionProviders()
+    {
+        registerCommandLineOptionProvider<ApplicationOptionProvider>();
+    }
+
+    template<typename T>
+    void registerCommandLineOptionProvider()
+    {
+        static_assert(std::is_convertible_v<T*, ICommandLineOptionProvider*>, "T should derive from ICommandLineOptionProvider");
+        m_commandLineOptionProviders.push_back(std::make_unique<T>());
+    }
+
     void initImGui()
     {
         IMGUI_CHECKVERSION();
@@ -511,6 +552,8 @@ private:
     vkr::Application const& getApp() { return *m_application; }
 
 private:
+    std::vector<std::unique_ptr<ICommandLineOptionProvider>> m_commandLineOptionProviders;
+
     std::unique_ptr<vkr::Window> m_window;
 
     std::unique_ptr<vkr::Application> m_application;
@@ -554,19 +597,18 @@ private:
     bool m_drawImguiStyleEditor = false;
 };
 
-int main()
+int main(int argc, char** argv)
 {
-    try
     {
-        HelloTriangleApplication app;
-        app.run();
-    }
-    catch (const std::exception& e)
-    {
-        std::cerr << e.what() << std::endl;
-        std::getchar();
+        CommandLine& commandLine = CommandLine::instance();
 
-        return EXIT_FAILURE;
+        HelloTriangleApplication app;
+        app.setupCommandLine(commandLine);
+
+        if (!commandLine.parse(argc, argv))
+            return EXIT_FAILURE;
+
+        app.run();
     }
 
     // temporary to catch Vulkan errors
