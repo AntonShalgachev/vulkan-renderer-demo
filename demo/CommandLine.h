@@ -17,6 +17,7 @@ public:
 
     bool parse(int argc, char** argv);
     bool parse(std::vector<std::string> const& arguments);
+    bool parseFile(char const* path);
 
     template <typename T = std::string>
     T get(std::string_view arg) const

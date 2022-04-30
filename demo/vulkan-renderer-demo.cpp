@@ -607,6 +607,8 @@ int main(int argc, char** argv)
 
         if (!commandLine.parse(argc, argv))
             return EXIT_FAILURE;
+        if (!commandLine.parseFile("data/cmdline.ini"))
+            return EXIT_FAILURE;
 
         app.run();
     }
