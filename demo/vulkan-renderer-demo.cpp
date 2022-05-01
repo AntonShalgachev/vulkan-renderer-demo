@@ -60,8 +60,6 @@ namespace
     const uint32_t TARGET_WINDOW_WIDTH = 1900;
     const uint32_t TARGET_WINDOW_HEIGHT = 1000;
 
-    const float FPS_PERIOD = 0.2f;
-
 #ifdef _DEBUG
     bool const VALIDATION_ENABLED = true;
 #else
@@ -76,7 +74,6 @@ namespace
     const glm::vec3 LIGHT_POS = glm::vec3(0.0, 50.0f, 50.0f);
     const glm::vec3 CAMERA_POS = glm::vec3(0.0f, 0.0f, 4.0f);
     const glm::vec3 CAMERA_ANGLES = glm::vec3(0.0f, 0.0f, 0.0f);
-    const float CAMERA_SPEED = 1.0f;
 
     std::shared_ptr<tinygltf::Model> loadModel(std::string const& path)
     {
@@ -126,6 +123,14 @@ public:
         bindings["imgui.demo"] = [this]() { m_drawImguiDemo = !m_drawImguiDemo; };
         bindings["imgui.debugger"] = [this]() { m_drawImguiDebugger = !m_drawImguiDebugger; };
         bindings["imgui.styles"] = [this]() { m_drawImguiStyleEditor = !m_drawImguiStyleEditor; };
+
+        bindings["camera.znear"] = coil::property(&HelloTriangleApplication::getCameraNearZ, &HelloTriangleApplication::setCameraNearZ, this);
+        bindings["camera.zfar"] = coil::property(&HelloTriangleApplication::getCameraFarZ, &HelloTriangleApplication::setCameraFarZ, this);
+        bindings["camera.speed"] = coil::variable(&m_cameraSpeed);
+        bindings["camera.mouse_sensitivity"] = coil::variable(&m_mouseSensitivity);
+
+        bindings["fps"] = [this]() { m_showFps = !m_showFps; };
+        bindings["fps.update_period"] = coil::variable(&m_fpsUpdatePeriod);
 
         m_keyState.resize(1 << 8 * sizeof(char), false);
 
@@ -462,27 +467,31 @@ private:
             ImGui::SetNextWindowPos(windowPos, 0, { 1.0f, 0.0f });
         }
 
-        ImGuiWindowFlags fpsWindowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove;
-        ImGui::Begin("Debug", nullptr, fpsWindowFlags);
-        ImGui::Text("Frame time %.3f ms", frameTime * 1000.0f);
-        ImGui::Text("Fence time %.3f ms", fenceTime * 1000.0f);
-        ImGui::Text("CPU Utilization %.2f%%", cpuUtilizationRatio * 100.0f);
-        if (ImGui::Button(m_paused ? "Unpause" : "Pause"))
+        // TODO move to a separate class
+        if (m_showFps)
         {
-            m_paused = !m_paused;
+            ImGuiWindowFlags fpsWindowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove;
+            ImGui::Begin("Debug", nullptr, fpsWindowFlags);
+            ImGui::Text("Frame time %.3f ms", frameTime * 1000.0f);
+            ImGui::Text("Fence time %.3f ms", fenceTime * 1000.0f);
+            ImGui::Text("CPU Utilization %.2f%%", cpuUtilizationRatio * 100.0f);
+            if (ImGui::Button(m_paused ? "Unpause" : "Pause"))
+            {
+                m_paused = !m_paused;
+            }
+            static std::vector<std::string> texts = {
+                "Lorem ipsum dolor sit amet",
+                "consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore",
+                "et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation",
+            };
+            static std::size_t nextIndex = 0;
+            if (ImGui::Button("Add notification"))
+            {
+                m_notifications.add(texts[nextIndex % texts.size()]);
+                nextIndex++;
+            }
+            ImGui::End();
         }
-        static std::vector<std::string> texts = {
-            "Lorem ipsum dolor sit amet",
-            "consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore",
-            "et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation",
-        };
-        static std::size_t nextIndex = 0;
-        if (ImGui::Button("Add notification"))
-        {
-            m_notifications.add(texts[nextIndex % texts.size()]);
-            nextIndex++;
-        }
-        ImGui::End();
 
         m_notifications.draw();
         m_debugConsole.draw();
@@ -501,7 +510,7 @@ private:
 
     void update()
     {
-        if (m_frameTimer.getTime() > FPS_PERIOD)
+        if (m_frameTimer.getTime() > m_fpsUpdatePeriod)
         {
             float multiplier = 1.0f / static_cast<float>(m_fpsDrawnFrames);
             m_lastFrameTime = m_frameTimer.loop() * multiplier;
@@ -529,6 +538,10 @@ private:
         if (!m_activeCameraObject)
 			return;
 
+        // TODO handle input properly
+        if (ImGui::GetIO().WantCaptureKeyboard)
+            return;
+
 		vkr::Transform& cameraTransform = m_activeCameraObject->getTransform();
 
         glm::vec3 posDelta = glm::zero<glm::vec3>();
@@ -546,7 +559,30 @@ private:
         if (m_keyState['E'])
             posDelta += cameraTransform.getUpVector();
 
+        if (glm::length2(posDelta) > glm::epsilon<float>())
+            posDelta = glm::normalize(posDelta);
+
         cameraTransform.setWorldPos(cameraTransform.getWorldPos() + m_cameraSpeed * dt * posDelta);
+    }
+
+    float getCameraNearZ()
+    {
+        return m_activeCameraObject->getCamera()->nearZ();
+    }
+
+    void setCameraNearZ(float nearZ)
+    {
+        m_activeCameraObject->getCamera()->setNearZ(nearZ);
+    }
+
+    float getCameraFarZ()
+    {
+        return m_activeCameraObject->getCamera()->farZ();
+    }
+
+    void setCameraFarZ(float farZ)
+    {
+        m_activeCameraObject->getCamera()->setFarZ(farZ);
     }
 
     vkr::Application const& getApp() { return *m_application; }
@@ -595,6 +631,9 @@ private:
     bool m_drawImguiDemo = false;
     bool m_drawImguiDebugger = false;
     bool m_drawImguiStyleEditor = false;
+
+    bool m_showFps = true;
+    float m_fpsUpdatePeriod = 0.2f;
 };
 
 int main(int argc, char** argv)
