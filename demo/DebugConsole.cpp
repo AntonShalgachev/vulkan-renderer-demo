@@ -4,6 +4,68 @@
 
 #include <iomanip>
 
+namespace
+{
+    class CommandsListIterator
+    {
+    public:
+        CommandsListIterator() = default;
+        CommandsListIterator(std::string_view commands)
+        {
+            if (commands.empty())
+                return;
+
+            std::size_t i = 0;
+            while (i < commands.size() && commands[i] != ';')
+                i++;
+
+            m_self = commands.substr(0, i);
+            if (i < commands.size())
+                m_rest = commands.substr(i + 1, commands.size() - i);
+        }
+
+        std::string_view operator*()
+        {
+            assert(m_self);
+            return *m_self;
+        }
+
+        bool operator==(CommandsListIterator const& rhs) const
+        {
+            return m_self == rhs.m_self && m_rest == rhs.m_rest;
+        }
+
+        CommandsListIterator& operator++()
+        {
+            *this = CommandsListIterator{m_rest};
+            return *this;
+        }
+
+    private:
+        std::optional<std::string_view> m_self;
+        std::string_view m_rest;
+    };
+
+    class CommandsList
+    {
+    public:
+        CommandsList(std::string_view commands) : m_commands(commands) {}
+
+        auto begin()
+        {
+            return CommandsListIterator{ m_commands };
+        }
+
+        auto end()
+        {
+            return CommandsListIterator{};
+        }
+
+    private:
+        std::string_view m_commands;
+    };
+}
+
 DebugConsole& DebugConsole::instance()
 {
     static DebugConsole console;
@@ -32,16 +94,22 @@ DebugConsole::DebugConsole()
 
 void DebugConsole::execute(std::string_view command)
 {
-    addLine("> " + std::string{ command }, Line::Type::Input);
-    m_inputHistory.push_back(std::string{ command });
+    for (std::string_view subcommand : CommandsList{ command })
+    {
+        if (subcommand.empty())
+            continue;
 
-    coil::ExecutionResult result = m_bindings.execute(command);
-    for (std::string const& error : result.errors)
-        addLine("  " + error, Line::Type::Error);
-    for (std::string line; std::getline(result.output, line); )
-        addLine("  " + line, Line::Type::Output);
-    if (result.returnValue)
-        addLine("  -> '" + *result.returnValue + "'", Line::Type::ReturnValue);
+        addLine("> " + std::string{ subcommand }, Line::Type::Input);
+        m_inputHistory.push_back(std::string{ subcommand });
+
+        coil::ExecutionResult result = m_bindings.execute(subcommand);
+        for (std::string const& error : result.errors)
+            addLine("  " + error, Line::Type::Error);
+        for (std::string line; std::getline(result.output, line); )
+            addLine("  " + line, Line::Type::Output);
+        if (result.returnValue)
+            addLine("  -> '" + *result.returnValue + "'", Line::Type::ReturnValue);
+    }
 }
 
 std::vector<DebugConsole::Suggestion> DebugConsole::getSuggestions(std::string_view input) const
