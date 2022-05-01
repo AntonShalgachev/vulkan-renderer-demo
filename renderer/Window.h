@@ -47,6 +47,8 @@ namespace vkr
 
         GLFWwindow* getHandle() const { return m_handle; }
 
+        void resize(int width, int height);
+
         int getWidth() const { return m_width; }
         int getHeight() const { return m_height; }
 

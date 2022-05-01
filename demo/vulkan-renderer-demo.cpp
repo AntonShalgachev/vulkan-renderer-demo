@@ -145,6 +145,10 @@ public:
         m_notifications.add("A long long long long long long long long notification");
         m_notifications.add("A rather long notification");
 
+        bindings["window.resize"] = coil::bind(&vkr::Window::resize, m_window.get());
+        bindings["window.width"] = coil::bind(&vkr::Window::getWidth, m_window.get());
+        bindings["window.height"] = coil::bind(&vkr::Window::getHeight, m_window.get());
+
         loadResources();
         createRenderer();
         initImGui();

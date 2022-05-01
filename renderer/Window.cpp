@@ -54,6 +54,11 @@ vkr::Window::Window(int width, int height, std::string const& title)
     queryRequiredInstanceExtensions();
 }
 
+void vkr::Window::resize(int width, int height)
+{
+    glfwSetWindowSize(m_handle, width, height);
+}
+
 void vkr::Window::waitUntilInForeground() const
 {
     int width = 0, height = 0;
