@@ -49,13 +49,6 @@ ui::DebugConsoleWidget::DebugConsoleWidget()
     coil::Bindings& bindings = DebugConsole::instance().bindings();
 
     bindings["ui.console.toggle"] = coil::bind(&DebugConsoleWidget::toggle, this);
-
-    // TODO remove
-    bindings["ui.console.test"] = [](coil::Context context)
-    {
-        for (auto i = 0; i < 14; i++)
-            context.out() << "Line " << i << std::endl;
-    };
 }
 
 void ui::DebugConsoleWidget::draw()
