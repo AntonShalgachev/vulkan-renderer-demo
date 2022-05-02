@@ -27,16 +27,6 @@ namespace tinygltf
     class Node;
 }
 
-struct ICommandLineOptionProvider
-{
-    virtual void setup(CommandLine& commandLine) const = 0;
-};
-
-struct ApplicationOptionProvider : public ICommandLineOptionProvider
-{
-    void setup(CommandLine& commandLine) const override;
-};
-
 class DemoApplication
 {
 public:
@@ -44,20 +34,11 @@ public:
 
     ~DemoApplication();
 
-    void setupCommandLine(CommandLine& commandLine);
+    static void registerCommandLineOptions(CommandLine& commandLine);
 
     void run();
 
 private:
-    void registerCommandLineOptionProviders();
-
-    template<typename T>
-    void registerCommandLineOptionProvider()
-    {
-        static_assert(std::is_convertible_v<T*, ICommandLineOptionProvider*>, "T should derive from ICommandLineOptionProvider");
-        m_commandLineOptionProviders.push_back(std::make_unique<T>());
-    }
-
     void initImGui();
 
     void onFramebufferResized();
@@ -106,8 +87,6 @@ private:
     vkr::Application const& getApp() { return *m_application; }
 
 private:
-    std::vector<std::unique_ptr<ICommandLineOptionProvider>> m_commandLineOptionProviders;
-
     std::unique_ptr<vkr::Window> m_window;
 
     std::unique_ptr<vkr::Application> m_application;

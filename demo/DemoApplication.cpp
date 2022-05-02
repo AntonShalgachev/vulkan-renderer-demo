@@ -80,20 +80,8 @@ namespace
 
 //////////////////////////////////////////////////////////////////////////
 
-void ApplicationOptionProvider::setup(CommandLine& commandLine) const
-{
-    commandLine.add("--execute")
-        .default_value(std::vector<std::string>{})
-        .append()
-        .help("execute a given command");
-}
-
-//////////////////////////////////////////////////////////////////////////
-
 DemoApplication::DemoApplication()
 {
-    registerCommandLineOptionProviders();
-
     coil::Bindings& bindings = DebugConsole::instance().bindings();
 
     bindings["imgui.demo"] = [this]() { m_drawImguiDemo = !m_drawImguiDemo; };
@@ -143,10 +131,12 @@ DemoApplication::~DemoApplication()
     ImGui::DestroyContext();
 }
 
-void DemoApplication::setupCommandLine(CommandLine& commandLine)
+void DemoApplication::registerCommandLineOptions(CommandLine& commandLine)
 {
-    for (auto const& provider : m_commandLineOptionProviders)
-        provider->setup(commandLine);
+    commandLine.add("--execute")
+        .default_value(std::vector<std::string>{})
+        .append()
+        .help("execute a given command");
 }
 
 void DemoApplication::run()
@@ -157,11 +147,6 @@ void DemoApplication::run()
 
     m_frameTimer.start();
     m_window->startEventLoop([this]() { drawFrame(); });
-}
-
-void DemoApplication::registerCommandLineOptionProviders()
-{
-    registerCommandLineOptionProvider<ApplicationOptionProvider>();
 }
 
 void DemoApplication::initImGui()
