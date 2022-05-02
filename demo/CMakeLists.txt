@@ -1,7 +1,10 @@
 set(PROJECT_NAME demo)
 
 set(ALL_FILES
-    "vulkan-renderer-demo.cpp"
+    "main.cpp"
+    
+    "DemoApplication.h"
+    "DemoApplication.cpp"
 
     "DebugConsole.h"
     "DebugConsole.cpp"
