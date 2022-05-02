@@ -31,7 +31,6 @@ class DemoApplication
 {
 public:
     DemoApplication();
-
     ~DemoApplication();
 
     static void registerCommandLineOptions(CommandLine& commandLine);
@@ -42,46 +41,28 @@ private:
     void initImGui();
 
     void onFramebufferResized();
-
     void onKey(vkr::Window::Action action, vkr::Window::Key key, char c, vkr::Window::Modifiers mods);
-
     void onMouseMove(glm::vec2 const& delta);
 
     void createRenderer();
 
-    glm::quat createRotation(glm::vec3 const& eulerDegrees);
-
     void loadResources();
 
-    // TOOD move to utils or anonymous namespace
-    glm::mat4 createMatrix(std::vector<double> const& linearMatrix);
-
-    glm::vec4 createColor(std::vector<double> const& flatColor);
-
     std::unique_ptr<vkr::SceneObject> createSceneObject(std::shared_ptr<tinygltf::Model> const& model, tinygltf::Node const& node);
-
     std::shared_ptr<vkr::SceneObject> createSceneObjectWithChildren(std::shared_ptr<tinygltf::Model> const& model, std::vector<std::shared_ptr<vkr::SceneObject>>& hierarchy, std::size_t nodeIndex);
-
     std::vector<std::shared_ptr<vkr::SceneObject>> createSceneObjectHierarchy(std::shared_ptr<tinygltf::Model> const& model);
 
     void createSceneObjects();
 
     void updateUI(float frameTime, float fenceTime);
-
     void drawFrame();
-
     void update();
-
     void updateScene(float);
-
     void updateCamera(float dt);
 
     float getCameraNearZ();
-
     void setCameraNearZ(float nearZ);
-
     float getCameraFarZ();
-
     void setCameraFarZ(float farZ);
 
     vkr::Application const& getApp() { return *m_application; }

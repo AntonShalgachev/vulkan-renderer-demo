@@ -58,6 +58,32 @@ namespace
     const glm::vec3 CAMERA_POS = glm::vec3(0.0f, 0.0f, 4.0f);
     const glm::vec3 CAMERA_ANGLES = glm::vec3(0.0f, 0.0f, 0.0f);
 
+    glm::quat createRotation(glm::vec3 const& eulerDegrees)
+    {
+        glm::vec3 radians = glm::radians(eulerDegrees);
+        return glm::toQuat(glm::eulerAngleYXZ(radians.y, radians.x, radians.z));
+    }
+
+    glm::mat4 createMatrix(std::vector<double> const& linearMatrix)
+    {
+        if (linearMatrix.empty())
+            return glm::identity<glm::mat4>();
+        if (linearMatrix.size() == 16)
+            return glm::make_mat4(linearMatrix.data());
+
+        throw std::runtime_error("unexpected linear matrix size");
+    }
+
+    glm::vec4 createColor(std::vector<double> const& flatColor)
+    {
+        if (flatColor.empty())
+            return glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        if (flatColor.size() == 4)
+            return glm::make_vec4(flatColor.data());
+
+        throw std::runtime_error("unexpected flat color size");
+    }
+
     std::shared_ptr<tinygltf::Model> loadModel(std::string const& path)
     {
         std::shared_ptr<tinygltf::Model> model = std::make_shared<tinygltf::Model>();
@@ -233,12 +259,6 @@ void DemoApplication::createRenderer()
     m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
 }
 
-glm::quat DemoApplication::createRotation(glm::vec3 const& eulerDegrees)
-{
-    glm::vec3 radians = glm::radians(eulerDegrees);
-    return glm::toQuat(glm::eulerAngleYXZ(radians.y, radians.x, radians.z));
-}
-
 void DemoApplication::loadResources()
 {
     m_defaultShaderKey = vkr::Shader::Key{}
@@ -247,26 +267,6 @@ void DemoApplication::loadResources()
 
     m_defaultSampler = std::make_shared<vkr::Sampler>(getApp());
     m_gltfModel = loadModel(GLTF_MODEL_PATH);
-}
-
-glm::mat4 DemoApplication::createMatrix(std::vector<double> const& linearMatrix)
-{
-    if (linearMatrix.empty())
-        return glm::identity<glm::mat4>();
-    if (linearMatrix.size() == 16)
-        return glm::make_mat4(linearMatrix.data());
-
-    throw std::runtime_error("unexpected linear matrix size");
-}
-
-glm::vec4 DemoApplication::createColor(std::vector<double> const& flatColor)
-{
-    if (flatColor.empty())
-        return glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    if (flatColor.size() == 4)
-        return glm::make_vec4(flatColor.data());
-
-    throw std::runtime_error("unexpected flat color size");
 }
 
 std::unique_ptr<vkr::SceneObject> DemoApplication::createSceneObject(std::shared_ptr<tinygltf::Model> const& model, tinygltf::Node const& node)
