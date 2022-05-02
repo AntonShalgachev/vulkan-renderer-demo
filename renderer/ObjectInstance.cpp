@@ -21,6 +21,8 @@ vkr::ObjectInstance::ObjectInstance(Application const& app, std::shared_ptr<Scen
 
 }
 
+vkr::ObjectInstance::~ObjectInstance() = default;
+
 void vkr::ObjectInstance::onSwapchainCreated(Swapchain const& swapchain)
 {
     std::size_t swapchainImageCount = swapchain.getImageCount();

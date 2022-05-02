@@ -216,6 +216,8 @@ vkr::Mesh::Mesh(Application const& app, std::shared_ptr<tinygltf::Model> const& 
     createBuffers(data);
 }
 
+vkr::Mesh::~Mesh() = default;
+
 void vkr::Mesh::bindBuffers(VkCommandBuffer commandBuffer) const
 {
     if (ms_boundMesh == this)

@@ -21,6 +21,7 @@ namespace vkr
     public:
         explicit Texture(Application const& app, std::string const& path);
         explicit Texture(Application const& app, tinygltf::Image const& image);
+        ~Texture();
 
         VkImageView getImageViewHandle() const;
 

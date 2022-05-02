@@ -21,6 +21,7 @@ namespace vkr
     {
     public:
         ObjectInstance(Application const& app, std::shared_ptr<SceneObject> const& sceneObject, DescriptorSetLayout const& setLayout, VkDeviceSize uniformBufferSize);
+        ~ObjectInstance();
 
         SceneObject const& getSceneObject() const { return *m_sceneObject; }
 

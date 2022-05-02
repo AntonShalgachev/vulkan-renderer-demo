@@ -29,6 +29,7 @@ namespace vkr
         };
 
     	Mesh(Application const& app, std::shared_ptr<tinygltf::Model> const& model, tinygltf::Primitive const& primitive);
+        ~Mesh();
 
         VertexLayout const& getVertexLayout() const { return m_vertexLayout; }
         VertexTraits const& getVertexTraits() const { return m_vertexTraits; }

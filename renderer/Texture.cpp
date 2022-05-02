@@ -120,6 +120,8 @@ vkr::Texture::Texture(Application const& app, std::string const& path) : Object(
     stbi_image_free(pixels);
 }
 
+vkr::Texture::~Texture() = default;
+
 vkr::Texture::Texture(Application const& app, tinygltf::Image const& image) : Object(app)
 {
     uint32_t width = static_cast<uint32_t>(image.width);
