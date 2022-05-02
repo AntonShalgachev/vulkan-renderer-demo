@@ -7,7 +7,7 @@ namespace
 {
     static vkr::Window* getAppFromWindow(GLFWwindow* window) noexcept
     {
-        return reinterpret_cast<vkr::Window*>(glfwGetWindowUserPointer(window));
+        return static_cast<vkr::Window*>(glfwGetWindowUserPointer(window));
     }
 
     vkr::Window::Action getAction(int glfwAction)
