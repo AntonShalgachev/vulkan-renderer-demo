@@ -100,7 +100,6 @@ message(STATUS "glm directory: ${glm_SOURCE_DIR}")
 message(STATUS "Fetching imgui...")
 FetchContent_MakeAvailable(imgui)
 message(STATUS "imgui directory: ${imgui_SOURCE_DIR}")
-add_subdirectory(imgui)
 
 message(STATUS "Fetching tinygltf...")
 FetchContent_MakeAvailable(tinygltf)
@@ -123,6 +122,7 @@ FetchContent_MakeAvailable(argparse)
 message(STATUS "argparse directory: ${argparse_SOURCE_DIR}")
 ############################### ############ ###############################
 
-add_subdirectory(imgui-backend)
-add_subdirectory(renderer)
-add_subdirectory(demo)
+add_subdirectory(code/imgui)
+add_subdirectory(code/imgui-backend)
+add_subdirectory(code/renderer)
+add_subdirectory(code/demo)
