@@ -38,21 +38,19 @@ public:
     void run();
 
 private:
-    void initImGui();
+    void loadImgui();
+    void unloadImgui();
 
     void onFramebufferResized();
     void onKey(vkr::Window::Action action, vkr::Window::Key key, char c, vkr::Window::Modifiers mods);
     void onMouseMove(glm::vec2 const& delta);
 
-    void createRenderer();
-
-    void loadResources();
-
     std::unique_ptr<vkr::SceneObject> createSceneObject(std::shared_ptr<tinygltf::Model> const& model, tinygltf::Node const& node);
     std::shared_ptr<vkr::SceneObject> createSceneObjectWithChildren(std::shared_ptr<tinygltf::Model> const& model, std::vector<std::shared_ptr<vkr::SceneObject>>& hierarchy, std::size_t nodeIndex);
     std::vector<std::shared_ptr<vkr::SceneObject>> createSceneObjectHierarchy(std::shared_ptr<tinygltf::Model> const& model);
 
-    void createSceneObjects();
+    void clearScene();
+    void loadScene(std::string const& gltfPath);
 
     void updateUI(float frameTime, float fenceTime);
     void drawFrame();
@@ -79,8 +77,6 @@ private:
     std::shared_ptr<vkr::Sampler> m_defaultSampler;
 
     vkr::Shader::Key m_defaultShaderKey;
-
-    std::shared_ptr<tinygltf::Model> m_gltfModel;
 
     // Objects
     std::shared_ptr<vkr::SceneObject> m_model;
@@ -112,4 +108,6 @@ private:
 
     bool m_showFps = true;
     float m_fpsUpdatePeriod = 0.2f;
+
+    bool m_reloadImgui = false;
 };

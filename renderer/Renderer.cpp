@@ -72,6 +72,11 @@ void vkr::Renderer::addObject(std::shared_ptr<SceneObject> const& object)
     m_sceneObjects.back()->onSwapchainCreated(*m_swapchain);
 }
 
+void vkr::Renderer::clearObjects()
+{
+    m_sceneObjects.clear();
+}
+
 void vkr::Renderer::onFramebufferResized()
 {
     m_framebufferResized = true;
@@ -274,8 +279,9 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
     }
 
     // TODO abstract this away
-    if (ImDrawData* drawData = ImGui::GetDrawData())
-        ImGui_ImplVulkan_RenderDrawData(drawData, handle);
+    if (ImGui::GetCurrentContext())
+        if (ImDrawData* drawData = ImGui::GetDrawData())
+            ImGui_ImplVulkan_RenderDrawData(drawData, handle);
 
     vkCmdEndRenderPass(handle);
 

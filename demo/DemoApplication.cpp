@@ -51,9 +51,9 @@ namespace
 #endif
     bool const API_DUMP_ENABLED = false;
 
-    // 	const std::string GLTF_MODEL_PATH = "data/models/Duck/glTF/Duck.gltf";
+//     const std::string GLTF_MODEL_PATH = "data/models/Duck/glTF/Duck.gltf";
     const std::string GLTF_MODEL_PATH = "data/models/GearboxAssy/glTF/GearboxAssy.gltf";
-    // 	const std::string GLTF_MODEL_PATH = "data/models/ReciprocatingSaw/glTF/ReciprocatingSaw.gltf";
+//     const std::string GLTF_MODEL_PATH = "data/models/ReciprocatingSaw/glTF/ReciprocatingSaw.gltf";
 
     const glm::vec3 LIGHT_POS = glm::vec3(0.0, 50.0f, 50.0f);
     const glm::vec3 CAMERA_POS = glm::vec3(0.0f, 0.0f, 4.0f);
@@ -114,6 +114,7 @@ DemoApplication::DemoApplication()
     bindings["imgui.demo"] = [this]() { m_drawImguiDemo = !m_drawImguiDemo; };
     bindings["imgui.debugger"] = [this]() { m_drawImguiDebugger = !m_drawImguiDebugger; };
     bindings["imgui.styles"] = [this]() { m_drawImguiStyleEditor = !m_drawImguiStyleEditor; };
+    bindings["imgui.reload"] = [this]() { m_reloadImgui = true; };
 
     bindings["camera.znear"] = coil::property(&DemoApplication::getCameraNearZ, &DemoApplication::setCameraNearZ, this);
     bindings["camera.zfar"] = coil::property(&DemoApplication::getCameraFarZ, &DemoApplication::setCameraFarZ, this);
@@ -137,6 +138,11 @@ DemoApplication::DemoApplication()
 
     m_application = std::make_unique<vkr::Application>("Vulkan demo", VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window, std::move(messageCallback));
 
+    m_renderer = std::make_unique<vkr::Renderer>(getApp());
+    m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
+
+    loadImgui();
+
     m_notifications.add("Some notification");
     m_notifications.add("Another notification");
     m_notifications.add("A long long long long long long long long notification");
@@ -146,23 +152,19 @@ DemoApplication::DemoApplication()
     bindings["window.width"] = coil::bind(&vkr::Window::getWidth, m_window.get());
     bindings["window.height"] = coil::bind(&vkr::Window::getHeight, m_window.get());
 
-    loadResources();
-    createRenderer();
-    initImGui();
+    bindings["scene.load"] = coil::bind(&DemoApplication::loadScene, this);
 
-    createSceneObjects();
+    loadScene(GLTF_MODEL_PATH);
 }
 
 DemoApplication::~DemoApplication()
 {
     // TODO unregister debug commands
 
+    unloadImgui();
+
     // move to the renderer
     getApp().getDevice().waitIdle();
-
-    ImGui_ImplVulkan_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
 }
 
 void DemoApplication::registerCommandLineOptions(CommandLine& commandLine)
@@ -183,8 +185,11 @@ void DemoApplication::run()
     m_window->startEventLoop([this]() { drawFrame(); });
 }
 
-void DemoApplication::initImGui()
+void DemoApplication::loadImgui()
 {
+    if (ImGui::GetCurrentContext())
+        return;
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
@@ -217,6 +222,19 @@ void DemoApplication::initImGui()
 
         ImGui_ImplVulkan_DestroyFontUploadObjects();
     }
+}
+
+void DemoApplication::unloadImgui()
+{
+    if (!ImGui::GetCurrentContext())
+        return;
+
+    getApp().getDevice().waitIdle();
+
+    m_imguiDescriptorPool = nullptr;
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 }
 
 void DemoApplication::onFramebufferResized()
@@ -259,22 +277,6 @@ void DemoApplication::onMouseMove(glm::vec2 const& delta)
 
     vkr::Transform& cameraTransform = m_activeCameraObject->getTransform();
     cameraTransform.setLocalRotation(cameraTransform.getLocalRotation() * rotationDelta);
-}
-
-void DemoApplication::createRenderer()
-{
-    m_renderer = std::make_unique<vkr::Renderer>(getApp());
-    m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
-}
-
-void DemoApplication::loadResources()
-{
-    m_defaultShaderKey = vkr::Shader::Key{}
-        .addStage(vkr::ShaderModule::Type::Vertex, "data/shaders/compiled/default.vert.spv")
-        .addStage(vkr::ShaderModule::Type::Fragment, "data/shaders/compiled/default.frag.spv");
-
-    m_defaultSampler = std::make_shared<vkr::Sampler>(getApp());
-    m_gltfModel = loadModel(GLTF_MODEL_PATH);
 }
 
 std::unique_ptr<vkr::SceneObject> DemoApplication::createSceneObject(std::shared_ptr<tinygltf::Model> const& model, tinygltf::Node const& node)
@@ -371,9 +373,28 @@ std::vector<std::shared_ptr<vkr::SceneObject>> DemoApplication::createSceneObjec
     return hierarchy;
 }
 
-void DemoApplication::createSceneObjects()
+void DemoApplication::clearScene()
 {
-    auto hierarchy = createSceneObjectHierarchy(m_gltfModel);
+    // move to the renderer
+    getApp().getDevice().waitIdle();
+
+    m_renderer->clearObjects();
+    m_cameraObjects.clear();
+    m_activeCameraObject = nullptr;
+}
+
+void DemoApplication::loadScene(std::string const& gltfPath)
+{
+    clearScene();
+
+    m_defaultShaderKey = vkr::Shader::Key{}
+        .addStage(vkr::ShaderModule::Type::Vertex, "data/shaders/compiled/default.vert.spv")
+        .addStage(vkr::ShaderModule::Type::Fragment, "data/shaders/compiled/default.frag.spv");
+    m_defaultSampler = std::make_shared<vkr::Sampler>(getApp());
+
+    auto gltfModel = loadModel(gltfPath);
+
+    auto hierarchy = createSceneObjectHierarchy(gltfModel);
     for (auto const& object : hierarchy)
     {
         m_renderer->addObject(object);
@@ -406,6 +427,17 @@ void DemoApplication::createSceneObjects()
 
 void DemoApplication::updateUI(float frameTime, float fenceTime)
 {
+    if (m_reloadImgui)
+    {
+        unloadImgui();
+        loadImgui();
+
+        m_reloadImgui = false;
+    }
+
+    if (!ImGui::GetCurrentContext())
+        return;
+
     ImGuiIO& io = ImGui::GetIO();
 
     // TODO implement ImGui bindings manually
@@ -503,7 +535,7 @@ void DemoApplication::updateCamera(float dt)
         return;
 
     // TODO handle input properly
-    if (ImGui::GetIO().WantCaptureKeyboard)
+    if (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard)
         return;
 
     vkr::Transform& cameraTransform = m_activeCameraObject->getTransform();

@@ -53,6 +53,7 @@ namespace vkr
 
         void addObject(std::shared_ptr<SceneObject> const& object);
         void setLight(std::shared_ptr<Light> const& light) { m_light = light; }
+        void clearObjects();
 
         void setCamera(std::shared_ptr<SceneObject> const& cameraObject)
         {
