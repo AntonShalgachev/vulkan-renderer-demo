@@ -34,6 +34,7 @@
 #include "ShaderModule.h"
 #include "Swapchain.h" // imgui
 #include "Texture.h"
+#include "DebugMessage.h"
 
 #include "DebugConsole.h"
 #include "CommandLine.h"
@@ -128,7 +129,13 @@ DemoApplication::DemoApplication()
     m_window->addResizeCallback([this](int, int) { onFramebufferResized(); });
     m_window->addKeyCallback([this](vkr::Window::Action action, vkr::Window::Key key, char c, vkr::Window::Modifiers modifiers) { onKey(action, key, c, modifiers); });
     m_window->addMouseMoveCallback([this](glm::vec2 const& delta) { onMouseMove(delta); });
-    m_application = std::make_unique<vkr::Application>("Vulkan demo", VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window);
+
+    auto messageCallback = [](vkr::DebugMessage m)
+    {
+        assert(false);
+    };
+
+    m_application = std::make_unique<vkr::Application>("Vulkan demo", VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window, std::move(messageCallback));
 
     m_notifications.add("Some notification");
     m_notifications.add("Another notification");
@@ -150,6 +157,7 @@ DemoApplication::~DemoApplication()
 {
     // TODO unregister debug commands
 
+    // move to the renderer
     getApp().getDevice().waitIdle();
 
     ImGui_ImplVulkan_Shutdown();

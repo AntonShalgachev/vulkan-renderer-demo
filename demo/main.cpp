@@ -3,21 +3,17 @@
 
 int main(int argc, char** argv)
 {
-    {
-        CommandLine& commandLine = CommandLine::instance();
+    CommandLine& commandLine = CommandLine::instance();
 
-        DemoApplication::registerCommandLineOptions(commandLine); // TODO move somewhere to allow others to register custom options
+    DemoApplication::registerCommandLineOptions(commandLine); // TODO move somewhere to allow others to register custom options
 
-        if (!commandLine.parse(argc, argv))
-            return EXIT_FAILURE;
-        if (!commandLine.parseFile("data/cmdline.ini"))
-            return EXIT_FAILURE;
+    if (!commandLine.parse(argc, argv))
+        return EXIT_FAILURE;
+    if (!commandLine.parseFile("data/cmdline.ini"))
+        return EXIT_FAILURE;
 
-        DemoApplication app;
-        app.run();
-    }
+    DemoApplication app;
+    app.run();
 
-    // temporary to catch Vulkan errors
-    std::getchar();
     return EXIT_SUCCESS;
 }

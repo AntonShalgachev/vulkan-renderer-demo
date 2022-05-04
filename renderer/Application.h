@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+#include <functional>
 #include <string>
 #include <memory>
 
@@ -15,11 +15,12 @@ namespace vkr
     class Window;
     class PhysicalDeviceSurfaceParameters;
     class CommandPool;
+    struct DebugMessage;
 
     class Application
     {
     public:
-    	Application(std::string const& name, bool enableValidation, bool enableApiDump, Window const& window);
+        Application(std::string const& name, bool enableValidation, bool enableApiDump, Window const& window, std::function<void(DebugMessage)> onDebugMessage = {});
         ~Application();
 
         Instance const& getInstance() const;

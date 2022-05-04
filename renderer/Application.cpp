@@ -8,6 +8,7 @@
 #include "QueueFamilyIndices.h"
 #include "CommandPool.h"
 #include "Window.h"
+#include "DebugMessenger.h"
 #include <stdexcept>
 
 namespace
@@ -44,6 +45,24 @@ namespace
 
         throw std::runtime_error("failed to find a suitable GPU!");
     }
+
+    std::vector<const char*> createInstanceExtensions(bool enableValidation, vkr::Window const& window)
+    {
+        std::vector<const char*> extensions = window.getRequiredInstanceExtensions();
+        
+        if (enableValidation)
+            extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
+        return extensions;
+    }
+
+    std::unique_ptr<vkr::DebugMessenger> createDebugMessenger(vkr::Instance& instance, bool enableValidation, std::function<void(vkr::DebugMessage)> onDebugMessage)
+    {
+        if (!enableValidation)
+            return nullptr;
+
+        return std::make_unique<vkr::DebugMessenger>(instance, std::move(onDebugMessage));
+    }
 }
 
 namespace vkr
@@ -51,7 +70,17 @@ namespace vkr
     class ApplicationImpl
     {
     public:
-        ApplicationImpl(std::string const& name, bool enableValidation, bool enableApiDump, Window const& window);
+
+        ApplicationImpl(std::string const& name, bool enableValidation, bool enableApiDump, Window const& window, std::function<void(DebugMessage)> onDebugMessage)
+            : m_instance(name, createInstanceExtensions(enableValidation, window), enableValidation, enableApiDump)
+            , m_debugMessenger(createDebugMessenger(m_instance, enableValidation, std::move(onDebugMessage)))
+            , m_surface(m_instance, window)
+            , m_physicalDevices(m_instance.findPhysicalDevices(m_surface))
+            , m_currentPhysicalDeviceIndex(findSuitablePhysicalDeviceIndex(m_physicalDevices))
+            , m_device(getPhysicalDeviceSurfaceContainer(), DEVICE_EXTENSIONS)
+        {
+
+        }
 
         Instance const& getInstance() const { return m_instance; }
         Surface const& getSurface() const { return m_surface; }
@@ -65,29 +94,17 @@ namespace vkr
 
     private:
         Instance m_instance;
+        std::unique_ptr<vkr::DebugMessenger> m_debugMessenger;
         Surface m_surface;
         std::vector<vkr::PhysicalDeviceSurfaceContainer> m_physicalDevices;
         std::size_t m_currentPhysicalDeviceIndex;
         Device m_device;
     };
-
 }
 
-vkr::ApplicationImpl::ApplicationImpl(std::string const& name, bool enableValidation, bool enableApiDump, Window const& window)
-    : m_instance(name, window.getRequiredInstanceExtensions(), enableValidation, enableApiDump)
-    , m_surface(m_instance, window)
-    , m_physicalDevices(m_instance.findPhysicalDevices(m_surface))
-    , m_currentPhysicalDeviceIndex(findSuitablePhysicalDeviceIndex(m_physicalDevices))
-    , m_device(getPhysicalDeviceSurfaceContainer(), DEVICE_EXTENSIONS)
+vkr::Application::Application(std::string const& name, bool enableValidation, bool enableApiDump, Window const& window, std::function<void(DebugMessage)> onDebugMessage)
 {
-
-}
-
-// /////////////////////////////////////////////////////////////////////
-
-vkr::Application::Application(std::string const& name, bool enableValidation, bool enableApiDump, Window const& window)
-{
-    m_impl = std::make_unique<ApplicationImpl>(name, enableValidation, enableApiDump, window);
+    m_impl = std::make_unique<ApplicationImpl>(name, enableValidation, enableApiDump, window, std::move(onDebugMessage));
 
     m_shortLivedCommandPool = std::make_unique<CommandPool>(*this);
 }

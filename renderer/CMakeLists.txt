@@ -103,6 +103,9 @@ set(ALL_FILES
     "VulkanSurfaceCreator.cpp"
     "Window.h"
     "Window.cpp"
+    "DebugMessenger.h"
+    "DebugMessenger.cpp"
+    "DebugMessage.h"
 )
 
 add_library(${PROJECT_NAME} ${ALL_FILES})

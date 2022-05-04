@@ -1,8 +1,10 @@
 #include "Instance.h"
+
+#include <stdexcept>
+
 #include "PhysicalDevice.h"
 #include "Utils.h"
 #include "PhysicalDeviceSurfaceContainer.h"
-#include <stdexcept>
 
 namespace
 {
@@ -27,7 +29,7 @@ namespace
     }
 }
 
-vkr::Instance::Instance(std::string const& appName, std::vector<char const*> extensions, bool enableValidation, bool enableApiDump)
+vkr::Instance::Instance(std::string const& appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump)
 {
     m_availableLayers = getAvailableLayers();
     m_availableLayerNames.reserve(m_availableLayers.size());
@@ -47,7 +49,7 @@ vkr::Instance::~Instance()
     vkDestroyInstance(m_handle, nullptr);
 }
 
-void vkr::Instance::createInstance(std::string const& appName, std::vector<char const*> extensions, bool enableValidation, bool enableApiDump)
+void vkr::Instance::createInstance(std::string const& appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump)
 {
     std::vector<char const*> requestedLayers;
     if (enableValidation)
@@ -55,12 +57,10 @@ void vkr::Instance::createInstance(std::string const& appName, std::vector<char 
     if (enableApiDump)
         requestedLayers.push_back("VK_LAYER_LUNARG_api_dump");
 
-    std::vector<char const*> requestedExtensions = extensions;
-
     if (!utils::hasEveryOption(m_availableLayerNames, requestedLayers))
         throw std::runtime_error("Some of the required validation layers aren't supported");
 
-    if (!utils::hasEveryOption(m_availableExtensionNames, requestedExtensions))
+    if (!utils::hasEveryOption(m_availableExtensionNames, extensions))
         throw std::runtime_error("Some of the required extensions aren't supported");
 
     VkApplicationInfo appInfo{};
@@ -74,8 +74,8 @@ void vkr::Instance::createInstance(std::string const& appName, std::vector<char 
     VkInstanceCreateInfo instanceCreateInfo{};
     instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.pApplicationInfo = &appInfo;
-    instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(requestedExtensions.size());
-    instanceCreateInfo.ppEnabledExtensionNames = requestedExtensions.data();
+    instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+    instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
     instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(requestedLayers.size());
     instanceCreateInfo.ppEnabledLayerNames = requestedLayers.data();
 

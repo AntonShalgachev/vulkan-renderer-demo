@@ -2,8 +2,10 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
-#include "UniqueHandle.h"
 #include <string>
+#include <memory>
+
+#include "UniqueHandle.h"
 
 namespace vkr
 {
@@ -13,7 +15,7 @@ namespace vkr
     class Instance
     {
     public:
-    	Instance(std::string const& appName, std::vector<char const*> extensions, bool enableValidation, bool enableApiDump);
+    	Instance(std::string const& appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump);
     	~Instance();
 
         Instance(Instance const&) = default;
@@ -26,7 +28,7 @@ namespace vkr
         std::vector<PhysicalDeviceSurfaceContainer> findPhysicalDevices(Surface const& surface);
 
     private:
-        void createInstance(std::string const& appName, std::vector<char const*> extensions, bool enableValidation, bool enableApiDump);
+        void createInstance(std::string const& appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump);
 
     private:
     	UniqueHandle<VkInstance> m_handle;
