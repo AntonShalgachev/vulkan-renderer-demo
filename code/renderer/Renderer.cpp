@@ -66,6 +66,11 @@ vkr::Renderer::Renderer(Application const& app)
 
 vkr::Renderer::~Renderer() = default;
 
+void vkr::Renderer::setWaitUntilWindowInForegroundCallback(std::function<void()> func)
+{
+    m_waitUntilWindowInForeground = std::move(func);
+}
+
 void vkr::Renderer::addObject(std::shared_ptr<SceneObject> const& object)
 {
     m_sceneObjects.push_back(std::make_unique<vkr::ObjectInstance>(getApp(), object, *m_descriptorSetLayout, sizeof(UniformBufferObject)));

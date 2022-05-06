@@ -45,11 +45,7 @@ namespace vkr
         Swapchain const& getSwapchain() const { return *m_swapchain; }
         RenderPass const& getRenderPass() const { return *m_renderPass; }
 
-        template<typename Func>
-        void setWaitUntilWindowInForegroundCallback(Func&& func)
-        {
-            m_waitUntilWindowInForeground = func;
-        }
+        void setWaitUntilWindowInForegroundCallback(std::function<void()> func);
 
         void addObject(std::shared_ptr<SceneObject> const& object);
         void setLight(std::shared_ptr<Light> const& light) { m_light = light; }
