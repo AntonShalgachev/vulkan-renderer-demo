@@ -1,7 +1,7 @@
 #pragma once
 
-#include "PhysicalDevice.h"
-#include "Surface.h"
+#include "wrapper/PhysicalDevice.h"
+#include "wrapper/Surface.h"
 #include "PhysicalDeviceSurfaceParameters.h"
 
 namespace vkr

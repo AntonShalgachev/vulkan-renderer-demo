@@ -1,14 +1,14 @@
 #include "ObjectInstance.h"
 #include "Utils.h"
-#include "DescriptorSets.h"
-#include "DeviceMemory.h"
-#include "Buffer.h"
-#include "PipelineLayout.h"
-#include "Swapchain.h"
+#include "wrapper/DescriptorSets.h"
+#include "wrapper/DeviceMemory.h"
+#include "wrapper/Buffer.h"
+#include "wrapper/PipelineLayout.h"
+#include "wrapper/Swapchain.h"
 #include "Material.h"
 #include "SceneObject.h"
-#include "DescriptorSetLayout.h"
-#include "Pipeline.h"
+#include "wrapper/DescriptorSetLayout.h"
+#include "wrapper/Pipeline.h"
 
 VkDescriptorSet vkr::ObjectInstance::ms_boundDescriptorSet = VK_NULL_HANDLE;
 

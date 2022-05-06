@@ -5,6 +5,7 @@
 
 vkr::Surface::Surface(Instance const& instance, Window const& window) : m_instance(instance), m_window(window)
 {
+    // TODO why not here directly?
     m_handle = VulkanSurfaceCreator::createVulkanSurface(instance, window);
 }
 

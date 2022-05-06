@@ -13,6 +13,7 @@ namespace vkr
     class RenderPass;
     class Framebuffer;
 
+    // TODO make it thiner
     class Swapchain : public Object
     {
     public:

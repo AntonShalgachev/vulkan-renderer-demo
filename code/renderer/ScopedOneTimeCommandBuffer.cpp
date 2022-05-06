@@ -1,8 +1,8 @@
 #include "ScopedOneTimeCommandBuffer.h"
-#include "Device.h"
+#include "wrapper/Device.h"
 #include "Application.h"
-#include "CommandPool.h"
-#include "Queue.h"
+#include "wrapper/CommandPool.h"
+#include "wrapper/Queue.h"
 
 // TODO pass command pool and queue explicitly?
 vkr::ScopedOneTimeCommandBuffer::ScopedOneTimeCommandBuffer(Application const& app)

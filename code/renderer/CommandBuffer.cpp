@@ -1,8 +1,8 @@
 #include "CommandBuffer.h"
-#include "CommandBuffers.h"
-#include "Semaphore.h"
-#include "Fence.h"
-#include "Queue.h"
+#include "wrapper/CommandBuffers.h"
+#include "wrapper/Semaphore.h"
+#include "wrapper/Fence.h"
+#include "wrapper/Queue.h"
 #include <array>
 #include <stdexcept>
 

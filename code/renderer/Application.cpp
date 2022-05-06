@@ -1,14 +1,14 @@
 #include "Application.h"
-#include "Instance.h"
-#include "Surface.h"
-#include "PhysicalDevice.h"
-#include "Device.h"
+#include "wrapper/Instance.h"
+#include "wrapper/Surface.h"
+#include "wrapper/PhysicalDevice.h"
+#include "wrapper/Device.h"
 #include "PhysicalDeviceSurfaceContainer.h"
 #include "PhysicalDeviceSurfaceParameters.h"
 #include "QueueFamilyIndices.h"
-#include "CommandPool.h"
+#include "wrapper/CommandPool.h"
 #include "Window.h"
-#include "DebugMessenger.h"
+#include "wrapper/DebugMessenger.h"
 #include <stdexcept>
 
 namespace

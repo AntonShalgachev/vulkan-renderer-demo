@@ -17,24 +17,24 @@
 #pragma warning(pop)
 
 #include "Application.h"
-#include "DescriptorPool.h"
-#include "Device.h"
-#include "Instance.h" // for imgui
+#include "wrapper/DescriptorPool.h"
+#include "wrapper/Device.h"
+#include "wrapper/Instance.h" // for imgui
 #include "Light.h"
 #include "Material.h"
 #include "Mesh.h"
-#include "PhysicalDevice.h"
-#include "Pipeline.h" // imgui
-#include "Queue.h" // imgui
+#include "wrapper/PhysicalDevice.h"
+#include "wrapper/Pipeline.h" // imgui
+#include "wrapper/Queue.h" // imgui
 #include "Renderer.h"
-#include "RenderPass.h" // imgui
-#include "Sampler.h"
+#include "wrapper/RenderPass.h" // imgui
+#include "wrapper/Sampler.h"
 #include "SceneObject.h"
 #include "ScopedOneTimeCommandBuffer.h" // imgui
-#include "ShaderModule.h"
-#include "Swapchain.h" // imgui
+#include "wrapper/ShaderModule.h"
+#include "wrapper/Swapchain.h" // imgui
 #include "Texture.h"
-#include "DebugMessage.h"
+#include "wrapper/DebugMessage.h"
 
 #include "DebugConsole.h"
 #include "CommandLine.h"

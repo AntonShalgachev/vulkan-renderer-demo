@@ -6,29 +6,29 @@
 #include "glm.h"
 
 #include "Application.h"
-#include "Device.h"
-#include "CommandBuffers.h"
-#include "Queue.h"
-#include "Swapchain.h"
-#include "RenderPass.h"
-#include "Framebuffer.h"
-#include "Pipeline.h"
-#include "Image.h"
-#include "ImageView.h"
-#include "DeviceMemory.h"
-#include "PipelineLayout.h"
+#include "wrapper/Device.h"
+#include "wrapper/CommandBuffers.h"
+#include "wrapper/Queue.h"
+#include "wrapper/Swapchain.h"
+#include "wrapper/RenderPass.h"
+#include "wrapper/Framebuffer.h"
+#include "wrapper/Pipeline.h"
+#include "wrapper/Image.h"
+#include "wrapper/ImageView.h"
+#include "wrapper/DeviceMemory.h"
+#include "wrapper/PipelineLayout.h"
 #include "Utils.h"
-#include "ShaderModule.h"
+#include "wrapper/ShaderModule.h"
 #include "Mesh.h"
 #include "ObjectInstance.h"
 #include "SceneObject.h"
-#include "DescriptorSetLayout.h"
-#include "DescriptorSets.h"
-#include "Buffer.h"
+#include "wrapper/DescriptorSetLayout.h"
+#include "wrapper/DescriptorSets.h"
+#include "wrapper/Buffer.h"
 #include "Material.h"
 #include "PhysicalDeviceSurfaceParameters.h"
 #include "QueueFamilyIndices.h"
-#include "CommandPool.h"
+#include "wrapper/CommandPool.h"
 #include "CommandBuffer.h"
 
 #pragma warning(push, 0)
@@ -59,6 +59,7 @@ vkr::Renderer::Renderer(Application const& app)
 {
     // TODO define externally
     m_descriptorSetLayout = std::make_unique<vkr::DescriptorSetLayout>(getApp());
+    m_pipelineLayout = std::make_unique<vkr::PipelineLayout>(getApp(), *m_descriptorSetLayout);
 
     createSwapchain();
     createSyncObjects();
@@ -157,8 +158,6 @@ void vkr::Renderer::createSwapchain()
 
     m_swapchain = std::make_unique<vkr::Swapchain>(getApp());
     m_renderPass = std::make_unique<vkr::RenderPass>(getApp(), *m_swapchain);
-    
-    m_pipelineLayout = std::make_unique<vkr::PipelineLayout>(getApp(), *m_descriptorSetLayout);
 
     // TODO move depth resources to the swapchain?
     VkExtent2D swapchainExtent = m_swapchain->getExtent();

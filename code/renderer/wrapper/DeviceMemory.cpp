@@ -44,6 +44,7 @@ vkr::DeviceMemory::~DeviceMemory()
 
 void vkr::DeviceMemory::copyFrom(void const* sourcePointer, std::size_t sourceSize)
 {
+    // TODO make sure sourceSize doesn't exceed allocated size
     void* data;
     vkMapMemory(getDevice().getHandle(), m_handle, 0, sourceSize, 0, &data);
     memcpy(data, sourcePointer, sourceSize);

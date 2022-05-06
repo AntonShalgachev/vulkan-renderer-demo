@@ -15,6 +15,7 @@ namespace vkr
     class Sampler;
 
     // TODO make it responsible for a single descriptor set
+    // Move DescriptorPool out of it
     class DescriptorSets : public Object
     {
     public:

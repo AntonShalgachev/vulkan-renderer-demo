@@ -3,9 +3,9 @@
 #include <optional>
 #include <vector>
 
-#include "PhysicalDevice.h"
+#include "wrapper/PhysicalDevice.h"
 #include "PhysicalDeviceSurfaceParameters.h"
-#include "QueueFamily.h"
+#include "wrapper/QueueFamily.h"
 
 vkr::QueueFamilyIndices::QueueFamilyIndices(vkr::PhysicalDevice const& physicalDevice, vkr::PhysicalDeviceSurfaceParameters const& physicalDeviceSurfaceParameters)
 {

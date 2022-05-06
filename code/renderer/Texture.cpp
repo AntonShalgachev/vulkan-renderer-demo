@@ -2,12 +2,12 @@
 
 #include <stb_image.h>
 
-#include "Buffer.h"
-#include "DeviceMemory.h"
+#include "wrapper/Buffer.h"
+#include "wrapper/DeviceMemory.h"
 #include "Utils.h"
-#include "Image.h"
+#include "wrapper/Image.h"
 #include "ScopedOneTimeCommandBuffer.h"
-#include "ImageView.h"
+#include "wrapper/ImageView.h"
 #include "tiny_gltf.h"
 #include <stdexcept>
 

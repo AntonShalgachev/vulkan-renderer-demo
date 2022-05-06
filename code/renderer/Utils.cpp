@@ -1,7 +1,7 @@
 #include "Utils.h"
-#include "Buffer.h"
-#include "DeviceMemory.h"
-#include "Image.h"
+#include "wrapper/Buffer.h"
+#include "wrapper/DeviceMemory.h"
+#include "wrapper/Image.h"
 #include <algorithm>
 
 void vkr::utils::createBuffer(vkr::Application const& app, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, std::unique_ptr<vkr::Buffer>& buffer, std::unique_ptr<vkr::DeviceMemory>& bufferMemory)

@@ -3,8 +3,8 @@
 #include <memory>
 
 #include "Object.h"
-#include "Semaphore.h"
-#include "Fence.h"
+#include "wrapper/Semaphore.h"
+#include "wrapper/Fence.h"
 #include <vector>
 #include <functional>
 #include "CommandBuffer.h"

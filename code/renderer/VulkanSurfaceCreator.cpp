@@ -1,7 +1,7 @@
 #include "VulkanSurfaceCreator.h"
 
 #include <GLFW/glfw3.h>
-#include "Instance.h"
+#include "wrapper/Instance.h"
 #include "Window.h"
 #include <stdexcept>
 

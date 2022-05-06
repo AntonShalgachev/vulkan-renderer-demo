@@ -1,6 +1,6 @@
 #include "PhysicalDeviceSurfaceParameters.h"
-#include "PhysicalDevice.h"
-#include "Surface.h"
+#include "wrapper/PhysicalDevice.h"
+#include "wrapper/Surface.h"
 #include "QueueFamilyIndices.h"
 
 vkr::PhysicalDeviceSurfaceParameters::PhysicalDeviceSurfaceParameters(PhysicalDevice const& physicalDevice, Surface const& surface) : m_physicalDevice(physicalDevice), m_surface(surface)
