@@ -103,8 +103,8 @@ set(ALL_FILES
     "VertexLayout.h"
     "VertexLayoutDescriptions.cpp"
     "VertexLayoutDescriptions.h"
-    "VulkanSurfaceCreator.cpp"
-    "VulkanSurfaceCreator.h"
+    
+    
     "Window.cpp"
     "Window.h"
 )

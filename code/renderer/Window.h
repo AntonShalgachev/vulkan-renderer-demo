@@ -12,8 +12,6 @@ namespace vkr
 {
     class Window
     {
-        friend class VulkanSurfaceCreator;
-
     public:
         enum class Key
         {

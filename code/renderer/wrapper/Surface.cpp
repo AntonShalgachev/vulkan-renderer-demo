@@ -1,12 +1,15 @@
 #include "Surface.h"
+
+#include <GLFW/glfw3.h>
+#include <stdexcept>
+
 #include "Instance.h"
-#include "VulkanSurfaceCreator.h"
 #include "Window.h"
 
 vkr::Surface::Surface(Instance const& instance, Window const& window) : m_instance(instance), m_window(window)
 {
-    // TODO why not here directly?
-    m_handle = VulkanSurfaceCreator::createVulkanSurface(instance, window);
+    if (glfwCreateWindowSurface(instance.getHandle(), window.getHandle(), nullptr, &m_handle.get()) != VK_SUCCESS)
+        throw std::runtime_error("failed to create window surface!");
 }
 
 vkr::Surface::~Surface()
