@@ -53,18 +53,11 @@ vkr::Swapchain::Swapchain(Application const& app) : Object(app)
 {
     createSwapchain();
     retrieveImages();
-    createImageViews();
 }
 
 vkr::Swapchain::~Swapchain()
 {
     vkDestroySwapchainKHR(getDevice().getHandle(), m_handle, nullptr);
-}
-
-void vkr::Swapchain::createFramebuffers(vkr::RenderPass const& renderPass, vkr::ImageView const& depthImageView)
-{
-    for (std::unique_ptr<vkr::ImageView> const& colorImageView : m_imageViews)
-        m_framebuffers.push_back(std::make_unique<vkr::Framebuffer>(getApp(), *colorImageView, depthImageView, renderPass, m_extent));
 }
 
 void vkr::Swapchain::createSwapchain()
@@ -134,12 +127,4 @@ void vkr::Swapchain::retrieveImages()
     m_images.reserve(finalImageCount);
     for (VkImage const& handle : imageHandles)
         m_images.push_back(std::make_unique<Image>(getApp(), handle, m_surfaceFormat.format));
-}
-
-void vkr::Swapchain::createImageViews()
-{
-    m_imageViews.reserve(m_images.size());
-
-    for (auto const& image : m_images)
-        m_imageViews.push_back(image->createImageView(VK_IMAGE_ASPECT_COLOR_BIT));
 }

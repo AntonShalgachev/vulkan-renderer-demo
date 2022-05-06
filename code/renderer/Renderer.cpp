@@ -153,17 +153,22 @@ void vkr::Renderer::createSwapchain()
 {
     m_pipelines.clear();
 
-    // TODO research why Vulkan crashes without this line
-    m_swapchain = nullptr;
-
     m_swapchain = std::make_unique<vkr::Swapchain>(getApp());
     m_renderPass = std::make_unique<vkr::RenderPass>(getApp(), *m_swapchain);
+
+    auto const& images = m_swapchain->getImages();
+    m_swapchainImageViews.reserve(images.size());
+    for (auto const& image : images)
+        m_swapchainImageViews.push_back(image->createImageView(VK_IMAGE_ASPECT_COLOR_BIT));
 
     // TODO move depth resources to the swapchain?
     VkExtent2D swapchainExtent = m_swapchain->getExtent();
     vkr::utils::createImage(getApp(), swapchainExtent.width, swapchainExtent.height, m_renderPass->getDepthFormat(), VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
     m_depthImageView = m_depthImage->createImageView(VK_IMAGE_ASPECT_DEPTH_BIT);
-    m_swapchain->createFramebuffers(*m_renderPass, *m_depthImageView);
+
+    m_swapchainFramebuffers.reserve(m_swapchainImageViews.size());
+    for (std::unique_ptr<vkr::ImageView> const& colorImageView : m_swapchainImageViews)
+        m_swapchainFramebuffers.push_back(std::make_unique<vkr::Framebuffer>(getApp(), *colorImageView, *m_depthImageView, *m_renderPass, m_swapchain->getExtent()));
 
     onSwapchainCreated();
 }
@@ -174,6 +179,14 @@ void vkr::Renderer::recreateSwapchain()
         m_waitUntilWindowInForeground();
 
     getDevice().waitIdle();
+
+    m_swapchainFramebuffers.clear();
+    m_depthImageView = nullptr;
+    m_depthImage = nullptr;
+    m_depthImageMemory = nullptr;
+    m_swapchainImageViews.clear();
+    m_renderPass = nullptr;
+    m_swapchain = nullptr;
 
     createSwapchain();
 }
@@ -244,7 +257,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
     VkRenderPassBeginInfo renderPassBeginInfo{};
     renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassBeginInfo.renderPass = m_renderPass->getHandle();
-    renderPassBeginInfo.framebuffer = m_swapchain->getFramebuffers()[imageIndex]->getHandle(); // CRASH: get correct framebuffer
+    renderPassBeginInfo.framebuffer = m_swapchainFramebuffers[imageIndex]->getHandle(); // CRASH: get correct framebuffer
     renderPassBeginInfo.renderArea.offset = { 0, 0 };
     renderPassBeginInfo.renderArea.extent = m_swapchain->getExtent();
 

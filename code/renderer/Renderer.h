@@ -35,6 +35,7 @@ namespace vkr
     class CommandPool;
     class CommandBuffer;
     class VertexLayoutDescriptions;
+    class Framebuffer;
 
     class Renderer : Object
     {
@@ -96,6 +97,8 @@ namespace vkr
         std::shared_ptr<SceneObject> m_activeCameraObject;
 
         std::unique_ptr<vkr::Swapchain> m_swapchain;
+        std::vector<std::unique_ptr<vkr::Framebuffer>> m_swapchainFramebuffers;
+        std::vector<std::unique_ptr<vkr::ImageView>> m_swapchainImageViews;
         std::unique_ptr<vkr::RenderPass> m_renderPass;
         std::unique_ptr<vkr::PipelineLayout> m_pipelineLayout;
 
