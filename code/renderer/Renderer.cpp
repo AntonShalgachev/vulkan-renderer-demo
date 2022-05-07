@@ -23,7 +23,6 @@
 #include "ObjectInstance.h"
 #include "SceneObject.h"
 #include "wrapper/DescriptorSetLayout.h"
-#include "wrapper/DescriptorSets.h"
 #include "wrapper/Buffer.h"
 #include "Material.h"
 #include "PhysicalDeviceSurfaceParameters.h"

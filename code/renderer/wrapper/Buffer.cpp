@@ -48,6 +48,8 @@ void vkr::Buffer::copy(Buffer const& source, Buffer const& destination)
     vkr::ScopedOneTimeCommandBuffer commandBuffer{app};
 
     VkBufferCopy copyRegion{};
+    copyRegion.dstOffset = 0;
+    copyRegion.srcOffset = 0;
     copyRegion.size = source.getSize();
     vkCmdCopyBuffer(commandBuffer.getHandle(), source.getHandle(), destination.getHandle(), 1, &copyRegion);
 }

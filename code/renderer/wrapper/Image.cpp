@@ -9,6 +9,7 @@ namespace vkr
 {
     Image::Image(Application const& app, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage) : Object(app)
     {
+        m_isOwned = true;
         m_format = format;
 
         VkImageCreateInfo imageCreateInfo{};

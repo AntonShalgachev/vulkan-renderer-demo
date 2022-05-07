@@ -35,6 +35,6 @@ namespace vkr
     	UniqueHandle<VkPipeline> m_handle;
 
     private:
-        static Pipeline const* ms_boundPipeline;
+        static Pipeline const* ms_boundPipeline; // TODO remove this hack
     };
 }
