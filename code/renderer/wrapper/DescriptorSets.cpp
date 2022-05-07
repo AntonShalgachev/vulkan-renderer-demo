@@ -8,19 +8,19 @@
 #include <array>
 #include <stdexcept>
 
-vkr::DescriptorSets::DescriptorSets(Application const& app, std::size_t size, DescriptorSetLayout const& layout)
+vkr::DescriptorSets::DescriptorSets(Application const& app, DescriptorPool const& pool, DescriptorSetLayout const& layout)
     : Object(app)
-    , m_pool(std::make_unique<vkr::DescriptorPool>(app, size))
+    , m_pool(pool)
 {
-    std::vector<VkDescriptorSetLayout> layouts(size, layout.getHandle());
+    std::vector<VkDescriptorSetLayout> layouts(pool.getSize(), layout.getHandle());
 
     VkDescriptorSetAllocateInfo descriptorSetAllocInfo{};
     descriptorSetAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    descriptorSetAllocInfo.descriptorPool = m_pool->getHandle();
-    descriptorSetAllocInfo.descriptorSetCount = static_cast<uint32_t>(size);
+    descriptorSetAllocInfo.descriptorPool = m_pool.getHandle();
+    descriptorSetAllocInfo.descriptorSetCount = static_cast<uint32_t>(pool.getSize());
     descriptorSetAllocInfo.pSetLayouts = layouts.data();
 
-    m_handles.resize(size);
+    m_handles.resize(pool.getSize());
     if (vkAllocateDescriptorSets(getDevice().getHandle(), &descriptorSetAllocInfo, m_handles.data()) != VK_SUCCESS)
         throw std::runtime_error("failed to allocate descriptor sets!");
 }
@@ -81,5 +81,5 @@ void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer,
 
 std::size_t vkr::DescriptorSets::getSize() const
 {
-    return m_pool->getSize();
+    return m_pool.getSize();
 }

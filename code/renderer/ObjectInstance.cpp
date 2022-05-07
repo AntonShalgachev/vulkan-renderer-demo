@@ -9,6 +9,7 @@
 #include "SceneObject.h"
 #include "wrapper/DescriptorSetLayout.h"
 #include "wrapper/Pipeline.h"
+#include "wrapper/DescriptorPool.h"
 
 VkDescriptorSet vkr::ObjectInstance::ms_boundDescriptorSet = VK_NULL_HANDLE;
 
@@ -41,7 +42,8 @@ void vkr::ObjectInstance::onSwapchainCreated(Swapchain const& swapchain)
 
     Material const& material = *m_sceneObject->getMaterial();
 
-    m_descriptorSets = std::make_unique<vkr::DescriptorSets>(getApp(), swapchainImageCount, m_setLayout);
+    m_descriptorPool = std::make_unique<vkr::DescriptorPool>(getApp(), swapchainImageCount);
+    m_descriptorSets = std::make_unique<vkr::DescriptorSets>(getApp(), *m_descriptorPool, m_setLayout);
     for (size_t i = 0; i < m_descriptorSets->getSize(); i++)
         m_descriptorSets->update(i, *m_uniformBuffers[i], material.getTexture(), material.getSampler());
 }

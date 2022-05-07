@@ -16,6 +16,7 @@ namespace vkr
     class PipelineLayout;
     class SceneObject;
     class Swapchain;
+    class DescriptorPool;
 
     class ObjectInstance : public Object
     {
@@ -44,6 +45,8 @@ namespace vkr
         std::size_t m_currentImageCount = 0;
         std::vector<std::unique_ptr<vkr::Buffer>> m_uniformBuffers;
         std::vector<std::unique_ptr<vkr::DeviceMemory>> m_uniformBuffersMemory;
+
+        std::unique_ptr<vkr::DescriptorPool> m_descriptorPool;
         std::unique_ptr<vkr::DescriptorSets> m_descriptorSets;
 
     private:

@@ -14,12 +14,10 @@ namespace vkr
     class Texture;
     class Sampler;
 
-    // TODO make it responsible for a single descriptor set
-    // Move DescriptorPool out of it
     class DescriptorSets : public Object
     {
     public:
-    	explicit DescriptorSets(Application const& app, std::size_t size, DescriptorSetLayout const& layout);
+    	explicit DescriptorSets(Application const& app, DescriptorPool const& pool, DescriptorSetLayout const& layout);
     	~DescriptorSets();
 
         DescriptorSets(DescriptorSets const&) = delete;
@@ -33,7 +31,7 @@ namespace vkr
         std::size_t getSize() const;
 
     private:
-        std::unique_ptr<vkr::DescriptorPool> m_pool;
+        vkr::DescriptorPool const& m_pool;
         std::vector<VkDescriptorSet> m_handles;
     };
 }
