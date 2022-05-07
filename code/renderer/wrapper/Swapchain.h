@@ -30,7 +30,6 @@ namespace vkr
         std::vector<std::unique_ptr<vkr::Image>> const& getImages() const { return m_images; }
 
     private:
-        void createSwapchain();
         void retrieveImages();
 
     private:

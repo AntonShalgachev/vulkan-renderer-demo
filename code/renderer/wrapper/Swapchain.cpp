@@ -51,17 +51,6 @@ namespace
 
 vkr::Swapchain::Swapchain(Application const& app) : Object(app)
 {
-    createSwapchain();
-    retrieveImages();
-}
-
-vkr::Swapchain::~Swapchain()
-{
-    vkDestroySwapchainKHR(getDevice().getHandle(), m_handle, nullptr);
-}
-
-void vkr::Swapchain::createSwapchain()
-{
     PhysicalDeviceSurfaceParameters const& parameters = getPhysicalDeviceSurfaceParameters();
 
     m_surfaceFormat = chooseSwapSurfaceFormat(parameters.getFormats());
@@ -113,6 +102,13 @@ void vkr::Swapchain::createSwapchain()
 
     if (vkCreateSwapchainKHR(getDevice().getHandle(), &swapchainCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create swap chain!");
+
+    retrieveImages();
+}
+
+vkr::Swapchain::~Swapchain()
+{
+    vkDestroySwapchainKHR(getDevice().getHandle(), m_handle, nullptr);
 }
 
 void vkr::Swapchain::retrieveImages()
