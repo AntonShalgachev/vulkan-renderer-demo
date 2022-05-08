@@ -19,6 +19,7 @@ namespace vkr
     class Sampler;
     class SceneObject;
     class Light;
+    class BufferWithMemory;
 }
 
 namespace tinygltf
@@ -26,6 +27,11 @@ namespace tinygltf
     class Model;
     class Node;
 }
+
+struct GltfVkResources
+{
+    std::vector<std::unique_ptr<vkr::BufferWithMemory>> buffers;
+};
 
 class DemoApplication
 {
@@ -73,13 +79,14 @@ private:
 
     std::shared_ptr<vkr::SceneObject> m_activeCameraObject;
 
+    std::unique_ptr<GltfVkResources> m_gltfResources;
+
     // Resources
     std::shared_ptr<vkr::Sampler> m_defaultSampler;
 
     vkr::Shader::Key m_defaultShaderKey;
 
     // Objects
-    std::shared_ptr<vkr::SceneObject> m_model;
     std::vector<std::shared_ptr<vkr::SceneObject>> m_cameraObjects;
     std::shared_ptr<vkr::Light> m_light;
 

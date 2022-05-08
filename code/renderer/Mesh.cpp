@@ -1,30 +1,11 @@
 #include "Mesh.h"
 
 #include "wrapper/Buffer.h"
-#include "wrapper/DeviceMemory.h"
-#include "BufferWithMemory.h"
-
-namespace
-{
-    vkr::BufferWithMemory createBuffer(vkr::Application const& app, std::vector<unsigned char> const& data)
-    {
-        VkDeviceSize bufferSize = sizeof(data[0]) * data.size();
-        void const* bufferData = data.data();
-
-        vkr::BufferWithMemory stagingBuffer{ app, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
-        stagingBuffer.memory().copyFrom(bufferData, bufferSize);
-
-        vkr::BufferWithMemory buffer{ app, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
-        vkr::Buffer::copy(stagingBuffer.buffer(), buffer.buffer());
-
-        return buffer;
-    }
-}
 
 vkr::Mesh const* vkr::Mesh::ms_boundMesh = nullptr;
 
-vkr::Mesh::Mesh(Application const& app, std::vector<unsigned char> const& data, VertexLayout layout)
-    : m_buffer(createBuffer(app, data))
+vkr::Mesh::Mesh(Application const& app, Buffer const& buffer, VertexLayout layout)
+    : m_buffer(buffer)
     , m_vertexLayout(std::move(layout))
 {
 
@@ -39,7 +20,7 @@ void vkr::Mesh::bindBuffers(VkCommandBuffer commandBuffer) const
 
     auto const& bindingOffsets = m_vertexLayout.getBindingOffsets();
 
-    VkBuffer bufferHandle = m_buffer.buffer().getHandle();
+    VkBuffer bufferHandle = m_buffer.getHandle();
 
     std::vector<VkBuffer> vertexBuffers;
     vertexBuffers.resize(bindingOffsets.size(), bufferHandle);

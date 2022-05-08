@@ -35,6 +35,7 @@
 #include "wrapper/Swapchain.h" // imgui
 #include "Texture.h"
 #include "wrapper/DebugMessage.h"
+#include "BufferWithMemory.h"
 
 #include "DebugConsole.h"
 #include "CommandLine.h"
@@ -213,15 +214,20 @@ namespace
         throw std::runtime_error("Unkown attribute name: " + name);
     }
 
-    std::unique_ptr<vkr::Mesh> createMesh(vkr::Application const& app, std::shared_ptr<tinygltf::Model> const& model, tinygltf::Primitive const& primitive)
+    std::unique_ptr<vkr::Mesh> createMesh(vkr::Application const& app, std::shared_ptr<tinygltf::Model> const& model, tinygltf::Primitive const& primitive, GltfVkResources const& resources)
     {
         vkr::VertexLayout layout;
+
+        int bufferIndex = 0;
+
         {
             tinygltf::Accessor const& indexAccessor = model->accessors[static_cast<std::size_t>(primitive.indices)];
             tinygltf::BufferView const& indexBufferView = model->bufferViews[static_cast<std::size_t>(indexAccessor.bufferView)];
             layout.setIndexType(findComponentType(indexAccessor.componentType));
             layout.setIndexDataOffset(indexBufferView.byteOffset + indexAccessor.byteOffset);
             layout.setIndexCount(indexAccessor.count);
+
+            bufferIndex = indexBufferView.buffer;
         }
 
         std::vector<vkr::VertexLayout::Binding> bindings;
@@ -232,6 +238,8 @@ namespace
         {
             tinygltf::Accessor const& accessor = model->accessors[static_cast<std::size_t>(accessorIndex)];
             tinygltf::BufferView const& bufferView = model->bufferViews[static_cast<std::size_t>(accessor.bufferView)];
+
+            assert(bufferIndex == bufferView.buffer);
 
             std::size_t location = findAttributeLocation(name);
             vkr::VertexLayout::AttributeType attributeType = findAttributeType(accessor.type);
@@ -250,11 +258,12 @@ namespace
 
         layout.setIndexType(vkr::VertexLayout::ComponentType::UnsignedShort);
 
-        std::size_t bufferIndex = 0; // TODO use all buffers
-        std::vector<unsigned char> const& data = model->buffers[bufferIndex].data;
+        assert(bufferIndex >= 0 && bufferIndex < resources.buffers.size());
+
+        vkr::BufferWithMemory& buffer = *resources.buffers[static_cast<std::size_t>(bufferIndex)];
 
         // TODO Don't create a buffer for every mesh since they are shared
-        return std::make_unique<vkr::Mesh>(app, data, std::move(layout));
+        return std::make_unique<vkr::Mesh>(app, buffer.buffer(), std::move(layout));
     }
 }
 
@@ -450,7 +459,7 @@ std::unique_ptr<vkr::SceneObject> DemoApplication::createSceneObject(std::shared
         tinygltf::Mesh const& gltfMesh = model->meshes[meshIndex];
         tinygltf::Primitive const& gltfPrimitive = gltfMesh.primitives[primitiveIndex];
 
-        auto mesh = createMesh(getApp(), model, gltfPrimitive);
+        auto mesh = createMesh(getApp(), model, gltfPrimitive, *m_gltfResources);
         object->setMesh(std::move(mesh));
 
         std::size_t const materialIndex = static_cast<std::size_t>(gltfPrimitive.material);
@@ -549,6 +558,23 @@ void DemoApplication::loadScene(std::string const& gltfPath)
     m_defaultSampler = std::make_shared<vkr::Sampler>(getApp());
 
     auto gltfModel = loadModel(gltfPath);
+    
+    m_gltfResources = std::make_unique<GltfVkResources>();
+
+    for (auto const& buffer : gltfModel->buffers)
+    {
+        auto const& data = buffer.data;
+        VkDeviceSize bufferSize = sizeof(data[0]) * data.size();
+        void const* bufferData = data.data();
+
+        vkr::BufferWithMemory stagingBuffer{ getApp(), bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
+        stagingBuffer.memory().copyFrom(bufferData, bufferSize);
+
+        vkr::BufferWithMemory buffer{ getApp(), bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
+        vkr::Buffer::copy(stagingBuffer.buffer(), buffer.buffer());
+
+        m_gltfResources->buffers.push_back(std::make_unique<vkr::BufferWithMemory>(std::move(buffer)));
+    }
 
     auto hierarchy = createSceneObjectHierarchy(gltfModel);
     for (auto const& object : hierarchy)

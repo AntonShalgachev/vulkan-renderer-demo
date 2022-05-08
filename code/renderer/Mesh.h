@@ -1,17 +1,16 @@
 #pragma once
 
 #include "VertexLayout.h"
-#include "BufferWithMemory.h"
 
 namespace vkr
 {
     class Application;
-    class BufferWithMemory;
+    class Buffer;
 
     class Mesh
     {
     public:
-        Mesh(Application const& app, std::vector<unsigned char> const& data, VertexLayout layout);
+        Mesh(Application const& app, Buffer const& buffer, VertexLayout layout);
         ~Mesh();
 
         VertexLayout const& getVertexLayout() const { return m_vertexLayout; }
@@ -27,7 +26,7 @@ namespace vkr
         void createBuffers(std::vector<unsigned char> const& rawData);
 
     private:
-        vkr::BufferWithMemory m_buffer;
+        Buffer const& m_buffer;
         VertexLayout m_vertexLayout;
 
     private:
