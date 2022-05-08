@@ -133,7 +133,8 @@ DemoApplication::DemoApplication()
 
     auto messageCallback = [](vkr::DebugMessage m)
     {
-        assert(false);
+        std::cout << m.text << std::endl;
+        assert(m.level != vkr::DebugMessage::Level::Error);
     };
 
     m_application = std::make_unique<vkr::Application>("Vulkan demo", VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window, std::move(messageCallback));
