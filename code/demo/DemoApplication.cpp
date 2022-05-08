@@ -154,6 +154,7 @@ DemoApplication::DemoApplication()
     bindings["window.height"] = coil::bind(&vkr::Window::getHeight, m_window.get());
 
     bindings["scene.load"] = coil::bind(&DemoApplication::loadScene, this);
+    bindings["scene.reload"] = [this]() { loadScene(GLTF_MODEL_PATH); };
 
     loadScene(GLTF_MODEL_PATH);
 }
