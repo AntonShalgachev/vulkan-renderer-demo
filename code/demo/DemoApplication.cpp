@@ -308,6 +308,7 @@ DemoApplication::DemoApplication()
 
     bindings["scene.load"] = coil::bind(&DemoApplication::loadScene, this);
     bindings["scene.reload"] = [this]() { loadScene(GLTF_MODEL_PATH); };
+    bindings["scene.unload"] = [this]() { clearScene(); };
 
     loadScene(GLTF_MODEL_PATH);
 }
