@@ -6,6 +6,7 @@
 
 namespace vkr
 {
+    // TODO rename to DataLayout or MeshDataLayout
     class VertexLayout
     {
     public:
@@ -76,11 +77,15 @@ namespace vkr
         void setIndexDataOffset(std::size_t offset) { m_indexDataOffset = offset; }
         VkDeviceSize getIndexDataOffset() const { return m_indexDataOffset; }
 
+        void setIndexCount(std::size_t count) { m_indexCount = count; }
+        VkDeviceSize getIndexCount() const { return m_indexCount; }
+
     private:
         VertexLayoutDescriptions m_descriptions;
 
         std::vector<VkDeviceSize> m_bindingOffsets;
         VkIndexType m_indexType = VK_INDEX_TYPE_UINT16;
         VkDeviceSize m_indexDataOffset = 0;
+        VkDeviceSize m_indexCount = 0;
     };
 }

@@ -103,6 +103,159 @@ namespace
 
         return model;
     }
+
+    vkr::VertexLayout::ComponentType findComponentType(int gltfComponentType)
+    {
+        switch (gltfComponentType)
+        {
+        case TINYGLTF_COMPONENT_TYPE_BYTE:
+            return vkr::VertexLayout::ComponentType::Byte;
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
+            return vkr::VertexLayout::ComponentType::UnsignedByte;
+        case TINYGLTF_COMPONENT_TYPE_SHORT:
+            return vkr::VertexLayout::ComponentType::Short;
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+            return vkr::VertexLayout::ComponentType::UnsignedShort;
+        case TINYGLTF_COMPONENT_TYPE_INT:
+            return vkr::VertexLayout::ComponentType::Int;
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
+            return vkr::VertexLayout::ComponentType::UnsignedInt;
+        case TINYGLTF_COMPONENT_TYPE_FLOAT:
+            return vkr::VertexLayout::ComponentType::Float;
+        case TINYGLTF_COMPONENT_TYPE_DOUBLE:
+            return vkr::VertexLayout::ComponentType::Double;
+        }
+
+        throw std::invalid_argument("gltfComponentType");
+    }
+
+    vkr::VertexLayout::AttributeType findAttributeType(int gltfAttributeType)
+    {
+        switch (gltfAttributeType)
+        {
+        case TINYGLTF_TYPE_VEC2:
+            return vkr::VertexLayout::AttributeType::Vec2;
+        case TINYGLTF_TYPE_VEC3:
+            return vkr::VertexLayout::AttributeType::Vec3;
+        case TINYGLTF_TYPE_VEC4:
+            return vkr::VertexLayout::AttributeType::Vec4;
+        case TINYGLTF_TYPE_MAT2:
+            return vkr::VertexLayout::AttributeType::Mat2;
+        case TINYGLTF_TYPE_MAT3:
+            return vkr::VertexLayout::AttributeType::Mat3;
+        case TINYGLTF_TYPE_MAT4:
+            return vkr::VertexLayout::AttributeType::Mat4;
+        }
+
+        throw std::invalid_argument("gltfAttributeType");
+    }
+
+    std::size_t getNumberOfComponents(vkr::VertexLayout::AttributeType type)
+    {
+        switch (type)
+        {
+        case vkr::VertexLayout::AttributeType::Vec2:
+            return 2;
+        case vkr::VertexLayout::AttributeType::Vec3:
+            return 3;
+        case vkr::VertexLayout::AttributeType::Vec4:
+            return 4;
+        case vkr::VertexLayout::AttributeType::Mat2:
+            return 4;
+        case vkr::VertexLayout::AttributeType::Mat3:
+            return 9;
+        case vkr::VertexLayout::AttributeType::Mat4:
+            return 16;
+        }
+
+        throw std::invalid_argument("type");
+    }
+
+    std::size_t getComponentByteSize(vkr::VertexLayout::ComponentType type)
+    {
+        switch (type)
+        {
+        case vkr::VertexLayout::ComponentType::Byte:
+            return sizeof(int8_t);
+        case vkr::VertexLayout::ComponentType::UnsignedByte:
+            return sizeof(uint8_t);
+        case vkr::VertexLayout::ComponentType::Short:
+            return sizeof(int16_t);
+        case vkr::VertexLayout::ComponentType::UnsignedShort:
+            return sizeof(uint16_t);
+        case vkr::VertexLayout::ComponentType::Int:
+            return sizeof(int32_t);
+        case vkr::VertexLayout::ComponentType::UnsignedInt:
+            return sizeof(uint32_t);
+        case vkr::VertexLayout::ComponentType::Float:
+            return sizeof(float);
+        case vkr::VertexLayout::ComponentType::Double:
+            return sizeof(double);
+        }
+
+        throw std::invalid_argument("type");
+    }
+
+    std::size_t getAttributeStride(vkr::VertexLayout::AttributeType attributeType, vkr::VertexLayout::ComponentType componentType)
+    {
+        return getNumberOfComponents(attributeType) * getComponentByteSize(componentType);
+    }
+
+    std::size_t findAttributeLocation(std::string const& name)
+    {
+        static std::vector<std::string> const attributeNames = { "POSITION", "COLOR_0", "TEXCOORD_0", "NORMAL" };
+
+        auto it = std::find(attributeNames.cbegin(), attributeNames.cend(), name);
+
+        if (it != attributeNames.end())
+            return static_cast<std::size_t>(std::distance(attributeNames.begin(), it));
+
+        throw std::runtime_error("Unkown attribute name: " + name);
+    }
+
+    std::unique_ptr<vkr::Mesh> createMesh(vkr::Application const& app, std::shared_ptr<tinygltf::Model> const& model, tinygltf::Primitive const& primitive)
+    {
+        vkr::VertexLayout layout;
+        {
+            tinygltf::Accessor const& indexAccessor = model->accessors[static_cast<std::size_t>(primitive.indices)];
+            tinygltf::BufferView const& indexBufferView = model->bufferViews[static_cast<std::size_t>(indexAccessor.bufferView)];
+            layout.setIndexType(findComponentType(indexAccessor.componentType));
+            layout.setIndexDataOffset(indexBufferView.byteOffset + indexAccessor.byteOffset);
+            layout.setIndexCount(indexAccessor.count);
+        }
+
+        std::vector<vkr::VertexLayout::Binding> bindings;
+
+        bindings.reserve(model->bufferViews.size());
+
+        for (auto const& [name, accessorIndex] : primitive.attributes)
+        {
+            tinygltf::Accessor const& accessor = model->accessors[static_cast<std::size_t>(accessorIndex)];
+            tinygltf::BufferView const& bufferView = model->bufferViews[static_cast<std::size_t>(accessor.bufferView)];
+
+            std::size_t location = findAttributeLocation(name);
+            vkr::VertexLayout::AttributeType attributeType = findAttributeType(accessor.type);
+            vkr::VertexLayout::ComponentType componentType = findComponentType(accessor.componentType);
+            std::size_t offset = accessor.byteOffset;
+
+            std::size_t stride = bufferView.byteStride;
+            if (stride == 0)
+                stride = getAttributeStride(attributeType, componentType);
+
+            bindings.emplace_back(bufferView.byteOffset + offset, bufferView.byteLength, stride)
+                .addAttribute(location, attributeType, componentType, 0);
+        }
+
+        layout.setBindings(std::move(bindings));
+
+        layout.setIndexType(vkr::VertexLayout::ComponentType::UnsignedShort);
+
+        std::size_t bufferIndex = 0; // TODO use all buffers
+        std::vector<unsigned char> const& data = model->buffers[bufferIndex].data;
+
+        // TODO Don't create a buffer for every mesh since they are shared
+        return std::make_unique<vkr::Mesh>(app, data, std::move(layout));
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -296,8 +449,8 @@ std::unique_ptr<vkr::SceneObject> DemoApplication::createSceneObject(std::shared
         tinygltf::Mesh const& gltfMesh = model->meshes[meshIndex];
         tinygltf::Primitive const& gltfPrimitive = gltfMesh.primitives[primitiveIndex];
 
-        auto mesh = std::make_shared<vkr::Mesh>(getApp(), model, gltfPrimitive);
-        object->setMesh(mesh);
+        auto mesh = createMesh(getApp(), model, gltfPrimitive);
+        object->setMesh(std::move(mesh));
 
         std::size_t const materialIndex = static_cast<std::size_t>(gltfPrimitive.material);
         tinygltf::Material const& gltfMaterial = model->materials[materialIndex];
