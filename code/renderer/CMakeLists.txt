@@ -59,6 +59,8 @@ set(ALL_FILES
 
     "Application.cpp"
     "Application.h"
+    "BufferWithMemory.h"
+    "BufferWithMemory.cpp"
     "Camera.cpp"
     "Camera.h"
     "CommandBuffer.cpp"

@@ -18,10 +18,10 @@ namespace vkr
         DeviceMemory& operator=(DeviceMemory const&) = default;
         DeviceMemory& operator=(DeviceMemory&&) = default;
 
-        void copyFrom(void const* sourcePointer, std::size_t sourceSize);
+        void copyFrom(void const* sourcePointer, std::size_t sourceSize) const;
 
         template<typename T>
-        void copyFrom(std::vector<T> const& source)
+        void copyFrom(std::vector<T> const& source) const
         {
             copyFrom(source.data(), sizeof(T) * source.size());
         }

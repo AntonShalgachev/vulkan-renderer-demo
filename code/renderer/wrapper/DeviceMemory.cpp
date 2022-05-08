@@ -42,7 +42,7 @@ vkr::DeviceMemory::~DeviceMemory()
     vkFreeMemory(getDevice().getHandle(), m_handle, nullptr);
 }
 
-void vkr::DeviceMemory::copyFrom(void const* sourcePointer, std::size_t sourceSize)
+void vkr::DeviceMemory::copyFrom(void const* sourcePointer, std::size_t sourceSize) const
 {
     // TODO make sure sourceSize doesn't exceed allocated size
     void* data;
