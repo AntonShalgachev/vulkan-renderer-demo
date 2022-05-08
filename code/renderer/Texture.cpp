@@ -10,6 +10,7 @@
 #include "wrapper/ImageView.h"
 #include "tiny_gltf.h"
 #include <stdexcept>
+#include "BufferWithMemory.h"
 
 namespace
 {
@@ -147,17 +148,14 @@ void vkr::Texture::createImage(void const* data, uint32_t width, uint32_t height
 
     std::size_t imageSize = width * height * bytesPerPixel;
 
-    std::unique_ptr<vkr::Buffer> stagingBuffer;
-    std::unique_ptr<vkr::DeviceMemory> stagingBufferMemory;
-    vkr::utils::createBuffer(getApp(), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-    stagingBufferMemory->copyFrom(data, imageSize);
+    vkr::BufferWithMemory stagingBuffer{ getApp(), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
+    stagingBuffer.memory().copyFrom(data, imageSize);
 
     vkr::utils::createImage(getApp(), width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_image, m_memory);
 
     transitionImageLayout(getApp(), m_image->getHandle(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     // TODO extract to some class
-    copyBufferToImage(getApp(), stagingBuffer->getHandle(), m_image->getHandle(), width, height);
+    copyBufferToImage(getApp(), stagingBuffer.buffer().getHandle(), m_image->getHandle(), width, height);
     transitionImageLayout(getApp(), m_image->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     m_imageView = m_image->createImageView(VK_IMAGE_ASPECT_COLOR_BIT);

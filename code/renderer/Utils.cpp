@@ -1,15 +1,7 @@
 #include "Utils.h"
-#include "wrapper/Buffer.h"
 #include "wrapper/DeviceMemory.h"
 #include "wrapper/Image.h"
 #include <algorithm>
-
-void vkr::utils::createBuffer(vkr::Application const& app, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, std::unique_ptr<vkr::Buffer>& buffer, std::unique_ptr<vkr::DeviceMemory>& bufferMemory)
-{
-    buffer = std::make_unique<vkr::Buffer>(app, size, usage);
-    bufferMemory = std::make_unique<vkr::DeviceMemory>(app, buffer->getMemoryRequirements(), properties);
-    buffer->bindMemory(*bufferMemory);
-}
 
 void vkr::utils::createImage(vkr::Application const& app, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, std::unique_ptr<vkr::Image>& image, std::unique_ptr<vkr::DeviceMemory>& imageMemory)
 {

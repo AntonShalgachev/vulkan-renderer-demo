@@ -10,6 +10,7 @@
 #include "wrapper/DescriptorSetLayout.h"
 #include "wrapper/Pipeline.h"
 #include "wrapper/DescriptorPool.h"
+#include "BufferWithMemory.h"
 
 VkDescriptorSet vkr::ObjectInstance::ms_boundDescriptorSet = VK_NULL_HANDLE;
 
@@ -31,11 +32,10 @@ void vkr::ObjectInstance::onSwapchainCreated(Swapchain const& swapchain)
     if (swapchainImageCount == m_currentImageCount)
         return;
 
-    m_uniformBuffers.resize(swapchainImageCount);
-    m_uniformBuffersMemory.resize(swapchainImageCount);
+    m_uniformBuffers.reserve(swapchainImageCount);
 
     for (size_t i = 0; i < swapchainImageCount; i++)
-        vkr::utils::createBuffer(getApp(), m_uniformBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uniformBuffers[i], m_uniformBuffersMemory[i]);
+        m_uniformBuffers.emplace_back(getApp(), m_uniformBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
     if (!m_sceneObject->isDrawable())
         return;
@@ -45,12 +45,12 @@ void vkr::ObjectInstance::onSwapchainCreated(Swapchain const& swapchain)
     m_descriptorPool = std::make_unique<vkr::DescriptorPool>(getApp(), swapchainImageCount);
     m_descriptorSets = std::make_unique<vkr::DescriptorSets>(getApp(), *m_descriptorPool, m_setLayout);
     for (size_t i = 0; i < m_descriptorSets->getSize(); i++)
-        m_descriptorSets->update(i, *m_uniformBuffers[i], material.getTexture(), material.getSampler());
+        m_descriptorSets->update(i, m_uniformBuffers[i].buffer(), material.getTexture(), material.getSampler());
 }
 
 void vkr::ObjectInstance::copyToUniformBuffer(std::size_t index, void const* sourcePointer, std::size_t sourceSize) const
 {
-    m_uniformBuffersMemory[index]->copyFrom(sourcePointer, sourceSize);
+    m_uniformBuffers[index].memory().copyFrom(sourcePointer, sourceSize);
 }
 
 void vkr::ObjectInstance::bindDescriptorSet(VkCommandBuffer commandBuffer, std::size_t imageIndex, PipelineLayout const& pipelineLayout) const

@@ -1,18 +1,14 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-#include "Object.h"
-#include <memory>
-#include <vector>
-#include <string>
 #include "VertexLayout.h"
+#include "BufferWithMemory.h"
 
 namespace vkr
 {
-    class Buffer;
-    class DeviceMemory;
+    class Application;
+    class BufferWithMemory;
 
-    class Mesh : Object
+    class Mesh
     {
     public:
         Mesh(Application const& app, std::vector<unsigned char> const& data, VertexLayout layout);
@@ -31,9 +27,7 @@ namespace vkr
         void createBuffers(std::vector<unsigned char> const& rawData);
 
     private:
-        std::unique_ptr<vkr::Buffer> m_buffer;
-        std::unique_ptr<vkr::DeviceMemory> m_bufferMemory;
-
+        vkr::BufferWithMemory m_buffer;
         VertexLayout m_vertexLayout;
 
     private:
