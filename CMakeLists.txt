@@ -56,7 +56,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     coil
     GIT_REPOSITORY https://github.com/AntonShalgachev/coil
-    GIT_TAG        6373089e875e0dfa3f568f973445c70534d8dae4 # Merge pull request #9 from AntonShalgachev/fb-properties-tests 
+    GIT_TAG        934e865981721551802e1ae825423f323b5289ee # Merge pull request #11 from AntonShalgachev/fb-remove-command-collection 
 )
 
 FetchContent_Declare(

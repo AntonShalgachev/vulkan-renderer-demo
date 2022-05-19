@@ -34,7 +34,7 @@ target_link_libraries(${PROJECT_NAME}
     glm::glm
     tinygltf
     magic_enum
-    coil
+    coil::coil
     rapidfuzz::rapidfuzz
     argparse::argparse
 )
