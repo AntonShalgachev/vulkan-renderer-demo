@@ -39,6 +39,7 @@
 
 #include "DebugConsole.h"
 #include "CommandLine.h"
+#include "ScopedDebugCommands.h"
 
 namespace
 {
@@ -271,20 +272,18 @@ namespace
 
 DemoApplication::DemoApplication()
 {
-    coil::Bindings& bindings = DebugConsole::instance().bindings();
+    m_commands["imgui.demo"] = [this]() { m_drawImguiDemo = !m_drawImguiDemo; };
+    m_commands["imgui.debugger"] = [this]() { m_drawImguiDebugger = !m_drawImguiDebugger; };
+    m_commands["imgui.styles"] = [this]() { m_drawImguiStyleEditor = !m_drawImguiStyleEditor; };
+    m_commands["imgui.reload"] = [this]() { m_reloadImgui = true; };
 
-    bindings["imgui.demo"] = [this]() { m_drawImguiDemo = !m_drawImguiDemo; };
-    bindings["imgui.debugger"] = [this]() { m_drawImguiDebugger = !m_drawImguiDebugger; };
-    bindings["imgui.styles"] = [this]() { m_drawImguiStyleEditor = !m_drawImguiStyleEditor; };
-    bindings["imgui.reload"] = [this]() { m_reloadImgui = true; };
+    m_commands["camera.znear"] = coil::property(&DemoApplication::getCameraNearZ, &DemoApplication::setCameraNearZ, this);
+    m_commands["camera.zfar"] = coil::property(&DemoApplication::getCameraFarZ, &DemoApplication::setCameraFarZ, this);
+    m_commands["camera.speed"] = coil::variable(&m_cameraSpeed);
+    m_commands["camera.mouse_sensitivity"] = coil::variable(&m_mouseSensitivity);
 
-    bindings["camera.znear"] = coil::property(&DemoApplication::getCameraNearZ, &DemoApplication::setCameraNearZ, this);
-    bindings["camera.zfar"] = coil::property(&DemoApplication::getCameraFarZ, &DemoApplication::setCameraFarZ, this);
-    bindings["camera.speed"] = coil::variable(&m_cameraSpeed);
-    bindings["camera.mouse_sensitivity"] = coil::variable(&m_mouseSensitivity);
-
-    bindings["fps"] = [this]() { m_showFps = !m_showFps; };
-    bindings["fps.update_period"] = coil::variable(&m_fpsUpdatePeriod);
+    m_commands["fps"] = [this]() { m_showFps = !m_showFps; };
+    m_commands["fps.update_period"] = coil::variable(&m_fpsUpdatePeriod);
 
     m_keyState.resize(1 << 8 * sizeof(char), false);
 
@@ -306,21 +305,19 @@ DemoApplication::DemoApplication()
 
     loadImgui();
 
-    bindings["window.resize"] = coil::bind(&vkr::Window::resize, m_window.get());
-    bindings["window.width"] = coil::bind(&vkr::Window::getWidth, m_window.get());
-    bindings["window.height"] = coil::bind(&vkr::Window::getHeight, m_window.get());
+    m_commands["window.resize"] = coil::bind(&vkr::Window::resize, m_window.get());
+    m_commands["window.width"] = coil::bind(&vkr::Window::getWidth, m_window.get());
+    m_commands["window.height"] = coil::bind(&vkr::Window::getHeight, m_window.get());
 
-    bindings["scene.load"] = coil::bind(&DemoApplication::loadScene, this);
-    bindings["scene.reload"] = [this]() { loadScene(GLTF_MODEL_PATH); };
-    bindings["scene.unload"] = [this]() { clearScene(); };
+    m_commands["scene.load"] = coil::bind(&DemoApplication::loadScene, this);
+    m_commands["scene.reload"] = [this]() { loadScene(GLTF_MODEL_PATH); };
+    m_commands["scene.unload"] = [this]() { clearScene(); };
 
     loadScene(GLTF_MODEL_PATH);
 }
 
 DemoApplication::~DemoApplication()
 {
-    // TODO unregister debug commands
-
     unloadImgui();
 
     // move to the renderer

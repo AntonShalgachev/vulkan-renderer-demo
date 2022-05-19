@@ -46,9 +46,7 @@ namespace
 
 ui::DebugConsoleWidget::DebugConsoleWidget()
 {
-    coil::Bindings& bindings = DebugConsole::instance().bindings();
-
-    bindings["ui.console.toggle"] = coil::bind(&DebugConsoleWidget::toggle, this);
+    m_commands["ui.console.toggle"] = coil::bind(&DebugConsoleWidget::toggle, this);
 }
 
 void ui::DebugConsoleWidget::draw()

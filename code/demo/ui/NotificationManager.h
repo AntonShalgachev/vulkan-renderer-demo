@@ -3,6 +3,8 @@
 #include <deque>
 #include <string>
 
+#include "../ScopedDebugCommands.h"
+
 namespace ui
 {
     struct Notification
@@ -22,6 +24,7 @@ namespace ui
         void add(std::string text);
 
     private:
+        ScopedDebugCommands m_commands;
         std::deque<Notification> m_notifications;
     };
 }

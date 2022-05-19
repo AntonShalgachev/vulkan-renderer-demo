@@ -51,9 +51,7 @@ CommandLine& CommandLine::instance()
 
 CommandLine::CommandLine()
 {
-    coil::Bindings& bindings = DebugConsole::instance().bindings();
-
-    bindings["cmdline.list"] = [this](coil::Context context)
+    m_commands["cmdline.list"] = [this](coil::Context context)
     {
         for (auto const& arg : m_arguments)
             context.out() << arg << std::endl;

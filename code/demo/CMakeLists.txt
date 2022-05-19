@@ -10,6 +10,8 @@ set(ALL_FILES
     "DebugConsole.cpp"
     "CommandLine.h"
     "CommandLine.cpp"
+    "ScopedDebugCommands.h"
+    "ScopedDebugCommands.cpp"
 
     "ui/NotificationManager.h"
     "ui/NotificationManager.cpp"

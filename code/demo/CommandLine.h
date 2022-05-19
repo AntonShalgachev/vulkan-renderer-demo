@@ -1,6 +1,7 @@
 #pragma once
 
 #include "argparse/argparse.hpp"
+#include "ScopedDebugCommands.h"
 
 class CommandLine
 {
@@ -35,6 +36,7 @@ public:
     }
 
 private:
+    ScopedDebugCommands m_commands;
     argparse::ArgumentParser m_parser;
     std::vector<std::string> m_arguments;
 };

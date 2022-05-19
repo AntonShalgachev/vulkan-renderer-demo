@@ -9,6 +9,8 @@
 #include "ui/DebugConsoleWidget.h"
 #include "ui/NotificationManager.h"
 
+#include "ScopedDebugCommands.h"
+
 class CommandLine;
 
 namespace vkr
@@ -72,6 +74,8 @@ private:
     vkr::Application const& getApp() { return *m_application; }
 
 private:
+    ScopedDebugCommands m_commands;
+
     std::unique_ptr<vkr::Window> m_window;
 
     std::unique_ptr<vkr::Application> m_application;

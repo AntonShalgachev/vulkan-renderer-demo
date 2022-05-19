@@ -9,9 +9,7 @@ namespace
 
 ui::NotificationManager::NotificationManager()
 {
-    coil::Bindings& bindings = DebugConsole::instance().bindings();
-
-    bindings["ui.notifications.add"] = coil::bind(&NotificationManager::add, this);
+    m_commands["ui.notifications.add"] = coil::bind(&NotificationManager::add, this);
 }
 
 void ui::NotificationManager::update(float dt)

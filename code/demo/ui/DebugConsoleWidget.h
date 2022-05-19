@@ -5,6 +5,8 @@
 #include <string>
 #include <optional>
 
+#include "../ScopedDebugCommands.h"
+
 namespace ui
 {
     class DebugConsoleWidget
@@ -35,6 +37,8 @@ namespace ui
         void clearInput();
 
     private:
+        ScopedDebugCommands m_commands;
+
         bool m_visible = false;
 
         std::array<char, 256> m_inputBuffer = {};
