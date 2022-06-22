@@ -39,4 +39,5 @@ target_link_libraries(${PROJECT_NAME}
     coil::coil
     rapidfuzz::rapidfuzz
     argparse::argparse
+    spdlog::spdlog
 )

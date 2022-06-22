@@ -71,6 +71,12 @@ FetchContent_Declare(
     GIT_TAG        4af831ef724224f751a25aea43689b92969ae612 # 2.4
 )
 
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog
+    GIT_TAG        76fb40d95455f249bd70824ecfcae7a8f0930fa3 # 1.10.0
+)
+
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
 set(BUILD_STATIC_LIBS ON CACHE INTERNAL "")
 
@@ -120,6 +126,10 @@ message(STATUS "rapidfuzz directory: ${rapidfuzz_SOURCE_DIR}")
 message(STATUS "Fetching argparse...")
 FetchContent_MakeAvailable(argparse)
 message(STATUS "argparse directory: ${argparse_SOURCE_DIR}")
+
+message(STATUS "Fetching spdlog...")
+FetchContent_MakeAvailable(spdlog)
+message(STATUS "spdlog directory: ${spdlog_SOURCE_DIR}")
 ############################### ############ ###############################
 
 add_subdirectory(code/imgui)
