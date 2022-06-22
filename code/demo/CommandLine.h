@@ -20,6 +20,8 @@ public:
     bool parse(std::vector<std::string> const& arguments);
     bool parseFile(char const* path);
 
+    std::vector<std::string> const& getAll() const { return m_arguments; }
+
     template <typename T = std::string>
     T get(std::string_view arg) const
     {

@@ -1,6 +1,8 @@
 #include "CommandLine.h"
 #include "DebugConsole.h"
 
+#include "spdlog/spdlog.h"
+
 #include <fstream>
 
 namespace
