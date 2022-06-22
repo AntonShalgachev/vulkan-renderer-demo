@@ -3,6 +3,7 @@
   "defaults": {},
   "configurations": [
     {
+      "project": "CMakeLists.txt",
       "projectTarget": "demo.exe (code\\demo\\demo.exe)",
       "name": "demo.exe (code\\demo\\demo.exe)",
       "currentDir": "${workspaceRoot}"
