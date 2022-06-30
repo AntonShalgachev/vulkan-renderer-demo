@@ -83,13 +83,37 @@ DebugConsole::DebugConsole()
 
     m_bindings["clear"] = coil::bind(&DebugConsole::clear, this);
 
-    m_bindings["help"] = [](coil::Context context)
+    auto globalHelp = [](coil::Context context)
     {
         context.log() << std::setw(15) << std::left << "Command name" << '\t' << "Description" << std::endl;
         context.log() << std::setw(15) << std::left << "list" << '\t' << "Lists available commands" << std::endl;
         context.log() << std::setw(15) << std::left << "clear" << '\t' << "Clears the console" << std::endl;
         context.log() << std::setw(15) << std::left << "help" << '\t' << "Prints this message" << std::endl;
     };
+
+    auto commandHelp = [this](coil::Context context, std::string_view commandName)
+    {
+        std::vector<coil::AnyFunctor> const& functors = m_bindings.get(commandName);
+
+        context.log() << "Input parameters: ";
+        std::string_view functorSeparator = "";
+        for (auto const& functor : functors)
+        {
+            context.log() << functorSeparator << '[';
+            std::string_view typeSeparator = "";
+            for (std::string_view type : functor.parameterTypes())
+            {
+                context.log() << typeSeparator << type;
+                typeSeparator = ", ";
+            }
+            context.log() << ']';
+            functorSeparator = ", ";
+        }
+
+        context.log() << std::endl;
+    };
+
+    m_bindings["help"] = coil::overloaded(std::move(globalHelp), std::move(commandHelp));
 }
 
 void DebugConsole::execute(std::string_view command)

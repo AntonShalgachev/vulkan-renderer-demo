@@ -56,7 +56,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     coil
     GIT_REPOSITORY https://github.com/AntonShalgachev/coil
-    GIT_TAG        5c987cc4ad807e9b9c99c09d5e1a21b0d28d28c7 # fix some TODOs
+    GIT_TAG        3854596a7d70e71c53cae79929beb4a4259177b3 # expose parameter types in AnyFunctor
 )
 
 FetchContent_Declare(
