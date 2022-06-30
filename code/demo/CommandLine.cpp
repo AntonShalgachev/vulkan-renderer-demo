@@ -56,7 +56,7 @@ CommandLine::CommandLine()
     m_commands["cmdline.list"] = [this](coil::Context context)
     {
         for (auto const& arg : m_arguments)
-            context.out() << arg << std::endl;
+            context.log() << arg << std::endl;
     };
 }
 

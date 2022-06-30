@@ -277,8 +277,8 @@ DemoApplication::DemoApplication()
     m_commands["imgui.styles"] = [this]() { m_drawImguiStyleEditor = !m_drawImguiStyleEditor; };
     m_commands["imgui.reload"] = [this]() { m_reloadImgui = true; };
 
-    m_commands["camera.znear"] = coil::property(&DemoApplication::getCameraNearZ, &DemoApplication::setCameraNearZ, this);
-    m_commands["camera.zfar"] = coil::property(&DemoApplication::getCameraFarZ, &DemoApplication::setCameraFarZ, this);
+    m_commands["camera.znear"] = coil::bindProperty(&DemoApplication::getCameraNearZ, &DemoApplication::setCameraNearZ, this);
+    m_commands["camera.zfar"] = coil::bindProperty(&DemoApplication::getCameraFarZ, &DemoApplication::setCameraFarZ, this);
     m_commands["camera.speed"] = coil::variable(&m_cameraSpeed);
     m_commands["camera.mouse_sensitivity"] = coil::variable(&m_mouseSensitivity);
 
@@ -311,7 +311,7 @@ DemoApplication::DemoApplication()
 
     m_commands["scene.load"] = coil::bind(&DemoApplication::loadScene, this);
     m_commands["scene.reload"] = [this]() { loadScene(GLTF_MODEL_PATH); };
-    m_commands["scene.unload"] = [this]() { clearScene(); };
+    m_commands["scene.unload"] = coil::bind(&DemoApplication::clearScene, this);
 
     loadScene(GLTF_MODEL_PATH);
 }

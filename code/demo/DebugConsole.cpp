@@ -76,19 +76,19 @@ DebugConsole::DebugConsole()
 {
     m_bindings["list"] = [this](coil::Context context)
     {
-        context.out() << "Available commands:" << std::endl;
+        context.log() << "Available commands:" << std::endl;
         for (auto const& command : m_bindings.commands())
-            context.out() << command << std::endl;
+            context.log() << command << std::endl;
     };
 
     m_bindings["clear"] = coil::bind(&DebugConsole::clear, this);
 
     m_bindings["help"] = [](coil::Context context)
     {
-        context.out() << std::setw(15) << std::left << "Command name" << '\t' << "Description" << std::endl;
-        context.out() << std::setw(15) << std::left << "list" << '\t' << "Lists available commands" << std::endl;
-        context.out() << std::setw(15) << std::left << "clear" << '\t' << "Clears the console" << std::endl;
-        context.out() << std::setw(15) << std::left << "help" << '\t' << "Prints this message" << std::endl;
+        context.log() << std::setw(15) << std::left << "Command name" << '\t' << "Description" << std::endl;
+        context.log() << std::setw(15) << std::left << "list" << '\t' << "Lists available commands" << std::endl;
+        context.log() << std::setw(15) << std::left << "clear" << '\t' << "Clears the console" << std::endl;
+        context.log() << std::setw(15) << std::left << "help" << '\t' << "Prints this message" << std::endl;
     };
 }
 

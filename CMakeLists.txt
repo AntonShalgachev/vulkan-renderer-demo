@@ -56,7 +56,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     coil
     GIT_REPOSITORY https://github.com/AntonShalgachev/coil
-    GIT_TAG        9d2d17ee8ca38079153cee89bba7fafa5407905a # Merge pull request #14 from AntonShalgachev/fb-strings-with-spaces
+    GIT_TAG        5c987cc4ad807e9b9c99c09d5e1a21b0d28d28c7 # fix some TODOs
 )
 
 FetchContent_Declare(
