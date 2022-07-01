@@ -56,7 +56,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     coil
     GIT_REPOSITORY https://github.com/AntonShalgachev/coil
-    GIT_TAG        3854596a7d70e71c53cae79929beb4a4259177b3 # expose parameter types in AnyFunctor
+    GIT_TAG        6a1fe7e82ce969d52146111dce58c7e73af73925 # Merge pull request #21 from AntonShalgachev/functor-metadata
 )
 
 FetchContent_Declare(
@@ -92,8 +92,6 @@ set(TINYGLTF_BUILD_VALIDATOR_EXAMPLE OFF CACHE INTERNAL "")
 set(TINYGLTF_BUILD_BUILDER_EXAMPLE OFF CACHE INTERNAL "")
 set(TINYGLTF_HEADER_ONLY OFF CACHE INTERNAL "")
 set(TINYGLTF_INSTALL OFF CACHE INTERNAL "")
-
-set(COIL_EXAMPLES OFF CACHE INTERNAL "")
 
 message(STATUS "Fetching glfw...")
 FetchContent_MakeAvailable(glfw)
