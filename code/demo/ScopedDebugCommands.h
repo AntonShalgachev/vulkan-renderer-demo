@@ -27,5 +27,5 @@ public:
 private:
     void clear();
 
-    std::vector<std::string_view> m_names;
+    std::vector<std::string_view> m_names; // TODO should be std::string
 };
