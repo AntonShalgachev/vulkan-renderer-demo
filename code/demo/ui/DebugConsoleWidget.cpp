@@ -42,6 +42,7 @@ namespace
     }
 
     auto selectedSuggestionColor = IM_COL32(255, 255, 0, 255);
+    auto suggestionDescriptionColor = IM_COL32(127, 127, 127, 255);
 }
 
 ui::DebugConsoleWidget::DebugConsoleWidget()
@@ -165,7 +166,18 @@ void ui::DebugConsoleWidget::drawSuggestions()
         if (selected)
             ImGui::PushStyleColor(ImGuiCol_Text, selectedSuggestionColor);
 
-        ImGui::Text("  %s", m_suggestions[i].c_str());
+        {
+            std::string_view command = m_suggestions[i].suggestion.command;
+            std::string_view description = m_suggestions[i].description;
+            ImGui::Text("  %.*s", command.size(), command.data());
+            if (!description.empty())
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, suggestionDescriptionColor);
+                ImGui::SameLine();
+                ImGui::Text(" // %.*s", description.size(), description.data());
+                ImGui::PopStyleColor();
+            }
+        }
 
         if (selected)
             ImGui::PopStyleColor();
@@ -183,8 +195,16 @@ void ui::DebugConsoleWidget::onInputChanged(std::string_view input)
     m_inputLength = input.size();
 
     m_suggestions.clear();
-    for (DebugConsole::Suggestion const& candidate : DebugConsole::instance().getSuggestions(input))
-        m_suggestions.push_back(std::string{ candidate.command });
+    for (DebugConsole::Suggestion& candidate : DebugConsole::instance().getSuggestions(input))
+    {
+        Suggestion suggestion;
+        suggestion.suggestion = std::move(candidate);
+
+        if (CommandMetadata const* metadata = DebugConsole::instance().getMetadata(suggestion.suggestion.command); metadata && !metadata->description.empty())
+            suggestion.description = metadata->description;
+
+        m_suggestions.push_back(std::move(suggestion));
+    }
 
     auto const linesCount = std::min(m_suggestions.size(), suggestionsLinesCountMax);
     m_suggestionsWindowStart = 0;
@@ -213,7 +233,7 @@ std::optional<std::string_view> ui::DebugConsoleWidget::onInputHistory(std::stri
     if (auto index = getHistoryIndex(inputHistory.size()))
         return inputHistory[*index];
     if (auto index = getSuggestionIndex())
-        return m_suggestions[*index];
+        return m_suggestions[*index].suggestion.command;
 
     if (m_oldInput)
         return *m_oldInput;

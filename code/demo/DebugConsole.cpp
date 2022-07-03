@@ -74,46 +74,51 @@ DebugConsole& DebugConsole::instance()
 
 DebugConsole::DebugConsole()
 {
-    m_bindings["list"] = [this](coil::Context context)
+    auto& commands = *this;
+
+    commands["list"].description("Lists available commands") = [this](coil::Context context)
     {
-        context.log() << "Available commands:" << std::endl;
+        // TODO accept also wildcard
+
+        std::size_t maxAllowedNameLength = 50;
+
+        std::size_t maxNameLength = 0;
         for (auto const& command : m_bindings.commands())
-            context.log() << command << std::endl;
+            maxNameLength = std::max(maxNameLength, command.length());
+
+        maxNameLength = std::min(maxNameLength, maxAllowedNameLength);
+
+        context.log() << std::setw(maxNameLength) << std::left << "Command name" << '\t' << "Description" << std::endl;
+        context.log() << std::setw(maxNameLength) << std::left << "------------" << '\t' << "-----------" << std::endl;
+        for (auto const& command : m_bindings.commands())
+        {
+            context.log() << std::setw(maxNameLength) << std::left << command;
+            if (CommandMetadata const* metadata = getMetadata(command); metadata && !metadata->description.empty())
+            {
+                context.log() << '\t' << metadata->description;
+            }
+
+            context.log() << std::endl;
+        }
     };
 
-    m_bindings["clear"] = coil::bind(&DebugConsole::clear, this);
+    commands["clear"].description("Clears the console") = coil::bind(&DebugConsole::clear, this);
 
     auto globalHelp = [](coil::Context context)
     {
         context.log() << std::setw(15) << std::left << "Command name" << '\t' << "Description" << std::endl;
         context.log() << std::setw(15) << std::left << "list" << '\t' << "Lists available commands" << std::endl;
         context.log() << std::setw(15) << std::left << "clear" << '\t' << "Clears the console" << std::endl;
+        context.log() << std::setw(15) << std::left << "help <command>" << '\t' << "Prints command help" << std::endl;
         context.log() << std::setw(15) << std::left << "help" << '\t' << "Prints this message" << std::endl;
     };
 
-    auto commandHelp = [this](coil::Context context, std::string_view commandName)
+    auto commandHelp = [this](coil::Context context, std::string_view command)
     {
-        std::vector<coil::AnyFunctor> const& functors = m_bindings.get(commandName);
-
-        context.log() << "Input parameters: ";
-        std::string_view functorSeparator = "";
-        for (auto const& functor : functors)
-        {
-            context.log() << functorSeparator << '[';
-            std::string_view typeSeparator = "";
-            for (std::string_view type : functor.parameterTypes())
-            {
-                context.log() << typeSeparator << type;
-                typeSeparator = ", ";
-            }
-            context.log() << ']';
-            functorSeparator = ", ";
-        }
-
-        context.log() << std::endl;
+        getCommandHelp(context.log(), command);
     };
 
-    m_bindings["help"] = coil::overloaded(std::move(globalHelp), std::move(commandHelp));
+    commands["help"].description("Prints global/command help").arguments({ {}, {"command_name"} }) = coil::overloaded(std::move(globalHelp), std::move(commandHelp));
 }
 
 void DebugConsole::execute(std::string_view command)
@@ -133,6 +138,14 @@ void DebugConsole::execute(std::string_view command)
             addLine("  " + line, Line::Type::Output);
         if (result.returnValue)
             addLine("  -> '" + *result.returnValue + "'", Line::Type::ReturnValue);
+
+        if (!result.errors.empty())
+        {
+            std::stringstream ss;
+            getCommandHelp(ss, result.input.name);
+            for (std::string line; std::getline(ss, line); )
+                addLine("  " + line, Line::Type::Output);
+        }
     }
 }
 
@@ -204,6 +217,106 @@ std::optional<std::string_view> DebugConsole::autoComplete(std::string_view inpu
 void DebugConsole::clear()
 {
     m_lines.clear();
+}
+
+void DebugConsole::remove(std::string_view name)
+{
+    m_bindings.remove(name);
+    m_metadata.erase(name);
+}
+
+CommandProxy<DebugConsole> DebugConsole::operator[](std::string_view name)
+{
+    return { *this, name };
+}
+
+CommandMetadata const* DebugConsole::getMetadata(std::string_view name) const
+{
+    auto it = m_metadata.find(name);
+    if (it != m_metadata.end())
+        return &it->second;
+
+    return nullptr;
+}
+
+void DebugConsole::getCommandHelp(std::ostream& os, std::string_view name) const
+{
+    auto const* functors = m_bindings.get(name);
+    if (!functors)
+    {
+        os << "Command '" << name << "' doesn't exist" << std::endl;
+        return;
+    }
+
+    CommandMetadata const* metadata = getMetadata(name);
+
+    if (metadata && !metadata->description.empty())
+        os << "Description: " << metadata->description << std::endl;
+
+    bool isVariable = false;
+    std::string_view variableType;
+
+    // TODO fix this fragile logic
+    if (functors->size() == 2)
+    {
+        auto const& types0 = (*functors)[0].parameterTypes();
+        auto const& types1 = (*functors)[1].parameterTypes();
+
+        if (types0.size() == 0 && types1.size() == 1)
+        {
+            isVariable = true;
+            variableType = types1[0];
+        }
+        if (types0.size() == 1 && types1.size() == 0)
+        {
+            isVariable = true;
+            variableType = types0[0];
+        }
+    }
+
+    if (isVariable)
+    {
+        os << "Type: Variable (" << variableType << ")" << std::endl;
+    }
+    else
+    {
+        os << "Type: Command";
+
+        if (functors->size() != 1 || !functors->front().parameterTypes().empty())
+        {
+            os << " (";
+
+            std::string_view functorSeparator = "";
+            for (std::size_t i = 0; i < functors->size(); i++)
+            {
+                auto const& functor = (*functors)[i];
+                os << functorSeparator << '[';
+                std::string_view typeSeparator = "";
+                auto const& types = functor.parameterTypes();
+                for (std::size_t j = 0; j < types.size(); j++)
+                {
+                    std::string_view type = types[j];
+                    std::string_view name;
+                    if (metadata)
+                    {
+                        auto const& names = metadata->positionalParameterNames;
+                        if (names.size() > i && names[i].size() > j)
+                            name = names[i][j];
+                    }
+                    os << typeSeparator << type;
+                    if (!name.empty())
+                        os << " " << name;
+                    typeSeparator = ", ";
+                }
+                os << ']';
+                functorSeparator = ", ";
+            }
+
+            os << ")";
+        }
+
+        os << std::endl;
+    }
 }
 
 void DebugConsole::addLine(std::string text, Line::Type type)

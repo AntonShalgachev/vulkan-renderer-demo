@@ -266,15 +266,32 @@ namespace
         // TODO Don't create a buffer for every mesh since they are shared
         return std::make_unique<vkr::Mesh>(app, buffer.buffer(), std::move(layout));
     }
+
+    // TODO move somewhere
+    auto toggle(bool* var)
+    {
+        auto toggler = [var]()
+        {
+            *var = !*var;
+            return *var;
+        };
+        auto setter = [var](bool val)
+        {
+            *var = std::move(val);
+            return *var;
+        };
+
+        return coil::overloaded(std::move(toggler), std::move(setter));
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////
 
 DemoApplication::DemoApplication()
 {
-    m_commands["imgui.demo"] = [this]() { m_drawImguiDemo = !m_drawImguiDemo; };
-    m_commands["imgui.debugger"] = [this]() { m_drawImguiDebugger = !m_drawImguiDebugger; };
-    m_commands["imgui.styles"] = [this]() { m_drawImguiStyleEditor = !m_drawImguiStyleEditor; };
+    m_commands["imgui.demo"] = ::toggle(&m_drawImguiDemo);
+    m_commands["imgui.debugger"] = ::toggle(&m_drawImguiDebugger);
+    m_commands["imgui.styles"] = ::toggle(&m_drawImguiStyleEditor);
     m_commands["imgui.reload"] = [this]() { m_reloadImgui = true; };
 
     m_commands["camera.znear"] = coil::bindProperty(&DemoApplication::getCameraNearZ, &DemoApplication::setCameraNearZ, this);
@@ -282,8 +299,8 @@ DemoApplication::DemoApplication()
     m_commands["camera.speed"] = coil::variable(&m_cameraSpeed);
     m_commands["camera.mouse_sensitivity"] = coil::variable(&m_mouseSensitivity);
 
-    m_commands["fps"] = [this]() { m_showFps = !m_showFps; };
-    m_commands["fps.update_period"] = coil::variable(&m_fpsUpdatePeriod);
+    m_commands["fps"].description("FPS widget") = ::toggle(&m_showFps);
+    m_commands["fps.update_period"].description("Update period of FPS widget") = coil::variable(&m_fpsUpdatePeriod);
 
     m_keyState.resize(1 << 8 * sizeof(char), false);
 
@@ -305,7 +322,7 @@ DemoApplication::DemoApplication()
 
     loadImgui();
 
-    m_commands["window.resize"] = coil::bind(&vkr::Window::resize, m_window.get());
+    m_commands["window.resize"].arguments("width", "height") = coil::bind(&vkr::Window::resize, m_window.get());
     m_commands["window.width"] = coil::bind(&vkr::Window::getWidth, m_window.get());
     m_commands["window.height"] = coil::bind(&vkr::Window::getHeight, m_window.get());
 

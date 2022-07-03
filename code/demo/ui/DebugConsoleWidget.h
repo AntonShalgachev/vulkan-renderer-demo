@@ -37,6 +37,12 @@ namespace ui
         void clearInput();
 
     private:
+        struct Suggestion
+        {
+            DebugConsole::Suggestion suggestion;
+            std::string_view description;
+        };
+
         ScopedDebugCommands m_commands;
 
         bool m_visible = false;
@@ -49,7 +55,7 @@ namespace ui
         std::optional<std::string> m_oldInput;
         int m_replacementIndex = 0;
 
-        std::vector<std::string> m_suggestions;
+        std::vector<Suggestion> m_suggestions;
         std::size_t m_suggestionsWindowStart = 0;
         std::size_t m_suggestionsWindowEnd = 0;
     };

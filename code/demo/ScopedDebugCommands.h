@@ -1,9 +1,11 @@
 #pragma once
 
+#include "DebugConsole.h"
+#include "CommandMetadata.h"
+#include "CommandProxy.h"
+
 #include <vector>
 #include <string_view>
-
-#include "DebugConsole.h"
 
 class ScopedDebugCommands
 {
@@ -16,13 +18,15 @@ public:
     ScopedDebugCommands& operator=(ScopedDebugCommands&& rhs);
 
     template<typename Functor>
-    void add(std::string_view name, Functor&& functor)
+    void add(std::string_view name, CommandMetadata metadata, Functor&& functor)
     {
-        DebugConsole::instance().bindings().add(name, std::forward<Functor>(functor));
+        DebugConsole::instance().add(name, std::move(metadata), std::forward<Functor>(functor));
         m_names.push_back(name);
     }
 
-    coil::BindingProxy<ScopedDebugCommands> operator[](std::string_view name);
+    void remove(std::string_view name);
+
+    CommandProxy<ScopedDebugCommands> operator[](std::string_view name);
 
 private:
     void clear();

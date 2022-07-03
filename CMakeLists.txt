@@ -56,7 +56,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     coil
     GIT_REPOSITORY https://github.com/AntonShalgachev/coil
-    GIT_TAG        6a1fe7e82ce969d52146111dce58c7e73af73925 # Merge pull request #21 from AntonShalgachev/functor-metadata
+    GIT_TAG        14a6ac60b1ca68ecf21341b82642d971b4816567 # return pointer to the functors in Bindings::get
 )
 
 FetchContent_Declare(

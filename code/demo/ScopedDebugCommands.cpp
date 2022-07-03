@@ -22,14 +22,19 @@ ScopedDebugCommands& ScopedDebugCommands::operator=(ScopedDebugCommands&& rhs)
     return *this;
 }
 
-coil::BindingProxy<ScopedDebugCommands> ScopedDebugCommands::operator[](std::string_view name)
+void ScopedDebugCommands::remove(std::string_view name)
 {
-    return coil::BindingProxy<ScopedDebugCommands>{ *this, name };
+    DebugConsole::instance().remove(name);
+    m_names.erase(std::remove(m_names.begin(), m_names.end(), name), m_names.end());
+}
+
+CommandProxy<ScopedDebugCommands> ScopedDebugCommands::operator[](std::string_view name)
+{
+    return { *this, name };
 }
 
 void ScopedDebugCommands::clear()
 {
-    auto& bindings = DebugConsole::instance().bindings();
     for (auto const& name : m_names)
-        bindings.remove(name);
+        DebugConsole::instance().remove(name);
 }

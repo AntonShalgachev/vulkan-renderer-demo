@@ -12,6 +12,8 @@ set(ALL_FILES
     "CommandLine.cpp"
     "ScopedDebugCommands.h"
     "ScopedDebugCommands.cpp"
+    "CommandProxy.h"
+    "CommandMetadata.h"
 
     "ui/NotificationManager.h"
     "ui/NotificationManager.cpp"

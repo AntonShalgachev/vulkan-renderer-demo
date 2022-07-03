@@ -1,5 +1,8 @@
 #pragma once
 
+#include "CommandMetadata.h"
+#include "CommandProxy.h"
+
 #include "coil/Coil.h"
 #include "magic_enum.hpp"
 
@@ -59,6 +62,19 @@ namespace coil
             return typeid(T).name();
         }
     };
+
+    template<typename E>
+    struct TypeName<E, std::enable_if_t<std::is_enum_v<E>>>
+    {
+        static std::string_view name()
+        {
+            std::string_view typeName = magic_enum::enum_type_name<E>();
+            auto it = typeName.rfind("::");
+            if (it != std::string_view::npos)
+                typeName = typeName.substr(it + 2);
+            return typeName;
+        }
+    };
 }
 
 class DebugConsole
@@ -96,13 +112,27 @@ public:
     std::vector<Line> const& lines() { return m_lines; }
     std::vector<std::string> const& history() { return m_inputHistory; }
 
-    coil::Bindings& bindings() { return m_bindings; }
+    template<typename Functor>
+    void add(std::string_view name, CommandMetadata metadata, Functor&& functor)
+    {
+        // TODO fill additional metadata fields
+        m_bindings.add(name, std::forward<Functor>(functor));
+        m_metadata.insert_or_assign(name, std::move(metadata));
+    }
+
+    void remove(std::string_view name);
+
+    CommandProxy<DebugConsole> operator[](std::string_view name);
+
+    CommandMetadata const* getMetadata(std::string_view name) const;
 
 private:
+    void getCommandHelp(std::ostream& os, std::string_view name) const;
     void addLine(std::string text, Line::Type type);
 
 private:
     coil::Bindings m_bindings;
+    std::unordered_map<coil::BasicStringWrapper<std::string>, CommandMetadata> m_metadata;
 
     std::vector<Line> m_lines;
     std::vector<std::string> m_inputHistory;
