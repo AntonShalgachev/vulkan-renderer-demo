@@ -299,8 +299,8 @@ DemoApplication::DemoApplication()
     m_commands["camera.speed"] = coil::variable(&m_cameraSpeed);
     m_commands["camera.mouse_sensitivity"] = coil::variable(&m_mouseSensitivity);
 
-    m_commands["fps"].description("FPS widget") = ::toggle(&m_showFps);
-    m_commands["fps.update_period"].description("Update period of FPS widget") = coil::variable(&m_fpsUpdatePeriod);
+    m_commands["fps"].description("Show/hide the FPS widget") = ::toggle(&m_showFps);
+    m_commands["fps.update_period"].description("Update period of the FPS widget") = coil::variable(&m_fpsUpdatePeriod);
 
     m_keyState.resize(1 << 8 * sizeof(char), false);
 
@@ -323,10 +323,14 @@ DemoApplication::DemoApplication()
     loadImgui();
 
     m_commands["window.resize"].arguments("width", "height") = coil::bind(&vkr::Window::resize, m_window.get());
-    m_commands["window.width"] = coil::bind(&vkr::Window::getWidth, m_window.get());
-    m_commands["window.height"] = coil::bind(&vkr::Window::getHeight, m_window.get());
+    m_commands["window.width"] = coil::bindProperty(&vkr::Window::getWidth, m_window.get());
+    m_commands["window.height"] = coil::bindProperty(&vkr::Window::getHeight, m_window.get());
 
-    m_commands["scene.load"] = coil::bind(&DemoApplication::loadScene, this);
+    m_commands["scene.load"].description("Load scene from a GLTF model").arguments("path") = [this](coil::Context context, std::string_view path) {
+        std::string pathStr{ path };
+        if (!loadScene(pathStr))
+            context.reportError("Failed to load the scene '" + pathStr + "'");
+    };
     m_commands["scene.reload"] = [this]() { loadScene(GLTF_MODEL_PATH); };
     m_commands["scene.unload"] = coil::bind(&DemoApplication::clearScene, this);
 
@@ -557,7 +561,7 @@ void DemoApplication::clearScene()
     m_activeCameraObject = nullptr;
 }
 
-void DemoApplication::loadScene(std::string const& gltfPath)
+bool DemoApplication::loadScene(std::string const& gltfPath)
 {
     clearScene();
 
@@ -567,6 +571,9 @@ void DemoApplication::loadScene(std::string const& gltfPath)
     m_defaultSampler = std::make_shared<vkr::Sampler>(getApp());
 
     auto gltfModel = loadModel(gltfPath);
+
+    if (!gltfModel)
+        return false;
     
     m_gltfResources = std::make_unique<GltfVkResources>();
 
@@ -614,6 +621,8 @@ void DemoApplication::loadScene(std::string const& gltfPath)
     m_light = std::make_shared<vkr::Light>();
     m_light->getTransform().setLocalPos(LIGHT_POS);
     m_renderer->setLight(m_light);
+
+    return true;
 }
 
 void DemoApplication::updateUI(float frameTime, float fenceTime)

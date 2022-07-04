@@ -56,7 +56,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     coil
     GIT_REPOSITORY https://github.com/AntonShalgachev/coil
-    GIT_TAG        14a6ac60b1ca68ecf21341b82642d971b4816567 # return pointer to the functors in Bindings::get
+    GIT_TAG        adeb00534ec25a28c9bcbe0c1ee4f8095c865dfa # Merge branch 'master' into return-type-name
 )
 
 FetchContent_Declare(

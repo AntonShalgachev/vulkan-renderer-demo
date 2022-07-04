@@ -58,7 +58,7 @@ private:
     std::vector<std::shared_ptr<vkr::SceneObject>> createSceneObjectHierarchy(std::shared_ptr<tinygltf::Model> const& model);
 
     void clearScene();
-    void loadScene(std::string const& gltfPath);
+    bool loadScene(std::string const& gltfPath);
 
     void updateUI(float frameTime, float fenceTime);
     void drawFrame();

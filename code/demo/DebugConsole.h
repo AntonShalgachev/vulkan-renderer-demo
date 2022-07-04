@@ -88,6 +88,7 @@ public:
             ReturnValue,
             Output,
             Error,
+            CommandHelp,
         };
 
         std::string text;
@@ -109,6 +110,8 @@ public:
     std::optional<std::string_view> autoComplete(std::string_view input) const;
     void clear();
 
+	void getCommandHelp(std::ostream& os, std::string_view name) const;
+
     std::vector<Line> const& lines() { return m_lines; }
     std::vector<std::string> const& history() { return m_inputHistory; }
 
@@ -117,7 +120,13 @@ public:
     {
         // TODO fill additional metadata fields
         m_bindings.add(name, std::forward<Functor>(functor));
-        m_metadata.insert_or_assign(name, std::move(metadata));
+        auto [it, success] = m_metadata.insert_or_assign(name, std::move(metadata));
+        assert(success);
+
+        auto const* functors = m_bindings.get(name); // TODO get them from coil::Bindings::add
+        assert(functors);
+
+        fillCommandMetadata(it->second, *functors);
     }
 
     void remove(std::string_view name);
@@ -127,7 +136,7 @@ public:
     CommandMetadata const* getMetadata(std::string_view name) const;
 
 private:
-    void getCommandHelp(std::ostream& os, std::string_view name) const;
+    void fillCommandMetadata(CommandMetadata& metadata, std::vector<coil::AnyFunctor> const& functors);
     void addLine(std::string text, Line::Type type);
 
 private:

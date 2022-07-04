@@ -76,10 +76,8 @@ DebugConsole::DebugConsole()
 {
     auto& commands = *this;
 
-    commands["list"].description("Lists available commands") = [this](coil::Context context)
+    commands["list"].description("List available commands") = [this](coil::Context context)
     {
-        // TODO accept also wildcard
-
         std::size_t maxAllowedNameLength = 50;
 
         std::size_t maxNameLength = 0;
@@ -102,7 +100,7 @@ DebugConsole::DebugConsole()
         }
     };
 
-    commands["clear"].description("Clears the console") = coil::bind(&DebugConsole::clear, this);
+    commands["clear"].description("Clear the console") = coil::bind(&DebugConsole::clear, this);
 
     auto globalHelp = [](coil::Context context)
     {
@@ -118,7 +116,7 @@ DebugConsole::DebugConsole()
         getCommandHelp(context.log(), command);
     };
 
-    commands["help"].description("Prints global/command help").arguments({ {}, {"command_name"} }) = coil::overloaded(std::move(globalHelp), std::move(commandHelp));
+    commands["help"].description("Print global/command help").arguments({ {}, {"command_name"} }) = coil::overloaded(std::move(globalHelp), std::move(commandHelp));
 }
 
 void DebugConsole::execute(std::string_view command)
@@ -141,10 +139,11 @@ void DebugConsole::execute(std::string_view command)
 
         if (!result.errors.empty())
         {
+            addLine("  See command help:", Line::Type::CommandHelp);
             std::stringstream ss;
             getCommandHelp(ss, result.input.name);
             for (std::string line; std::getline(ss, line); )
-                addLine("  " + line, Line::Type::Output);
+                addLine("    " + line, Line::Type::CommandHelp);
         }
     }
 }
@@ -219,6 +218,31 @@ void DebugConsole::clear()
     m_lines.clear();
 }
 
+void DebugConsole::getCommandHelp(std::ostream& os, std::string_view name) const
+{
+	auto const* functors = m_bindings.get(name);
+	if (!functors)
+	{
+		os << "Command '" << name << "' doesn't exist" << std::endl;
+		return;
+	}
+
+	CommandMetadata const* metadata = getMetadata(name);
+
+	if (!metadata)
+		return;
+
+	if (!metadata->type.empty())
+		os << "Type: " << metadata->type << std::endl;
+
+	if (!metadata->description.empty())
+		os << "Description: " << metadata->description << std::endl;
+
+	os << "Usage:" << std::endl;
+	for (FunctorMetadata const& functor : metadata->functors)
+		os << "  " << functor.buildRepresentation(name) << std::endl;
+}
+
 void DebugConsole::remove(std::string_view name)
 {
     m_bindings.remove(name);
@@ -239,84 +263,48 @@ CommandMetadata const* DebugConsole::getMetadata(std::string_view name) const
     return nullptr;
 }
 
-void DebugConsole::getCommandHelp(std::ostream& os, std::string_view name) const
+void DebugConsole::fillCommandMetadata(CommandMetadata& metadata, std::vector<coil::AnyFunctor> const& functors)
 {
-    auto const* functors = m_bindings.get(name);
-    if (!functors)
+	if (metadata.functors.size() < functors.size())
+		metadata.functors.resize(functors.size());
+
+	for (std::size_t i = 0; i < functors.size(); i++)
+	{
+		coil::AnyFunctor const& functor = functors[i];
+		std::vector<std::string_view> const& functorArgTypes = functor.parameterTypes();
+		FunctorMetadata& functorMetadata = metadata.functors[i];
+
+		if (functorMetadata.arguments.size() < functorArgTypes.size())
+			functorMetadata.arguments.resize(functorArgTypes.size());
+
+		for (std::size_t j = 0; j < functorArgTypes.size(); j++)
+		{
+			ArgumentMetadata& argumentMetadata = functorMetadata.arguments[j];
+			argumentMetadata.type = functorArgTypes[j];
+		}
+
+		functorMetadata.returnType = functor.returnType();
+	}
+
+	metadata.type = "Function";
+    if (metadata.functors.size() == 2)
     {
-        os << "Command '" << name << "' doesn't exist" << std::endl;
-        return;
-    }
+        FunctorMetadata const* functor0 = &metadata.functors[0];
+        FunctorMetadata const* functor1 = &metadata.functors[1];
 
-    CommandMetadata const* metadata = getMetadata(name);
+        if (functor0->arguments.size() > functor1->arguments.size())
+            std::swap(functor0, functor1);
 
-    if (metadata && !metadata->description.empty())
-        os << "Description: " << metadata->description << std::endl;
+        std::string_view ret0 = functor0->returnType;
+        std::string_view ret1 = functor1->returnType;
+        auto const& args0 = functor0->arguments;
+        auto const& args1 = functor1->arguments;
 
-    bool isVariable = false;
-    std::string_view variableType;
-
-    // TODO fix this fragile logic
-    if (functors->size() == 2)
-    {
-        auto const& types0 = (*functors)[0].parameterTypes();
-        auto const& types1 = (*functors)[1].parameterTypes();
-
-        if (types0.size() == 0 && types1.size() == 1)
+        if (args0.size() == 0 && args1.size() == 1 && ret0 == args1[0].type && ret1 == args1[0].type)
         {
-            isVariable = true;
-            variableType = types1[0];
-        }
-        if (types0.size() == 1 && types1.size() == 0)
-        {
-            isVariable = true;
-            variableType = types0[0];
-        }
-    }
-
-    if (isVariable)
-    {
-        os << "Type: Variable (" << variableType << ")" << std::endl;
-    }
-    else
-    {
-        os << "Type: Command";
-
-        if (functors->size() != 1 || !functors->front().parameterTypes().empty())
-        {
-            os << " (";
-
-            std::string_view functorSeparator = "";
-            for (std::size_t i = 0; i < functors->size(); i++)
-            {
-                auto const& functor = (*functors)[i];
-                os << functorSeparator << '[';
-                std::string_view typeSeparator = "";
-                auto const& types = functor.parameterTypes();
-                for (std::size_t j = 0; j < types.size(); j++)
-                {
-                    std::string_view type = types[j];
-                    std::string_view name;
-                    if (metadata)
-                    {
-                        auto const& names = metadata->positionalParameterNames;
-                        if (names.size() > i && names[i].size() > j)
-                            name = names[i][j];
-                    }
-                    os << typeSeparator << type;
-                    if (!name.empty())
-                        os << " " << name;
-                    typeSeparator = ", ";
-                }
-                os << ']';
-                functorSeparator = ", ";
-            }
-
-            os << ")";
-        }
-
-        os << std::endl;
-    }
+            metadata.type = "Variable (" + functor1->returnType + ")";
+		}
+	}
 }
 
 void DebugConsole::addLine(std::string text, Line::Type type)

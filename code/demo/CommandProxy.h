@@ -34,7 +34,24 @@ public:
 
     CommandProxy&& arguments(std::vector<std::vector<std::string>> names)&&
     {
-        m_metadata.positionalParameterNames = std::move(names);
+        if (m_metadata.functors.size() < names.size())
+            m_metadata.functors.resize(names.size());
+
+        for (std::size_t i = 0; i < names.size(); i++)
+        {
+            std::vector<std::string> const& functorArgNames = names[i];
+            FunctorMetadata& functorMetadata = m_metadata.functors[i];
+
+            if (functorMetadata.arguments.size() < functorArgNames.size())
+                functorMetadata.arguments.resize(functorArgNames.size());
+
+            for (std::size_t j = 0; j < functorArgNames.size(); j++)
+            {
+                ArgumentMetadata& argumentMetadata = functorMetadata.arguments[j];
+                argumentMetadata.name = functorArgNames[j];
+            }
+        }
+
         return std::move(*this);
     }
 

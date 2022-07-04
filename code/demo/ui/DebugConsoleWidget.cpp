@@ -36,6 +36,8 @@ namespace
             return IM_COL32(255, 255, 255, 255);
         case DebugConsole::Line::Type::Error:
             return IM_COL32(255, 0, 0, 255);
+		case DebugConsole::Line::Type::CommandHelp:
+			return IM_COL32(255, 127, 0, 255);
         }
 
         return IM_COL32(255, 255, 255, 255);
@@ -43,6 +45,7 @@ namespace
 
     auto selectedSuggestionColor = IM_COL32(255, 255, 0, 255);
     auto suggestionDescriptionColor = IM_COL32(127, 127, 127, 255);
+    auto commandHelpColor = IM_COL32(127, 127, 127, 255);
 }
 
 ui::DebugConsoleWidget::DebugConsoleWidget()
@@ -64,7 +67,12 @@ void ui::DebugConsoleWidget::draw()
 
     drawOutput();
     drawInput();
-    drawSuggestions();
+
+	auto name = getInputCommandName();
+    if (!name.empty() && DebugConsole::instance().getMetadata(name))
+        drawCommandHelp(name);
+    else
+        drawSuggestions();
 
     ImGui::End();
 }
@@ -187,6 +195,17 @@ void ui::DebugConsoleWidget::drawSuggestions()
         ImGui::Text("  ...");
 }
 
+void ui::DebugConsoleWidget::drawCommandHelp(std::string_view name)
+{
+    std::stringstream ss;
+    DebugConsole::instance().getCommandHelp(ss, name);
+
+	ImGui::PushStyleColor(ImGuiCol_Text, commandHelpColor);
+	for (std::string line; std::getline(ss, line); )
+        ImGui::Text("  %s", line.c_str());
+	ImGui::PopStyleColor();
+}
+
 void ui::DebugConsoleWidget::onInputChanged(std::string_view input)
 {
     m_oldInput = {};
@@ -285,6 +304,16 @@ void ui::DebugConsoleWidget::updateSuggestionsWindow(std::size_t selectedIndex)
         m_suggestionsWindowEnd += delta;
         return;
     }
+}
+
+std::string_view ui::DebugConsoleWidget::getInputCommandName() const
+{
+	std::string_view input{ m_inputBuffer.data(), m_inputLength };
+	auto spacePos = input.find(' ');
+    if (spacePos == std::string_view::npos)
+        return {};
+
+    return input.substr(0, spacePos);
 }
 
 void ui::DebugConsoleWidget::clearInput()

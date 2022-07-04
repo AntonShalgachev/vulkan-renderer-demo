@@ -22,6 +22,7 @@ namespace ui
         void drawOutput();
         void drawInput();
         void drawSuggestions();
+        void drawCommandHelp(std::string_view name);
 
         void onInputChanged(std::string_view input);
         void onInputReplaced(std::string_view input);
@@ -33,6 +34,8 @@ namespace ui
         std::optional<std::size_t> getSuggestionIndex() const;
 
         void updateSuggestionsWindow(std::size_t selectedIndex);
+
+        std::string_view getInputCommandName() const;
 
         void clearInput();
 
