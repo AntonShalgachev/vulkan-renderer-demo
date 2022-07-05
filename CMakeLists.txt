@@ -56,7 +56,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     coil
     GIT_REPOSITORY https://github.com/AntonShalgachev/coil
-    GIT_TAG        adeb00534ec25a28c9bcbe0c1ee4f8095c865dfa # Merge branch 'master' into return-type-name
+    GIT_TAG        7f61efe40570e6e67863a823f4864c51a5055466 # Merge pull request #25 from AntonShalgachev/lexer-interface
 )
 
 FetchContent_Declare(

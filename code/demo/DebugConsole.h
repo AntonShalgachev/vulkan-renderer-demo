@@ -118,15 +118,10 @@ public:
     template<typename Functor>
     void add(std::string_view name, CommandMetadata metadata, Functor&& functor)
     {
-        // TODO fill additional metadata fields
-        m_bindings.add(name, std::forward<Functor>(functor));
-        auto [it, success] = m_metadata.insert_or_assign(name, std::move(metadata));
-        assert(success);
+        coil::Bindings::Command const& command = m_bindings.add(name, std::forward<Functor>(functor));
+        auto it = m_metadata.insert_or_assign(name, std::move(metadata)).first;
 
-        auto const* functors = m_bindings.get(name); // TODO get them from coil::Bindings::add
-        assert(functors);
-
-        fillCommandMetadata(it->second, *functors);
+        fillCommandMetadata(it->second, command.functors);
     }
 
     void remove(std::string_view name);
