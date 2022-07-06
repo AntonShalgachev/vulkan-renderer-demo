@@ -66,6 +66,22 @@ namespace
     };
 }
 
+namespace coil
+{
+	COIL_CREATE_TYPE_NAME_DEFINITION(void, "void");
+    COIL_CREATE_TYPE_NAME_DEFINITION(std::int8_t, "int8");
+    COIL_CREATE_TYPE_NAME_DEFINITION(std::uint8_t, "uint8");
+    COIL_CREATE_TYPE_NAME_DEFINITION(std::int16_t, "int16");
+    COIL_CREATE_TYPE_NAME_DEFINITION(std::uint16_t, "uint16");
+    COIL_CREATE_TYPE_NAME_DEFINITION(std::int32_t, "int32");
+    COIL_CREATE_TYPE_NAME_DEFINITION(std::uint32_t, "uint32");
+    COIL_CREATE_TYPE_NAME_DEFINITION(std::int64_t, "int64");
+    COIL_CREATE_TYPE_NAME_DEFINITION(std::uint64_t, "uint64");
+	COIL_CREATE_TYPE_NAME_DEFINITION(float, "float");
+	COIL_CREATE_TYPE_NAME_DEFINITION(std::string, "std::string");
+	COIL_CREATE_TYPE_NAME_DEFINITION(std::string_view, "std::string_view");
+}
+
 DebugConsole& DebugConsole::instance()
 {
     static DebugConsole console;

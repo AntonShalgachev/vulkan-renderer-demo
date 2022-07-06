@@ -50,7 +50,7 @@ FetchContent_Declare(
 
 FetchContent_Declare(
     coil
-    URL https://github.com/AntonShalgachev/coil/archive/7f61efe40570e6e67863a823f4864c51a5055466.zip # Merge pull request #25 from AntonShalgachev/lexer-interface
+    URL https://github.com/AntonShalgachev/coil/archive/8dc61f58d3a1084257c46b0fd2920c00b8763d65.zip # remove a resolved TODO comment
 )
 
 FetchContent_Declare(
@@ -83,6 +83,8 @@ set(TINYGLTF_BUILD_VALIDATOR_EXAMPLE OFF CACHE INTERNAL "")
 set(TINYGLTF_BUILD_BUILDER_EXAMPLE OFF CACHE INTERNAL "")
 set(TINYGLTF_HEADER_ONLY OFF CACHE INTERNAL "")
 set(TINYGLTF_INSTALL OFF CACHE INTERNAL "")
+
+set(COIL_BASIC_TYPENAME OFF CACHE INTERNAL "")
 
 message(STATUS "Fetching glfw...")
 FetchContent_MakeAvailable(glfw)
