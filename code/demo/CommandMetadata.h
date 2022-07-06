@@ -19,7 +19,7 @@ struct FunctorMetadata
     {
 		std::stringstream ss;
 
-		if (!returnType.empty() && returnType != "void")
+		if (returnType != "void")
 			ss << '[' << returnType << "] ";
 
 		ss << name;
