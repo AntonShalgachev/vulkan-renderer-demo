@@ -25,56 +25,47 @@ include(FetchContent)
 
 FetchContent_Declare(
     glfw
-    GIT_REPOSITORY https://github.com/glfw/glfw
-    GIT_TAG        7d5a16ce714f0b5f4efa3262de22e4d948851525 # 3.3.6
+    URL https://github.com/glfw/glfw/archive/refs/tags/3.3.7.tar.gz # 3.3.6
 )
 
 FetchContent_Declare(
     glm
-    GIT_REPOSITORY https://github.com/g-truc/glm
-    GIT_TAG        bf71a834948186f4097caa076cd2663c69a10e1e # 0.9.9.8
+    URL https://github.com/g-truc/glm/archive/refs/tags/0.9.9.8.tar.gz # 0.9.9.8
 )
 
 FetchContent_Declare(
     imgui
-    GIT_REPOSITORY https://github.com/ocornut/imgui
-    GIT_TAG        c71a50deb5ddf1ea386b91e60fa2e4a26d080074 # 1.87
+    URL https://github.com/ocornut/imgui/archive/refs/tags/v1.88.tar.gz # 1.88
 )
 
 FetchContent_Declare(
     tinygltf
-    GIT_REPOSITORY https://github.com/syoyo/tinygltf
-    GIT_TAG        17e6e310ce3cd43d7895be3c0116908d1afa8a91 # Merge pull request #341 from mushrom/loopfix
+    URL https://github.com/syoyo/tinygltf/archive/3d4150419e8ad40dab89d6f4079382377b492310.zip # Merge pull request #362 from hschwane/master
 )
 
 FetchContent_Declare(
     magic_enum
-    GIT_REPOSITORY https://github.com/Neargye/magic_enum
-    GIT_TAG        3d1f6a5a2a3fbcba077e00ad0ccc2dd9fefc2ca7 # 0.7.3
+    URL https://github.com/Neargye/magic_enum/archive/refs/tags/v0.8.0.tar.gz # 0.8.0
 )
 
 FetchContent_Declare(
     coil
-    GIT_REPOSITORY https://github.com/AntonShalgachev/coil
-    GIT_TAG        7f61efe40570e6e67863a823f4864c51a5055466 # Merge pull request #25 from AntonShalgachev/lexer-interface
+    URL https://github.com/AntonShalgachev/coil/archive/7f61efe40570e6e67863a823f4864c51a5055466.zip # Merge pull request #25 from AntonShalgachev/lexer-interface
 )
 
 FetchContent_Declare(
     rapidfuzz
-    GIT_REPOSITORY https://github.com/maxbachmann/rapidfuzz-cpp
-    GIT_TAG        6642000b428b952de0fdf4d1f4be34e0b7b1eca3 # 1.0.1
+    URL https://github.com/maxbachmann/rapidfuzz-cpp/archive/refs/tags/v1.0.4.tar.gz # 1.0.4
 )
 
 FetchContent_Declare(
     argparse
-    GIT_REPOSITORY https://github.com/p-ranav/argparse
-    GIT_TAG        4af831ef724224f751a25aea43689b92969ae612 # 2.4
+    URL https://github.com/p-ranav/argparse/archive/refs/tags/v2.6.tar.gz # 2.6
 )
 
 FetchContent_Declare(
     spdlog
-    GIT_REPOSITORY https://github.com/gabime/spdlog
-    GIT_TAG        76fb40d95455f249bd70824ecfcae7a8f0930fa3 # 1.10.0
+    URL https://github.com/gabime/spdlog/archive/refs/tags/v1.10.0.tar.gz # 1.10.0
 )
 
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
