@@ -27,10 +27,15 @@ layout(location = 3) in vec3 inNormal;
 layout(location = 2) out vec3 fragNormal;
 #endif
 
-layout(location = 3) out vec3 viewVec;
-layout(location = 4) out vec3 lightVec;
+#ifdef HAS_TANGENT
+layout(location = 4) in vec3 inTangent;
+layout(location = 3) out vec3 fragTangent;
+#endif
 
-layout(location = 5) out vec4 objectColor;
+layout(location = 4) out vec3 viewVec;
+layout(location = 5) out vec3 lightVec;
+
+layout(location = 6) out vec4 objectColor;
 
 void main()
 {
@@ -45,6 +50,9 @@ void main()
 #endif
 #ifdef HAS_NORMAL
     fragNormal = (ubo.normal * vec4(inNormal, 0.0)).xyz;
+#endif
+#ifdef HAS_TANGENT
+    fragTangent = inTangent;
 #endif
 
     objectColor = ubo.objectColor;

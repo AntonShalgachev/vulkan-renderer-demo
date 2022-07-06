@@ -26,10 +26,14 @@ layout(location = 1) in vec2 fragTexCoord;
 layout(location = 2) in vec3 fragNormal;
 #endif
 
-layout(location = 3) in vec3 viewVec;
-layout(location = 4) in vec3 lightVec;
+#ifdef HAS_TANGENT
+layout(location = 3) in vec3 fragTangent;
+#endif
 
-layout(location = 5) in vec4 objectColor;
+layout(location = 4) in vec3 viewVec;
+layout(location = 5) in vec3 lightVec;
+
+layout(location = 6) in vec4 objectColor;
 
 layout(location = 0) out vec4 outColor;
 

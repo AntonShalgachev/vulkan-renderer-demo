@@ -13,7 +13,9 @@ namespace
         if (type == vkr::VertexLayout::AttributeType::Vec2 && componentType == vkr::VertexLayout::ComponentType::Float)
             return VK_FORMAT_R32G32_SFLOAT;
         if (type == vkr::VertexLayout::AttributeType::Vec3 && componentType == vkr::VertexLayout::ComponentType::Float)
-            return VK_FORMAT_R32G32B32_SFLOAT;
+			return VK_FORMAT_R32G32B32_SFLOAT;
+		if (type == vkr::VertexLayout::AttributeType::Vec4 && componentType == vkr::VertexLayout::ComponentType::Float)
+			return VK_FORMAT_R32G32B32A32_SFLOAT;
 
         throw std::runtime_error("unknown attribute");
     }

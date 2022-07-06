@@ -205,7 +205,7 @@ namespace
 
     std::size_t findAttributeLocation(std::string const& name)
     {
-        static std::vector<std::string> const attributeNames = { "POSITION", "COLOR_0", "TEXCOORD_0", "NORMAL" };
+        static std::vector<std::string> const attributeNames = { "POSITION", "COLOR_0", "TEXCOORD_0", "NORMAL", "TANGENT" };
 
         auto it = std::find(attributeNames.cbegin(), attributeNames.cend(), name);
 
