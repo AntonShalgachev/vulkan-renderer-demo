@@ -55,6 +55,7 @@ namespace
 
 //     const std::string GLTF_MODEL_PATH = "data/models/Duck/glTF/Duck.gltf";
     const std::string GLTF_MODEL_PATH = "data/models/GearboxAssy/glTF/GearboxAssy.gltf";
+//     const std::string GLTF_MODEL_PATH = "data/models/VertexColorTest/glTF/VertexColorTest.gltf";
 //     const std::string GLTF_MODEL_PATH = "data/models/ReciprocatingSaw/glTF/ReciprocatingSaw.gltf";
 
     const glm::vec3 LIGHT_POS = glm::vec3(0.0, 50.0f, 50.0f);
