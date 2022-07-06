@@ -1,0 +1,12 @@
+name: "Uber"
+
+options:
+  - HAS_VERTEX_COLOR
+  - HAS_TEX_COORD
+  - HAS_NORMAL
+  - HAS_TANGENT
+  - HAS_TEXTURE
+
+files:
+  - vertex: shader.vert
+  - fragment: shader.frag
