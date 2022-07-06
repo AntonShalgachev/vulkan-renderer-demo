@@ -1,6 +1,8 @@
 set(PROJECT_NAME demo)
 
 set(ALL_FILES
+    "pch.h"
+
     "main.cpp"
     
     "DemoApplication.h"
@@ -28,6 +30,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE "pch.h")
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 
