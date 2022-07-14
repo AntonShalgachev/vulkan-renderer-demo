@@ -143,7 +143,9 @@ void DebugConsole::execute(std::string_view command)
             continue;
 
         addLine("> " + std::string{ subcommand }, Line::Type::Input);
-        m_inputHistory.push_back(std::string{ subcommand });
+
+        if (m_inputHistory.empty() || m_inputHistory.back() != subcommand)
+            m_inputHistory.push_back(std::string{ subcommand });
 
         coil::ExecutionResult result = m_bindings.execute(subcommand);
         for (std::string const& error : result.errors)
