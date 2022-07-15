@@ -284,8 +284,6 @@ namespace
 
         layout.setBindings(std::move(bindings));
 
-        layout.setIndexType(vkr::VertexLayout::ComponentType::UnsignedShort);
-
         assert(bufferIndex >= 0 && bufferIndex < resources.buffers.size());
 
         vkr::BufferWithMemory& buffer = *resources.buffers[static_cast<std::size_t>(bufferIndex)];

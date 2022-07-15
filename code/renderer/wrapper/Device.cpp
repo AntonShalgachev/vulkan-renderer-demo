@@ -34,8 +34,13 @@ vkr::Device::Device(PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceC
     deviceFeatures.samplerAnisotropy = VK_TRUE;
     deviceFeatures.geometryShader = VK_TRUE;
 
+    VkPhysicalDeviceIndexTypeUint8FeaturesEXT indexTypeUint8Feature{};
+    indexTypeUint8Feature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_EXT;
+    indexTypeUint8Feature.indexTypeUint8 = true;
+
     VkDeviceCreateInfo deviceCreateInfo{};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    deviceCreateInfo.pNext = &indexTypeUint8Feature;
     deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
     deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
