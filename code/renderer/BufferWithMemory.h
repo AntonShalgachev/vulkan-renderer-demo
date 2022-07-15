@@ -3,6 +3,8 @@
 #include "wrapper/Buffer.h"
 #include "wrapper/DeviceMemory.h"
 
+#include <optional>
+
 namespace vkr
 {
     class Application;
@@ -11,12 +13,17 @@ namespace vkr
     {
     public:
         BufferWithMemory(Application const& app, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+        ~BufferWithMemory();
 
-        vkr::Buffer const& buffer() const { return m_buffer; }
-        vkr::DeviceMemory const& memory() const { return m_memory; }
+        BufferWithMemory(BufferWithMemory&& rhs) = default;
+        BufferWithMemory& operator=(BufferWithMemory&& rhs) = default;
+
+        vkr::Buffer const& buffer() const { return *m_buffer; }
+        vkr::DeviceMemory const& memory() const { return *m_memory; }
 
     private:
-        vkr::Buffer m_buffer;
-        vkr::DeviceMemory m_memory;
+        // TODO remove this nasty hack
+        std::optional<vkr::Buffer> m_buffer;
+        std::optional<vkr::DeviceMemory> m_memory;
     };
 }

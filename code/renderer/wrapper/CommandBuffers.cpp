@@ -17,7 +17,7 @@ vkr::CommandBuffers::CommandBuffers(Application const& app, CommandPool const& c
     commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(size);
 
     m_handles.resize(size);
-    vkAllocateCommandBuffers(getDevice().getHandle(), &commandBufferAllocateInfo, m_handles.data());
+    VKR_ASSERT(vkAllocateCommandBuffers(getDevice().getHandle(), &commandBufferAllocateInfo, m_handles.data()));
 }
 
 vkr::CommandBuffers::~CommandBuffers()

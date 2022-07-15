@@ -19,12 +19,12 @@ vkr::Fence::~Fence()
 
 void vkr::Fence::wait() const
 {
-    vkWaitForFences(getDevice().getHandle(), 1, &m_handle.get(), VK_TRUE, UINT64_MAX);
+    VKR_ASSERT(vkWaitForFences(getDevice().getHandle(), 1, &m_handle.get(), VK_TRUE, UINT64_MAX));
 }
 
 void vkr::Fence::reset() const
 {
-    vkResetFences(getDevice().getHandle(), 1, &m_handle.get());
+    VKR_ASSERT(vkResetFences(getDevice().getHandle(), 1, &m_handle.get()));
 }
 
 bool vkr::Fence::isSignaled() const

@@ -63,7 +63,7 @@ vkr::Device::Device(PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceC
 
 void vkr::Device::waitIdle() const
 {
-    vkDeviceWaitIdle(m_handle);
+    VKR_ASSERT(vkDeviceWaitIdle(m_handle));
 }
 
 vkr::Device::~Device()

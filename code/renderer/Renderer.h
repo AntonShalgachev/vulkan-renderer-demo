@@ -85,6 +85,7 @@ namespace vkr
         void recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources);
         std::unique_ptr<Pipeline> createPipeline(PipelineConfiguration const& configuration);
 
+        void destroySwapchain();
         void recreateSwapchain();
 
         void onSwapchainCreated();
@@ -100,7 +101,6 @@ namespace vkr
         std::vector<std::unique_ptr<vkr::Framebuffer>> m_swapchainFramebuffers;
         std::vector<std::unique_ptr<vkr::ImageView>> m_swapchainImageViews;
         std::unique_ptr<vkr::RenderPass> m_renderPass;
-        std::unique_ptr<vkr::PipelineLayout> m_pipelineLayout;
 
         std::unique_ptr<vkr::Image> m_depthImage;
         std::unique_ptr<vkr::DeviceMemory> m_depthImageMemory;
@@ -116,7 +116,10 @@ namespace vkr
         std::vector<std::unique_ptr<vkr::ObjectInstance>> m_sceneObjects;
         std::shared_ptr<Light> m_light;
 
-        std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayout;
+		std::unique_ptr<vkr::PipelineLayout> m_pipelineLayoutWithSampler;
+        std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayoutWithSampler;
+		std::unique_ptr<vkr::PipelineLayout> m_pipelineLayoutWithoutSampler;
+        std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayoutWithoutSampler;
 
         std::unordered_map<PipelineConfiguration, std::unique_ptr<Pipeline>> m_pipelines;
 

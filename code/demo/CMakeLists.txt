@@ -46,4 +46,5 @@ target_link_libraries(${PROJECT_NAME}
     rapidfuzz::rapidfuzz
     argparse::argparse
     spdlog::spdlog
+    nlohmann_json::nlohmann_json
 )

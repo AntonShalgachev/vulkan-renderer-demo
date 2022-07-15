@@ -4,9 +4,10 @@
 
 vkr::Mesh const* vkr::Mesh::ms_boundMesh = nullptr;
 
-vkr::Mesh::Mesh(Application const& app, Buffer const& buffer, VertexLayout layout)
+vkr::Mesh::Mesh(Application const& app, Buffer const& buffer, VertexLayout layout, Metadata metadata)
     : m_buffer(buffer)
     , m_vertexLayout(std::move(layout))
+    , m_metadata(std::move(metadata))
 {
 
 }

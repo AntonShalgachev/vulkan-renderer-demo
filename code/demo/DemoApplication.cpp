@@ -5,10 +5,13 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <filesystem>
+#include <fstream>
 
 #include "tiny_gltf.h"
 #include "glm.h"
 #include "magic_enum.hpp"
+#include "nlohmann/json.hpp"
 
 #pragma warning(push, 0)
 #include "imgui.h"
@@ -61,6 +64,16 @@ namespace
     const glm::vec3 LIGHT_POS = glm::vec3(0.0, 50.0f, 50.0f);
     const glm::vec3 CAMERA_POS = glm::vec3(0.0f, 0.0f, 4.0f);
     const glm::vec3 CAMERA_ANGLES = glm::vec3(0.0f, 0.0f, 0.0f);
+
+    struct ShaderConfiguration
+    {
+	public:
+		bool hasColor = false;
+		bool hasTexCoord = false;
+		bool hasNormal = false;
+		bool hasTangent = false;
+        bool hasTexture = false;
+    };
 
     glm::quat createRotation(glm::vec3 const& eulerDegrees)
     {
@@ -206,7 +219,7 @@ namespace
 
     std::size_t findAttributeLocation(std::string const& name)
     {
-        static std::vector<std::string> const attributeNames = { "POSITION", "COLOR_0", "TEXCOORD_0", "NORMAL", "TANGENT" };
+        static std::vector<std::string> const attributeNames = { "POSITION", "COLOR_0", "TEXCOORD_0", "NORMAL", "TANGENT" }; // TODO move to the shader metadata
 
         auto it = std::find(attributeNames.cbegin(), attributeNames.cend(), name);
 
@@ -219,6 +232,7 @@ namespace
     std::unique_ptr<vkr::Mesh> createMesh(vkr::Application const& app, std::shared_ptr<tinygltf::Model> const& model, tinygltf::Primitive const& primitive, GltfVkResources const& resources)
     {
         vkr::VertexLayout layout;
+        vkr::Mesh::Metadata metadata;
 
         int bufferIndex = 0;
 
@@ -243,10 +257,22 @@ namespace
 
             assert(bufferIndex == bufferView.buffer);
 
+            // TODO fix this hack
+            if (name == "COLOR_0")
+                metadata.hasColor = true;
+            if (name == "TEXCOORD_0")
+				metadata.hasTexCoord = true;
+			if (name == "NORMAL")
+				metadata.hasNormal = true;
+			if (name == "TANGENT")
+				metadata.hasTangent = true;
+
             std::size_t location = findAttributeLocation(name);
             vkr::VertexLayout::AttributeType attributeType = findAttributeType(accessor.type);
             vkr::VertexLayout::ComponentType componentType = findComponentType(accessor.componentType);
             std::size_t offset = accessor.byteOffset;
+
+			// TODO validate if attribute & component types match the attribute semantics
 
             std::size_t stride = bufferView.byteStride;
             if (stride == 0)
@@ -264,8 +290,57 @@ namespace
 
         vkr::BufferWithMemory& buffer = *resources.buffers[static_cast<std::size_t>(bufferIndex)];
 
-        // TODO Don't create a buffer for every mesh since they are shared
-        return std::make_unique<vkr::Mesh>(app, buffer.buffer(), std::move(layout));
+        return std::make_unique<vkr::Mesh>(app, buffer.buffer(), std::move(layout), std::move(metadata));
+    }
+
+    std::filesystem::path findShaderInPackage(std::filesystem::path packagePath, ShaderConfiguration const& configuration)
+    {
+        auto packageMetadataPath = packagePath / "package.json";
+
+        if (!std::filesystem::exists(packageMetadataPath))
+            throw std::runtime_error("Invalid package path");
+
+		nlohmann::json j;
+
+        {
+            std::ifstream ifs{ packageMetadataPath };
+            if (!ifs.is_open())
+                throw std::runtime_error("Failed to open shader package");
+            ifs >> j;
+        }
+
+        std::vector<std::string_view> availableOptions = j["options"];
+
+		std::unordered_map<std::string_view, std::string> desiredOptions;
+
+		auto addDesiredOption = [&availableOptions, &desiredOptions](std::string_view name, std::string value) {
+			auto it = std::find(availableOptions.begin(), availableOptions.end(), name);
+            if (it != availableOptions.end())
+			    desiredOptions[name] = std::move(value);
+		};
+
+        if (configuration.hasColor)
+            addDesiredOption("HAS_VERTEX_COLOR", "");
+        if (configuration.hasTexCoord)
+            addDesiredOption("HAS_TEX_COORD", "");
+        if (configuration.hasNormal)
+            addDesiredOption("HAS_NORMAL", "");
+        if (configuration.hasTangent)
+            addDesiredOption("HAS_TANGENT", "");
+        if (configuration.hasTexture)
+            addDesiredOption("HAS_TEXTURE", "");
+
+        auto const& variants = j["variants"];
+        auto it = std::find_if(variants.begin(), variants.end(), [&desiredOptions](auto const& variant) {
+            std::unordered_map<std::string_view, std::string> variantConfiguration = variant["configuration"];
+            return variantConfiguration == desiredOptions;
+        });
+
+        if (it == variants.end())
+            throw std::runtime_error("Failed to find a shader for the given configuration");
+
+        auto const& variant = *it;
+        return packagePath / std::string_view{ variant["path"] };
     }
 
     // TODO move somewhere
@@ -312,7 +387,13 @@ DemoApplication::DemoApplication()
 
     auto messageCallback = [](vkr::DebugMessage m)
     {
-        std::cout << m.text << std::endl;
+		if (m.level == vkr::DebugMessage::Level::Info)
+			spdlog::info(m.text);
+		if (m.level == vkr::DebugMessage::Level::Warning)
+			spdlog::warn(m.text);
+		if (m.level == vkr::DebugMessage::Level::Error)
+			spdlog::error(m.text);
+
         assert(m.level != vkr::DebugMessage::Level::Error);
     };
 
@@ -466,6 +547,8 @@ std::unique_ptr<vkr::SceneObject> DemoApplication::createSceneObject(std::shared
 
     if (node.mesh >= 0)
     {
+        ShaderConfiguration shaderConfiguration;
+
         std::size_t const meshIndex = static_cast<std::size_t>(node.mesh);
 
         std::size_t const primitiveIndex = 0;
@@ -473,7 +556,15 @@ std::unique_ptr<vkr::SceneObject> DemoApplication::createSceneObject(std::shared
         tinygltf::Mesh const& gltfMesh = model->meshes[meshIndex];
         tinygltf::Primitive const& gltfPrimitive = gltfMesh.primitives[primitiveIndex];
 
+        // TODO don't create mesh if it can be shared with other nodes
         auto mesh = createMesh(getApp(), model, gltfPrimitive, *m_gltfResources);
+
+        auto const& meshMetadata = mesh->getMetadata();
+        shaderConfiguration.hasColor = meshMetadata.hasColor;
+        shaderConfiguration.hasTexCoord = meshMetadata.hasTexCoord;
+        shaderConfiguration.hasNormal = meshMetadata.hasNormal;
+        shaderConfiguration.hasTangent = meshMetadata.hasTangent;
+
         object->setMesh(std::move(mesh));
 
         std::size_t const materialIndex = static_cast<std::size_t>(gltfPrimitive.material);
@@ -482,7 +573,6 @@ std::unique_ptr<vkr::SceneObject> DemoApplication::createSceneObject(std::shared
         tinygltf::PbrMetallicRoughness const& gltfRoughness = gltfMaterial.pbrMetallicRoughness;
 
         auto material = std::make_shared<vkr::Material>();
-        material->setShaderKey(m_defaultShaderKey);
         material->setColor(createColor(gltfRoughness.baseColorFactor));
 
         if (gltfRoughness.baseColorTexture.index >= 0)
@@ -493,7 +583,15 @@ std::unique_ptr<vkr::SceneObject> DemoApplication::createSceneObject(std::shared
             auto texture = std::make_shared<vkr::Texture>(getApp(), gltfImage);
             material->setTexture(texture);
             material->setSampler(m_defaultSampler);
+
+            shaderConfiguration.hasTexture = true;
         }
+
+		auto shaderKey = vkr::Shader::Key{}
+			.addStage(vkr::ShaderModule::Type::Vertex, findShaderInPackage("data/shaders/packaged/shader.vert", shaderConfiguration).generic_string())
+			.addStage(vkr::ShaderModule::Type::Fragment, findShaderInPackage("data/shaders/packaged/shader.frag", shaderConfiguration).generic_string());
+
+		material->setShaderKey(std::move(shaderKey));
 
         object->setMaterial(material);
     }
@@ -558,17 +656,17 @@ void DemoApplication::clearScene()
     getApp().getDevice().waitIdle();
 
     m_renderer->clearObjects();
+    m_light = nullptr;
     m_cameraObjects.clear();
     m_activeCameraObject = nullptr;
+    m_gltfResources = nullptr;
+    m_defaultSampler = nullptr;
 }
 
 bool DemoApplication::loadScene(std::string const& gltfPath)
 {
     clearScene();
 
-    m_defaultShaderKey = vkr::Shader::Key{}
-        .addStage(vkr::ShaderModule::Type::Vertex, "data/shaders/compiled/default.vert.spv")
-        .addStage(vkr::ShaderModule::Type::Fragment, "data/shaders/compiled/default.frag.spv");
     m_defaultSampler = std::make_shared<vkr::Sampler>(getApp());
 
     auto gltfModel = loadModel(gltfPath);

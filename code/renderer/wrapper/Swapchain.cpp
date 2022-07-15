@@ -114,11 +114,11 @@ vkr::Swapchain::~Swapchain()
 void vkr::Swapchain::retrieveImages()
 {
     uint32_t finalImageCount = 0;
-    vkGetSwapchainImagesKHR(getDevice().getHandle(), m_handle, &finalImageCount, nullptr);
+    VKR_ASSERT(vkGetSwapchainImagesKHR(getDevice().getHandle(), m_handle, &finalImageCount, nullptr));
 
     std::vector<VkImage> imageHandles;
     imageHandles.resize(finalImageCount);
-    vkGetSwapchainImagesKHR(getDevice().getHandle(), m_handle, &finalImageCount, imageHandles.data());
+    VKR_ASSERT(vkGetSwapchainImagesKHR(getDevice().getHandle(), m_handle, &finalImageCount, imageHandles.data()));
 
     m_images.reserve(finalImageCount);
     for (VkImage const& handle : imageHandles)

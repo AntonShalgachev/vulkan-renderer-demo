@@ -24,6 +24,7 @@ namespace vkr
 
         VkDevice getHandle() const { return m_handle; }
 
+		std::vector<Queue> const& getQueues() const { return m_queues; }
         Queue const& getGraphicsQueue() const { return *m_graphicsQueue; }
         Queue const& getPresentQueue() const { return *m_presentQueue; }
 

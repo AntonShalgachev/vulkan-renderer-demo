@@ -56,15 +56,20 @@ namespace
 vkr::Renderer::Renderer(Application const& app)
     : Object(app)
 {
-    // TODO define externally
-    m_descriptorSetLayout = std::make_unique<vkr::DescriptorSetLayout>(getApp());
-    m_pipelineLayout = std::make_unique<vkr::PipelineLayout>(getApp(), *m_descriptorSetLayout);
+    // TODO define externally and refactor
+    m_descriptorSetLayoutWithSampler = std::make_unique<vkr::DescriptorSetLayout>(getApp(), true);
+    m_pipelineLayoutWithSampler = std::make_unique<vkr::PipelineLayout>(getApp(), *m_descriptorSetLayoutWithSampler);
+    m_descriptorSetLayoutWithoutSampler = std::make_unique<vkr::DescriptorSetLayout>(getApp(), false);
+    m_pipelineLayoutWithoutSampler = std::make_unique<vkr::PipelineLayout>(getApp(), *m_descriptorSetLayoutWithoutSampler);
 
     createSwapchain();
     createSyncObjects();
 }
 
-vkr::Renderer::~Renderer() = default;
+vkr::Renderer::~Renderer()
+{
+    destroySwapchain(); // TODO hack: this ensures the right order
+}
 
 void vkr::Renderer::setWaitUntilWindowInForegroundCallback(std::function<void()> func)
 {
@@ -73,7 +78,12 @@ void vkr::Renderer::setWaitUntilWindowInForegroundCallback(std::function<void()>
 
 void vkr::Renderer::addObject(std::shared_ptr<SceneObject> const& object)
 {
-    m_sceneObjects.push_back(std::make_unique<vkr::ObjectInstance>(getApp(), object, *m_descriptorSetLayout, sizeof(UniformBufferObject)));
+    // TODO refactor SceneObjects
+    auto const& material = object->getMaterial();
+	auto hasSampler = material && material->getTexture() && material->getSampler();
+	auto const& descriptorSetLayout = hasSampler ? m_descriptorSetLayoutWithSampler : m_descriptorSetLayoutWithoutSampler;
+
+    m_sceneObjects.push_back(std::make_unique<vkr::ObjectInstance>(getApp(), object, *descriptorSetLayout, sizeof(UniformBufferObject)));
     m_sceneObjects.back()->onSwapchainCreated(*m_swapchain);
 }
 
@@ -130,7 +140,7 @@ void vkr::Renderer::draw()
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr;
 
-    vkQueuePresentKHR(getDevice().getPresentQueue().getHandle(), &presentInfo); // TODO move to the object
+    VKR_ASSERT(vkQueuePresentKHR(getDevice().getPresentQueue().getHandle(), &presentInfo)); // TODO move to the object
 
     if (aquireImageResult == VK_SUBOPTIMAL_KHR || m_framebufferResized)
     {
@@ -179,14 +189,7 @@ void vkr::Renderer::recreateSwapchain()
 
     getDevice().waitIdle();
 
-    m_swapchainFramebuffers.clear();
-    m_depthImageView = nullptr;
-    m_depthImage = nullptr;
-    m_depthImageMemory = nullptr;
-    m_swapchainImageViews.clear();
-    m_renderPass = nullptr;
-    m_swapchain = nullptr;
-
+    destroySwapchain();
     createSwapchain();
 }
 
@@ -279,8 +282,11 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
         if (!mesh || !material)
             continue;
 
+        auto hasSampler = material->getTexture() && material->getSampler();
+        auto const& pipelineLayout = hasSampler ? m_pipelineLayoutWithSampler : m_pipelineLayoutWithoutSampler;
+
         // TODO don't create heavy configuration for each object instance
-        vkr::PipelineConfiguration const configuration = { m_pipelineLayout.get(), m_renderPass.get(), m_swapchain->getExtent(), material->getShaderKey(), mesh->getVertexLayout().getDescriptions() };
+        vkr::PipelineConfiguration const configuration = { pipelineLayout.get(), m_renderPass.get(), m_swapchain->getExtent(), material->getShaderKey(), mesh->getVertexLayout().getDescriptions() };
 
         auto it = m_pipelines.find(configuration);
         if (it == m_pipelines.end())
@@ -290,7 +296,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
         mesh->bindBuffers(handle);
 
-        instance->bindDescriptorSet(handle, imageIndex, *m_pipelineLayout);
+        instance->bindDescriptorSet(handle, imageIndex, *pipelineLayout);
         vkCmdDrawIndexed(handle, static_cast<uint32_t>(mesh->getIndexCount()), 1, 0, 0, 0);
     }
 
@@ -309,6 +315,17 @@ std::unique_ptr<vkr::Pipeline> vkr::Renderer::createPipeline(PipelineConfigurati
     return std::make_unique<vkr::Pipeline>(getApp(), configuration);
 }
 
+void vkr::Renderer::destroySwapchain()
+{
+	m_swapchainFramebuffers.clear();
+	m_depthImageView = nullptr;
+	m_depthImage = nullptr;
+	m_depthImageMemory = nullptr;
+	m_swapchainImageViews.clear();
+	m_renderPass = nullptr;
+	m_swapchain = nullptr;
+}
+
 void vkr::Renderer::createSyncObjects()
 {
     for (auto i = 0; i < FRAME_RESOURCE_COUNT; i++)
@@ -322,5 +339,6 @@ vkr::Renderer::FrameResources::FrameResources(Application const& app)
     , commandPool(std::make_unique<CommandPool>(app))
     , commandBuffer(commandPool->createCommandBuffer())
 {
-
+    app.setDebugName(imageAvailableSemaphore.getHandle(), "ImageAvailableSemaphore");
+    app.setDebugName(renderFinishedSemaphore.getHandle(), "RenderFinishedSemaphore");
 }

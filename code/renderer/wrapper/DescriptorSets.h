@@ -31,7 +31,8 @@ namespace vkr
         std::size_t getSize() const;
 
     private:
-        vkr::DescriptorPool const& m_pool;
+        DescriptorPool const& m_pool;
+        DescriptorSetLayout const& m_layout;
         std::vector<VkDescriptorSet> m_handles;
     };
 }

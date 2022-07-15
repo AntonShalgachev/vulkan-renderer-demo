@@ -54,7 +54,7 @@ namespace vkr
 
     void Image::bindMemory(DeviceMemory const& memory) const
     {
-        vkBindImageMemory(getDevice().getHandle(), m_handle, memory.getHandle(), 0);
+        VKR_ASSERT(vkBindImageMemory(getDevice().getHandle(), m_handle, memory.getHandle(), 0));
     }
 
     std::unique_ptr<vkr::ImageView> Image::createImageView(VkImageAspectFlags aspectFlags)

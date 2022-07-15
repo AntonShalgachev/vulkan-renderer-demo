@@ -68,6 +68,11 @@ FetchContent_Declare(
     URL https://github.com/gabime/spdlog/archive/refs/tags/v1.10.0.tar.gz # 1.10.0
 )
 
+FetchContent_Declare(
+    json
+    URL https://github.com/nlohmann/json/archive/refs/tags/v3.10.5.tar.gz # 3.10.5
+)
+
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
 set(BUILD_STATIC_LIBS ON CACHE INTERNAL "")
 
@@ -121,6 +126,10 @@ message(STATUS "argparse directory: ${argparse_SOURCE_DIR}")
 message(STATUS "Fetching spdlog...")
 FetchContent_MakeAvailable(spdlog)
 message(STATUS "spdlog directory: ${spdlog_SOURCE_DIR}")
+
+message(STATUS "Fetching json...")
+FetchContent_MakeAvailable(json)
+message(STATUS "json directory: ${json_SOURCE_DIR}")
 ############################### ############ ###############################
 
 add_subdirectory(code/imgui)

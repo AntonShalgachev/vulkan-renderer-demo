@@ -121,7 +121,13 @@ vkr::Texture::Texture(Application const& app, std::string const& path) : Object(
     stbi_image_free(pixels);
 }
 
-vkr::Texture::~Texture() = default;
+vkr::Texture::~Texture()
+{
+    // TODO remove this hack (this ensures the objects are destroyed in the right order)
+    m_imageView = nullptr;
+    m_image = nullptr;
+    m_memory = nullptr;
+}
 
 vkr::Texture::Texture(Application const& app, tinygltf::Image const& image) : Object(app)
 {

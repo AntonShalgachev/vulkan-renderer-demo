@@ -11,6 +11,7 @@
 vkr::DescriptorSets::DescriptorSets(Application const& app, DescriptorPool const& pool, DescriptorSetLayout const& layout)
     : Object(app)
     , m_pool(pool)
+    , m_layout(layout)
 {
     std::vector<VkDescriptorSetLayout> layouts(pool.getSize(), layout.getHandle());
 
@@ -57,6 +58,10 @@ void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer,
         descriptorWrite.descriptorCount = 1;
         descriptorWrite.pBufferInfo = &bufferInfo;
     }
+
+    bool hasSampler = texture && sampler;
+    if (hasSampler != m_layout.hasSampler())
+        throw std::runtime_error("Invalid descriptor set layout");
 
     if (texture && sampler)
     {

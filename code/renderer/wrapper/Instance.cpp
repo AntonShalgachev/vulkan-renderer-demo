@@ -11,9 +11,9 @@ namespace
     std::vector<VkLayerProperties> getAvailableLayers()
     {
         uint32_t count = 0;
-        vkEnumerateInstanceLayerProperties(&count, nullptr);
+        VKR_ASSERT(vkEnumerateInstanceLayerProperties(&count, nullptr));
         std::vector<VkLayerProperties> availableLayers(count);
-        vkEnumerateInstanceLayerProperties(&count, availableLayers.data());
+        VKR_ASSERT(vkEnumerateInstanceLayerProperties(&count, availableLayers.data()));
 
         return availableLayers;
     }
@@ -21,9 +21,9 @@ namespace
     std::vector<VkExtensionProperties> getAvailableExtensions()
     {
         uint32_t count = 0;
-        vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr);
+        VKR_ASSERT(vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr));
         std::vector<VkExtensionProperties> availableExtensions(count);
-        vkEnumerateInstanceExtensionProperties(nullptr, &count, availableExtensions.data());
+        VKR_ASSERT(vkEnumerateInstanceExtensionProperties(nullptr, &count, availableExtensions.data()));
 
         return availableExtensions;
     }
@@ -86,12 +86,12 @@ void vkr::Instance::createInstance(std::string const& appName, std::vector<char 
 std::vector<vkr::PhysicalDeviceSurfaceContainer> vkr::Instance::findPhysicalDevices(Surface const& surface)
 {
     uint32_t count = 0;
-    vkEnumeratePhysicalDevices(m_handle, &count, nullptr);
+    VKR_ASSERT(vkEnumeratePhysicalDevices(m_handle, &count, nullptr));
     if (count == 0)
         throw std::runtime_error("failed to find GPUs with Vulkan support!");
 
     std::vector<VkPhysicalDevice> physicalDeviceHandles(count);
-    vkEnumeratePhysicalDevices(m_handle, &count, physicalDeviceHandles.data());
+    VKR_ASSERT(vkEnumeratePhysicalDevices(m_handle, &count, physicalDeviceHandles.data()));
 
     std::vector<PhysicalDeviceSurfaceContainer> physicalDevices;
     physicalDevices.reserve(count);

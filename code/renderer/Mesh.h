@@ -10,10 +10,20 @@ namespace vkr
     class Mesh
     {
     public:
-        Mesh(Application const& app, Buffer const& buffer, VertexLayout layout);
+        struct Metadata
+        {
+            bool hasColor = false;
+            bool hasTexCoord = false;
+            bool hasNormal = false;
+            bool hasTangent = false;
+        };
+
+    public:
+        Mesh(Application const& app, Buffer const& buffer, VertexLayout layout, Metadata metadata);
         ~Mesh();
 
         VertexLayout const& getVertexLayout() const { return m_vertexLayout; }
+        Metadata const& getMetadata() const { return m_metadata; }
 
         void bindBuffers(VkCommandBuffer commandBuffer) const;
 
@@ -28,8 +38,9 @@ namespace vkr
     private:
         Buffer const& m_buffer;
         VertexLayout m_vertexLayout;
+        Metadata m_metadata;
 
     private:
-        static Mesh const* ms_boundMesh;
+        static Mesh const* ms_boundMesh; // TODO remove this hack
     };
 }

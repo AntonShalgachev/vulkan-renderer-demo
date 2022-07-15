@@ -24,7 +24,7 @@ vkr::CommandPool::CommandPool(Application const& app)
 void vkr::CommandPool::reset() const
 {
     VkCommandPoolResetFlags flags = 0;
-    vkResetCommandPool(getDevice().getHandle(), m_handle, flags);
+    VKR_ASSERT(vkResetCommandPool(getDevice().getHandle(), m_handle, flags));
 }
 
 vkr::CommandPool::~CommandPool()

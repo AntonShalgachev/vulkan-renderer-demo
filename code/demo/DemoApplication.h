@@ -88,8 +88,6 @@ private:
     // Resources
     std::shared_ptr<vkr::Sampler> m_defaultSampler;
 
-    vkr::Shader::Key m_defaultShaderKey;
-
     // Objects
     std::vector<std::shared_ptr<vkr::SceneObject>> m_cameraObjects;
     std::shared_ptr<vkr::Light> m_light;

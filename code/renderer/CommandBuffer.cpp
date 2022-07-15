@@ -20,7 +20,7 @@ VkCommandBuffer const& vkr::CommandBuffer::getHandle() const
 
 void vkr::CommandBuffer::reset() const
 {
-    vkResetCommandBuffer(getHandle(), 0);
+    VKR_ASSERT(vkResetCommandBuffer(getHandle(), 0));
 }
 
 void vkr::CommandBuffer::begin(bool oneTime) const
@@ -54,7 +54,7 @@ void vkr::CommandBuffer::submit(Queue const& queue, Semaphore const* signalSemap
     std::vector<VkSemaphore> signalSemaphores;
     if (signalSemaphore)
         signalSemaphores.push_back(signalSemaphore->getHandle());
-    submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());;
+    submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
     submitInfo.pSignalSemaphores = signalSemaphores.data();
 
     std::vector<VkSemaphore> waitSemaphores;
@@ -70,6 +70,6 @@ void vkr::CommandBuffer::submit(Queue const& queue, Semaphore const* signalSemap
 
     VkFence signalFenceHandle = signalFence ? signalFence->getHandle() : VK_NULL_HANDLE;
 
-    if (vkQueueSubmit(queue.getHandle(), 1, &submitInfo, signalFenceHandle) != VK_SUCCESS)
-        throw std::runtime_error("failed to submit draw command buffer!");
+    if (auto res = vkQueueSubmit(queue.getHandle(), 1, &submitInfo, signalFenceHandle); res != VK_SUCCESS)
+        throw std::runtime_error("failed to submit draw command buffer: " + std::to_string(res));
 }

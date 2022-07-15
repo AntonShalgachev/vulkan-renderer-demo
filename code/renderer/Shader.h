@@ -20,9 +20,9 @@ namespace vkr
 		public:
 			std::vector<ShaderModule::Key> const& getModuleKeys() const { return m_moduleKeys; }
 
-            Key& addStage(ShaderModule::Type type, std::string const& path, std::string entryPoint = "main")
+            Key& addStage(ShaderModule::Type type, std::string path, std::string entryPoint = "main")
             {
-                m_moduleKeys.push_back({ type, path, entryPoint });
+                m_moduleKeys.push_back({ type, std::move(path), std::move(entryPoint) });
                 return *this;
             }
 

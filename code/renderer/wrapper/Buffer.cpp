@@ -35,7 +35,7 @@ VkMemoryRequirements vkr::Buffer::getMemoryRequirements() const
 
 void vkr::Buffer::bindMemory(DeviceMemory const& memory) const
 {
-    vkBindBufferMemory(getDevice().getHandle(), m_handle, memory.getHandle(), 0);
+    VKR_ASSERT(vkBindBufferMemory(getDevice().getHandle(), m_handle, memory.getHandle(), 0));
 }
 
 void vkr::Buffer::copy(Buffer const& source, Buffer const& destination)

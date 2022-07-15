@@ -14,6 +14,9 @@ std::vector<VkPipelineShaderStageCreateInfo> vkr::Shader::createStageDescription
 vkr::Shader::Shader(Application const& app, Shader::Key const& key) : vkr::Object(app)
 {
     std::vector<ShaderModule::Key> const& moduleKeys = key.getModuleKeys();
+	if (moduleKeys.empty())
+		throw std::runtime_error("Shader key is empty!");
+
     m_shaderModules.reserve(moduleKeys.size());
 	for (ShaderModule::Key const& moduleKey : moduleKeys)
 		m_shaderModules.emplace_back(getApp(), moduleKey);

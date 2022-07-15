@@ -9,7 +9,7 @@ namespace
 {
     VkFormat findAttributeFormat(vkr::VertexLayout::AttributeType type, vkr::VertexLayout::ComponentType componentType)
     {
-        // TODO compe up with a more solid solution
+        // TODO come up with a more solid solution
         if (type == vkr::VertexLayout::AttributeType::Vec2 && componentType == vkr::VertexLayout::ComponentType::Float)
             return VK_FORMAT_R32G32_SFLOAT;
         if (type == vkr::VertexLayout::AttributeType::Vec3 && componentType == vkr::VertexLayout::ComponentType::Float)

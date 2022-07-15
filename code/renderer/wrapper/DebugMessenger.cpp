@@ -33,7 +33,6 @@ namespace
             message.text = callbackData->pMessage;
 
             self->onMessage(std::move(message));
-//             std::cerr << "validation layer: '" << callbackData->pMessageIdName << "': " << callbackData->pMessage << std::endl;
         }
 
         return VK_FALSE;
