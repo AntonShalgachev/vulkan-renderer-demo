@@ -81,14 +81,44 @@ namespace
         return glm::toQuat(glm::eulerAngleYXZ(radians.y, radians.x, radians.z));
     }
 
-    glm::mat4 createMatrix(std::vector<double> const& linearMatrix)
+    glm::mat4 createMatrix(tinygltf::Node const& node)
     {
-        if (linearMatrix.empty())
-            return glm::identity<glm::mat4>();
-        if (linearMatrix.size() == 16)
-            return glm::make_mat4(linearMatrix.data());
+        if (!node.matrix.empty() && node.matrix.size() != 16)
+            throw std::runtime_error("unexpected linear matrix size");
 
-        throw std::runtime_error("unexpected linear matrix size");
+        if (!node.scale.empty() && node.scale.size() != 3)
+            throw std::runtime_error("unexpected linear scale size");
+
+        if (!node.translation.empty() && node.translation.size() != 3)
+            throw std::runtime_error("unexpected linear translation size");
+
+        if (!node.rotation.empty() && node.rotation.size() != 4)
+            throw std::runtime_error("unexpected linear rotation size");
+
+        if (!node.matrix.empty())
+            return glm::make_mat4(node.matrix.data());
+
+        auto matrix = glm::identity<glm::mat4>();
+
+        if (!node.translation.empty())
+        {
+            glm::vec3 translation = glm::make_vec3(node.translation.data());
+            matrix = glm::translate(matrix, translation);
+        }
+
+        if (!node.rotation.empty())
+        {
+            glm::quat rotation = glm::make_quat(node.rotation.data());
+            matrix = matrix * glm::mat4_cast(rotation);
+        }
+
+        if (!node.scale.empty())
+        {
+            glm::vec3 scale = glm::make_vec3(node.scale.data());
+            matrix = glm::scale(matrix, scale);
+        }
+
+        return matrix;
     }
 
     glm::vec4 createColor(std::vector<double> const& flatColor)
@@ -541,7 +571,9 @@ std::unique_ptr<vkr::SceneObject> DemoApplication::createSceneObject(std::shared
 {
     std::unique_ptr<vkr::SceneObject> object = std::make_unique<vkr::SceneObject>();
 
-    object->getTransform().setLocalMatrix(createMatrix(node.matrix));
+    auto matrix = createMatrix(node);
+
+    object->getTransform().setLocalMatrix(std::move(matrix));
 
     if (node.mesh >= 0)
     {
