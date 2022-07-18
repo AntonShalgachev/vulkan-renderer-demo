@@ -13,17 +13,18 @@ namespace vkr
     class Sampler;
     class DescriptorSetLayout;
     class PipelineLayout;
-    class SceneObject;
+    class Drawable;
     class Swapchain;
     class DescriptorPool;
 
+    // TODO merge with Drawable
     class ObjectInstance : public Object
     {
     public:
-        ObjectInstance(Application const& app, std::shared_ptr<SceneObject> const& sceneObject, DescriptorSetLayout const& setLayout, VkDeviceSize uniformBufferSize);
+        ObjectInstance(Application const& app, std::shared_ptr<Drawable> const& drawable, DescriptorSetLayout const& setLayout, VkDeviceSize uniformBufferSize);
         ~ObjectInstance();
 
-        SceneObject const& getSceneObject() const { return *m_sceneObject; }
+        Drawable const& getDrawable() const { return *m_drawable; }
 
         std::unique_ptr<vkr::DescriptorSets> const& getDescriptorSets() const { return m_descriptorSets; }
 
@@ -33,7 +34,7 @@ namespace vkr
         void bindDescriptorSet(VkCommandBuffer commandBuffer, std::size_t imageIndex, PipelineLayout const& pipelineLayout) const;
 
     private:
-        std::shared_ptr<SceneObject> m_sceneObject;
+        std::shared_ptr<Drawable> m_drawable;
         DescriptorSetLayout const& m_setLayout;
         VkDeviceSize m_uniformBufferSize;
 

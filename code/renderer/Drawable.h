@@ -9,7 +9,7 @@ namespace vkr
     class Material;
     class Camera;
 
-    class SceneObject
+    class Drawable
     {
     public:
         void setMesh(std::shared_ptr<Mesh> const& mesh) { m_mesh = mesh; }

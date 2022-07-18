@@ -21,7 +21,7 @@
 #include "wrapper/ShaderModule.h"
 #include "Mesh.h"
 #include "ObjectInstance.h"
-#include "SceneObject.h"
+#include "Drawable.h"
 #include "wrapper/DescriptorSetLayout.h"
 #include "wrapper/Buffer.h"
 #include "Material.h"
@@ -76,7 +76,7 @@ void vkr::Renderer::setWaitUntilWindowInForegroundCallback(std::function<void()>
     m_waitUntilWindowInForeground = std::move(func);
 }
 
-void vkr::Renderer::addObject(std::shared_ptr<SceneObject> const& object)
+void vkr::Renderer::addObject(std::shared_ptr<Drawable> const& object)
 {
     // TODO refactor SceneObjects
     auto const& material = object->getMaterial();
@@ -197,14 +197,14 @@ void vkr::Renderer::updateUniformBuffer(uint32_t currentImage)
 {
     for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
     {
-        if (!instance->getSceneObject().isDrawable())
+        if (!instance->getDrawable().isDrawable())
             continue;
 
         std::shared_ptr<Camera> const& camera = m_activeCameraObject->getCamera();
         if (!camera)
 			continue;
 
-		SceneObject const& sceneObject = instance->getSceneObject();
+		Drawable const& sceneObject = instance->getDrawable();
 		std::shared_ptr<Material> const& material = sceneObject.getMaterial();
 		if (!material)
 			continue;
@@ -272,7 +272,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
     for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
     {
-        SceneObject const& sceneObject = instance->getSceneObject();
+        Drawable const& sceneObject = instance->getDrawable();
 
         std::shared_ptr<Mesh> const& mesh = sceneObject.getMesh();
         std::shared_ptr<Material> const& material = sceneObject.getMaterial();

@@ -32,7 +32,7 @@
 #include "Renderer.h"
 #include "wrapper/RenderPass.h" // imgui
 #include "wrapper/Sampler.h"
-#include "SceneObject.h"
+#include "Drawable.h"
 #include "ScopedOneTimeCommandBuffer.h" // imgui
 #include "wrapper/ShaderModule.h"
 #include "wrapper/Swapchain.h" // imgui
@@ -568,9 +568,9 @@ void DemoApplication::onMouseMove(glm::vec2 const& delta)
     cameraTransform.setLocalRotation(cameraTransform.getLocalRotation() * rotationDelta);
 }
 
-std::unique_ptr<vkr::SceneObject> DemoApplication::createSceneObject(std::shared_ptr<tinygltf::Model> const& model, tinygltf::Node const& node)
+std::unique_ptr<vkr::Drawable> DemoApplication::createSceneObject(std::shared_ptr<tinygltf::Model> const& model, tinygltf::Node const& node)
 {
-    std::unique_ptr<vkr::SceneObject> object = std::make_unique<vkr::SceneObject>();
+    std::unique_ptr<vkr::Drawable> object = std::make_unique<vkr::Drawable>();
 
     auto matrix = createMatrix(node);
 
@@ -618,11 +618,11 @@ std::unique_ptr<vkr::SceneObject> DemoApplication::createSceneObject(std::shared
             shaderConfiguration.hasTexture = true;
         }
 
-		auto shaderKey = vkr::Shader::Key{}
-			.addStage(vkr::ShaderModule::Type::Vertex, findShaderInPackage("data/shaders/packaged/shader.vert", shaderConfiguration).generic_string())
-			.addStage(vkr::ShaderModule::Type::Fragment, findShaderInPackage("data/shaders/packaged/shader.frag", shaderConfiguration).generic_string());
+        auto shaderKey = vkr::Shader::Key{}
+            .addStage(vkr::ShaderModule::Type::Vertex, findShaderInPackage("data/shaders/packaged/shader.vert", shaderConfiguration).generic_string())
+            .addStage(vkr::ShaderModule::Type::Fragment, findShaderInPackage("data/shaders/packaged/shader.frag", shaderConfiguration).generic_string());
 
-		material->setShaderKey(std::move(shaderKey));
+        material->setShaderKey(std::move(shaderKey));
 
         object->setMaterial(material);
     }
@@ -651,24 +651,24 @@ std::unique_ptr<vkr::SceneObject> DemoApplication::createSceneObject(std::shared
     return object;
 }
 
-std::shared_ptr<vkr::SceneObject> DemoApplication::createSceneObjectWithChildren(std::shared_ptr<tinygltf::Model> const& model, std::vector<std::shared_ptr<vkr::SceneObject>>& hierarchy, std::size_t nodeIndex)
+std::shared_ptr<vkr::Drawable> DemoApplication::createSceneObjectWithChildren(std::shared_ptr<tinygltf::Model> const& model, std::vector<std::shared_ptr<vkr::Drawable>>& hierarchy, std::size_t nodeIndex)
 {
     tinygltf::Node const& node = model->nodes[nodeIndex];
 
-    std::shared_ptr<vkr::SceneObject> parent = createSceneObject(model, node);
+    std::shared_ptr<vkr::Drawable> parent = createSceneObject(model, node);
     hierarchy.push_back(parent);
     for (auto childNodeIndex : node.children)
     {
-        std::shared_ptr<vkr::SceneObject> child = createSceneObjectWithChildren(model, hierarchy, static_cast<std::size_t>(childNodeIndex));
+        std::shared_ptr<vkr::Drawable> child = createSceneObjectWithChildren(model, hierarchy, static_cast<std::size_t>(childNodeIndex));
         parent->getTransform().addChild(child->getTransform());
     }
 
     return parent;
 }
 
-std::vector<std::shared_ptr<vkr::SceneObject>> DemoApplication::createSceneObjectHierarchy(std::shared_ptr<tinygltf::Model> const& model)
+std::vector<std::shared_ptr<vkr::Drawable>> DemoApplication::createSceneObjectHierarchy(std::shared_ptr<tinygltf::Model> const& model)
 {
-    std::vector<std::shared_ptr<vkr::SceneObject>> hierarchy;
+    std::vector<std::shared_ptr<vkr::Drawable>> hierarchy;
 
     std::size_t const sceneIndex = static_cast<std::size_t>(model->defaultScene);
     tinygltf::Scene const& scene = model->scenes[sceneIndex];
@@ -704,7 +704,7 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
 
     if (!gltfModel)
         return false;
-    
+
     m_gltfResources = std::make_unique<GltfVkResources>();
 
     for (auto const& buffer : gltfModel->buffers)
@@ -736,7 +736,7 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
 
     if (!m_activeCameraObject)
     {
-        auto cameraObject = std::make_shared<vkr::SceneObject>();
+        auto cameraObject = std::make_shared<vkr::Drawable>();
         cameraObject->setCamera(std::make_shared<vkr::Camera>());
 
         vkr::Transform& cameraTransform = cameraObject->getTransform();

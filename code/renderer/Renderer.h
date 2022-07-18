@@ -31,7 +31,7 @@ namespace vkr
     class DescriptorSetLayout;
     class Mesh;
     class ObjectInstance;
-    class SceneObject;
+    class Drawable;
     class CommandPool;
     class CommandBuffer;
     class VertexLayoutDescriptions;
@@ -48,11 +48,11 @@ namespace vkr
 
         void setWaitUntilWindowInForegroundCallback(std::function<void()> func);
 
-        void addObject(std::shared_ptr<SceneObject> const& object);
+        void addObject(std::shared_ptr<Drawable> const& object);
         void setLight(std::shared_ptr<Light> const& light) { m_light = light; }
         void clearObjects();
 
-        void setCamera(std::shared_ptr<SceneObject> const& cameraObject)
+        void setCamera(std::shared_ptr<Drawable> const& cameraObject)
         {
             m_activeCameraObject = cameraObject;
             updateCameraAspect();
@@ -95,7 +95,7 @@ namespace vkr
         void updateCameraAspect();
 
     private:
-        std::shared_ptr<SceneObject> m_activeCameraObject;
+        std::shared_ptr<Drawable> m_activeCameraObject;
 
         std::unique_ptr<vkr::Swapchain> m_swapchain;
         std::vector<std::unique_ptr<vkr::Framebuffer>> m_swapchainFramebuffers;
