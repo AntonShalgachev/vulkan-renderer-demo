@@ -582,7 +582,7 @@ std::unique_ptr<vkr::SceneObject> DemoApplication::createSceneObject(std::shared
 
         std::size_t const meshIndex = static_cast<std::size_t>(node.mesh);
 
-        std::size_t const primitiveIndex = 0;
+        std::size_t const primitiveIndex = 0; // TODO
 
         tinygltf::Mesh const& gltfMesh = model->meshes[meshIndex];
         tinygltf::Primitive const& gltfPrimitive = gltfMesh.primitives[primitiveIndex];
