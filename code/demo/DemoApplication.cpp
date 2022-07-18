@@ -569,11 +569,12 @@ void DemoApplication::onMouseMove(glm::vec2 const& delta)
     cameraTransform.setLocalRotation(cameraTransform.getLocalRotation() * rotationDelta);
 }
 
-std::unique_ptr<vkr::SceneObject> DemoApplication::createSceneObject(std::shared_ptr<tinygltf::Model> const& model, tinygltf::Node const& node)
+std::shared_ptr<vkr::SceneObject> DemoApplication::addSceneObjectsFromNode(std::shared_ptr<tinygltf::Model> const& model, tinygltf::Node const& node, Scene& scene)
 {
-    std::unique_ptr<vkr::SceneObject> object = std::make_unique<vkr::SceneObject>();
+    std::shared_ptr<vkr::SceneObject> object = std::make_shared<vkr::SceneObject>();
 
     object->getTransform().setLocalMatrix(createMatrix(node));
+    scene.objects.push_back(object);
 
     if (node.mesh >= 0)
     {
@@ -581,48 +582,52 @@ std::unique_ptr<vkr::SceneObject> DemoApplication::createSceneObject(std::shared
 
         std::size_t const meshIndex = static_cast<std::size_t>(node.mesh);
 
-        std::size_t const primitiveIndex = 0; // TODO
-
         tinygltf::Mesh const& gltfMesh = model->meshes[meshIndex];
-        tinygltf::Primitive const& gltfPrimitive = gltfMesh.primitives[primitiveIndex];
 
-        // TODO don't create mesh if it can be shared with other nodes
-        auto mesh = createMesh(getApp(), model, gltfPrimitive, *m_gltfResources);
-
-        auto const& meshMetadata = mesh->getMetadata();
-        shaderConfiguration.hasColor = meshMetadata.hasColor;
-        shaderConfiguration.hasTexCoord = meshMetadata.hasTexCoord;
-        shaderConfiguration.hasNormal = meshMetadata.hasNormal;
-        shaderConfiguration.hasTangent = meshMetadata.hasTangent;
-
-        std::size_t const materialIndex = static_cast<std::size_t>(gltfPrimitive.material);
-        tinygltf::Material const& gltfMaterial = model->materials[materialIndex];
-
-        tinygltf::PbrMetallicRoughness const& gltfRoughness = gltfMaterial.pbrMetallicRoughness;
-
-        auto material = std::make_shared<vkr::Material>();
-        material->setColor(createColor(gltfRoughness.baseColorFactor));
-
-        if (gltfRoughness.baseColorTexture.index >= 0)
+        for (tinygltf::Primitive const& gltfPrimitive : gltfMesh.primitives)
         {
-            // TODO don't create image here, it could be used by several meshes
-            std::size_t const imageIndex = static_cast<std::size_t>(gltfRoughness.baseColorTexture.index);
-            tinygltf::Image const& gltfImage = model->images[imageIndex];
-            auto texture = std::make_shared<vkr::Texture>(getApp(), gltfImage);
-            material->setTexture(texture);
-            material->setSampler(m_defaultSampler);
+            std::shared_ptr<vkr::SceneObject> subObject = std::make_shared<vkr::SceneObject>();
+            scene.objects.push_back(subObject);
+            object->getTransform().addChild(subObject->getTransform());
 
-            shaderConfiguration.hasTexture = true;
+            // TODO don't create mesh if it can be shared with other nodes
+            auto mesh = createMesh(getApp(), model, gltfPrimitive, *m_gltfResources);
+
+            auto const& meshMetadata = mesh->getMetadata();
+            shaderConfiguration.hasColor = meshMetadata.hasColor;
+            shaderConfiguration.hasTexCoord = meshMetadata.hasTexCoord;
+            shaderConfiguration.hasNormal = meshMetadata.hasNormal;
+            shaderConfiguration.hasTangent = meshMetadata.hasTangent;
+
+            std::size_t const materialIndex = static_cast<std::size_t>(gltfPrimitive.material);
+            tinygltf::Material const& gltfMaterial = model->materials[materialIndex];
+
+            tinygltf::PbrMetallicRoughness const& gltfRoughness = gltfMaterial.pbrMetallicRoughness;
+
+            auto material = std::make_shared<vkr::Material>();
+            material->setColor(createColor(gltfRoughness.baseColorFactor));
+
+            if (gltfRoughness.baseColorTexture.index >= 0)
+            {
+                // TODO don't create image here, it could be used by several meshes
+                std::size_t const imageIndex = static_cast<std::size_t>(gltfRoughness.baseColorTexture.index);
+                tinygltf::Image const& gltfImage = model->images[imageIndex];
+                auto texture = std::make_shared<vkr::Texture>(getApp(), gltfImage);
+                material->setTexture(texture);
+                material->setSampler(m_defaultSampler);
+
+                shaderConfiguration.hasTexture = true;
+            }
+
+            auto shaderKey = vkr::Shader::Key{}
+                .addStage(vkr::ShaderModule::Type::Vertex, findShaderInPackage("data/shaders/packaged/shader.vert", shaderConfiguration).generic_string())
+                .addStage(vkr::ShaderModule::Type::Fragment, findShaderInPackage("data/shaders/packaged/shader.frag", shaderConfiguration).generic_string());
+
+            material->setShaderKey(std::move(shaderKey));
+
+            auto drawable = std::make_unique<vkr::Drawable>(std::move(mesh), std::move(material));
+            subObject->setDrawable(std::move(drawable));
         }
-
-        auto shaderKey = vkr::Shader::Key{}
-            .addStage(vkr::ShaderModule::Type::Vertex, findShaderInPackage("data/shaders/packaged/shader.vert", shaderConfiguration).generic_string())
-            .addStage(vkr::ShaderModule::Type::Fragment, findShaderInPackage("data/shaders/packaged/shader.frag", shaderConfiguration).generic_string());
-
-        material->setShaderKey(std::move(shaderKey));
-
-        auto drawable = std::make_unique<vkr::Drawable>(std::move(mesh), std::move(material));
-        object->setDrawable(std::move(drawable));
     }
 
     if (node.camera >= 0)
@@ -649,34 +654,32 @@ std::unique_ptr<vkr::SceneObject> DemoApplication::createSceneObject(std::shared
     return object;
 }
 
-std::shared_ptr<vkr::SceneObject> DemoApplication::createSceneObjectWithChildren(std::shared_ptr<tinygltf::Model> const& model, std::vector<std::shared_ptr<vkr::SceneObject>>& hierarchy, std::size_t nodeIndex)
+std::shared_ptr<vkr::SceneObject> DemoApplication::createSceneObjectWithChildren(std::shared_ptr<tinygltf::Model> const& model, Scene& scene, std::size_t nodeIndex)
 {
     tinygltf::Node const& node = model->nodes[nodeIndex];
 
-    std::shared_ptr<vkr::SceneObject> parent = createSceneObject(model, node);
-    hierarchy.push_back(parent);
+    std::shared_ptr<vkr::SceneObject> parent = addSceneObjectsFromNode(model, node, scene);
+
     for (auto childNodeIndex : node.children)
     {
-        std::shared_ptr<vkr::SceneObject> child = createSceneObjectWithChildren(model, hierarchy, static_cast<std::size_t>(childNodeIndex));
+        std::shared_ptr<vkr::SceneObject> child = createSceneObjectWithChildren(model, scene, static_cast<std::size_t>(childNodeIndex));
         parent->getTransform().addChild(child->getTransform());
     }
 
     return parent;
 }
 
-std::vector<std::shared_ptr<vkr::SceneObject>> DemoApplication::createSceneObjectHierarchy(std::shared_ptr<tinygltf::Model> const& model)
+Scene DemoApplication::createSceneObjectHierarchy(std::shared_ptr<tinygltf::Model> const& model)
 {
-    std::vector<std::shared_ptr<vkr::SceneObject>> hierarchy;
+    Scene scene;
 
     std::size_t const sceneIndex = static_cast<std::size_t>(model->defaultScene);
-    tinygltf::Scene const& scene = model->scenes[sceneIndex];
-    for (std::size_t i = 0; i < scene.nodes.size(); i++)
-    {
-        std::size_t const nodeIndex = static_cast<std::size_t>(scene.nodes[i]);
-        createSceneObjectWithChildren(model, hierarchy, nodeIndex);
-    }
+    tinygltf::Scene const& gltfScene = model->scenes[sceneIndex];
 
-    return hierarchy;
+    for (std::size_t nodeIndex : gltfScene.nodes)
+        createSceneObjectWithChildren(model, scene, nodeIndex);
+
+    return scene;
 }
 
 void DemoApplication::clearScene()
@@ -719,7 +722,7 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
         m_gltfResources->buffers.push_back(std::make_unique<vkr::BufferWithMemory>(std::move(buffer)));
     }
 
-    m_sceneObjects = createSceneObjectHierarchy(gltfModel);
+    m_scene = createSceneObjectHierarchy(gltfModel);
 
 	auto defaultCameraObject = std::make_shared<vkr::SceneObject>();
 	{
@@ -729,9 +732,9 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
 		cameraTransform.setLocalPos(CAMERA_POS);
 		cameraTransform.setLocalRotation(createRotation(CAMERA_ANGLES));
 	}
-    m_sceneObjects.push_back(defaultCameraObject);
+    m_scene.objects.push_back(defaultCameraObject);
 
-    for (auto const& object : m_sceneObjects)
+    for (auto const& object : m_scene.objects)
     {
         if (object->getDrawable())
             m_renderer->addDrawable(*object);

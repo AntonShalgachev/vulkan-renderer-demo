@@ -35,6 +35,12 @@ struct GltfVkResources
     std::vector<std::unique_ptr<vkr::BufferWithMemory>> buffers;
 };
 
+// TODO move to a separate file
+struct Scene
+{
+	std::vector<std::shared_ptr<vkr::SceneObject>> objects;
+};
+
 class DemoApplication
 {
 public:
@@ -53,9 +59,9 @@ private:
     void onKey(vkr::Window::Action action, vkr::Window::Key key, char c, vkr::Window::Modifiers mods);
     void onMouseMove(glm::vec2 const& delta);
 
-    std::unique_ptr<vkr::SceneObject> createSceneObject(std::shared_ptr<tinygltf::Model> const& model, tinygltf::Node const& node);
-    std::shared_ptr<vkr::SceneObject> createSceneObjectWithChildren(std::shared_ptr<tinygltf::Model> const& model, std::vector<std::shared_ptr<vkr::SceneObject>>& hierarchy, std::size_t nodeIndex);
-    std::vector<std::shared_ptr<vkr::SceneObject>> createSceneObjectHierarchy(std::shared_ptr<tinygltf::Model> const& model);
+    std::shared_ptr<vkr::SceneObject> addSceneObjectsFromNode(std::shared_ptr<tinygltf::Model> const& model, tinygltf::Node const& node, Scene& scene);
+    std::shared_ptr<vkr::SceneObject> createSceneObjectWithChildren(std::shared_ptr<tinygltf::Model> const& model, Scene& scene, std::size_t nodeIndex);
+    Scene createSceneObjectHierarchy(std::shared_ptr<tinygltf::Model> const& model);
 
     void clearScene();
     bool loadScene(std::string const& gltfPath);
@@ -87,7 +93,7 @@ private:
     std::shared_ptr<vkr::Sampler> m_defaultSampler;
 
     // Objects
-	std::vector<std::shared_ptr<vkr::SceneObject>> m_sceneObjects;
+    Scene m_scene;
     std::shared_ptr<vkr::SceneObject> m_activeCameraObject;
     std::shared_ptr<vkr::Light> m_light;
 
