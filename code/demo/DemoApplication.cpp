@@ -5,13 +5,10 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
-#include <filesystem>
-#include <fstream>
 
 #include "tiny_gltf.h"
 #include "glm.h"
 #include "magic_enum.hpp"
-#include "nlohmann/json.hpp"
 
 #pragma warning(push, 0)
 #include "imgui.h"
@@ -44,6 +41,7 @@
 #include "CommandLine.h"
 #include "ScopedDebugCommands.h"
 #include "SceneObject.h"
+#include "ShaderPackage.h"
 
 namespace
 {
@@ -66,16 +64,6 @@ namespace
     const glm::vec3 LIGHT_POS = glm::vec3(0.0, 50.0f, 50.0f);
     const glm::vec3 CAMERA_POS = glm::vec3(0.0f, 0.0f, 4.0f);
     const glm::vec3 CAMERA_ANGLES = glm::vec3(0.0f, 0.0f, 0.0f);
-
-    struct ShaderConfiguration
-    {
-	public:
-		bool hasColor = false;
-		bool hasTexCoord = false;
-		bool hasNormal = false;
-		bool hasTangent = false;
-        bool hasTexture = false;
-    };
 
     glm::quat createRotation(glm::vec3 const& eulerDegrees)
     {
@@ -323,56 +311,6 @@ namespace
         return std::make_unique<vkr::Mesh>(app, buffer.buffer(), std::move(layout), std::move(metadata));
     }
 
-    std::filesystem::path findShaderInPackage(std::filesystem::path packagePath, ShaderConfiguration const& configuration)
-    {
-        auto packageMetadataPath = packagePath / "package.json";
-
-        if (!std::filesystem::exists(packageMetadataPath))
-            throw std::runtime_error("Invalid package path");
-
-		nlohmann::json j;
-
-        {
-            std::ifstream ifs{ packageMetadataPath };
-            if (!ifs.is_open())
-                throw std::runtime_error("Failed to open shader package");
-            ifs >> j;
-        }
-
-        std::vector<std::string_view> availableOptions = j["options"];
-
-		std::unordered_map<std::string_view, std::string> desiredOptions;
-
-		auto addDesiredOption = [&availableOptions, &desiredOptions](std::string_view name, std::string value) {
-			auto it = std::find(availableOptions.begin(), availableOptions.end(), name);
-            if (it != availableOptions.end())
-			    desiredOptions[name] = std::move(value);
-		};
-
-        if (configuration.hasColor)
-            addDesiredOption("HAS_VERTEX_COLOR", "");
-        if (configuration.hasTexCoord)
-            addDesiredOption("HAS_TEX_COORD", "");
-        if (configuration.hasNormal)
-            addDesiredOption("HAS_NORMAL", "");
-        if (configuration.hasTangent)
-            addDesiredOption("HAS_TANGENT", "");
-        if (configuration.hasTexture)
-            addDesiredOption("HAS_TEXTURE", "");
-
-        auto const& variants = j["variants"];
-        auto it = std::find_if(variants.begin(), variants.end(), [&desiredOptions](auto const& variant) {
-            std::unordered_map<std::string_view, std::string> variantConfiguration = variant["configuration"];
-            return variantConfiguration == desiredOptions;
-        });
-
-        if (it == variants.end())
-            throw std::runtime_error("Failed to find a shader for the given configuration");
-
-        auto const& variant = *it;
-        return packagePath / std::string_view{ variant["path"] };
-    }
-
     // TODO move somewhere
     auto toggle(bool* var)
     {
@@ -578,7 +516,7 @@ std::shared_ptr<vkr::SceneObject> DemoApplication::addSceneObjectsFromNode(std::
 
     if (node.mesh >= 0)
     {
-        ShaderConfiguration shaderConfiguration;
+        vkr::ShaderConfiguration shaderConfiguration;
 
         std::size_t const meshIndex = static_cast<std::size_t>(node.mesh);
 
@@ -619,9 +557,15 @@ std::shared_ptr<vkr::SceneObject> DemoApplication::addSceneObjectsFromNode(std::
                 shaderConfiguration.hasTexture = true;
             }
 
+            std::string const* vertexShaderPath = m_defaultVertexShader->get(shaderConfiguration);
+            std::string const* fragmentShaderPath = m_defaultFragmentShader->get(shaderConfiguration);
+
+            if (!vertexShaderPath || !fragmentShaderPath)
+                throw std::runtime_error("Failed to find the shader");
+
             auto shaderKey = vkr::Shader::Key{}
-                .addStage(vkr::ShaderModule::Type::Vertex, findShaderInPackage("data/shaders/packaged/shader.vert", shaderConfiguration).generic_string())
-                .addStage(vkr::ShaderModule::Type::Fragment, findShaderInPackage("data/shaders/packaged/shader.frag", shaderConfiguration).generic_string());
+                .addStage(vkr::ShaderModule::Type::Vertex, *vertexShaderPath)
+                .addStage(vkr::ShaderModule::Type::Fragment, *fragmentShaderPath);
 
             material->setShaderKey(std::move(shaderKey));
 
@@ -691,6 +635,8 @@ void DemoApplication::clearScene()
     m_light = nullptr;
     m_activeCameraObject = nullptr;
     m_gltfResources = nullptr;
+    m_defaultVertexShader = nullptr;
+    m_defaultFragmentShader = nullptr;
     m_defaultSampler = nullptr;
 }
 
@@ -699,6 +645,8 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
     clearScene();
 
     m_defaultSampler = std::make_shared<vkr::Sampler>(getApp());
+    m_defaultVertexShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.vert");
+    m_defaultFragmentShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.frag");
 
     auto gltfModel = loadModel(gltfPath);
 

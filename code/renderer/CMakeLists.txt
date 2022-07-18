@@ -95,6 +95,8 @@ set(ALL_FILES
     "ScopedOneTimeCommandBuffer.h"
     "Shader.cpp"
     "Shader.h"
+    "ShaderPackage.h"
+    "ShaderPackage.cpp"
     "Texture.cpp"
     "Texture.h"
     "Timer.cpp"
@@ -123,7 +125,7 @@ target_include_directories(${PROJECT_NAME}
     "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
 target_link_libraries(${PROJECT_NAME}
     imgui
@@ -131,4 +133,5 @@ target_link_libraries(${PROJECT_NAME}
     Vulkan::Vulkan
     glm::glm
     tinygltf
+    nlohmann_json::nlohmann_json
 )

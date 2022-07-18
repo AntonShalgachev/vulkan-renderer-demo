@@ -22,6 +22,7 @@ namespace vkr
     class SceneObject;
     class Light;
     class BufferWithMemory;
+    class ShaderPackage;
 }
 
 namespace tinygltf
@@ -91,6 +92,8 @@ private:
 
     // Resources
     std::shared_ptr<vkr::Sampler> m_defaultSampler;
+    std::unique_ptr<vkr::ShaderPackage> m_defaultVertexShader;
+    std::unique_ptr<vkr::ShaderPackage> m_defaultFragmentShader;
 
     // Objects
     Scene m_scene;
