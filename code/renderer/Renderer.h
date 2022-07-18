@@ -36,6 +36,7 @@ namespace vkr
     class CommandBuffer;
     class VertexLayoutDescriptions;
     class Framebuffer;
+    class SceneObject;
 
     class Renderer : Object
     {
@@ -48,11 +49,11 @@ namespace vkr
 
         void setWaitUntilWindowInForegroundCallback(std::function<void()> func);
 
-        void addObject(std::shared_ptr<Drawable> const& object);
+        void addDrawable(SceneObject const& drawableObject);
         void setLight(std::shared_ptr<Light> const& light) { m_light = light; }
         void clearObjects();
 
-        void setCamera(std::shared_ptr<Drawable> const& cameraObject)
+        void setCamera(std::shared_ptr<SceneObject> const& cameraObject)
         {
             m_activeCameraObject = cameraObject;
             updateCameraAspect();
@@ -95,7 +96,7 @@ namespace vkr
         void updateCameraAspect();
 
     private:
-        std::shared_ptr<Drawable> m_activeCameraObject;
+        std::shared_ptr<SceneObject> m_activeCameraObject;
 
         std::unique_ptr<vkr::Swapchain> m_swapchain;
         std::vector<std::unique_ptr<vkr::Framebuffer>> m_swapchainFramebuffers;
@@ -113,7 +114,7 @@ namespace vkr
 
         std::function<void()> m_waitUntilWindowInForeground;
 
-        std::vector<std::unique_ptr<vkr::ObjectInstance>> m_sceneObjects;
+        std::vector<std::unique_ptr<vkr::ObjectInstance>> m_drawableInstances;
         std::shared_ptr<Light> m_light;
 
 		std::unique_ptr<vkr::PipelineLayout> m_pipelineLayoutWithSampler;

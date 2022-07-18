@@ -29,6 +29,7 @@
 #include "QueueFamilyIndices.h"
 #include "wrapper/CommandPool.h"
 #include "CommandBuffer.h"
+#include "SceneObject.h"
 
 #pragma warning(push, 0)
 #include "backends/imgui_impl_vulkan.h"
@@ -76,20 +77,24 @@ void vkr::Renderer::setWaitUntilWindowInForegroundCallback(std::function<void()>
     m_waitUntilWindowInForeground = std::move(func);
 }
 
-void vkr::Renderer::addObject(std::shared_ptr<Drawable> const& object)
+void vkr::Renderer::addDrawable(SceneObject const& drawableObject)
 {
-    // TODO refactor SceneObjects
-    auto const& material = object->getMaterial();
-	auto hasSampler = material && material->getTexture() && material->getSampler();
+    Drawable const* drawable = drawableObject.getDrawable();
+
+    if (!drawable)
+        throw std::invalid_argument("drawableObject");
+
+	auto const& material = drawable->getMaterial();
+	auto hasSampler = material.getTexture() && material.getSampler();
 	auto const& descriptorSetLayout = hasSampler ? m_descriptorSetLayoutWithSampler : m_descriptorSetLayoutWithoutSampler;
 
-    m_sceneObjects.push_back(std::make_unique<vkr::ObjectInstance>(getApp(), object, *descriptorSetLayout, sizeof(UniformBufferObject)));
-    m_sceneObjects.back()->onSwapchainCreated(*m_swapchain);
+	m_drawableInstances.push_back(std::make_unique<vkr::ObjectInstance>(getApp(), drawable, drawableObject.getTransform(), *descriptorSetLayout, sizeof(UniformBufferObject)));
+	m_drawableInstances.back()->onSwapchainCreated(*m_swapchain);
 }
 
 void vkr::Renderer::clearObjects()
 {
-    m_sceneObjects.clear();
+    m_drawableInstances.clear();
 }
 
 void vkr::Renderer::onFramebufferResized()
@@ -195,29 +200,25 @@ void vkr::Renderer::recreateSwapchain()
 
 void vkr::Renderer::updateUniformBuffer(uint32_t currentImage)
 {
-    for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
+	Camera* camera = m_activeCameraObject->getCamera();
+	if (!camera)
+		return;
+
+	Transform const& cameraTransform = m_activeCameraObject->getTransform();
+
+    for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_drawableInstances)
     {
-        if (!instance->getDrawable().isDrawable())
-            continue;
-
-        std::shared_ptr<Camera> const& camera = m_activeCameraObject->getCamera();
-        if (!camera)
-			continue;
-
-		Drawable const& sceneObject = instance->getDrawable();
-		std::shared_ptr<Material> const& material = sceneObject.getMaterial();
-		if (!material)
-			continue;
-
-		Transform const& cameraTransform = m_activeCameraObject->getTransform();
+		Drawable const& drawable = instance->getDrawable();
+        Transform const& transform = instance->getTransform();
+        Material const& material = drawable.getMaterial();
 
         UniformBufferObject ubo{};
-        ubo.modelView = cameraTransform.getViewMatrix() * sceneObject.getTransform().getMatrix();
+        ubo.modelView = cameraTransform.getViewMatrix() * transform.getMatrix();
         ubo.normal = glm::transpose(glm::inverse(ubo.modelView));
         ubo.projection = camera->getProjectionMatrix();
         ubo.lightPosition = cameraTransform.getViewMatrix() * glm::vec4(m_light->getTransform().getLocalPos(), 1.0f);
         ubo.viewPosition = glm::vec3(0.0f, 0.0f, 0.0f); // TODO remove, always 0 in eye space
-        ubo.objectColor = material->getColor();
+        ubo.objectColor = material.getColor();
 
         instance->copyToUniformBuffer(currentImage, &ubo, sizeof(ubo));
     }
@@ -228,14 +229,14 @@ void vkr::Renderer::updateCameraAspect()
     if (!m_activeCameraObject)
         return;
 
-	if (std::shared_ptr<Camera> const& camera = m_activeCameraObject->getCamera())
+	if (auto const& camera = m_activeCameraObject->getCamera())
 		camera->setAspect(getAspect());
 }
 
 void vkr::Renderer::onSwapchainCreated()
 {
     // TODO only need to call it once if number of images didn't change
-    for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
+    for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_drawableInstances)
         instance->onSwapchainCreated(*m_swapchain);
 
     updateCameraAspect();
@@ -270,21 +271,18 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
     vkCmdBeginRenderPass(handle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_sceneObjects)
+    for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_drawableInstances)
     {
-        Drawable const& sceneObject = instance->getDrawable();
+        Drawable const& drawable = instance->getDrawable();
 
-        std::shared_ptr<Mesh> const& mesh = sceneObject.getMesh();
-        std::shared_ptr<Material> const& material = sceneObject.getMaterial();
+        Mesh const& mesh = drawable.getMesh();
+        Material const& material = drawable.getMaterial();
 
-        if (!mesh || !material)
-            continue;
-
-        auto hasSampler = material->getTexture() && material->getSampler();
+        auto hasSampler = material.getTexture() && material.getSampler();
         auto const& pipelineLayout = hasSampler ? m_pipelineLayoutWithSampler : m_pipelineLayoutWithoutSampler;
 
         // TODO don't create heavy configuration for each object instance
-        vkr::PipelineConfiguration const configuration = { pipelineLayout.get(), m_renderPass.get(), m_swapchain->getExtent(), material->getShaderKey(), mesh->getVertexLayout().getDescriptions() };
+        vkr::PipelineConfiguration const configuration = { pipelineLayout.get(), m_renderPass.get(), m_swapchain->getExtent(), material.getShaderKey(), mesh.getVertexLayout().getDescriptions() };
 
         auto it = m_pipelines.find(configuration);
         if (it == m_pipelines.end())
@@ -296,7 +294,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
 		instance->bindDescriptorSet(handle, imageIndex, *pipelineLayout);
 
-        mesh->draw(handle);
+        mesh.draw(handle);
     }
 
     // TODO abstract this away

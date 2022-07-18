@@ -12,9 +12,10 @@
 #include "wrapper/DescriptorPool.h"
 #include "BufferWithMemory.h"
 
-vkr::ObjectInstance::ObjectInstance(Application const& app, std::shared_ptr<Drawable> const& drawable, DescriptorSetLayout const& setLayout, VkDeviceSize uniformBufferSize)
+vkr::ObjectInstance::ObjectInstance(Application const& app, Drawable const* drawable, Transform const& transform, DescriptorSetLayout const& setLayout, VkDeviceSize uniformBufferSize)
     : Object(app)
     , m_drawable(drawable)
+    , m_transform(transform)
     , m_setLayout(setLayout)
     , m_uniformBufferSize(uniformBufferSize)
 {
@@ -35,10 +36,7 @@ void vkr::ObjectInstance::onSwapchainCreated(Swapchain const& swapchain)
     for (size_t i = 0; i < swapchainImageCount; i++)
         m_uniformBuffers.emplace_back(getApp(), m_uniformBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-    if (!m_drawable->isDrawable())
-        return;
-
-    Material const& material = *m_drawable->getMaterial();
+    Material const& material = m_drawable->getMaterial();
 
     m_descriptorPool = std::make_unique<vkr::DescriptorPool>(getApp(), swapchainImageCount);
     m_descriptorSets = std::make_unique<vkr::DescriptorSets>(getApp(), *m_descriptorPool, m_setLayout);
