@@ -71,15 +71,19 @@ namespace
         VkInstance instance = app.getInstance().getHandle();
         VkDevice device = app.getDevice().getHandle();
 
+        // TODO cache function pointer
 		auto pfnSetDebugUtilsObjectNameEXT = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(vkGetInstanceProcAddr(instance, "vkSetDebugUtilsObjectNameEXT"));
 
-        VkDebugUtilsObjectNameInfoEXT nameInfo{};
-        nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
-        nameInfo.objectType = type;
-        nameInfo.objectHandle = reinterpret_cast<uint64_t>(handle);
-        nameInfo.pObjectName = name;
+        if (pfnSetDebugUtilsObjectNameEXT)
+        {
+            VkDebugUtilsObjectNameInfoEXT nameInfo{};
+            nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+            nameInfo.objectType = type;
+            nameInfo.objectHandle = reinterpret_cast<uint64_t>(handle);
+            nameInfo.pObjectName = name;
 
-		VKR_ASSERT(pfnSetDebugUtilsObjectNameEXT(device, &nameInfo));
+            VKR_ASSERT(pfnSetDebugUtilsObjectNameEXT(device, &nameInfo));
+        }
     }
 }
 
