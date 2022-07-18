@@ -18,7 +18,7 @@ namespace vkr
         float nearZ() const { return m_nearZ; }
         float farZ() const { return m_farZ; }
 
-        glm::mat4 getProjectionMatrix() const;
+        glm::mat4 getProjectionMatrix() const; // TODO cache
 
     private:
         float m_fov = 45.0f;

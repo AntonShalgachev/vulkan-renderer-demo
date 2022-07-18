@@ -25,7 +25,7 @@ namespace vkr
         DescriptorSets& operator=(DescriptorSets const&) = delete;
         DescriptorSets& operator=(DescriptorSets&&) = delete;
 
-        void update(std::size_t index, Buffer const& uniformBuffer, std::shared_ptr<Texture> const& texture, std::shared_ptr<Sampler> const& sampler);
+        void update(std::size_t index, Buffer const& uniformBuffer, Texture const* texture, Sampler const* sampler);
 
         std::vector<VkDescriptorSet> const& getHandles() const { return m_handles; }
         std::size_t getSize() const;

@@ -31,7 +31,7 @@ vkr::DescriptorSets::~DescriptorSets()
     // no need to explicitly free descriptor sets
 }
 
-void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer, std::shared_ptr<Texture> const& texture, std::shared_ptr<Sampler> const& sampler)
+void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer, Texture const* texture, Sampler const* sampler)
 {
     VkDescriptorSet setHandle = m_handles[index];
 

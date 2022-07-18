@@ -12,8 +12,6 @@
 #include "wrapper/DescriptorPool.h"
 #include "BufferWithMemory.h"
 
-VkDescriptorSet vkr::ObjectInstance::ms_boundDescriptorSet = VK_NULL_HANDLE;
-
 vkr::ObjectInstance::ObjectInstance(Application const& app, std::shared_ptr<SceneObject> const& sceneObject, DescriptorSetLayout const& setLayout, VkDeviceSize uniformBufferSize)
     : Object(app)
     , m_sceneObject(sceneObject)
@@ -45,7 +43,7 @@ void vkr::ObjectInstance::onSwapchainCreated(Swapchain const& swapchain)
     m_descriptorPool = std::make_unique<vkr::DescriptorPool>(getApp(), swapchainImageCount);
     m_descriptorSets = std::make_unique<vkr::DescriptorSets>(getApp(), *m_descriptorPool, m_setLayout);
     for (size_t i = 0; i < m_descriptorSets->getSize(); i++)
-        m_descriptorSets->update(i, m_uniformBuffers[i].buffer(), material.getTexture(), material.getSampler());
+        m_descriptorSets->update(i, m_uniformBuffers[i].buffer(), material.getTexture().get(), material.getSampler().get());
 }
 
 void vkr::ObjectInstance::copyToUniformBuffer(std::size_t index, void const* sourcePointer, std::size_t sourceSize) const
@@ -56,9 +54,5 @@ void vkr::ObjectInstance::copyToUniformBuffer(std::size_t index, void const* sou
 void vkr::ObjectInstance::bindDescriptorSet(VkCommandBuffer commandBuffer, std::size_t imageIndex, PipelineLayout const& pipelineLayout) const
 {
     VkDescriptorSet handle = m_descriptorSets->getHandles()[imageIndex];
-    if (ms_boundDescriptorSet == handle)
-        return;
-
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout.getHandle(), 0, 1, &handle, 0, nullptr);
-    ms_boundDescriptorSet = handle;
 }

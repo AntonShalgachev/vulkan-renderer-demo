@@ -32,9 +32,6 @@ namespace vkr
         void copyToUniformBuffer(std::size_t index, void const* sourcePointer, std::size_t sourceSize) const;
         void bindDescriptorSet(VkCommandBuffer commandBuffer, std::size_t imageIndex, PipelineLayout const& pipelineLayout) const;
 
-    public:
-        static void resetBoundDescriptorSet() { ms_boundDescriptorSet = VK_NULL_HANDLE; }
-
     private:
         std::shared_ptr<SceneObject> m_sceneObject;
         DescriptorSetLayout const& m_setLayout;
@@ -45,8 +42,5 @@ namespace vkr
 
         std::unique_ptr<vkr::DescriptorPool> m_descriptorPool;
         std::unique_ptr<vkr::DescriptorSets> m_descriptorSets;
-
-    private:
-        static VkDescriptorSet ms_boundDescriptorSet;
     };
 }

@@ -244,7 +244,6 @@ void vkr::Renderer::onSwapchainCreated()
 void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources)
 {
      // TODO remove hacks
-    ObjectInstance::resetBoundDescriptorSet();
     Pipeline::resetBoundPipeline();
 
     frameResources.commandPool->reset();

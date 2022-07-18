@@ -23,7 +23,7 @@ namespace vkr
         std::shared_ptr<Material> const& getMaterial() const { return m_material; }
 		std::shared_ptr<Camera> const& getCamera() const { return m_camera; }
 
-        bool isDrawable() const { return m_mesh && m_material; }
+        bool isDrawable() const { return m_mesh && m_material; } // TODO remove
 
     private:
         Transform m_transform;
