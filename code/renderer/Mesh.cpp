@@ -2,8 +2,6 @@
 
 #include "wrapper/Buffer.h"
 
-vkr::Mesh const* vkr::Mesh::ms_boundMesh = nullptr;
-
 vkr::Mesh::Mesh(Application const& app, Buffer const& buffer, VertexLayout layout, Metadata metadata)
     : m_buffer(buffer)
     , m_vertexLayout(std::move(layout))
@@ -14,21 +12,17 @@ vkr::Mesh::Mesh(Application const& app, Buffer const& buffer, VertexLayout layou
 
 vkr::Mesh::~Mesh() = default;
 
-void vkr::Mesh::bindBuffers(VkCommandBuffer commandBuffer) const
+void vkr::Mesh::draw(VkCommandBuffer commandBuffer) const
 {
-    if (ms_boundMesh == this)
-        return;
+	auto const& bindingOffsets = m_vertexLayout.getBindingOffsets();
 
-    auto const& bindingOffsets = m_vertexLayout.getBindingOffsets();
+	VkBuffer bufferHandle = m_buffer.getHandle();
 
-    VkBuffer bufferHandle = m_buffer.getHandle();
+	std::vector<VkBuffer> vertexBuffers;
+	vertexBuffers.resize(bindingOffsets.size(), bufferHandle);
 
-    std::vector<VkBuffer> vertexBuffers;
-    vertexBuffers.resize(bindingOffsets.size(), bufferHandle);
+	vkCmdBindVertexBuffers(commandBuffer, 0, static_cast<uint32_t>(bindingOffsets.size()), vertexBuffers.data(), bindingOffsets.data());
+	vkCmdBindIndexBuffer(commandBuffer, bufferHandle, m_vertexLayout.getIndexDataOffset(), m_vertexLayout.getIndexType());
 
-    vkCmdBindVertexBuffers(commandBuffer, 0, static_cast<uint32_t>(bindingOffsets.size()), vertexBuffers.data(), m_vertexLayout.getBindingOffsets().data());
-
-    vkCmdBindIndexBuffer(commandBuffer, bufferHandle, m_vertexLayout.getIndexDataOffset(), m_vertexLayout.getIndexType());
-
-    ms_boundMesh = this;
+	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(m_vertexLayout.getIndexCount()), 1, 0, 0, 0);
 }

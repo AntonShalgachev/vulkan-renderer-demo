@@ -244,7 +244,6 @@ void vkr::Renderer::onSwapchainCreated()
 void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources)
 {
      // TODO remove hacks
-    Mesh::resetBoundMesh();
     ObjectInstance::resetBoundDescriptorSet();
     Pipeline::resetBoundPipeline();
 
@@ -292,12 +291,13 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
         if (it == m_pipelines.end())
             it = m_pipelines.emplace(configuration, createPipeline(configuration)).first;
 
-        it->second->bind(handle);
+        Pipeline const& pipeline = *it->second;
 
-        mesh->bindBuffers(handle);
+        pipeline.bind(handle);
 
-        instance->bindDescriptorSet(handle, imageIndex, *pipelineLayout);
-        vkCmdDrawIndexed(handle, static_cast<uint32_t>(mesh->getIndexCount()), 1, 0, 0, 0);
+		instance->bindDescriptorSet(handle, imageIndex, *pipelineLayout);
+
+        mesh->draw(handle);
     }
 
     // TODO abstract this away
