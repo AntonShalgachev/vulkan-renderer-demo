@@ -57,9 +57,10 @@ namespace
     bool const API_DUMP_ENABLED = false;
 
 //     const std::string GLTF_MODEL_PATH = "data/models/Duck/glTF/Duck.gltf";
-    const std::string GLTF_MODEL_PATH = "data/models/GearboxAssy/glTF/GearboxAssy.gltf";
+//     const std::string GLTF_MODEL_PATH = "data/models/GearboxAssy/glTF/GearboxAssy.gltf";
 //     const std::string GLTF_MODEL_PATH = "data/models/VertexColorTest/glTF/VertexColorTest.gltf";
 //     const std::string GLTF_MODEL_PATH = "data/models/ReciprocatingSaw/glTF/ReciprocatingSaw.gltf";
+	const std::string GLTF_MODEL_PATH = "data/models/Sponza/glTF/Sponza.gltf";
 
     const glm::vec3 LIGHT_POS = glm::vec3(0.0, 50.0f, 50.0f);
     const glm::vec3 CAMERA_POS = glm::vec3(0.0f, 0.0f, 4.0f);
