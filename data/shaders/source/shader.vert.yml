@@ -3,6 +3,7 @@ options:
   HAS_TEX_COORD: [null, ""]
   HAS_NORMAL: [null, ""]
   HAS_TANGENT: [null, ""]
+  HAS_TEXTURE: [null, ""]
 
 # TODO make use of it
 metadata:
