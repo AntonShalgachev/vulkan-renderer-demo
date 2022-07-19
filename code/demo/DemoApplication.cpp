@@ -548,7 +548,10 @@ std::shared_ptr<vkr::SceneObject> DemoApplication::addSceneObjectsFromNode(std::
             if (gltfRoughness.baseColorTexture.index >= 0)
             {
                 // TODO don't create image here, it could be used by several meshes
-                std::size_t const imageIndex = static_cast<std::size_t>(gltfRoughness.baseColorTexture.index);
+                std::size_t const textureIndex = static_cast<std::size_t>(gltfRoughness.baseColorTexture.index);
+                tinygltf::Texture const& gltfTexture = model->textures[textureIndex];
+                std::size_t const imageIndex = static_cast<std::size_t>(gltfTexture.source);
+                // TODO make use of gltfTexture.sampler
                 tinygltf::Image const& gltfImage = model->images[imageIndex];
                 auto texture = std::make_shared<vkr::Texture>(getApp(), gltfImage);
                 material->setTexture(texture);
