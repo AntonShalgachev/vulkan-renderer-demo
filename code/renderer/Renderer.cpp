@@ -145,7 +145,9 @@ void vkr::Renderer::draw()
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr;
 
-    VKR_ASSERT(vkQueuePresentKHR(getDevice().getPresentQueue().getHandle(), &presentInfo)); // TODO move to the object
+    VkResult presentResult = vkQueuePresentKHR(getDevice().getPresentQueue().getHandle(), &presentInfo); // TODO move to the object
+    if (presentResult != VK_SUCCESS && presentResult != VK_ERROR_OUT_OF_DATE_KHR)
+        throw std::runtime_error("vkQueuePresentKHR failed");
 
     if (aquireImageResult == VK_SUBOPTIMAL_KHR || m_framebufferResized)
     {
