@@ -50,7 +50,7 @@ FetchContent_Declare(
 
 FetchContent_Declare(
     coil
-    URL https://github.com/AntonShalgachev/coil/archive/8dc61f58d3a1084257c46b0fd2920c00b8763d65.zip # remove a resolved TODO comment
+    URL https://github.com/AntonShalgachev/coil/archive/refs/tags/v0.5.0.tar.gz # 0.5.0
 )
 
 FetchContent_Declare(
