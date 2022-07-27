@@ -51,6 +51,7 @@ class ShaderMetadata:
     configuration: Dict[str, str]
     cmdline: str
     path: str
+    compiler_version: List[str]
 
 
 def execute_command(command: str, cwd: str = None):
@@ -90,18 +91,21 @@ def compile(compiler:str, input: str, output: str, name: str, option_names: List
     output_file = os.path.join(output, relative_output_file)
 
     compilation_options = '{} {}'.format(GLSL_OPTIONS, definitions).strip()
-    command = '{executable} {input} -o {output} {options}'.format(
+    compilation_command = '{executable} {input} -o {output} {options}'.format(
         executable=compiler,
         input=input,
         output=output_file,
         options=compilation_options)
         
-    execute_command(command)
+    execute_command(compilation_command)
+
+    version_output = execute_command('{} --version'.format(compiler))
 
     metadata = ShaderMetadata()
     metadata.configuration = configuration
     metadata.cmdline = compilation_options
     metadata.path = relative_output_file
+    metadata.compiler_version = [v for v in version_output.splitlines() if v]
     
     return metadata
 
