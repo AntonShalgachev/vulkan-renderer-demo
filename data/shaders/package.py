@@ -9,12 +9,15 @@ import os
 import shutil
 import subprocess
 import time
-from typing import Dict, List
+from typing import Dict, Iterable, List, Tuple
 import yaml
 
 
 GLSL_COMPILER = 'glslc'
 GLSL_OPTIONS = '-g -O0'
+
+
+YAML_EXTENSIONS = ('.yml', '.yaml')
 
 
 class CustomFormatter(logging.Formatter):
@@ -103,16 +106,27 @@ def compile(compiler:str, input: str, output: str, name: str, option_names: List
     return metadata
 
 
-def package_shader(compiler:str, input: str, output: str):
-    if not os.path.isfile(input):
-        raise RuntimeError("Shader {} doesn't exist! PWD: '{}'".format(input, os.getcwd()))
+def package_shader(compiler:str, manifest_path: str, output: str):
+    if not os.path.exists(manifest_path):
+        raise RuntimeError("Shader manifest {} doesn't exist! PWD: '{}'".format(manifest_path, os.getcwd()))
+
+    if not os.path.isfile(manifest_path):
+        raise RuntimeError("Shader manifest '{}' is not a file".format(manifest_path))
+
+    shader_path, manifest_ext = os.path.splitext(manifest_path)
+    if manifest_ext not in YAML_EXTENSIONS:
+        logger.warning("The file '{}' doesn't have a YAML file extension. Are you sure you are passing the path to the shader manifest?".format(manifest_path))
+
+    logger.info("Compiling '{}'".format(manifest_path))
 
     manifest = None
-    manifest_path = input + '.yml'
     with open(manifest_path, 'r') as f:
-        manifest = yaml.safe_load(f)
+        try:
+            manifest = yaml.safe_load(f)
+        except yaml.parser.ParserError as e:
+            raise RuntimeError('Failed to load the YAML shader manifest') from e
 
-    name = os.path.basename(input)
+    name = os.path.basename(shader_path)
 
     options = manifest['options']
 
@@ -128,17 +142,40 @@ def package_shader(compiler:str, input: str, output: str):
     metadatas = []
 
     for configuration in configurations:
-        metadata = compile(compiler, input, output, name, option_names, configuration)
+        metadata = compile(compiler, shader_path, output, name, option_names, configuration)
         metadatas.append(metadata)
 
     e = time.time()
-    logger.info('Time elapsed: {}s'.format(e-s))
+    logger.debug('Time elapsed: {}s'.format(e-s))
 
     package_info = {'options': option_names, 'variants': metadatas}
 
     package_info_file = os.path.join(output, 'package.json')
     with open(package_info_file, 'w') as f:
         json.dump(package_info, f, indent=4, default=lambda x: x.__dict__)
+
+
+def find_shaders(input: str, output: str) -> Iterable[Tuple[str, str]]:
+    if os.path.isfile(input):
+        return [(input, output)]
+
+    shaders: List[Tuple[str, str]] = []
+
+    for root, _, files in os.walk(input):
+        for file in files:
+            filename_root, ext = os.path.splitext(file)
+            if ext not in YAML_EXTENSIONS:
+                continue
+            
+            manifest_path = os.path.join(root, file)
+
+            relative_path = os.path.relpath(root, input)
+            shader_name = filename_root
+            output_path = os.path.join(output, relative_path, shader_name)
+
+            shaders.append((manifest_path, output_path))
+
+    return shaders
 
 
 def main():
@@ -163,7 +200,11 @@ def main():
         raise RuntimeError(
             "GLSL compiler '{}' hasn't been found. Make sure it is in your PATH or in VULKAN_SDK/Bin".format(GLSL_COMPILER))
 
-    package_shader(compiler_path, args.input, args.output)
+    if not os.path.exists(args.input):
+        raise RuntimeError("The path '{}' doesn't exist".format(args.input))
+
+    for input, output in find_shaders(args.input, args.output):
+        package_shader(compiler_path, input, output)
 
 
 if __name__ == '__main__':
