@@ -55,12 +55,6 @@ namespace
 #endif
     bool const API_DUMP_ENABLED = false;
 
-//     const std::string GLTF_MODEL_PATH = "data/models/Duck/glTF/Duck.gltf";
-//     const std::string GLTF_MODEL_PATH = "data/models/GearboxAssy/glTF/GearboxAssy.gltf";
-//     const std::string GLTF_MODEL_PATH = "data/models/VertexColorTest/glTF/VertexColorTest.gltf";
-//     const std::string GLTF_MODEL_PATH = "data/models/ReciprocatingSaw/glTF/ReciprocatingSaw.gltf";
-	const std::string GLTF_MODEL_PATH = "data/models/Sponza/glTF/Sponza.gltf";
-
     const glm::vec3 LIGHT_POS = glm::vec3(0.0, 50.0f, 50.0f);
     const glm::vec3 CAMERA_POS = glm::vec3(0.0f, 0.0f, 4.0f);
     const glm::vec3 CAMERA_ANGLES = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -381,10 +375,10 @@ DemoApplication::DemoApplication()
         if (!loadScene(pathStr))
             context.reportError("Failed to load the scene '" + pathStr + "'");
     };
-    m_commands["scene.reload"] = [this]() { loadScene(GLTF_MODEL_PATH); };
+    m_commands["scene.reload"] = [this]() { loadScene(m_currentScenePath); };
     m_commands["scene.unload"] = coil::bind(&DemoApplication::clearScene, this);
 
-    loadScene(GLTF_MODEL_PATH);
+    loadScene("");
 }
 
 DemoApplication::~DemoApplication()
@@ -651,29 +645,33 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
     m_defaultVertexShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.vert");
     m_defaultFragmentShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.frag");
 
-    auto gltfModel = loadModel(gltfPath);
+    auto gltfModel = gltfPath.empty() ? nullptr : loadModel(gltfPath);
 
-    if (!gltfModel)
+    if (!gltfPath.empty() && !gltfModel)
         return false;
 
     m_gltfResources = std::make_unique<GltfVkResources>();
 
-    for (auto const& buffer : gltfModel->buffers)
+    if (gltfModel)
     {
-        auto const& data = buffer.data;
-        VkDeviceSize bufferSize = sizeof(data[0]) * data.size();
-        void const* bufferData = data.data();
+        for (auto const& buffer : gltfModel->buffers)
+        {
+            auto const& data = buffer.data;
+            VkDeviceSize bufferSize = sizeof(data[0]) * data.size();
+            void const* bufferData = data.data();
 
-        vkr::BufferWithMemory stagingBuffer{ getApp(), bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
-        stagingBuffer.memory().copyFrom(bufferData, bufferSize);
+            vkr::BufferWithMemory stagingBuffer{ getApp(), bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
+            stagingBuffer.memory().copyFrom(bufferData, bufferSize);
 
-        vkr::BufferWithMemory buffer{ getApp(), bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
-        vkr::Buffer::copy(stagingBuffer.buffer(), buffer.buffer());
+            vkr::BufferWithMemory buffer{ getApp(), bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
+            vkr::Buffer::copy(stagingBuffer.buffer(), buffer.buffer());
 
-        m_gltfResources->buffers.push_back(std::make_unique<vkr::BufferWithMemory>(std::move(buffer)));
+            m_gltfResources->buffers.push_back(std::make_unique<vkr::BufferWithMemory>(std::move(buffer)));
+        }
     }
 
-    m_scene = createSceneObjectHierarchy(gltfModel);
+    if (gltfModel)
+        m_scene = createSceneObjectHierarchy(gltfModel);
 
 	auto defaultCameraObject = std::make_shared<vkr::SceneObject>();
 	{
@@ -702,6 +700,8 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
     m_light = std::make_shared<vkr::Light>();
     m_light->getTransform().setLocalPos(LIGHT_POS);
     m_renderer->setLight(m_light);
+
+    m_currentScenePath = gltfPath;
 
     return true;
 }

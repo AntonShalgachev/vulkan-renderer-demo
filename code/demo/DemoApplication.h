@@ -127,4 +127,6 @@ private:
     float m_fpsUpdatePeriod = 0.2f;
 
     bool m_reloadImgui = false;
+
+    std::string m_currentScenePath = "";
 };
