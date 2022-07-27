@@ -6,7 +6,6 @@ layout(binding = 0) uniform UniformBufferObject {
     mat4 normal;
     mat4 projection;
     vec3 lightPosition;
-    vec3 viewPos;
     vec4 objectColor;
 } ubo;
 
@@ -58,5 +57,5 @@ void main()
     objectColor = ubo.objectColor;
 
 	lightVec = ubo.lightPosition - viewPos.xyz;
-	viewVec = viewPos.xyz - ubo.viewPos;
+	viewVec = viewPos.xyz;
 }
