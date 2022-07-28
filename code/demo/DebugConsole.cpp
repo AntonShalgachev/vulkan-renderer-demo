@@ -80,6 +80,8 @@ namespace coil
 	COIL_CREATE_TYPE_NAME_DEFINITION(float, "float");
 	COIL_CREATE_TYPE_NAME_DEFINITION(std::string, "std::string");
 	COIL_CREATE_TYPE_NAME_DEFINITION(std::string_view, "std::string_view");
+
+	COIL_CREATE_TYPE_NAME_DEFINITION(glm::vec3, "vec3");
 }
 
 DebugConsole& DebugConsole::instance()

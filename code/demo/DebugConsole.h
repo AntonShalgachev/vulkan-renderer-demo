@@ -25,6 +25,7 @@ namespace utils
     }
 }
 
+// TODO move to some other file
 namespace coil
 {
     template<typename E>
@@ -52,7 +53,51 @@ namespace coil
         {
             return magic_enum::enum_name(value);
         }
-    };
+	};
+
+    // TODO make it templated
+	template<>
+	struct TypeSerializer<glm::vec3>
+	{
+        static std::size_t const N = 3;
+        using ElementType = float;
+
+		static Expected<glm::vec3, std::string> fromString(Value const& input)
+		{
+			if (input.subvalues.size() != N)
+				return errors::createMismatchedSubvaluesError<glm::vec3>(input, N);
+
+            std::array<ElementType, N> values;
+            for (std::size_t i = 0; i < N; i++)
+            {
+                auto maybeValue = TypeSerializer<ElementType>::fromString(input.subvalues[i]);
+                if (!maybeValue)
+                    return errors::createGenericError<glm::vec3>(input, maybeValue.error());
+
+                values[i] = *std::move(maybeValue);
+            }
+
+            return glm::make_vec3(values.data());
+		}
+
+		static std::string toString(glm::vec3 const& value)
+		{
+            std::stringstream ss;
+
+            ss << "(";
+            std::string_view separator = "";
+
+            for (std::size_t i = 0; i < N; i++)
+            {
+                ss << separator << value[i];
+                separator = ", ";
+            }
+
+            ss << ")";
+
+            return ss.str();
+		}
+	};
 
     template<typename T, typename>
     struct TypeName
@@ -88,6 +133,8 @@ namespace coil
 	COIL_CREATE_TYPE_NAME_DECLARATION(float);
 	COIL_CREATE_TYPE_NAME_DECLARATION(std::string);
 	COIL_CREATE_TYPE_NAME_DECLARATION(std::string_view);
+
+	COIL_CREATE_TYPE_NAME_DECLARATION(glm::vec3);
 }
 
 class DebugConsole

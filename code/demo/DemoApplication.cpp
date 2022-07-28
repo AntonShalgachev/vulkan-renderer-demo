@@ -61,8 +61,7 @@ namespace
 
     glm::quat createRotation(glm::vec3 const& eulerDegrees)
     {
-        glm::vec3 radians = glm::radians(eulerDegrees);
-        return glm::toQuat(glm::eulerAngleYXZ(radians.y, radians.x, radians.z));
+        return glm::quat{ glm::radians(eulerDegrees) };
     }
 
     glm::mat4 createMatrix(tinygltf::Node const& node)
@@ -336,6 +335,12 @@ DemoApplication::DemoApplication()
     m_commands["camera.zfar"] = coil::bindProperty(&DemoApplication::getCameraFarZ, &DemoApplication::setCameraFarZ, this);
     m_commands["camera.speed"] = coil::variable(&m_cameraSpeed);
     m_commands["camera.mouse_sensitivity"] = coil::variable(&m_mouseSensitivity);
+    m_commands["camera.pos"] = coil::bindProperty(&DemoApplication::getCameraPos, &DemoApplication::setCameraPos, this);
+    m_commands["camera.angles"] = coil::property([this]() {
+        return glm::degrees(glm::eulerAngles(getCameraRotation()));
+    }, [this](glm::vec3 const& angles) {
+        setCameraRotation(createRotation(angles));
+    });
 
     m_commands["fps"].description("Show/hide the FPS widget") = ::toggle(&m_showFps);
     m_commands["fps.update_period"].description("Update period of the FPS widget") = coil::variable(&m_fpsUpdatePeriod);
@@ -842,7 +847,27 @@ void DemoApplication::updateCamera(float dt)
     cameraTransform.setWorldPos(cameraTransform.getWorldPos() + m_cameraSpeed * dt * posDelta);
 }
 
-float DemoApplication::getCameraNearZ()
+glm::vec3 DemoApplication::getCameraPos() const
+{
+    return m_activeCameraObject->getTransform().getWorldPos();
+}
+
+void DemoApplication::setCameraPos(glm::vec3 const& pos)
+{
+    m_activeCameraObject->getTransform().setWorldPos(pos);
+}
+
+glm::quat DemoApplication::getCameraRotation() const
+{
+    return m_activeCameraObject->getTransform().getLocalRotation();
+}
+
+void DemoApplication::setCameraRotation(glm::quat const& rotation)
+{
+    m_activeCameraObject->getTransform().setLocalRotation(rotation);
+}
+
+float DemoApplication::getCameraNearZ() const
 {
     return m_activeCameraObject->getCamera()->nearZ();
 }
@@ -852,7 +877,7 @@ void DemoApplication::setCameraNearZ(float nearZ)
     m_activeCameraObject->getCamera()->setNearZ(nearZ);
 }
 
-float DemoApplication::getCameraFarZ()
+float DemoApplication::getCameraFarZ() const
 {
     return m_activeCameraObject->getCamera()->farZ();
 }

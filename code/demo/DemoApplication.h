@@ -73,9 +73,14 @@ private:
     void updateScene(float);
     void updateCamera(float dt);
 
-    float getCameraNearZ();
+    glm::vec3 getCameraPos() const;
+    void setCameraPos(glm::vec3 const& pos);
+    glm::quat getCameraRotation() const;
+    void setCameraRotation(glm::quat const& rotation);
+
+    float getCameraNearZ() const;
     void setCameraNearZ(float nearZ);
-    float getCameraFarZ();
+    float getCameraFarZ() const;
     void setCameraFarZ(float farZ);
 
     vkr::Application const& getApp() { return *m_application; }
