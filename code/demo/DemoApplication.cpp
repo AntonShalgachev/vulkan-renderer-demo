@@ -544,32 +544,18 @@ std::shared_ptr<vkr::SceneObject> DemoApplication::addSceneObjectsFromNode(std::
             auto material = std::make_shared<vkr::Material>();
             material->setColor(createColor(gltfRoughness.baseColorFactor));
 
-            material->setSampler(m_defaultSampler); // TODO move to the texture
-
             if (gltfRoughness.baseColorTexture.index >= 0)
             {
-                // TODO don't create image here, it could be used by several meshes
                 std::size_t const textureIndex = static_cast<std::size_t>(gltfRoughness.baseColorTexture.index);
-                tinygltf::Texture const& gltfTexture = model->textures[textureIndex];
-                std::size_t const imageIndex = static_cast<std::size_t>(gltfTexture.source);
-                // TODO make use of gltfTexture.sampler
-                tinygltf::Image const& gltfImage = model->images[imageIndex];
-                auto texture = std::make_shared<vkr::Texture>(getApp(), gltfImage);
-                material->setTexture(texture);
+                material->setTexture(m_gltfResources->textures[textureIndex]);
 
                 shaderConfiguration.hasTexture = true;
             }
 
             if (gltfMaterial.normalTexture.index >= 0)
             {
-                // TODO don't create image here, it could be used by several meshes
                 std::size_t const textureIndex = static_cast<std::size_t>(gltfMaterial.normalTexture.index);
-                tinygltf::Texture const& gltfTexture = model->textures[textureIndex];
-                std::size_t const imageIndex = static_cast<std::size_t>(gltfTexture.source);
-                // TODO make use of gltfTexture.sampler
-                tinygltf::Image const& gltfImage = model->images[imageIndex];
-                auto texture = std::make_shared<vkr::Texture>(getApp(), gltfImage);
-                material->setNormalMap(texture);
+                material->setNormalMap(m_gltfResources->textures[textureIndex]);
 
                 shaderConfiguration.hasNormalMap = true;
             }
@@ -654,14 +640,12 @@ void DemoApplication::clearScene()
     m_gltfResources = nullptr;
     m_defaultVertexShader = nullptr;
     m_defaultFragmentShader = nullptr;
-    m_defaultSampler = nullptr;
 }
 
 bool DemoApplication::loadScene(std::string const& gltfPath)
 {
     clearScene();
 
-    m_defaultSampler = std::make_shared<vkr::Sampler>(getApp());
     m_defaultVertexShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.vert");
     m_defaultFragmentShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.frag");
 
@@ -687,6 +671,58 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
             vkr::Buffer::copy(stagingBuffer.buffer(), buffer.buffer());
 
             m_gltfResources->buffers.push_back(std::make_unique<vkr::BufferWithMemory>(std::move(buffer)));
+        }
+
+        for (tinygltf::Texture const& texture : gltfModel->textures)
+        {
+            std::size_t const samplerIndex = static_cast<std::size_t>(texture.sampler);
+            tinygltf::Sampler const& gltfSampler = gltfModel->samplers[samplerIndex];
+
+            auto convertFilterMode = [](int gltfMode)
+            {
+                switch (gltfMode)
+                {
+                case -1:
+                case TINYGLTF_TEXTURE_FILTER_NEAREST:
+                case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST:
+                case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
+                    return vkr::Sampler::FilterMode::Nearest;
+                case TINYGLTF_TEXTURE_FILTER_LINEAR:
+                case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR:
+                case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR:
+                    return vkr::Sampler::FilterMode::Linear;
+                }
+
+                throw std::invalid_argument("gltfMode");
+            };
+
+            auto convertWrapMode = [](int gltfMode)
+            {
+                switch (gltfMode)
+                {
+                case -1:
+                case TINYGLTF_TEXTURE_WRAP_REPEAT:
+                    return vkr::Sampler::WrapMode::Repeat;
+                case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE:
+                    return vkr::Sampler::WrapMode::ClampToEdge;
+                case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT:
+                    return vkr::Sampler::WrapMode::Mirror;
+                }
+
+                throw std::invalid_argument("gltfMode");
+            };
+
+            auto magFilter = convertFilterMode(gltfSampler.magFilter);
+            auto minFilter = convertFilterMode(gltfSampler.minFilter);
+            auto wrapU = convertWrapMode(gltfSampler.wrapS);
+            auto wrapV = convertWrapMode(gltfSampler.wrapT);
+
+            auto sampler = std::make_shared<vkr::Sampler>(getApp(), magFilter, minFilter, wrapU, wrapV);
+
+            std::size_t const imageIndex = static_cast<std::size_t>(texture.source);
+            tinygltf::Image const& gltfImage = gltfModel->images[imageIndex];
+
+            m_gltfResources->textures.push_back(std::make_shared<vkr::Texture>(getApp(), gltfImage, sampler));
         }
     }
 

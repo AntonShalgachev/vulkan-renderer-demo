@@ -41,7 +41,7 @@ void vkr::ObjectInstance::onSwapchainCreated(Swapchain const& swapchain)
     m_descriptorPool = std::make_unique<vkr::DescriptorPool>(getApp(), swapchainImageCount);
     m_descriptorSets = std::make_unique<vkr::DescriptorSets>(getApp(), *m_descriptorPool, m_setLayout);
     for (size_t i = 0; i < m_descriptorSets->getSize(); i++)
-        m_descriptorSets->update(i, m_uniformBuffers[i].buffer(), material.getTexture().get(), material.getNormalMap().get(), material.getSampler().get());
+        m_descriptorSets->update(i, m_uniformBuffers[i].buffer(), material.getTexture().get(), material.getNormalMap().get());
 }
 
 void vkr::ObjectInstance::copyToUniformBuffer(std::size_t index, void const* sourcePointer, std::size_t sourceSize) const

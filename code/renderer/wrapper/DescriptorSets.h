@@ -12,7 +12,6 @@ namespace vkr
     class DescriptorSetLayout;
     class Buffer;
     class Texture;
-    class Sampler;
 
     class DescriptorSets : public Object
     {
@@ -25,7 +24,7 @@ namespace vkr
         DescriptorSets& operator=(DescriptorSets const&) = delete;
         DescriptorSets& operator=(DescriptorSets&&) = delete;
 
-        void update(std::size_t index, Buffer const& uniformBuffer, Texture const* texture, Texture const* normalMap, Sampler const* sampler);
+        void update(std::size_t index, Buffer const& uniformBuffer, Texture const* texture, Texture const* normalMap);
 
         std::vector<VkDescriptorSet> const& getHandles() const { return m_handles; }
         std::size_t getSize() const;

@@ -2,14 +2,45 @@
 #include "Device.h"
 #include <stdexcept>
 
-vkr::Sampler::Sampler(Application const& app) : Object(app)
+namespace
+{
+    VkFilter vulkanizeFilterMode(vkr::Sampler::FilterMode mode)
+    {
+        switch (mode)
+        {
+        case vkr::Sampler::FilterMode::Nearest:
+            return VK_FILTER_NEAREST;
+        case vkr::Sampler::FilterMode::Linear:
+            return VK_FILTER_LINEAR;
+        }
+
+        throw std::invalid_argument("mode");
+    }
+
+    VkSamplerAddressMode vulkanizeWrapMode(vkr::Sampler::WrapMode mode)
+    {
+        switch (mode)
+        {
+        case vkr::Sampler::WrapMode::Repeat:
+            return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        case vkr::Sampler::WrapMode::Mirror:
+            return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+        case vkr::Sampler::WrapMode::ClampToEdge:
+            return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        }
+
+        throw std::invalid_argument("mode");
+    }
+}
+
+vkr::Sampler::Sampler(Application const& app, FilterMode magFilter, FilterMode minFilter, WrapMode wrapU, WrapMode wrapV) : Object(app)
 {
     VkSamplerCreateInfo samplerCreateInfo{};
     samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
-    samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
-    samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerCreateInfo.magFilter = vulkanizeFilterMode(magFilter);
+    samplerCreateInfo.minFilter = vulkanizeFilterMode(minFilter);
+    samplerCreateInfo.addressModeU = vulkanizeWrapMode(wrapU);
+    samplerCreateInfo.addressModeV = vulkanizeWrapMode(wrapV);
     samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerCreateInfo.anisotropyEnable = VK_TRUE;
     samplerCreateInfo.maxAnisotropy = 16.0f;

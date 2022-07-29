@@ -7,6 +7,7 @@
 #include "Device.h"
 #include <array>
 #include <stdexcept>
+#include "ImageView.h"
 
 vkr::DescriptorSets::DescriptorSets(Application const& app, DescriptorPool const& pool, DescriptorSetLayout const& layout)
     : Object(app)
@@ -31,7 +32,7 @@ vkr::DescriptorSets::~DescriptorSets()
     // no need to explicitly free descriptor sets
 }
 
-void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer, Texture const* texture, Texture const* normalMap, Sampler const* sampler)
+void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer, Texture const* texture, Texture const* normalMap)
 {
     VkDescriptorSet setHandle = m_handles[index];
 
@@ -60,8 +61,8 @@ void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer,
     }
 
     DescriptorSetConfiguration actualConfiguration;
-    actualConfiguration.hasTexture = texture && sampler; // TODO fix
-    actualConfiguration.hasNormalMap = normalMap && sampler; // TODO fix
+    actualConfiguration.hasTexture = texture;
+    actualConfiguration.hasNormalMap = normalMap;
 
     DescriptorSetConfiguration const& descriptorSetConfig = m_layout.getConfiguration();
 
@@ -74,8 +75,8 @@ void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer,
 
         VkDescriptorImageInfo& imageInfo = imageInfos.emplace_back();
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo.imageView = texture->getImageViewHandle();
-        imageInfo.sampler = sampler->getHandle();
+        imageInfo.imageView = texture->getImageView().getHandle();
+        imageInfo.sampler = texture->getSampler().getHandle();
 
         descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrite.dstSet = setHandle;
@@ -92,8 +93,8 @@ void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer,
 
         VkDescriptorImageInfo& imageInfo = imageInfos.emplace_back();
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo.imageView = normalMap->getImageViewHandle();
-        imageInfo.sampler = sampler->getHandle();
+        imageInfo.imageView = normalMap->getImageView().getHandle();
+        imageInfo.sampler = normalMap->getSampler().getHandle();
 
         descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrite.dstSet = setHandle;

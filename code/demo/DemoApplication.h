@@ -23,6 +23,7 @@ namespace vkr
     class Light;
     class BufferWithMemory;
     class ShaderPackage;
+    class Texture;
 }
 
 namespace tinygltf
@@ -34,6 +35,7 @@ namespace tinygltf
 struct GltfVkResources
 {
     std::vector<std::unique_ptr<vkr::BufferWithMemory>> buffers;
+    std::vector<std::shared_ptr<vkr::Texture>> textures;
 };
 
 // TODO move to a separate file
@@ -96,7 +98,6 @@ private:
     std::unique_ptr<GltfVkResources> m_gltfResources;
 
     // Resources
-    std::shared_ptr<vkr::Sampler> m_defaultSampler;
     std::unique_ptr<vkr::ShaderPackage> m_defaultVertexShader;
     std::unique_ptr<vkr::ShaderPackage> m_defaultFragmentShader;
 

@@ -107,7 +107,7 @@ vkr::Texture::~Texture()
     m_memory = nullptr;
 }
 
-vkr::Texture::Texture(Application const& app, tinygltf::Image const& image) : Object(app)
+vkr::Texture::Texture(Application const& app, tinygltf::Image const& image, std::shared_ptr<vkr::Sampler> sampler) : Object(app), m_sampler(std::move(sampler))
 {
     uint32_t width = static_cast<uint32_t>(image.width);
     uint32_t height = static_cast<uint32_t>(image.height);
@@ -116,11 +116,18 @@ vkr::Texture::Texture(Application const& app, tinygltf::Image const& image) : Ob
     std::size_t components = static_cast<std::size_t>(image.component);
 
     createImage(image.image.data(), image.image.size(), width, height, bitsPerComponent, components);
+
+    m_name = image.uri;
 }
 
-VkImageView vkr::Texture::getImageViewHandle() const
+vkr::Sampler const& vkr::Texture::getSampler() const
 {
-    return m_imageView->getHandle();
+    return *m_sampler;
+}
+
+vkr::ImageView const& vkr::Texture::getImageView() const
+{
+    return *m_imageView;
 }
 
 void vkr::Texture::createImage(void const* data, std::size_t size, uint32_t width, uint32_t height, std::size_t bitsPerComponent, std::size_t components)
@@ -146,6 +153,7 @@ void vkr::Texture::createImage(void const* data, std::size_t size, uint32_t widt
     vkr::BufferWithMemory stagingBuffer{ getApp(), size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
     stagingBuffer.memory().copyFrom(data, size);
 
+    // TODO use SRGB for textures data and UNORM for normal maps
     vkr::utils::createImage(getApp(), width, height, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_image, m_memory);
 
     transitionImageLayout(getApp(), m_image->getHandle(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);

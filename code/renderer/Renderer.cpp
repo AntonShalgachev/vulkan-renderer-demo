@@ -80,8 +80,8 @@ void vkr::Renderer::addDrawable(SceneObject const& drawableObject)
 	auto const& material = drawable->getMaterial();
 
     DescriptorSetConfiguration config;
-    config.hasTexture = material.getTexture() && material.getSampler();
-    config.hasNormalMap = material.getNormalMap() && material.getSampler();
+    config.hasTexture = material.getTexture() != nullptr;
+    config.hasNormalMap = material.getNormalMap() != nullptr;
 
     auto const& resources = getUniformResources(config);
 
@@ -294,8 +294,8 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
         Material const& material = drawable.getMaterial();
 
         DescriptorSetConfiguration config;
-        config.hasTexture = material.getTexture() && material.getSampler();
-        config.hasNormalMap = material.getNormalMap() && material.getSampler();
+        config.hasTexture = material.getTexture() != nullptr;
+        config.hasNormalMap = material.getNormalMap() != nullptr;
 
         auto const& resources = getUniformResources(config);
 

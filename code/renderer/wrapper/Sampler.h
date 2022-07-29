@@ -9,7 +9,21 @@ namespace vkr
     class Sampler : public Object
     {
     public:
-        Sampler(Application const& app);
+        enum class FilterMode
+        {
+            Nearest,
+            Linear,
+        };
+
+        enum class WrapMode
+        {
+            Repeat,
+            Mirror,
+            ClampToEdge,
+        };
+
+    public:
+        Sampler(Application const& app, FilterMode magFilter, FilterMode minFilter, WrapMode wrapU, WrapMode wrapV);
         ~Sampler();
 
         Sampler(Sampler const&) = default;
