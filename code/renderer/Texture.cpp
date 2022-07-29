@@ -99,28 +99,6 @@ namespace
     }
 }
 
-vkr::Texture::Texture(Application const& app, std::string const& path) : Object(app)
-{
-    uint32_t width, height;
-    uint32_t bitsPerComponent;
-    uint32_t components;
-    void* pixels;
-
-    {
-        int texWidth, texHeight, texChannels;
-        pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-
-        width = static_cast<uint32_t>(texWidth);
-        height = static_cast<uint32_t>(texHeight);
-        bitsPerComponent = 8;
-        components = 4;
-    }
-
-    createImage(pixels, width, height, bitsPerComponent, components);
-
-    stbi_image_free(pixels);
-}
-
 vkr::Texture::~Texture()
 {
     // TODO remove this hack (this ensures the objects are destroyed in the right order)
@@ -137,7 +115,7 @@ vkr::Texture::Texture(Application const& app, tinygltf::Image const& image) : Ob
     std::size_t bitsPerComponent = static_cast<std::size_t>(image.bits);
     std::size_t components = static_cast<std::size_t>(image.component);
 
-    createImage(image.image.data(), width, height, bitsPerComponent, components);
+    createImage(image.image.data(), image.image.size(), width, height, bitsPerComponent, components);
 }
 
 VkImageView vkr::Texture::getImageViewHandle() const
@@ -145,7 +123,7 @@ VkImageView vkr::Texture::getImageViewHandle() const
     return m_imageView->getHandle();
 }
 
-void vkr::Texture::createImage(void const* data, uint32_t width, uint32_t height, std::size_t bitsPerComponent, std::size_t components)
+void vkr::Texture::createImage(void const* data, std::size_t size, uint32_t width, uint32_t height, std::size_t bitsPerComponent, std::size_t components)
 {
     if (!data)
         throw std::runtime_error("failed to load texture image!");
@@ -154,10 +132,21 @@ void vkr::Texture::createImage(void const* data, uint32_t width, uint32_t height
 
     std::size_t imageSize = width * height * bytesPerPixel;
 
-    vkr::BufferWithMemory stagingBuffer{ getApp(), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
-    stagingBuffer.memory().copyFrom(data, imageSize);
+    if (imageSize != size)
+        throw std::runtime_error("Unexpected image size!");
 
-    vkr::utils::createImage(getApp(), width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_image, m_memory);
+    // TODO implement
+    if (components != 4)
+        throw std::runtime_error("Unexpected pixel format!");
+    if (bitsPerComponent != 8)
+        throw std::runtime_error("Unexpected pixel format!");
+    if (bytesPerPixel != 4)
+        throw std::runtime_error("Unexpected pixel format!");
+
+    vkr::BufferWithMemory stagingBuffer{ getApp(), size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
+    stagingBuffer.memory().copyFrom(data, size);
+
+    vkr::utils::createImage(getApp(), width, height, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_image, m_memory);
 
     transitionImageLayout(getApp(), m_image->getHandle(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     // TODO extract to some class
