@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vulkan/vulkan.h> // TODO remove
-
 #include <functional>
 #include <string>
 #include <memory>
