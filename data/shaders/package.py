@@ -97,7 +97,11 @@ def compile(compiler:str, input: str, output: str, name: str, option_names: List
         output=output_file,
         options=compilation_options)
         
-    execute_command(compilation_command)
+    try:
+        execute_command(compilation_command)
+    except Exception as e:
+        logger.critical('Failed to compile shader with [{}]'.format(' '.join(option_strings)))
+        raise
 
     version_output = execute_command('{} --version'.format(compiler))
 
