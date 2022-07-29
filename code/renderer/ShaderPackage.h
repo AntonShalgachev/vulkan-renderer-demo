@@ -7,6 +7,7 @@
 
 namespace vkr
 {
+    // TODO store Mesh::Metadata and DescriptorSetConfiguration instead
     struct ShaderConfiguration
     {
         bool hasColor = false;
@@ -14,6 +15,7 @@ namespace vkr
         bool hasNormal = false;
         bool hasTangent = false;
         bool hasTexture = false;
+        bool hasNormalMap = false;
 
         bool operator==(ShaderConfiguration const&) const = default;
     };
@@ -32,6 +34,7 @@ namespace std
             vkr::hash::combine(seed, rhs.hasNormal);
             vkr::hash::combine(seed, rhs.hasTangent);
             vkr::hash::combine(seed, rhs.hasTexture);
+            vkr::hash::combine(seed, rhs.hasNormalMap);
             return seed;
         }
     };

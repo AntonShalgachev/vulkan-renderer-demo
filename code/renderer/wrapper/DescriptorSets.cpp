@@ -31,15 +31,15 @@ vkr::DescriptorSets::~DescriptorSets()
     // no need to explicitly free descriptor sets
 }
 
-void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer, Texture const* texture, Sampler const* sampler)
+void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer, Texture const* texture, Texture const* normalMap, Sampler const* sampler)
 {
     VkDescriptorSet setHandle = m_handles[index];
 
     std::vector<VkWriteDescriptorSet> descriptorWrites;
 
-    // to keep these objects around during a Vulkan call
-    std::vector<VkDescriptorBufferInfo> bufferInfos;
-    std::vector<VkDescriptorImageInfo> imageInfos;
+    // to keep these objects around during a Vulkan call and to avoid invalidation
+    std::list<VkDescriptorBufferInfo> bufferInfos;
+    std::list<VkDescriptorImageInfo> imageInfos;
 
     // TODO couple it with the data within DescriptorPool
     {
@@ -59,11 +59,16 @@ void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer,
         descriptorWrite.pBufferInfo = &bufferInfo;
     }
 
-    bool hasSampler = texture && sampler;
-    if (hasSampler != m_layout.hasSampler())
+    DescriptorSetConfiguration actualConfiguration;
+    actualConfiguration.hasTexture = texture && sampler; // TODO fix
+    actualConfiguration.hasNormalMap = normalMap && sampler; // TODO fix
+
+    DescriptorSetConfiguration const& descriptorSetConfig = m_layout.getConfiguration();
+
+    if (actualConfiguration != descriptorSetConfig)
         throw std::runtime_error("Invalid descriptor set layout");
 
-    if (texture && sampler)
+    if (descriptorSetConfig.hasTexture)
     {
         VkWriteDescriptorSet& descriptorWrite = descriptorWrites.emplace_back();
 
@@ -75,6 +80,24 @@ void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer,
         descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrite.dstSet = setHandle;
         descriptorWrite.dstBinding = 1;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pImageInfo = &imageInfo;
+    }
+
+    if (descriptorSetConfig.hasNormalMap)
+    {
+        VkWriteDescriptorSet& descriptorWrite = descriptorWrites.emplace_back();
+
+        VkDescriptorImageInfo& imageInfo = imageInfos.emplace_back();
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = normalMap->getImageViewHandle();
+        imageInfo.sampler = sampler->getHandle();
+
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = setHandle;
+        descriptorWrite.dstBinding = 2;
         descriptorWrite.dstArrayElement = 0;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descriptorWrite.descriptorCount = 1;

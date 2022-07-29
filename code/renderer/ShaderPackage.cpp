@@ -35,6 +35,8 @@ vkr::ShaderPackage::ShaderPackage(std::filesystem::path path)
                 configuration.hasTangent = (value == "");
             if (key == "HAS_TEXTURE")
                 configuration.hasTexture = (value == "");
+            if (key == "HAS_NORMAL_MAP")
+                configuration.hasNormalMap = (value == "");
         }
 
         std::filesystem::path fullPath = path / variant["path"];

@@ -4,6 +4,7 @@ options:
   HAS_NORMAL: [null, ""]
   HAS_TANGENT: [null, ""]
   HAS_TEXTURE: [null, ""]
+  HAS_NORMAL_MAP: [null, ""]
 
 # TODO make use of it
 metadata:

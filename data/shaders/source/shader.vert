@@ -1,6 +1,10 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
+#if defined(HAS_NORMAL) && defined(HAS_TANGENT)
+#define HAS_BITANGENT
+#endif
+
 layout(binding = 0) uniform UniformBufferObject {
     mat4 modelView;
     mat4 normal;
@@ -28,13 +32,17 @@ layout(location = 2) out vec3 fragNormal;
 
 #ifdef HAS_TANGENT
 layout(location = 4) in vec4 inTangent;
-layout(location = 3) out vec4 fragTangent;
+layout(location = 3) out vec3 fragTangent;
 #endif
 
 layout(location = 4) out vec3 viewVec;
 layout(location = 5) out vec3 lightVec;
 
 layout(location = 6) out vec4 objectColor;
+
+#ifdef HAS_BITANGENT
+layout(location = 7) out vec3 fragBitangent;
+#endif
 
 void main()
 {
@@ -51,7 +59,12 @@ void main()
     fragNormal = (ubo.normal * vec4(inNormal, 0.0)).xyz;
 #endif
 #ifdef HAS_TANGENT
-    fragTangent = inTangent;
+    fragTangent = (ubo.normal * vec4(inTangent.xyz, 0.0)).xyz;
+#endif
+
+#ifdef HAS_BITANGENT
+    vec3 inBitangent = cross(inNormal, inTangent.xyz) * inTangent.w;
+    fragBitangent = (ubo.normal * vec4(inBitangent, 0.0)).xyz;
 #endif
 
     objectColor = ubo.objectColor;

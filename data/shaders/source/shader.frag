@@ -5,8 +5,16 @@
 layout(binding = 1) uniform sampler2D texSampler;
 #endif
 
+#ifdef HAS_NORMAL_MAP
+layout(binding = 2) uniform sampler2D normalMapSampler;
+#endif
+
 #ifdef HAS_NORMAL
 #define HAS_LIGHT
+#endif
+
+#if defined(HAS_NORMAL) && defined(HAS_TANGENT)
+#define HAS_BITANGENT
 #endif
 
 #ifdef HAS_VERTEX_COLOR
@@ -22,13 +30,17 @@ layout(location = 2) in vec3 fragNormal;
 #endif
 
 #ifdef HAS_TANGENT
-layout(location = 3) in vec4 fragTangent;
+layout(location = 3) in vec3 fragTangent;
 #endif
 
 layout(location = 4) in vec3 viewVec;
 layout(location = 5) in vec3 lightVec;
 
 layout(location = 6) in vec4 objectColor;
+
+#ifdef HAS_BITANGENT
+layout(location = 7) in vec3 fragBitangent;
+#endif
 
 layout(location = 0) out vec4 outColor;
 
@@ -47,13 +59,32 @@ vec3 getBaseColor()
 return result;
 }
 
+#ifdef HAS_NORMAL
+vec3 getNormalVector()
+{
+#if defined(HAS_TANGENT) && defined(HAS_BITANGENT) && defined(HAS_NORMAL_MAP) && defined(HAS_TEX_COORD)
+	vec3 N = normalize(fragNormal);
+	vec3 T = normalize(fragTangent);
+	vec3 B = normalize(fragBitangent);
+
+	mat3 TBN = mat3(T, B, N);
+
+	vec3 normalInTangentSpace = texture(normalMapSampler, fragTexCoord).rgb * 2.0 - 1.0;
+	
+	return normalize(TBN * normalInTangentSpace);
+#else
+	return normalize(fragNormal);
+#endif
+}
+#endif
+
 void main()
 {
 	vec3 baseColor = getBaseColor();
 
 #ifdef HAS_LIGHT
 	vec3 ambient = baseColor * vec3(0.25);
-	vec3 N = normalize(fragNormal);
+	vec3 N = getNormalVector();
 	vec3 L = normalize(lightVec);
 	vec3 V = normalize(viewVec);
 	vec3 R = reflect(-L, N);

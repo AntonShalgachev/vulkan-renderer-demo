@@ -544,6 +544,8 @@ std::shared_ptr<vkr::SceneObject> DemoApplication::addSceneObjectsFromNode(std::
             auto material = std::make_shared<vkr::Material>();
             material->setColor(createColor(gltfRoughness.baseColorFactor));
 
+            material->setSampler(m_defaultSampler); // TODO move to the texture
+
             if (gltfRoughness.baseColorTexture.index >= 0)
             {
                 // TODO don't create image here, it could be used by several meshes
@@ -554,9 +556,22 @@ std::shared_ptr<vkr::SceneObject> DemoApplication::addSceneObjectsFromNode(std::
                 tinygltf::Image const& gltfImage = model->images[imageIndex];
                 auto texture = std::make_shared<vkr::Texture>(getApp(), gltfImage);
                 material->setTexture(texture);
-                material->setSampler(m_defaultSampler);
 
                 shaderConfiguration.hasTexture = true;
+            }
+
+            if (gltfMaterial.normalTexture.index >= 0)
+            {
+                // TODO don't create image here, it could be used by several meshes
+                std::size_t const textureIndex = static_cast<std::size_t>(gltfMaterial.normalTexture.index);
+                tinygltf::Texture const& gltfTexture = model->textures[textureIndex];
+                std::size_t const imageIndex = static_cast<std::size_t>(gltfTexture.source);
+                // TODO make use of gltfTexture.sampler
+                tinygltf::Image const& gltfImage = model->images[imageIndex];
+                auto texture = std::make_shared<vkr::Texture>(getApp(), gltfImage);
+                material->setNormalMap(texture);
+
+                shaderConfiguration.hasNormalMap = true;
             }
 
             std::string const* vertexShaderPath = m_defaultVertexShader->get(shaderConfiguration);

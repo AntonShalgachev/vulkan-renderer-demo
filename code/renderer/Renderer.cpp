@@ -56,12 +56,6 @@ namespace
 vkr::Renderer::Renderer(Application const& app)
     : Object(app)
 {
-    // TODO define externally and refactor
-    m_descriptorSetLayoutWithSampler = std::make_unique<vkr::DescriptorSetLayout>(getApp(), true);
-    m_pipelineLayoutWithSampler = std::make_unique<vkr::PipelineLayout>(getApp(), *m_descriptorSetLayoutWithSampler);
-    m_descriptorSetLayoutWithoutSampler = std::make_unique<vkr::DescriptorSetLayout>(getApp(), false);
-    m_pipelineLayoutWithoutSampler = std::make_unique<vkr::PipelineLayout>(getApp(), *m_descriptorSetLayoutWithoutSampler);
-
     createSwapchain();
     createSyncObjects();
 }
@@ -84,10 +78,14 @@ void vkr::Renderer::addDrawable(SceneObject const& drawableObject)
         throw std::invalid_argument("drawableObject");
 
 	auto const& material = drawable->getMaterial();
-	auto hasSampler = material.getTexture() && material.getSampler();
-	auto const& descriptorSetLayout = hasSampler ? m_descriptorSetLayoutWithSampler : m_descriptorSetLayoutWithoutSampler;
 
-	m_drawableInstances.push_back(std::make_unique<vkr::ObjectInstance>(getApp(), drawable, drawableObject.getTransform(), *descriptorSetLayout, sizeof(UniformBufferObject)));
+    DescriptorSetConfiguration config;
+    config.hasTexture = material.getTexture() && material.getSampler();
+    config.hasNormalMap = material.getNormalMap() && material.getSampler();
+
+    auto const& resources = getUniformResources(config);
+
+	m_drawableInstances.push_back(std::make_unique<vkr::ObjectInstance>(getApp(), drawable, drawableObject.getTransform(), *resources.descriptorSetLayout, sizeof(UniformBufferObject)));
 	m_drawableInstances.back()->onSwapchainCreated(*m_swapchain);
 }
 
@@ -233,6 +231,23 @@ void vkr::Renderer::updateCameraAspect()
 		camera->setAspect(getAspect());
 }
 
+vkr::Renderer::UniformResources const& vkr::Renderer::getUniformResources(DescriptorSetConfiguration const& config)
+{
+    auto it = m_uniformResources.find(config);
+
+    if (it == m_uniformResources.end())
+    {
+        UniformResources resources;
+        resources.descriptorSetLayout = std::make_unique<vkr::DescriptorSetLayout>(getApp(), config);
+        resources.pipelineLayout = std::make_unique<vkr::PipelineLayout>(getApp(), *resources.descriptorSetLayout);
+
+        auto res = m_uniformResources.emplace(config, std::move(resources));
+        it = res.first;
+    }
+
+    return it->second;
+}
+
 void vkr::Renderer::onSwapchainCreated()
 {
     // TODO only need to call it once if number of images didn't change
@@ -278,11 +293,14 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
         Mesh const& mesh = drawable.getMesh();
         Material const& material = drawable.getMaterial();
 
-        auto hasSampler = material.getTexture() && material.getSampler();
-        auto const& pipelineLayout = hasSampler ? m_pipelineLayoutWithSampler : m_pipelineLayoutWithoutSampler;
+        DescriptorSetConfiguration config;
+        config.hasTexture = material.getTexture() && material.getSampler();
+        config.hasNormalMap = material.getNormalMap() && material.getSampler();
+
+        auto const& resources = getUniformResources(config);
 
         // TODO don't create heavy configuration for each object instance
-        vkr::PipelineConfiguration const configuration = { pipelineLayout.get(), m_renderPass.get(), m_swapchain->getExtent(), material.getShaderKey(), mesh.getVertexLayout().getDescriptions() };
+        vkr::PipelineConfiguration const configuration = { resources.pipelineLayout.get(), m_renderPass.get(), m_swapchain->getExtent(), material.getShaderKey(), mesh.getVertexLayout().getDescriptions() };
 
         auto it = m_pipelines.find(configuration);
         if (it == m_pipelines.end())
@@ -292,7 +310,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
         pipeline.bind(handle);
 
-		instance->bindDescriptorSet(handle, imageIndex, *pipelineLayout);
+		instance->bindDescriptorSet(handle, imageIndex, *resources.pipelineLayout);
 
         mesh.draw(handle);
     }

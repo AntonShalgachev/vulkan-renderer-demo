@@ -16,7 +16,9 @@
 #include "Shader.h"
 
 #include <unordered_map>
+#include <map>
 #include "PipelineConfiguration.h"
+#include "wrapper/DescriptorSetLayout.h" // TODO only DescriptorSetConfiguration is needed
 
 namespace vkr
 {
@@ -80,6 +82,12 @@ namespace vkr
             vkr::CommandBuffer commandBuffer;
         };
 
+        struct UniformResources
+        {
+            std::unique_ptr<vkr::DescriptorSetLayout> descriptorSetLayout;
+            std::unique_ptr<vkr::PipelineLayout> pipelineLayout;
+        };
+
     private:
         void createSwapchain();
         void createSyncObjects();
@@ -94,6 +102,8 @@ namespace vkr
         void updateUniformBuffer(uint32_t currentImage);
 
         void updateCameraAspect();
+
+        UniformResources const& getUniformResources(DescriptorSetConfiguration const& config);
 
     private:
         std::shared_ptr<SceneObject> m_activeCameraObject;
@@ -117,10 +127,7 @@ namespace vkr
         std::vector<std::unique_ptr<vkr::ObjectInstance>> m_drawableInstances;
         std::shared_ptr<Light> m_light;
 
-		std::unique_ptr<vkr::PipelineLayout> m_pipelineLayoutWithSampler;
-        std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayoutWithSampler;
-		std::unique_ptr<vkr::PipelineLayout> m_pipelineLayoutWithoutSampler;
-        std::unique_ptr<vkr::DescriptorSetLayout> m_descriptorSetLayoutWithoutSampler;
+        std::map<DescriptorSetConfiguration, UniformResources> m_uniformResources;
 
         std::unordered_map<PipelineConfiguration, std::unique_ptr<Pipeline>> m_pipelines;
 
