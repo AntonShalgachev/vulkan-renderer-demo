@@ -596,6 +596,10 @@ std::shared_ptr<vkr::SceneObject> DemoApplication::addSceneObjectsFromNode(std::
 
             object->setCamera(camera);
         }
+        else
+        {
+            throw std::runtime_error("Unknown camera type");
+        }
     }
 
     return object;
