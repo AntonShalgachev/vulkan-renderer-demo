@@ -17,7 +17,6 @@ namespace vkr
     class ImageView;
     class Sampler;
 
-    // TODO include Sampler here
     class Texture : Object
     {
     public:
