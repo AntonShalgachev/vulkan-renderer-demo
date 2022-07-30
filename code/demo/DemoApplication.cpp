@@ -560,6 +560,8 @@ std::shared_ptr<vkr::SceneObject> DemoApplication::addSceneObjectsFromNode(std::
                 shaderConfiguration.hasNormalMap = true;
             }
 
+            material->setIsDoubleSided(gltfMaterial.doubleSided);
+
             std::string const* vertexShaderPath = m_defaultVertexShader->get(shaderConfiguration);
             std::string const* fragmentShaderPath = m_defaultFragmentShader->get(shaderConfiguration);
 

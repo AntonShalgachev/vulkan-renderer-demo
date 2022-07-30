@@ -88,7 +88,7 @@ void main()
 	vec3 L = normalize(lightVec);
 	vec3 V = normalize(viewVec);
 	vec3 R = reflect(-L, N);
-	vec3 diffuse = max(dot(N, L), 0.0) * baseColor;
+	vec3 diffuse = abs(dot(N, L)) * baseColor;
 	float specular = pow(max(dot(R, -V), 0.0), 32.0);
 
 	outColor = vec4(0.0);

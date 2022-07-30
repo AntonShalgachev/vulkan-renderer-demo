@@ -300,7 +300,13 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
         auto const& resources = getUniformResources(config);
 
         // TODO don't create heavy configuration for each object instance
-        vkr::PipelineConfiguration const configuration = { resources.pipelineLayout.get(), m_renderPass.get(), m_swapchain->getExtent(), material.getShaderKey(), mesh.getVertexLayout().getDescriptions() };
+        vkr::PipelineConfiguration configuration;
+        configuration.pipelineLayout = resources.pipelineLayout.get();
+        configuration.renderPass = m_renderPass.get();
+        configuration.extent = m_swapchain->getExtent();
+        configuration.shaderKey = material.getShaderKey();
+        configuration.vertexLayoutDescriptions = mesh.getVertexLayout().getDescriptions();
+        configuration.cullBackFaces = !material.isDoubleSided();
 
         auto it = m_pipelines.find(configuration);
         if (it == m_pipelines.end())
