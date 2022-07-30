@@ -33,6 +33,8 @@ namespace vkr
 				return seed;
 			}
 
+			auto operator<=>(Key const& rhs) const = default;
+
 		private:
 			std::vector<ShaderModule::Key> m_moduleKeys;
 		};

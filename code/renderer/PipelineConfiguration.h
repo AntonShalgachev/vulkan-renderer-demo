@@ -5,6 +5,8 @@
 
 #include "VertexLayoutDescriptions.h"
 
+bool operator==(VkExtent2D const& lhs, VkExtent2D const& rhs);
+
 namespace vkr
 {
 	class PipelineLayout;
@@ -12,13 +14,14 @@ namespace vkr
 
 	struct PipelineConfiguration
 	{
-		PipelineLayout const* pipelineLayout;
-		RenderPass const* renderPass;
-		VkExtent2D extent;
+		PipelineLayout const* pipelineLayout = nullptr;
+		RenderPass const* renderPass = nullptr;
+		VkExtent2D extent{ 0, 0 }; // TODO don't use Vulkan struct here
 		Shader::Key shaderKey;
 		VertexLayoutDescriptions vertexLayoutDescriptions;
+		bool cullBackFaces = true;
 
-		bool operator==(PipelineConfiguration const& rhs) const;
+		auto operator<=>(PipelineConfiguration const& rhs) const = default;
 	};
 }
 

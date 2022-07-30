@@ -24,6 +24,8 @@ namespace vkr
             std::string path;
             std::string entryPoint;
 
+            auto operator<=>(Key const& rhs) const = default;
+
 			std::size_t computeHash() const
 			{
 				std::size_t seed = 0;

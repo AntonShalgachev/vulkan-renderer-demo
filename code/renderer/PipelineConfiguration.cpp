@@ -1,12 +1,6 @@
 #include "PipelineConfiguration.h"
 
-bool vkr::PipelineConfiguration::operator==(PipelineConfiguration const& rhs) const
+bool operator==(VkExtent2D const& lhs, VkExtent2D const& rhs)
 {
-	auto tie = [](PipelineConfiguration const& obj)
-	{
-		// TODO add other fields
-		return std::tie(obj.pipelineLayout, obj.renderPass/*, obj.extent, obj.shaderKey, obj.vertexLayoutDescriptions*/);
-	};
-
-	return tie(*this) == tie(rhs);
+    return lhs.width == rhs.width && lhs.height == rhs.height;
 }
