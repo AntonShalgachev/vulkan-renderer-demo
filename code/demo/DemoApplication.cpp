@@ -688,13 +688,13 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
             {
                 switch (gltfMode)
                 {
-                case -1:
                 case TINYGLTF_TEXTURE_FILTER_NEAREST:
                 case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST:
-                case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
-                    return vkr::Sampler::FilterMode::Nearest;
-                case TINYGLTF_TEXTURE_FILTER_LINEAR:
                 case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR:
+                    return vkr::Sampler::FilterMode::Nearest;
+                case -1:
+                case TINYGLTF_TEXTURE_FILTER_LINEAR:
+                case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
                 case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR:
                     return vkr::Sampler::FilterMode::Linear;
                 }
