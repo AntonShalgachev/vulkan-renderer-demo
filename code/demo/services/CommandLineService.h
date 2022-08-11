@@ -1,14 +1,14 @@
 #pragma once
 
 #include "argparse/argparse.hpp"
+
+#include "ServiceContainer.h"
 #include "ScopedDebugCommands.h"
 
-class CommandLineService
+class CommandLineService : public ServiceContainer
 {
 public:
-    static CommandLineService& instance(); // TODO remove
-
-    CommandLineService();
+    CommandLineService(Services& services);
 
     template <typename... Targs>
     argparse::Argument& add(Targs... args)
@@ -38,7 +38,7 @@ public:
     }
 
 private:
-    ScopedDebugCommands m_commands;
+    ScopedDebugCommands m_commands{ services() };
     argparse::ArgumentParser m_parser;
     std::vector<std::string> m_arguments;
 };

@@ -332,6 +332,8 @@ namespace
 
 DemoApplication::DemoApplication()
 {
+    createServices();
+
     m_commands["imgui.demo"] = ::toggle(&m_drawImguiDemo);
     m_commands["imgui.debugger"] = ::toggle(&m_drawImguiDebugger);
     m_commands["imgui.styles"] = ::toggle(&m_drawImguiStyleEditor);
@@ -412,8 +414,15 @@ DemoApplication::~DemoApplication()
 {
     unloadImgui();
 
-    // move to the renderer
+    // TODO move to the renderer
     getApp().getDevice().waitIdle();
+
+    // TODO come up with a better way to destroy objects with captured services
+    m_debugConsole = {};
+    m_notifications = {};
+    m_commands.clear();
+
+    destroyServices();
 }
 
 void DemoApplication::registerCommandLineOptions(CommandLineService& commandLine)
@@ -426,7 +435,7 @@ void DemoApplication::registerCommandLineOptions(CommandLineService& commandLine
 
 bool DemoApplication::init(int argc, char** argv)
 {
-    auto& commandLine = CommandLineService::instance();
+    auto& commandLine = m_services.commandLine();
     DemoApplication::registerCommandLineOptions(commandLine); // TODO move somewhere to allow others to register custom options
 
     spdlog::info("Current directory: {}", std::filesystem::current_path());
@@ -453,17 +462,32 @@ bool DemoApplication::init(int argc, char** argv)
         spdlog::info("Command line arguments: {}", ss.str());
     }
 
+    m_notifications = ui::NotificationManager{ m_services };
+    m_debugConsole = ui::DebugConsoleWidget{ m_services };
+
     return true;
 }
 
 void DemoApplication::run()
 {
-    auto lines = CommandLineService::instance().get<std::vector<std::string>>("--execute");
+    auto lines = m_services.commandLine().get<std::vector<std::string>>("--execute");
     for (auto const& line : lines)
-        DebugConsoleService::instance().execute(line);
+        m_services.debugConsole().execute(line);
 
     m_frameTimer.start();
     m_window->startEventLoop([this]() { drawFrame(); });
+}
+
+void DemoApplication::createServices()
+{
+    m_services.setDebugConsole(std::make_unique<DebugConsoleService>(m_services));
+    m_services.setCommandLine(std::make_unique<CommandLineService>(m_services));
+}
+
+void DemoApplication::destroyServices()
+{
+    m_services.setCommandLine(nullptr);
+    m_services.setDebugConsole(nullptr);
 }
 
 void DemoApplication::loadImgui()
@@ -545,7 +569,7 @@ void DemoApplication::onKey(vkr::Window::Action action, vkr::Window::Key key, ch
     m_modifiers = mods;
 
     if (c == '`' && action == vkr::Window::Action::Press)
-        m_debugConsole.toggle();
+        m_debugConsole->toggle();
 }
 
 void DemoApplication::onMouseMove(glm::vec2 const& delta)
@@ -882,14 +906,14 @@ void DemoApplication::updateUI(float frameTime, float fenceTime)
         static std::size_t nextIndex = 0;
         if (ImGui::Button("Add notification"))
         {
-            m_notifications.add(texts[nextIndex % texts.size()]);
+            m_notifications->add(texts[nextIndex % texts.size()]);
             nextIndex++;
         }
         ImGui::End();
     }
 
-    m_notifications.draw();
-    m_debugConsole.draw();
+    m_notifications->draw();
+    m_debugConsole->draw();
 
     ImGui::Render();
 
@@ -916,7 +940,7 @@ void DemoApplication::update()
 
     float const dt = m_lastFrameTime;
 
-    m_notifications.update(dt);
+    m_notifications->update(dt);
 
     updateUI(m_lastFrameTime, m_lastFenceTime);
     updateScene(dt);

@@ -3,7 +3,9 @@
 #include <deque>
 #include <string>
 
-#include "../ScopedDebugCommands.h"
+#include "services/ServiceContainer.h"
+
+#include "ScopedDebugCommands.h"
 
 namespace ui
 {
@@ -13,10 +15,10 @@ namespace ui
         float remainingTime = 0.0f;
     };
 
-    class NotificationManager
+    class NotificationManager : public ServiceContainer
     {
     public:
-        NotificationManager();
+        NotificationManager(Services& services);
 
         void update(float dt);
         void draw() const;
@@ -24,7 +26,7 @@ namespace ui
         void add(std::string text);
 
     private:
-        ScopedDebugCommands m_commands;
+        ScopedDebugCommands m_commands{ services() };
         std::deque<Notification> m_notifications;
     };
 }

@@ -7,7 +7,7 @@ namespace
     float defaultDuration = 5.0f;
 }
 
-ui::NotificationManager::NotificationManager()
+ui::NotificationManager::NotificationManager(Services& services) : ServiceContainer(services)
 {
     m_commands["ui.notifications.add"] = coil::bind(&NotificationManager::add, this);
 }

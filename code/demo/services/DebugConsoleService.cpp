@@ -84,13 +84,7 @@ namespace coil
 	COIL_CREATE_TYPE_NAME_DEFINITION(glm::vec3, "vec3");
 }
 
-DebugConsoleService& DebugConsoleService::instance()
-{
-    static DebugConsoleService console;
-    return console;
-}
-
-DebugConsoleService::DebugConsoleService()
+DebugConsoleService::DebugConsoleService(Services& services) : ServiceContainer(services)
 {
     auto& commands = *this;
 

@@ -1,8 +1,11 @@
 #include "ScopedDebugCommands.h"
 
-ScopedDebugCommands::ScopedDebugCommands() = default;
+ScopedDebugCommands::ScopedDebugCommands(Services& services) : ServiceContainer(services)
+{
 
-ScopedDebugCommands::ScopedDebugCommands(ScopedDebugCommands&& rhs)
+}
+
+ScopedDebugCommands::ScopedDebugCommands(ScopedDebugCommands&& rhs) : ServiceContainer(rhs.services())
 {
     clear();
 
@@ -24,7 +27,7 @@ ScopedDebugCommands& ScopedDebugCommands::operator=(ScopedDebugCommands&& rhs)
 
 void ScopedDebugCommands::remove(std::string_view name)
 {
-    DebugConsoleService::instance().remove(name);
+    services().debugConsole().remove(name);
     m_names.erase(std::remove(m_names.begin(), m_names.end(), name), m_names.end());
 }
 
@@ -36,5 +39,7 @@ CommandProxy<ScopedDebugCommands> ScopedDebugCommands::operator[](std::string_vi
 void ScopedDebugCommands::clear()
 {
     for (auto const& name : m_names)
-        DebugConsoleService::instance().remove(name);
+        services().debugConsole().remove(name);
+
+    m_names.clear();
 }

@@ -137,7 +137,7 @@ namespace coil
 	COIL_CREATE_TYPE_NAME_DECLARATION(glm::vec3);
 }
 
-class DebugConsoleService
+class DebugConsoleService : public ServiceContainer
 {
 public:
     struct Line
@@ -161,9 +161,7 @@ public:
         float score;
     };
 
-    static DebugConsoleService& instance(); // TODO remove
-
-    DebugConsoleService();
+    DebugConsoleService(Services& services);
 
     void execute(std::string_view command);
     std::vector<Suggestion> getSuggestions(std::string_view input) const;

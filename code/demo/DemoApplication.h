@@ -9,6 +9,8 @@
 #include "ui/DebugConsoleWidget.h"
 #include "ui/NotificationManager.h"
 
+#include "services/Services.h"
+
 #include "ScopedDebugCommands.h"
 
 class CommandLineService;
@@ -56,6 +58,9 @@ public:
     void run();
 
 private:
+    void createServices();
+    void destroyServices();
+
     void loadImgui();
     void unloadImgui();
 
@@ -89,7 +94,9 @@ private:
     vkr::Application const& getApp() { return *m_application; }
 
 private:
-    ScopedDebugCommands m_commands;
+    Services m_services;
+
+    ScopedDebugCommands m_commands{ m_services };
 
     std::unique_ptr<vkr::Window> m_window;
 
@@ -123,8 +130,8 @@ private:
     std::vector<bool> m_keyState;
     vkr::Window::Modifiers m_modifiers = vkr::Window::Modifiers::None;
 
-    ui::NotificationManager m_notifications;
-    ui::DebugConsoleWidget m_debugConsole;
+    std::optional<ui::NotificationManager> m_notifications;
+    std::optional<ui::DebugConsoleWidget> m_debugConsole;
 
     bool m_drawImguiDemo = false;
     bool m_drawImguiDebugger = false;

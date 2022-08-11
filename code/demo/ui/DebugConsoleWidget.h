@@ -5,14 +5,16 @@
 #include <string>
 #include <optional>
 
-#include "../ScopedDebugCommands.h"
+#include "services/ServiceContainer.h"
+
+#include "ScopedDebugCommands.h"
 
 namespace ui
 {
-    class DebugConsoleWidget
+    class DebugConsoleWidget : public ServiceContainer
     {
     public:
-        DebugConsoleWidget();
+        DebugConsoleWidget(Services& services);
 
         void draw();
 
@@ -46,7 +48,7 @@ namespace ui
             std::string_view description;
         };
 
-        ScopedDebugCommands m_commands;
+        ScopedDebugCommands m_commands{ services() };
 
         bool m_visible = false;
 

@@ -45,13 +45,7 @@ namespace
     }
 }
 
-CommandLineService& CommandLineService::instance()
-{
-    static CommandLineService instance;
-    return instance;
-}
-
-CommandLineService::CommandLineService()
+CommandLineService::CommandLineService(Services& services) : ServiceContainer(services)
 {
     m_commands["cmdline.list"] = [this](coil::Context context)
     {
