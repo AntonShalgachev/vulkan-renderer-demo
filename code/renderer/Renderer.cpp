@@ -47,6 +47,7 @@ namespace
         glm::mat4 normal;
         glm::mat4 projection;
         glm::vec3 lightPosition;
+        glm::vec3 lightColor;
         glm::vec4 objectColor;
     };
 
@@ -216,6 +217,7 @@ void vkr::Renderer::updateUniformBuffer(uint32_t currentImage)
         ubo.normal = glm::transpose(glm::inverse(ubo.modelView));
         ubo.projection = camera->getProjectionMatrix();
         ubo.lightPosition = cameraTransform.getViewMatrix() * glm::vec4(m_light->getTransform().getLocalPos(), 1.0f);
+        ubo.lightColor = m_light->getColor() * m_light->getIntensity();
         ubo.objectColor = material.getColor();
 
         instance->copyToUniformBuffer(currentImage, &ubo, sizeof(ubo));

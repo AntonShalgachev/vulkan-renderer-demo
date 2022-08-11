@@ -342,6 +342,22 @@ DemoApplication::DemoApplication()
         setCameraRotation(createRotation(angles));
     });
 
+    m_commands["light.pos"] = coil::property([this]() {
+        return m_light->getTransform().getWorldPos();
+    }, [this](glm::vec3 const& value) {
+        m_light->getTransform().setWorldPos(value);
+    });
+    m_commands["light.color"] = coil::property([this]() {
+        return m_light->getColor();
+    }, [this](glm::vec3 const& value) {
+        m_light->setColor(value);
+    });
+    m_commands["light.intensity"] = coil::property([this]() {
+        return m_light->getIntensity();
+    }, [this](float value) {
+        m_light->setIntensity(value);
+    });
+
     m_commands["fps"].description("Show/hide the FPS widget") = ::toggle(&m_showFps);
     m_commands["fps.update_period"].description("Update period of the FPS widget") = coil::variable(&m_fpsUpdatePeriod);
 
