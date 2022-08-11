@@ -11,7 +11,7 @@
 
 #include "ScopedDebugCommands.h"
 
-class CommandLine;
+class CommandLineService;
 
 namespace vkr
 {
@@ -50,7 +50,7 @@ public:
     DemoApplication();
     ~DemoApplication();
 
-    static void registerCommandLineOptions(CommandLine& commandLine);
+    static void registerCommandLineOptions(CommandLineService& commandLine);
 
     void run();
 

@@ -1,5 +1,5 @@
-#include "CommandLine.h"
-#include "DebugConsole.h"
+#include "CommandLineService.h"
+#include "DebugConsoleService.h"
 
 #include "spdlog/spdlog.h"
 
@@ -45,13 +45,13 @@ namespace
     }
 }
 
-CommandLine& CommandLine::instance()
+CommandLineService& CommandLineService::instance()
 {
-    static CommandLine instance;
+    static CommandLineService instance;
     return instance;
 }
 
-CommandLine::CommandLine()
+CommandLineService::CommandLineService()
 {
     m_commands["cmdline.list"] = [this](coil::Context context)
     {
@@ -60,14 +60,14 @@ CommandLine::CommandLine()
     };
 }
 
-bool CommandLine::parse(int argc, char** argv)
+bool CommandLineService::parse(int argc, char** argv)
 {
     std::vector<std::string> arguments;
     std::copy(argv, argv + argc, std::back_inserter(arguments));
     return parse(arguments);
 }
 
-bool CommandLine::parse(std::vector<std::string> const& arguments)
+bool CommandLineService::parse(std::vector<std::string> const& arguments)
 {
     try
     {
@@ -89,7 +89,7 @@ bool CommandLine::parse(std::vector<std::string> const& arguments)
     return false;
 }
 
-bool CommandLine::parseFile(char const* path)
+bool CommandLineService::parseFile(char const* path)
 {
     std::ifstream file{ path };
 

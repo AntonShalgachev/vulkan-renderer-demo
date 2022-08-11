@@ -8,7 +8,7 @@
 #include <set>
 #include <algorithm>
 
-#include "services/DebugConsole.h"
+#include "services/DebugConsoleService.h"
 
 namespace
 {
@@ -24,19 +24,19 @@ namespace
         return value;
     };
 
-    auto getLineColor(DebugConsole::Line::Type type)
+    auto getLineColor(DebugConsoleService::Line::Type type)
     {
         switch (type)
         {
-        case DebugConsole::Line::Type::Input:
+        case DebugConsoleService::Line::Type::Input:
             return IM_COL32(127, 127, 127, 255);
-        case DebugConsole::Line::Type::ReturnValue:
+        case DebugConsoleService::Line::Type::ReturnValue:
             return IM_COL32(0, 255, 0, 255);
-        case DebugConsole::Line::Type::Output:
+        case DebugConsoleService::Line::Type::Output:
             return IM_COL32(255, 255, 255, 255);
-        case DebugConsole::Line::Type::Error:
+        case DebugConsoleService::Line::Type::Error:
             return IM_COL32(255, 0, 0, 255);
-		case DebugConsole::Line::Type::CommandHelp:
+		case DebugConsoleService::Line::Type::CommandHelp:
 			return IM_COL32(255, 127, 0, 255);
         }
 
@@ -69,7 +69,7 @@ void ui::DebugConsoleWidget::draw()
     drawInput();
 
 	auto name = getInputCommandName();
-    if (!name.empty() && DebugConsole::instance().getMetadata(name))
+    if (!name.empty() && DebugConsoleService::instance().getMetadata(name))
         drawCommandHelp(name);
     else
         drawSuggestions();
@@ -82,7 +82,7 @@ void ui::DebugConsoleWidget::drawOutput()
     auto const outputHeight = ImGui::GetTextLineHeightWithSpacing() * outputLinesCount + ImGui::GetStyle().WindowPadding.y * 2 - ImGui::GetStyle().ItemSpacing.y;
     ImGui::BeginChild("OutputArea", ImVec2(0, outputHeight), true, ImGuiWindowFlags_HorizontalScrollbar);
 
-    for (DebugConsole::Line const& line : DebugConsole::instance().lines())
+    for (DebugConsoleService::Line const& line : DebugConsoleService::instance().lines())
     {
         ImGui::PushStyleColor(ImGuiCol_Text, getLineColor(line.type));
         ImGui::Text(line.text.c_str());
@@ -198,7 +198,7 @@ void ui::DebugConsoleWidget::drawSuggestions()
 void ui::DebugConsoleWidget::drawCommandHelp(std::string_view name)
 {
     std::stringstream ss;
-    DebugConsole::instance().getCommandHelp(ss, name);
+    DebugConsoleService::instance().getCommandHelp(ss, name);
 
 	ImGui::PushStyleColor(ImGuiCol_Text, commandHelpColor);
 	for (std::string line; std::getline(ss, line); )
@@ -214,12 +214,12 @@ void ui::DebugConsoleWidget::onInputChanged(std::string_view input)
     m_inputLength = input.size();
 
     m_suggestions.clear();
-    for (DebugConsole::Suggestion& candidate : DebugConsole::instance().getSuggestions(input))
+    for (DebugConsoleService::Suggestion& candidate : DebugConsoleService::instance().getSuggestions(input))
     {
         Suggestion suggestion;
         suggestion.suggestion = std::move(candidate);
 
-        if (CommandMetadata const* metadata = DebugConsole::instance().getMetadata(suggestion.suggestion.command); metadata && !metadata->description.empty())
+        if (CommandMetadata const* metadata = DebugConsoleService::instance().getMetadata(suggestion.suggestion.command); metadata && !metadata->description.empty())
             suggestion.description = metadata->description;
 
         m_suggestions.push_back(std::move(suggestion));
@@ -237,7 +237,7 @@ void ui::DebugConsoleWidget::onInputReplaced(std::string_view input)
 
 std::optional<std::string_view> ui::DebugConsoleWidget::onInputHistory(std::string_view input, int delta)
 {
-    auto const& inputHistory = DebugConsole::instance().history();
+    auto const& inputHistory = DebugConsoleService::instance().history();
 
     int minIndex = -inputHistory.size();
     int maxIndex = m_suggestions.size();
@@ -262,7 +262,7 @@ std::optional<std::string_view> ui::DebugConsoleWidget::onInputHistory(std::stri
 
 std::optional<std::string_view> ui::DebugConsoleWidget::onInputCompletion(std::string_view input)
 {
-    return DebugConsole::instance().autoComplete(input);
+    return DebugConsoleService::instance().autoComplete(input);
 }
 
 void ui::DebugConsoleWidget::onInputSubmitted(std::string_view input)
@@ -270,7 +270,7 @@ void ui::DebugConsoleWidget::onInputSubmitted(std::string_view input)
     if (input.empty())
         return;
 
-    DebugConsole::instance().execute(input);
+    DebugConsoleService::instance().execute(input);
 
     m_scrollToLast = true;
 

@@ -42,7 +42,7 @@ namespace ui
     private:
         struct Suggestion
         {
-            DebugConsole::Suggestion suggestion;
+            DebugConsoleService::Suggestion suggestion;
             std::string_view description;
         };
 

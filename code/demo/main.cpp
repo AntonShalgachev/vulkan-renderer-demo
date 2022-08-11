@@ -1,5 +1,5 @@
 #include "DemoApplication.h"
-#include "services/CommandLine.h"
+#include "services/CommandLineService.h"
 
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
@@ -8,7 +8,7 @@
 
 int main(int argc, char** argv)
 {
-    CommandLine& commandLine = CommandLine::instance();
+    auto& commandLine = CommandLineService::instance();
     DemoApplication::registerCommandLineOptions(commandLine); // TODO move somewhere to allow others to register custom options
 
     spdlog::info("Current directory: {}", std::filesystem::current_path());

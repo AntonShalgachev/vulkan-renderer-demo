@@ -3,12 +3,12 @@
 #include "argparse/argparse.hpp"
 #include "ScopedDebugCommands.h"
 
-class CommandLine
+class CommandLineService
 {
 public:
-    static CommandLine& instance(); // TODO remove
+    static CommandLineService& instance(); // TODO remove
 
-    CommandLine();
+    CommandLineService();
 
     template <typename... Targs>
     argparse::Argument& add(Targs... args)

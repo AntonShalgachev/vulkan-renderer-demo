@@ -13,10 +13,10 @@ set(ALL_FILES
     "CommandProxy.h"
     "CommandMetadata.h"
     
-    "services/DebugConsole.h"
-    "services/DebugConsole.cpp"
-    "services/CommandLine.h"
-    "services/CommandLine.cpp"
+    "services/DebugConsoleService.h"
+    "services/DebugConsoleService.cpp"
+    "services/CommandLineService.h"
+    "services/CommandLineService.cpp"
 
     "ui/NotificationManager.h"
     "ui/NotificationManager.cpp"

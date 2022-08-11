@@ -1,4 +1,4 @@
-#include "DebugConsole.h"
+#include "DebugConsoleService.h"
 
 #include "rapidfuzz/fuzz.hpp"
 
@@ -84,13 +84,13 @@ namespace coil
 	COIL_CREATE_TYPE_NAME_DEFINITION(glm::vec3, "vec3");
 }
 
-DebugConsole& DebugConsole::instance()
+DebugConsoleService& DebugConsoleService::instance()
 {
-    static DebugConsole console;
+    static DebugConsoleService console;
     return console;
 }
 
-DebugConsole::DebugConsole()
+DebugConsoleService::DebugConsoleService()
 {
     auto& commands = *this;
 
@@ -118,7 +118,7 @@ DebugConsole::DebugConsole()
         }
     };
 
-    commands["clear"].description("Clear the console") = coil::bind(&DebugConsole::clear, this);
+    commands["clear"].description("Clear the console") = coil::bind(&DebugConsoleService::clear, this);
 
     auto globalHelp = [](coil::Context context)
     {
@@ -137,7 +137,7 @@ DebugConsole::DebugConsole()
     commands["help"].description("Print global/command help").arguments({ {}, {"command_name"} }) = coil::overloaded(std::move(globalHelp), std::move(commandHelp));
 }
 
-void DebugConsole::execute(std::string_view command)
+void DebugConsoleService::execute(std::string_view command)
 {
     for (std::string_view subcommand : CommandsList{ command })
     {
@@ -168,7 +168,7 @@ void DebugConsole::execute(std::string_view command)
     }
 }
 
-std::vector<DebugConsole::Suggestion> DebugConsole::getSuggestions(std::string_view input) const
+std::vector<DebugConsoleService::Suggestion> DebugConsoleService::getSuggestions(std::string_view input) const
 {
     if (input.empty())
         return {};
@@ -200,7 +200,7 @@ std::vector<DebugConsole::Suggestion> DebugConsole::getSuggestions(std::string_v
     return suggestions;
 }
 
-std::optional<std::string_view> DebugConsole::autoComplete(std::string_view input) const
+std::optional<std::string_view> DebugConsoleService::autoComplete(std::string_view input) const
 {
     static std::vector<std::string_view> candidates;
     candidates.clear();
@@ -233,12 +233,12 @@ std::optional<std::string_view> DebugConsole::autoComplete(std::string_view inpu
     return longestPrefix;
 }
 
-void DebugConsole::clear()
+void DebugConsoleService::clear()
 {
     m_lines.clear();
 }
 
-void DebugConsole::getCommandHelp(std::ostream& os, std::string_view name) const
+void DebugConsoleService::getCommandHelp(std::ostream& os, std::string_view name) const
 {
 	auto const* functors = m_bindings.get(name);
 	if (!functors)
@@ -263,18 +263,18 @@ void DebugConsole::getCommandHelp(std::ostream& os, std::string_view name) const
 		os << "  " << functor.buildRepresentation(name) << std::endl;
 }
 
-void DebugConsole::remove(std::string_view name)
+void DebugConsoleService::remove(std::string_view name)
 {
     m_bindings.remove(name);
     m_metadata.erase(name);
 }
 
-CommandProxy<DebugConsole> DebugConsole::operator[](std::string_view name)
+CommandProxy<DebugConsoleService> DebugConsoleService::operator[](std::string_view name)
 {
     return { *this, name };
 }
 
-CommandMetadata const* DebugConsole::getMetadata(std::string_view name) const
+CommandMetadata const* DebugConsoleService::getMetadata(std::string_view name) const
 {
     auto it = m_metadata.find(name);
     if (it != m_metadata.end())
@@ -283,7 +283,7 @@ CommandMetadata const* DebugConsole::getMetadata(std::string_view name) const
     return nullptr;
 }
 
-void DebugConsole::fillCommandMetadata(CommandMetadata& metadata, std::vector<coil::AnyFunctor> const& functors)
+void DebugConsoleService::fillCommandMetadata(CommandMetadata& metadata, std::vector<coil::AnyFunctor> const& functors)
 {
 	if (metadata.functors.size() < functors.size())
 		metadata.functors.resize(functors.size());
@@ -327,7 +327,7 @@ void DebugConsole::fillCommandMetadata(CommandMetadata& metadata, std::vector<co
 	}
 }
 
-void DebugConsole::addLine(std::string text, Line::Type type)
+void DebugConsoleService::addLine(std::string text, Line::Type type)
 {
     m_lines.push_back({ std::move(text), type });
 }

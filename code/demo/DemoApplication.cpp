@@ -41,8 +41,8 @@
 #include "SceneObject.h"
 #include "ShaderPackage.h"
 
-#include "services/DebugConsole.h"
-#include "services/CommandLine.h"
+#include "services/DebugConsoleService.h"
+#include "services/CommandLineService.h"
 
 namespace
 {
@@ -413,7 +413,7 @@ DemoApplication::~DemoApplication()
     getApp().getDevice().waitIdle();
 }
 
-void DemoApplication::registerCommandLineOptions(CommandLine& commandLine)
+void DemoApplication::registerCommandLineOptions(CommandLineService& commandLine)
 {
     commandLine.add("--execute")
         .default_value(std::vector<std::string>{})
@@ -423,9 +423,9 @@ void DemoApplication::registerCommandLineOptions(CommandLine& commandLine)
 
 void DemoApplication::run()
 {
-    auto lines = CommandLine::instance().get<std::vector<std::string>>("--execute");
+    auto lines = CommandLineService::instance().get<std::vector<std::string>>("--execute");
     for (auto const& line : lines)
-        DebugConsole::instance().execute(line);
+        DebugConsoleService::instance().execute(line);
 
     m_frameTimer.start();
     m_window->startEventLoop([this]() { drawFrame(); });

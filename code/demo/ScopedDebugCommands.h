@@ -3,7 +3,7 @@
 #include "CommandMetadata.h"
 #include "CommandProxy.h"
 
-#include "services/DebugConsole.h"
+#include "services/DebugConsoleService.h"
 
 #include <vector>
 #include <string_view>
@@ -21,7 +21,7 @@ public:
     template<typename Functor>
     void add(std::string_view name, CommandMetadata metadata, Functor&& functor)
     {
-        DebugConsole::instance().add(name, std::move(metadata), std::forward<Functor>(functor));
+        DebugConsoleService::instance().add(name, std::move(metadata), std::forward<Functor>(functor));
         m_names.push_back(name);
     }
 
