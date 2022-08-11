@@ -5,10 +5,13 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <filesystem>
 
 #include "tiny_gltf.h"
 #include "glm.h"
 #include "magic_enum.hpp"
+#include "spdlog/spdlog.h"
+#include "spdlog/fmt/ostr.h"
 
 #pragma warning(push, 0)
 #include "imgui.h"
@@ -419,6 +422,38 @@ void DemoApplication::registerCommandLineOptions(CommandLineService& commandLine
         .default_value(std::vector<std::string>{})
         .append()
         .help("execute a given command");
+}
+
+bool DemoApplication::init(int argc, char** argv)
+{
+    auto& commandLine = CommandLineService::instance();
+    DemoApplication::registerCommandLineOptions(commandLine); // TODO move somewhere to allow others to register custom options
+
+    spdlog::info("Current directory: {}", std::filesystem::current_path());
+
+    if (!std::filesystem::exists("data"))
+        spdlog::warn("Current directory doesn't contain 'data', probably wrong directory");
+
+    if (!commandLine.parse(argc, argv))
+    {
+        spdlog::critical("Failed to parse command line arguments");
+        return false;
+    }
+    if (!commandLine.parseFile("data/cmdline.ini"))
+    {
+        spdlog::critical("Failed to parse cmdline.ini");
+        return false;
+    }
+
+    {
+        std::stringstream ss;
+        for (std::string const& argument : commandLine.getAll())
+            ss << "'" << argument << "' ";
+
+        spdlog::info("Command line arguments: {}", ss.str());
+    }
+
+    return true;
 }
 
 void DemoApplication::run()

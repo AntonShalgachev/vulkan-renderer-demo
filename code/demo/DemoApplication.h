@@ -52,6 +52,7 @@ public:
 
     static void registerCommandLineOptions(CommandLineService& commandLine);
 
+    bool init(int argc, char** argv);
     void run();
 
 private:
