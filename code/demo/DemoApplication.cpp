@@ -55,7 +55,9 @@ namespace
 #endif
     bool const API_DUMP_ENABLED = false;
 
-    const glm::vec3 LIGHT_POS = glm::vec3(0.0, 50.0f, 50.0f);
+    const glm::vec3 LIGHT_POS = glm::vec3(0.0, 2.0f, 0.0f);
+    const glm::vec3 LIGHT_COLOR = glm::vec3(1.0, 1.0f, 1.0f);
+    const float LIGHT_INTENSITY = 30.0f;
     const glm::vec3 CAMERA_POS = glm::vec3(0.0f, 0.0f, 4.0f);
     const glm::vec3 CAMERA_ANGLES = glm::vec3(0.0f, 0.0f, 0.0f);
 
@@ -777,6 +779,8 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
 
     m_light = std::make_shared<vkr::Light>();
     m_light->getTransform().setLocalPos(LIGHT_POS);
+    m_light->setColor(LIGHT_COLOR);
+    m_light->setIntensity(LIGHT_INTENSITY);
     m_renderer->setLight(m_light);
 
     m_currentScenePath = gltfPath;
