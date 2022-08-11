@@ -10,6 +10,7 @@ layout(binding = 0) uniform UniformBufferObject {
     mat4 normal;
     mat4 projection;
     vec3 lightPosition;
+    vec3 lightColor;
     vec4 objectColor;
 } ubo;
 
@@ -37,11 +38,12 @@ layout(location = 3) out vec3 fragTangent;
 
 layout(location = 4) out vec3 viewVec;
 layout(location = 5) out vec3 lightVec;
+layout(location = 6) out vec3 lightColor; // TODO should be a uniform
 
-layout(location = 6) out vec4 objectColor;
+layout(location = 7) out vec4 objectColor;
 
 #ifdef HAS_BITANGENT
-layout(location = 7) out vec3 fragBitangent;
+layout(location = 8) out vec3 fragBitangent;
 #endif
 
 void main()
@@ -71,4 +73,5 @@ void main()
 
 	lightVec = ubo.lightPosition - viewPos.xyz;
 	viewVec = viewPos.xyz;
+    lightColor = ubo.lightColor;
 }
