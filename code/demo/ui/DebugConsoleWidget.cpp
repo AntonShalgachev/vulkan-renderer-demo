@@ -8,7 +8,7 @@
 #include <set>
 #include <algorithm>
 
-#include "../DebugConsole.h"
+#include "services/DebugConsole.h"
 
 namespace
 {

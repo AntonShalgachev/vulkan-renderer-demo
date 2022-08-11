@@ -37,11 +37,12 @@
 #include "wrapper/DebugMessage.h"
 #include "BufferWithMemory.h"
 
-#include "DebugConsole.h"
-#include "CommandLine.h"
 #include "ScopedDebugCommands.h"
 #include "SceneObject.h"
 #include "ShaderPackage.h"
+
+#include "services/DebugConsole.h"
+#include "services/CommandLine.h"
 
 namespace
 {

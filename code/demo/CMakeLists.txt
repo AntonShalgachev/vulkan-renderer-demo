@@ -8,14 +8,15 @@ set(ALL_FILES
     "DemoApplication.h"
     "DemoApplication.cpp"
 
-    "DebugConsole.h"
-    "DebugConsole.cpp"
-    "CommandLine.h"
-    "CommandLine.cpp"
     "ScopedDebugCommands.h"
     "ScopedDebugCommands.cpp"
     "CommandProxy.h"
     "CommandMetadata.h"
+    
+    "services/DebugConsole.h"
+    "services/DebugConsole.cpp"
+    "services/CommandLine.h"
+    "services/CommandLine.cpp"
 
     "ui/NotificationManager.h"
     "ui/NotificationManager.cpp"
@@ -26,7 +27,7 @@ set(ALL_FILES
 add_executable(${PROJECT_NAME} ${ALL_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    "${CMAKE_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)

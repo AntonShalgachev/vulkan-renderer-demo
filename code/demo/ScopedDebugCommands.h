@@ -1,8 +1,9 @@
 #pragma once
 
-#include "DebugConsole.h"
 #include "CommandMetadata.h"
 #include "CommandProxy.h"
+
+#include "services/DebugConsole.h"
 
 #include <vector>
 #include <string_view>

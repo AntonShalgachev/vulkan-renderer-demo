@@ -1,6 +1,6 @@
 #include "NotificationManager.h"
 #include "imgui.h"
-#include "../DebugConsole.h"
+#include "services/DebugConsole.h"
 
 namespace
 {

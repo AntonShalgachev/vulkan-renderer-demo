@@ -1,5 +1,5 @@
 #include "DemoApplication.h"
-#include "CommandLine.h"
+#include "services/CommandLine.h"
 
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
