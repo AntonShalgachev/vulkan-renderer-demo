@@ -8,7 +8,6 @@
 #include "wrapper/Image.h"
 #include "ScopedOneTimeCommandBuffer.h"
 #include "wrapper/ImageView.h"
-#include "tiny_gltf.h"
 #include <stdexcept>
 #include "BufferWithMemory.h"
 
@@ -107,17 +106,14 @@ vkr::Texture::~Texture()
     m_memory = nullptr;
 }
 
-vkr::Texture::Texture(Application const& app, tinygltf::Image const& image, std::shared_ptr<vkr::Sampler> sampler) : Object(app), m_sampler(std::move(sampler))
+void vkr::Texture::setName(std::string_view name)
 {
-    uint32_t width = static_cast<uint32_t>(image.width);
-    uint32_t height = static_cast<uint32_t>(image.height);
+    m_name = std::string{ name };
+}
 
-    std::size_t bitsPerComponent = static_cast<std::size_t>(image.bits);
-    std::size_t components = static_cast<std::size_t>(image.component);
-
-    createImage(image.image.data(), image.image.size(), width, height, bitsPerComponent, components);
-
-    m_name = image.uri;
+vkr::Texture::Texture(Application const& app, std::span<unsigned char const> bytes, uint32_t width, uint32_t height, std::size_t bitsPerComponent, std::size_t components, std::shared_ptr<vkr::Sampler> sampler) : Object(app), m_sampler(std::move(sampler))
+{
+    createImage(bytes, width, height, bitsPerComponent, components);
 }
 
 vkr::Sampler const& vkr::Texture::getSampler() const
@@ -130,16 +126,13 @@ vkr::ImageView const& vkr::Texture::getImageView() const
     return *m_imageView;
 }
 
-void vkr::Texture::createImage(void const* data, std::size_t size, uint32_t width, uint32_t height, std::size_t bitsPerComponent, std::size_t components)
+void vkr::Texture::createImage(std::span<unsigned char const> bytes, uint32_t width, uint32_t height, std::size_t bitsPerComponent, std::size_t components)
 {
-    if (!data)
-        throw std::runtime_error("failed to load texture image!");
-
     std::size_t bytesPerPixel = components * bitsPerComponent / 8;
 
     std::size_t imageSize = width * height * bytesPerPixel;
 
-    if (imageSize != size)
+    if (imageSize != bytes.size())
         throw std::runtime_error("Unexpected image size!");
 
     // TODO implement
@@ -150,8 +143,8 @@ void vkr::Texture::createImage(void const* data, std::size_t size, uint32_t widt
     if (bytesPerPixel != 4)
         throw std::runtime_error("Unexpected pixel format!");
 
-    vkr::BufferWithMemory stagingBuffer{ getApp(), size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
-    stagingBuffer.memory().copyFrom(data, size);
+    vkr::BufferWithMemory stagingBuffer{ getApp(), bytes.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
+    stagingBuffer.memory().copyFrom(bytes.data(), bytes.size());
 
     // TODO use SRGB for textures data and UNORM for normal maps
     vkr::utils::createImage(getApp(), width, height, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_image, m_memory);

@@ -806,7 +806,12 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
             std::size_t const imageIndex = static_cast<std::size_t>(texture.source);
             tinygltf::Image const& gltfImage = gltfModel->images[imageIndex];
 
-            m_gltfResources->textures.push_back(std::make_shared<vkr::Texture>(getApp(), gltfImage, sampler));
+            uint32_t width = static_cast<uint32_t>(gltfImage.width);
+            uint32_t height = static_cast<uint32_t>(gltfImage.height);
+            std::size_t bitsPerComponent = static_cast<std::size_t>(gltfImage.bits);
+            std::size_t components = static_cast<std::size_t>(gltfImage.component);
+
+            m_gltfResources->textures.push_back(std::make_shared<vkr::Texture>(getApp(), gltfImage.image, width, height, bitsPerComponent, components, sampler));
         }
     }
 

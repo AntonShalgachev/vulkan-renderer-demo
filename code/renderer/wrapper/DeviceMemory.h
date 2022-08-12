@@ -7,6 +7,7 @@
 
 namespace vkr
 {
+    // TODO use span?
     class DeviceMemory : public Object
     {
     public:
