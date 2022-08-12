@@ -6,6 +6,7 @@
 #include "Sampler.h"
 #include "Device.h"
 #include <array>
+#include <list>
 #include <stdexcept>
 #include "ImageView.h"
 

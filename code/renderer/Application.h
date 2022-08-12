@@ -4,6 +4,8 @@
 #include <string>
 #include <memory>
 
+#include <vulkan/vulkan.h> // TODO remove
+
 namespace vkr
 {
     class ApplicationImpl;

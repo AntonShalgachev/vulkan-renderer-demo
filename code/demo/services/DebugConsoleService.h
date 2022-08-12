@@ -6,6 +6,9 @@
 #include "coil/Coil.h"
 #include "magic_enum.hpp"
 
+#include "glm.h"
+#include "ServiceContainer.h"
+
 // TODO move to other file
 namespace utils
 {
