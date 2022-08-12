@@ -9,43 +9,6 @@
     ],
     "variants": [
         {
-            "configuration": {},
-            "cmdline": "-g -O0",
-            "path": "shaders\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_NORMAL_MAP": ""
-            },
-            "cmdline": "-g -O0 -DHAS_NORMAL_MAP",
-            "path": "shaders\\HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_TEXTURE": ""
-            },
-            "cmdline": "-g -O0 -DHAS_TEXTURE",
-            "path": "shaders\\HAS_TEXTURE\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
             "configuration": {
                 "HAS_TEXTURE": "",
                 "HAS_NORMAL_MAP": ""
@@ -61,94 +24,12 @@
         },
         {
             "configuration": {
-                "HAS_TANGENT": ""
-            },
-            "cmdline": "-g -O0 -DHAS_TANGENT",
-            "path": "shaders\\HAS_TANGENT\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_TANGENT": "",
-                "HAS_NORMAL_MAP": ""
-            },
-            "cmdline": "-g -O0 -DHAS_TANGENT -DHAS_NORMAL_MAP",
-            "path": "shaders\\HAS_TANGENT-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_TANGENT": "",
-                "HAS_TEXTURE": ""
-            },
-            "cmdline": "-g -O0 -DHAS_TANGENT -DHAS_TEXTURE",
-            "path": "shaders\\HAS_TANGENT-HAS_TEXTURE\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
                 "HAS_TANGENT": "",
                 "HAS_TEXTURE": "",
                 "HAS_NORMAL_MAP": ""
             },
             "cmdline": "-g -O0 -DHAS_TANGENT -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_TANGENT-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_NORMAL": ""
-            },
-            "cmdline": "-g -O0 -DHAS_NORMAL",
-            "path": "shaders\\HAS_NORMAL\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_NORMAL": "",
-                "HAS_NORMAL_MAP": ""
-            },
-            "cmdline": "-g -O0 -DHAS_NORMAL -DHAS_NORMAL_MAP",
-            "path": "shaders\\HAS_NORMAL-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_NORMAL": "",
-                "HAS_TEXTURE": ""
-            },
-            "cmdline": "-g -O0 -DHAS_NORMAL -DHAS_TEXTURE",
-            "path": "shaders\\HAS_NORMAL-HAS_TEXTURE\\shader.frag.spv",
             "compiler_version": [
                 "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
                 "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
@@ -174,97 +55,12 @@
         {
             "configuration": {
                 "HAS_NORMAL": "",
-                "HAS_TANGENT": ""
-            },
-            "cmdline": "-g -O0 -DHAS_NORMAL -DHAS_TANGENT",
-            "path": "shaders\\HAS_NORMAL-HAS_TANGENT\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_NORMAL": "",
-                "HAS_TANGENT": "",
-                "HAS_NORMAL_MAP": ""
-            },
-            "cmdline": "-g -O0 -DHAS_NORMAL -DHAS_TANGENT -DHAS_NORMAL_MAP",
-            "path": "shaders\\HAS_NORMAL-HAS_TANGENT-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_NORMAL": "",
-                "HAS_TANGENT": "",
-                "HAS_TEXTURE": ""
-            },
-            "cmdline": "-g -O0 -DHAS_NORMAL -DHAS_TANGENT -DHAS_TEXTURE",
-            "path": "shaders\\HAS_NORMAL-HAS_TANGENT-HAS_TEXTURE\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_NORMAL": "",
                 "HAS_TANGENT": "",
                 "HAS_TEXTURE": "",
                 "HAS_NORMAL_MAP": ""
             },
             "cmdline": "-g -O0 -DHAS_NORMAL -DHAS_TANGENT -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_NORMAL-HAS_TANGENT-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_TEX_COORD": ""
-            },
-            "cmdline": "-g -O0 -DHAS_TEX_COORD",
-            "path": "shaders\\HAS_TEX_COORD\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_TEX_COORD": "",
-                "HAS_NORMAL_MAP": ""
-            },
-            "cmdline": "-g -O0 -DHAS_TEX_COORD -DHAS_NORMAL_MAP",
-            "path": "shaders\\HAS_TEX_COORD-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_TEX_COORD": "",
-                "HAS_TEXTURE": ""
-            },
-            "cmdline": "-g -O0 -DHAS_TEX_COORD -DHAS_TEXTURE",
-            "path": "shaders\\HAS_TEX_COORD-HAS_TEXTURE\\shader.frag.spv",
             "compiler_version": [
                 "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
                 "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
@@ -290,100 +86,12 @@
         {
             "configuration": {
                 "HAS_TEX_COORD": "",
-                "HAS_TANGENT": ""
-            },
-            "cmdline": "-g -O0 -DHAS_TEX_COORD -DHAS_TANGENT",
-            "path": "shaders\\HAS_TEX_COORD-HAS_TANGENT\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_TEX_COORD": "",
-                "HAS_TANGENT": "",
-                "HAS_NORMAL_MAP": ""
-            },
-            "cmdline": "-g -O0 -DHAS_TEX_COORD -DHAS_TANGENT -DHAS_NORMAL_MAP",
-            "path": "shaders\\HAS_TEX_COORD-HAS_TANGENT-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_TEX_COORD": "",
-                "HAS_TANGENT": "",
-                "HAS_TEXTURE": ""
-            },
-            "cmdline": "-g -O0 -DHAS_TEX_COORD -DHAS_TANGENT -DHAS_TEXTURE",
-            "path": "shaders\\HAS_TEX_COORD-HAS_TANGENT-HAS_TEXTURE\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_TEX_COORD": "",
                 "HAS_TANGENT": "",
                 "HAS_TEXTURE": "",
                 "HAS_NORMAL_MAP": ""
             },
             "cmdline": "-g -O0 -DHAS_TEX_COORD -DHAS_TANGENT -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_TEX_COORD-HAS_TANGENT-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_TEX_COORD": "",
-                "HAS_NORMAL": ""
-            },
-            "cmdline": "-g -O0 -DHAS_TEX_COORD -DHAS_NORMAL",
-            "path": "shaders\\HAS_TEX_COORD-HAS_NORMAL\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_TEX_COORD": "",
-                "HAS_NORMAL": "",
-                "HAS_NORMAL_MAP": ""
-            },
-            "cmdline": "-g -O0 -DHAS_TEX_COORD -DHAS_NORMAL -DHAS_NORMAL_MAP",
-            "path": "shaders\\HAS_TEX_COORD-HAS_NORMAL-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_TEX_COORD": "",
-                "HAS_NORMAL": "",
-                "HAS_TEXTURE": ""
-            },
-            "cmdline": "-g -O0 -DHAS_TEX_COORD -DHAS_NORMAL -DHAS_TEXTURE",
-            "path": "shaders\\HAS_TEX_COORD-HAS_NORMAL-HAS_TEXTURE\\shader.frag.spv",
             "compiler_version": [
                 "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
                 "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
@@ -411,100 +119,12 @@
             "configuration": {
                 "HAS_TEX_COORD": "",
                 "HAS_NORMAL": "",
-                "HAS_TANGENT": ""
-            },
-            "cmdline": "-g -O0 -DHAS_TEX_COORD -DHAS_NORMAL -DHAS_TANGENT",
-            "path": "shaders\\HAS_TEX_COORD-HAS_NORMAL-HAS_TANGENT\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_TEX_COORD": "",
-                "HAS_NORMAL": "",
-                "HAS_TANGENT": "",
-                "HAS_NORMAL_MAP": ""
-            },
-            "cmdline": "-g -O0 -DHAS_TEX_COORD -DHAS_NORMAL -DHAS_TANGENT -DHAS_NORMAL_MAP",
-            "path": "shaders\\HAS_TEX_COORD-HAS_NORMAL-HAS_TANGENT-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_TEX_COORD": "",
-                "HAS_NORMAL": "",
-                "HAS_TANGENT": "",
-                "HAS_TEXTURE": ""
-            },
-            "cmdline": "-g -O0 -DHAS_TEX_COORD -DHAS_NORMAL -DHAS_TANGENT -DHAS_TEXTURE",
-            "path": "shaders\\HAS_TEX_COORD-HAS_NORMAL-HAS_TANGENT-HAS_TEXTURE\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_TEX_COORD": "",
-                "HAS_NORMAL": "",
                 "HAS_TANGENT": "",
                 "HAS_TEXTURE": "",
                 "HAS_NORMAL_MAP": ""
             },
             "cmdline": "-g -O0 -DHAS_TEX_COORD -DHAS_NORMAL -DHAS_TANGENT -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_TEX_COORD-HAS_NORMAL-HAS_TANGENT-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR",
-            "path": "shaders\\HAS_VERTEX_COLOR\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_NORMAL_MAP": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_NORMAL_MAP",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_TEXTURE": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEXTURE",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEXTURE\\shader.frag.spv",
             "compiler_version": [
                 "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
                 "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
@@ -530,100 +150,12 @@
         {
             "configuration": {
                 "HAS_VERTEX_COLOR": "",
-                "HAS_TANGENT": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TANGENT",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_TANGENT\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_TANGENT": "",
-                "HAS_NORMAL_MAP": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TANGENT -DHAS_NORMAL_MAP",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_TANGENT-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_TANGENT": "",
-                "HAS_TEXTURE": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TANGENT -DHAS_TEXTURE",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_TANGENT-HAS_TEXTURE\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
                 "HAS_TANGENT": "",
                 "HAS_TEXTURE": "",
                 "HAS_NORMAL_MAP": ""
             },
             "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TANGENT -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_VERTEX_COLOR-HAS_TANGENT-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_NORMAL": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_NORMAL",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_NORMAL\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_NORMAL": "",
-                "HAS_NORMAL_MAP": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_NORMAL -DHAS_NORMAL_MAP",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_NORMAL-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_NORMAL": "",
-                "HAS_TEXTURE": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_NORMAL -DHAS_TEXTURE",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_NORMAL-HAS_TEXTURE\\shader.frag.spv",
             "compiler_version": [
                 "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
                 "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
@@ -651,53 +183,6 @@
             "configuration": {
                 "HAS_VERTEX_COLOR": "",
                 "HAS_NORMAL": "",
-                "HAS_TANGENT": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_NORMAL -DHAS_TANGENT",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_NORMAL-HAS_TANGENT\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_NORMAL": "",
-                "HAS_TANGENT": "",
-                "HAS_NORMAL_MAP": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_NORMAL -DHAS_TANGENT -DHAS_NORMAL_MAP",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_NORMAL-HAS_TANGENT-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_NORMAL": "",
-                "HAS_TANGENT": "",
-                "HAS_TEXTURE": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_NORMAL -DHAS_TANGENT -DHAS_TEXTURE",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_NORMAL-HAS_TANGENT-HAS_TEXTURE\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_NORMAL": "",
                 "HAS_TANGENT": "",
                 "HAS_TEXTURE": "",
                 "HAS_NORMAL_MAP": ""
@@ -714,103 +199,12 @@
         {
             "configuration": {
                 "HAS_VERTEX_COLOR": "",
-                "HAS_TEX_COORD": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_TEX_COORD": "",
-                "HAS_NORMAL_MAP": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD -DHAS_NORMAL_MAP",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_TEX_COORD": "",
-                "HAS_TEXTURE": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD -DHAS_TEXTURE",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD-HAS_TEXTURE\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
                 "HAS_TEX_COORD": "",
                 "HAS_TEXTURE": "",
                 "HAS_NORMAL_MAP": ""
             },
             "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_TEX_COORD": "",
-                "HAS_TANGENT": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD -DHAS_TANGENT",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD-HAS_TANGENT\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_TEX_COORD": "",
-                "HAS_TANGENT": "",
-                "HAS_NORMAL_MAP": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD -DHAS_TANGENT -DHAS_NORMAL_MAP",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD-HAS_TANGENT-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_TEX_COORD": "",
-                "HAS_TANGENT": "",
-                "HAS_TEXTURE": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD -DHAS_TANGENT -DHAS_TEXTURE",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD-HAS_TANGENT-HAS_TEXTURE\\shader.frag.spv",
             "compiler_version": [
                 "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
                 "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
@@ -839,109 +233,12 @@
             "configuration": {
                 "HAS_VERTEX_COLOR": "",
                 "HAS_TEX_COORD": "",
-                "HAS_NORMAL": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD -DHAS_NORMAL",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD-HAS_NORMAL\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_TEX_COORD": "",
-                "HAS_NORMAL": "",
-                "HAS_NORMAL_MAP": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD -DHAS_NORMAL -DHAS_NORMAL_MAP",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD-HAS_NORMAL-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_TEX_COORD": "",
-                "HAS_NORMAL": "",
-                "HAS_TEXTURE": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD -DHAS_NORMAL -DHAS_TEXTURE",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD-HAS_NORMAL-HAS_TEXTURE\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_TEX_COORD": "",
                 "HAS_NORMAL": "",
                 "HAS_TEXTURE": "",
                 "HAS_NORMAL_MAP": ""
             },
             "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD -DHAS_NORMAL -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD-HAS_NORMAL-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_TEX_COORD": "",
-                "HAS_NORMAL": "",
-                "HAS_TANGENT": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD -DHAS_NORMAL -DHAS_TANGENT",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD-HAS_NORMAL-HAS_TANGENT\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_TEX_COORD": "",
-                "HAS_NORMAL": "",
-                "HAS_TANGENT": "",
-                "HAS_NORMAL_MAP": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD -DHAS_NORMAL -DHAS_TANGENT -DHAS_NORMAL_MAP",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD-HAS_NORMAL-HAS_TANGENT-HAS_NORMAL_MAP\\shader.frag.spv",
-            "compiler_version": [
-                "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
-                "spirv-tools v2022.3-dev v2022.2-27-gb930e734",
-                "glslang 11.1.0-497-g4c3e00bf",
-                "Target: SPIR-V 1.0"
-            ]
-        },
-        {
-            "configuration": {
-                "HAS_VERTEX_COLOR": "",
-                "HAS_TEX_COORD": "",
-                "HAS_NORMAL": "",
-                "HAS_TANGENT": "",
-                "HAS_TEXTURE": ""
-            },
-            "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD -DHAS_NORMAL -DHAS_TANGENT -DHAS_TEXTURE",
-            "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD-HAS_NORMAL-HAS_TANGENT-HAS_TEXTURE\\shader.frag.spv",
             "compiler_version": [
                 "shaderc v2022.2-dev v2022.1-2-gb4a8e45",
                 "spirv-tools v2022.3-dev v2022.2-27-gb930e734",

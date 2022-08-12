@@ -622,20 +622,26 @@ std::shared_ptr<vkr::SceneObject> DemoApplication::addSceneObjectsFromNode(std::
             auto material = std::make_shared<vkr::Material>();
             material->setColor(createColor(gltfRoughness.baseColorFactor));
 
+            shaderConfiguration.hasTexture = true; // TODO remove if always true
             if (gltfRoughness.baseColorTexture.index >= 0)
             {
                 std::size_t const textureIndex = static_cast<std::size_t>(gltfRoughness.baseColorTexture.index);
                 material->setTexture(m_gltfResources->textures[textureIndex]);
-
-                shaderConfiguration.hasTexture = true;
+            }
+            else
+            {
+                material->setTexture(m_fallbackAlbedo);
             }
 
+            shaderConfiguration.hasNormalMap = true; // TODO remove if always true
             if (gltfMaterial.normalTexture.index >= 0)
             {
                 std::size_t const textureIndex = static_cast<std::size_t>(gltfMaterial.normalTexture.index);
                 material->setNormalMap(m_gltfResources->textures[textureIndex]);
-
-                shaderConfiguration.hasNormalMap = true;
+            }
+            else
+            {
+                material->setNormalMap(m_fallbackNormalMap);
             }
 
             material->setIsDoubleSided(gltfMaterial.doubleSided);
@@ -732,6 +738,10 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
 
     m_defaultVertexShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.vert");
     m_defaultFragmentShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.frag");
+
+    m_fallbackSampler = std::make_shared<vkr::Sampler>(getApp());
+    m_fallbackAlbedo = std::make_unique<vkr::Texture>(getApp(), std::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff }, 1, 1, 8, 4, m_fallbackSampler);
+    m_fallbackNormalMap = std::make_unique<vkr::Texture>(getApp(), std::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff }, 1, 1, 8, 4, m_fallbackSampler);
 
     auto gltfModel = gltfPath.empty() ? nullptr : loadModel(gltfPath);
 

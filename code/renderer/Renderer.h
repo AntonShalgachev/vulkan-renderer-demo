@@ -39,6 +39,8 @@ namespace vkr
     class VertexLayoutDescriptions;
     class Framebuffer;
     class SceneObject;
+    class Sampler;
+    class Texture;
 
     class Renderer : Object
     {

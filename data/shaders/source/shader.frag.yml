@@ -3,5 +3,5 @@ options:
   HAS_TEX_COORD: [null, ""]
   HAS_NORMAL: [null, ""]
   HAS_TANGENT: [null, ""]
-  HAS_TEXTURE: [null, ""]
-  HAS_NORMAL_MAP: [null, ""]
+  HAS_TEXTURE: [""]
+  HAS_NORMAL_MAP: [""]

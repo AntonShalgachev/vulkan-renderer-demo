@@ -38,6 +38,8 @@
 
 #include "VertexLayout.h"
 #include "PipelineConfiguration.h"
+#include "wrapper/Sampler.h"
+#include "Texture.h"
 
 namespace
 {
@@ -212,6 +214,7 @@ void vkr::Renderer::updateUniformBuffer(uint32_t currentImage)
         Transform const& transform = instance->getTransform();
         Material const& material = drawable.getMaterial();
 
+        // TODO split into several buffers; use push constants
         UniformBufferObject ubo{};
         ubo.modelView = cameraTransform.getViewMatrix() * transform.getMatrix();
         ubo.normal = glm::transpose(glm::inverse(ubo.modelView));

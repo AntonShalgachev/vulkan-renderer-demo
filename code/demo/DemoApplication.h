@@ -109,6 +109,10 @@ private:
     std::unique_ptr<vkr::ShaderPackage> m_defaultVertexShader;
     std::unique_ptr<vkr::ShaderPackage> m_defaultFragmentShader;
 
+    std::shared_ptr<vkr::Sampler> m_fallbackSampler;
+    std::shared_ptr<vkr::Texture> m_fallbackAlbedo;
+    std::shared_ptr<vkr::Texture> m_fallbackNormalMap;
+
     // Objects
     Scene m_scene;
     std::shared_ptr<vkr::SceneObject> m_activeCameraObject;

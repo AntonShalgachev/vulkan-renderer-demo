@@ -33,6 +33,8 @@ namespace
     }
 }
 
+vkr::Sampler::Sampler(Application const& app) : Sampler(app, FilterMode::Linear, FilterMode::Linear, WrapMode::Repeat, WrapMode::Repeat) {}
+
 vkr::Sampler::Sampler(Application const& app, FilterMode magFilter, FilterMode minFilter, WrapMode wrapU, WrapMode wrapV) : Object(app)
 {
     VkSamplerCreateInfo samplerCreateInfo{};

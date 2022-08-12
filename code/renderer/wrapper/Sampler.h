@@ -23,6 +23,7 @@ namespace vkr
         };
 
     public:
+        Sampler(Application const& app);
         Sampler(Application const& app, FilterMode magFilter, FilterMode minFilter, WrapMode wrapU, WrapMode wrapV);
         ~Sampler();
 
