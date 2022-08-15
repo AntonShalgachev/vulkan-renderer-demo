@@ -17,6 +17,8 @@ set(ALL_FILES
     "services/DebugConsoleService.cpp"
     "services/CommandLineService.h"
     "services/CommandLineService.cpp"
+    "services/DebugDrawService.h"
+    "services/DebugDrawService.cpp"
     "services/Services.h"
     "services/Services.cpp"
     "services/ServiceContainer.h"

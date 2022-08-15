@@ -46,6 +46,7 @@
 
 #include "services/DebugConsoleService.h"
 #include "services/CommandLineService.h"
+#include "services/DebugDrawService.h"
 
 namespace
 {
@@ -482,6 +483,7 @@ void DemoApplication::createServices()
 {
     m_services.setDebugConsole(std::make_unique<DebugConsoleService>(m_services));
     m_services.setCommandLine(std::make_unique<CommandLineService>(m_services));
+    m_services.setDebugDraw(std::make_unique<DebugDrawService>(m_services));
 }
 
 void DemoApplication::destroyServices()

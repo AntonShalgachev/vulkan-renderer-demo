@@ -14,3 +14,8 @@ void Services::setDebugConsole(std::unique_ptr<DebugConsoleService> service)
 {
     m_debugConsole = std::move(service);
 }
+
+void Services::setDebugDraw(std::unique_ptr<DebugDrawService> service)
+{
+    m_debugDraw = std::move(service);
+}
