@@ -126,7 +126,7 @@ namespace vkr
 
         std::function<void()> m_waitUntilWindowInForeground;
 
-        std::vector<std::unique_ptr<vkr::ObjectInstance>> m_drawableInstances;
+        std::vector<ObjectInstance> m_drawableInstances;
         std::shared_ptr<Light> m_light;
 
         std::map<DescriptorSetConfiguration, UniformResources> m_uniformResources;

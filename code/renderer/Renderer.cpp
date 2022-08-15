@@ -88,8 +88,8 @@ void vkr::Renderer::addDrawable(SceneObject const& drawableObject)
 
     auto const& resources = getUniformResources(config);
 
-	m_drawableInstances.push_back(std::make_unique<vkr::ObjectInstance>(getApp(), drawable, drawableObject.getTransform(), *resources.descriptorSetLayout, sizeof(UniformBufferObject)));
-	m_drawableInstances.back()->onSwapchainCreated(*m_swapchain);
+	m_drawableInstances.emplace_back(getApp(), *drawable, drawableObject.getTransform(), *resources.descriptorSetLayout, sizeof(UniformBufferObject));
+	m_drawableInstances.back().onSwapchainCreated(*m_swapchain);
 }
 
 void vkr::Renderer::clearObjects()
@@ -208,10 +208,10 @@ void vkr::Renderer::updateUniformBuffer(uint32_t currentImage)
 
 	Transform const& cameraTransform = m_activeCameraObject->getTransform();
 
-    for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_drawableInstances)
+    for (ObjectInstance const& instance : m_drawableInstances)
     {
-		Drawable const& drawable = instance->getDrawable();
-        Transform const& transform = instance->getTransform();
+		Drawable const& drawable = instance.getDrawable();
+        Transform const& transform = instance.getTransform();
         Material const& material = drawable.getMaterial();
 
         // TODO split into several buffers; use push constants
@@ -223,7 +223,7 @@ void vkr::Renderer::updateUniformBuffer(uint32_t currentImage)
         ubo.lightColor = m_light->getColor() * m_light->getIntensity();
         ubo.objectColor = material.getColor();
 
-        instance->copyToUniformBuffer(currentImage, &ubo, sizeof(ubo));
+        instance.copyToUniformBuffer(currentImage, &ubo, sizeof(ubo));
     }
 }
 
@@ -256,8 +256,8 @@ vkr::Renderer::UniformResources const& vkr::Renderer::getUniformResources(Descri
 void vkr::Renderer::onSwapchainCreated()
 {
     // TODO only need to call it once if number of images didn't change
-    for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_drawableInstances)
-        instance->onSwapchainCreated(*m_swapchain);
+    for (ObjectInstance& instance : m_drawableInstances)
+        instance.onSwapchainCreated(*m_swapchain);
 
     updateCameraAspect();
 }
@@ -291,9 +291,9 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
     vkCmdBeginRenderPass(handle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    for (std::unique_ptr<vkr::ObjectInstance> const& instance : m_drawableInstances)
+    for (ObjectInstance const& instance : m_drawableInstances)
     {
-        Drawable const& drawable = instance->getDrawable();
+        Drawable const& drawable = instance.getDrawable();
 
         Mesh const& mesh = drawable.getMesh();
         Material const& material = drawable.getMaterial();
@@ -321,7 +321,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
         pipeline.bind(handle);
 
-		instance->bindDescriptorSet(handle, imageIndex, *resources.pipelineLayout);
+		instance.bindDescriptorSet(handle, imageIndex, *resources.pipelineLayout);
 
         mesh.draw(handle);
     }

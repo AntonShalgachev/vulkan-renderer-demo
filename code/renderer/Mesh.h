@@ -23,7 +23,7 @@ namespace vkr
         ~Mesh();
 
         VertexLayout const& getVertexLayout() const { return m_vertexLayout; }
-        Metadata const& getMetadata() const { return m_metadata; }
+        Metadata const& getMetadata() const { return m_metadata; } // TODO not needed during rendering. Remove?
 
         void draw(VkCommandBuffer commandBuffer) const;
 
