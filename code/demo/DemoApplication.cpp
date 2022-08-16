@@ -481,9 +481,10 @@ void DemoApplication::run()
 
 void DemoApplication::createServices()
 {
+    // TODO don't pass vkr::Application like this. Either remove it completely or add to services
     m_services.setDebugConsole(std::make_unique<DebugConsoleService>(m_services));
     m_services.setCommandLine(std::make_unique<CommandLineService>(m_services));
-    m_services.setDebugDraw(std::make_unique<DebugDrawService>(m_services));
+    m_services.setDebugDraw(std::make_unique<DebugDrawService>(getApp(), m_services));
 }
 
 void DemoApplication::destroyServices()

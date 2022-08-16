@@ -2,6 +2,7 @@
 
 #include "CommandLineService.h"
 #include "DebugConsoleService.h"
+#include "DebugDrawService.h"
 
 Services::~Services() = default;
 
