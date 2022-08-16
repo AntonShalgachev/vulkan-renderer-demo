@@ -34,6 +34,8 @@ namespace vkr
 
         struct Attribute
         {
+            // TODO remove offset, it's always 0 now
+
             Attribute(std::size_t location, AttributeType type, ComponentType componentType, std::size_t offset)
                 : location(location)
                 , type(type)

@@ -19,6 +19,7 @@ namespace vkr
         };
 
     public:
+        // TODO don't need Application
         Mesh(Application const& app, Buffer const& buffer, VertexLayout layout, Metadata metadata);
         ~Mesh();
 
