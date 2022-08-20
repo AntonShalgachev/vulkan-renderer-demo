@@ -45,12 +45,16 @@ namespace
 {
     struct UniformBufferObject
     {
-        glm::mat4 modelView;
-        glm::mat4 normal;
         glm::mat4 projection;
         glm::vec3 lightPosition;
         glm::vec3 lightColor;
         glm::vec4 objectColor;
+    };
+
+    struct VertexPushConstants
+    {
+        glm::mat4 modelView;
+        glm::mat4 normal;
     };
 
     const int FRAME_RESOURCE_COUNT = 3;
@@ -214,10 +218,8 @@ void vkr::Renderer::updateUniformBuffer(uint32_t currentImage)
         Transform const& transform = instance.getTransform();
         Material const& material = drawable.getMaterial();
 
-        // TODO split into several buffers; use push constants
+        // TODO split into several buffers
         UniformBufferObject ubo{};
-        ubo.modelView = cameraTransform.getViewMatrix() * transform.getMatrix();
-        ubo.normal = glm::transpose(glm::inverse(ubo.modelView));
         ubo.projection = camera->getProjectionMatrix();
         ubo.lightPosition = cameraTransform.getViewMatrix() * glm::vec4(m_light->getTransform().getLocalPos(), 1.0f);
         ubo.lightColor = m_light->getColor() * m_light->getIntensity();
@@ -244,7 +246,7 @@ vkr::Renderer::UniformResources const& vkr::Renderer::getUniformResources(Descri
     {
         UniformResources resources;
         resources.descriptorSetLayout = std::make_unique<vkr::DescriptorSetLayout>(getApp(), config);
-        resources.pipelineLayout = std::make_unique<vkr::PipelineLayout>(getApp(), *resources.descriptorSetLayout);
+        resources.pipelineLayout = std::make_unique<vkr::PipelineLayout>(getApp(), *resources.descriptorSetLayout, sizeof(VertexPushConstants)); // TODO make push constants more configurable
 
         auto res = m_uniformResources.emplace(config, std::move(resources));
         it = res.first;
@@ -291,8 +293,12 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
     vkCmdBeginRenderPass(handle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
+    Transform const& cameraTransform = m_activeCameraObject->getTransform();
+
     for (ObjectInstance const& instance : m_drawableInstances)
     {
+        Transform const& transform = instance.getTransform();
+
         Drawable const& drawable = instance.getDrawable();
 
         Mesh const& mesh = drawable.getMesh();
@@ -320,6 +326,14 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
         Pipeline const& pipeline = *it->second;
 
         pipeline.bind(handle);
+
+        {
+            VertexPushConstants constants;
+            constants.modelView = cameraTransform.getViewMatrix() * transform.getMatrix();
+            constants.normal = glm::transpose(glm::inverse(constants.modelView));
+
+            vkCmdPushConstants(handle, resources.pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VertexPushConstants), &constants);
+        }
 
 		instance.bindDescriptorSet(handle, imageIndex, *resources.pipelineLayout);
 

@@ -6,13 +6,16 @@
 #endif
 
 layout(binding = 0) uniform UniformBufferObject {
-    mat4 modelView;
-    mat4 normal;
     mat4 projection;
     vec3 lightPosition;
     vec3 lightColor;
     vec4 objectColor;
 } ubo;
+
+layout(push_constant) uniform PushConstants {
+    mat4 modelView;
+    mat4 normal;
+} pcs;
 
 layout(location = 0) in vec3 inPosition;
 
@@ -48,7 +51,7 @@ layout(location = 8) out vec3 fragBitangent;
 
 void main()
 {
-	vec4 viewPos = ubo.modelView * vec4(inPosition, 1.0);
+	vec4 viewPos = pcs.modelView * vec4(inPosition, 1.0);
 	gl_Position = ubo.projection * viewPos;
 
 #ifdef HAS_VERTEX_COLOR
@@ -58,15 +61,15 @@ void main()
     fragTexCoord = inTexCoord;
 #endif
 #ifdef HAS_NORMAL
-    fragNormal = (ubo.normal * vec4(inNormal, 0.0)).xyz;
+    fragNormal = (pcs.normal * vec4(inNormal, 0.0)).xyz;
 #endif
 #ifdef HAS_TANGENT
-    fragTangent = (ubo.normal * vec4(inTangent.xyz, 0.0)).xyz;
+    fragTangent = (pcs.normal * vec4(inTangent.xyz, 0.0)).xyz;
 #endif
 
 #ifdef HAS_BITANGENT
     vec3 inBitangent = cross(inNormal, inTangent.xyz) * inTangent.w;
-    fragBitangent = (ubo.normal * vec4(inBitangent, 0.0)).xyz;
+    fragBitangent = (pcs.normal * vec4(inBitangent, 0.0)).xyz;
 #endif
 
     objectColor = ubo.objectColor;
