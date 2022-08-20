@@ -92,8 +92,7 @@ void vkr::Renderer::addDrawable(SceneObject const& drawableObject)
 
     auto const& resources = getUniformResources(config);
 
-	m_drawableInstances.emplace_back(getApp(), *drawable, drawableObject.getTransform(), *resources.descriptorSetLayout, sizeof(UniformBufferObject));
-	m_drawableInstances.back().onSwapchainCreated(*m_swapchain);
+	m_drawableInstances.emplace_back(getApp(), *drawable, drawableObject.getTransform(), *resources.descriptorSetLayout, sizeof(UniformBufferObject), m_swapchain->getImages().size());
 }
 
 void vkr::Renderer::clearObjects()
@@ -257,10 +256,6 @@ vkr::Renderer::UniformResources const& vkr::Renderer::getUniformResources(Descri
 
 void vkr::Renderer::onSwapchainCreated()
 {
-    // TODO only need to call it once if number of images didn't change
-    for (ObjectInstance& instance : m_drawableInstances)
-        instance.onSwapchainCreated(*m_swapchain);
-
     updateCameraAspect();
 }
 
