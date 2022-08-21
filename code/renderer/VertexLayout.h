@@ -53,7 +53,7 @@ namespace vkr
 
         struct Binding
         {
-            Binding(std::size_t offset, std::size_t length, std::size_t stride) : offset(offset), length(length), stride(stride) {}
+            Binding(std::size_t offset, std::size_t stride) : offset(offset), stride(stride) {}
 
             template<class... Args>
             Binding& addAttribute(Args&&... args)
@@ -63,7 +63,6 @@ namespace vkr
             }
 
             std::size_t offset = 0;
-            std::size_t length = 0;
             std::size_t stride = 0;
             std::vector<Attribute> attributes;
         };

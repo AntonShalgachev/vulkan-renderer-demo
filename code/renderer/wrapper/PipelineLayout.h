@@ -11,7 +11,7 @@ namespace vkr
     class PipelineLayout : public Object
     {
     public:
-    	explicit PipelineLayout(Application const& app, DescriptorSetLayout const& descriptorSetLayout, std::size_t pushConstantsSize);
+    	explicit PipelineLayout(Application const& app, DescriptorSetLayout const* descriptorSetLayout, std::size_t pushConstantsSize);
     	~PipelineLayout();
 
         PipelineLayout(PipelineLayout const&) = default;

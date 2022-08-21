@@ -41,6 +41,22 @@ namespace vkr
     class SceneObject;
     class Sampler;
     class Texture;
+    class BufferWithMemory;
+
+    struct OneFrameBoxResources
+    {
+        std::unique_ptr<vkr::BufferWithMemory> bufferWithMemory;
+        std::unique_ptr<vkr::Mesh> mesh;
+
+        std::unique_ptr<vkr::PipelineLayout> pipelineLayout;
+        std::unique_ptr<vkr::Pipeline> pipeline;
+    };
+
+    struct OneFrameBoxInstance
+    {
+        glm::mat4 model;
+        glm::vec3 color;
+    };
 
     class Renderer : Object
     {
@@ -70,6 +86,8 @@ namespace vkr
         float getLastFenceTime() const { return m_lastFenceTime; }
         float getCumulativeFenceTime() const { return m_cumulativeFenceTime; }
         void resetCumulativeFenceTime() { m_cumulativeFenceTime = 0.0f; }
+
+        void setOneFrameBoxes(std::vector<OneFrameBoxInstance> instances) { m_oneFrameBoxInstances = std::move(instances); }
 
     private:
         struct FrameResources
@@ -136,5 +154,9 @@ namespace vkr
         vkr::Timer m_fenceTimer;
         float m_lastFenceTime = 0.0f;
         float m_cumulativeFenceTime = 0.0f;
+
+        // TODO move somewhere else
+        OneFrameBoxResources m_oneFrameBoxResources;
+        std::vector<OneFrameBoxInstance> m_oneFrameBoxInstances;
     };
 }

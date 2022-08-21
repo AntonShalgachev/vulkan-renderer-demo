@@ -4,12 +4,16 @@
 #include <array>
 #include <stdexcept>
 
-vkr::PipelineLayout::PipelineLayout(Application const& app, DescriptorSetLayout const& descriptorSetLayout, std::size_t pushConstantsSize) : Object(app)
+vkr::PipelineLayout::PipelineLayout(Application const& app, DescriptorSetLayout const* descriptorSetLayout, std::size_t pushConstantsSize) : Object(app)
 {
-    std::array setLayouts{ descriptorSetLayout.getHandle() };
+    std::vector<VkDescriptorSetLayout> setLayouts;
+
+    if (descriptorSetLayout)
+        setLayouts.push_back(descriptorSetLayout->getHandle());
 
     std::vector<VkPushConstantRange> pushConstantRanges;
 
+    if (pushConstantsSize > 0)
     {
         VkPushConstantRange& range = pushConstantRanges.emplace_back();
         range.offset = 0;

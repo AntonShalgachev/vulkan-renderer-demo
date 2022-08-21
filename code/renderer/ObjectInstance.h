@@ -38,7 +38,7 @@ namespace vkr
         Transform const& m_transform;
 
         std::vector<vkr::BufferWithMemory> m_uniformBuffers;
-        std::unique_ptr<vkr::DescriptorPool> m_descriptorPool;
+        std::unique_ptr<vkr::DescriptorPool> m_descriptorPool; // TODO move out of here
         std::unique_ptr<vkr::DescriptorSets> m_descriptorSets;
     };
 }

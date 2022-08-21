@@ -298,7 +298,7 @@ namespace
             if (stride == 0)
                 stride = getAttributeStride(attributeType, componentType);
 
-            bindings.emplace_back(bufferView.byteOffset + offset, bufferView.byteLength, stride)
+            bindings.emplace_back(bufferView.byteOffset + offset, stride)
                 .addAttribute(location, attributeType, componentType, 0);
         }
 
@@ -484,13 +484,14 @@ void DemoApplication::createServices()
     // TODO don't pass vkr::Application like this. Either remove it completely or add to services
     m_services.setDebugConsole(std::make_unique<DebugConsoleService>(m_services));
     m_services.setCommandLine(std::make_unique<CommandLineService>(m_services));
-    m_services.setDebugDraw(std::make_unique<DebugDrawService>(getApp(), m_services));
+    m_services.setDebugDraw(std::make_unique<DebugDrawService>(m_services));
 }
 
 void DemoApplication::destroyServices()
 {
     m_services.setCommandLine(nullptr);
     m_services.setDebugConsole(nullptr);
+    m_services.setDebugDraw(nullptr);
 }
 
 void DemoApplication::loadImgui()
@@ -941,6 +942,7 @@ void DemoApplication::updateUI(float frameTime, float fenceTime)
 void DemoApplication::drawFrame()
 {
     update();
+    m_services.debugDraw().draw(*m_renderer);
     m_renderer->draw();
     m_fpsDrawnFrames++;
 }
@@ -967,7 +969,7 @@ void DemoApplication::update()
 
 void DemoApplication::updateScene(float)
 {
-
+    m_services.debugDraw().box(m_light->getTransform().getWorldPos(), glm::identity<glm::quat>(), glm::vec3(0.1f), { 1.0f, 0.0f, 0.0f }, -1.0f);
 }
 
 void DemoApplication::updateCamera(float dt)
