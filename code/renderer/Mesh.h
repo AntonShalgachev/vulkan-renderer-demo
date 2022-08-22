@@ -7,6 +7,8 @@ namespace vkr
     class Application;
     class Buffer;
 
+    // TODO accept several Buffers (or buffer views)
+
     class Mesh
     {
     public:
