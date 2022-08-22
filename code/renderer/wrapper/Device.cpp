@@ -33,6 +33,7 @@ vkr::Device::Device(PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceC
     VkPhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
     deviceFeatures.geometryShader = VK_TRUE;
+    deviceFeatures.fillModeNonSolid = VK_TRUE;
 
     VkPhysicalDeviceIndexTypeUint8FeaturesEXT indexTypeUint8Feature{};
     indexTypeUint8Feature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_EXT;

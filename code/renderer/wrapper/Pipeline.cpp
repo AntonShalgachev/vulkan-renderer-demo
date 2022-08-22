@@ -74,13 +74,13 @@ namespace
         return viewportStateCreateInfo;
     }
 
-    VkPipelineRasterizationStateCreateInfo initRasterizerCreateInfo(bool cullBackFaces)
+    VkPipelineRasterizationStateCreateInfo initRasterizerCreateInfo(bool cullBackFaces, bool wireframe)
     {
 		VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo{};
 		rasterizerCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		rasterizerCreateInfo.depthClampEnable = VK_FALSE;
 		rasterizerCreateInfo.rasterizerDiscardEnable = VK_FALSE;
-		rasterizerCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
+		rasterizerCreateInfo.polygonMode = wireframe ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
 		rasterizerCreateInfo.lineWidth = 1.0f;
 		rasterizerCreateInfo.cullMode = cullBackFaces ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_NONE;
 		rasterizerCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
@@ -167,7 +167,7 @@ vkr::Pipeline::Pipeline(Application const& app, PipelineConfiguration const& con
     VkRect2D scissor = initScissor(config.extent);
     VkPipelineViewportStateCreateInfo viewportStateCreateInfo = initViewportStateCreateInfo(viewport, scissor);
 
-    VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo = initRasterizerCreateInfo(config.cullBackFaces);
+    VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo = initRasterizerCreateInfo(config.cullBackFaces, config.wireframe);
 
     VkPipelineMultisampleStateCreateInfo multisamplingCreateInfo = initMultisamplingCreateInfo();
 

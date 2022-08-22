@@ -171,6 +171,7 @@ vkr::Renderer::Renderer(Application const& app)
             .addStage(vkr::ShaderModule::Type::Fragment, "data/shaders/packaged/debugdraw.frag/shaders/debugdraw.frag.spv"); // TODO use ShaderPackage
         configuration.vertexLayoutDescriptions = m_oneFrameBoxResources.mesh->getVertexLayout().getDescriptions();
         configuration.cullBackFaces = false;
+        configuration.wireframe = true;
         m_oneFrameBoxResources.pipeline = std::make_unique<vkr::Pipeline>(app, configuration);
     }
 }

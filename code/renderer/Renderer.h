@@ -12,9 +12,6 @@
 #include "Camera.h"
 #include "Light.h"
 
-// TODO maybe remove?
-#include "Shader.h"
-
 #include <unordered_map>
 #include <map>
 #include "PipelineConfiguration.h"

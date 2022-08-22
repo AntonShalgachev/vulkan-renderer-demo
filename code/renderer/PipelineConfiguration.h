@@ -20,6 +20,7 @@ namespace vkr
 		Shader::Key shaderKey;
 		VertexLayoutDescriptions vertexLayoutDescriptions;
 		bool cullBackFaces = true;
+		bool wireframe = false;
 
 		auto operator<=>(PipelineConfiguration const& rhs) const = default;
 	};
@@ -38,6 +39,8 @@ namespace std
 			vkr::hash::combine(seed, rhs.extent);
 			vkr::hash::combine(seed, rhs.shaderKey);
 			vkr::hash::combine(seed, rhs.vertexLayoutDescriptions);
+			vkr::hash::combine(seed, rhs.cullBackFaces);
+			vkr::hash::combine(seed, rhs.wireframe);
 			return seed;
 		}
 	};
