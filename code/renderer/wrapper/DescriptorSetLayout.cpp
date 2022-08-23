@@ -3,7 +3,7 @@
 #include <array>
 #include <stdexcept>
 
-vkr::DescriptorSetLayout::DescriptorSetLayout(Device const& device, DescriptorSetConfiguration config)
+vko::DescriptorSetLayout::DescriptorSetLayout(Device const& device, DescriptorSetConfiguration config)
     : m_device(device)
     , m_configuration(std::move(config))
 {
@@ -47,7 +47,7 @@ vkr::DescriptorSetLayout::DescriptorSetLayout(Device const& device, DescriptorSe
         throw std::runtime_error("failed to create descriptor set layout!");
 }
 
-vkr::DescriptorSetLayout::~DescriptorSetLayout()
+vko::DescriptorSetLayout::~DescriptorSetLayout()
 {
     vkDestroyDescriptorSetLayout(m_device.getHandle(), m_handle, nullptr);
 }

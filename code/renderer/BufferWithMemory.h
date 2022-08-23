@@ -18,12 +18,12 @@ namespace vkr
         BufferWithMemory(BufferWithMemory&& rhs) = default;
         BufferWithMemory& operator=(BufferWithMemory&& rhs) = default;
 
-        vkr::Buffer const& buffer() const { return *m_buffer; }
-        vkr::DeviceMemory const& memory() const { return *m_memory; }
+        vko::Buffer const& buffer() const { return *m_buffer; }
+        vko::DeviceMemory const& memory() const { return *m_memory; }
 
     private:
         // TODO remove this nasty hack
-        std::optional<vkr::Buffer> m_buffer;
-        std::optional<vkr::DeviceMemory> m_memory;
+        std::optional<vko::Buffer> m_buffer;
+        std::optional<vko::DeviceMemory> m_memory;
     };
 }

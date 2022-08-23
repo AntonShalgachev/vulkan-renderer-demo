@@ -3,7 +3,7 @@
 #include <vulkan/vulkan.h>
 #include "UniqueHandle.h"
 
-namespace vkr
+namespace vko
 {
     class Image;
 	class Device;
@@ -11,7 +11,7 @@ namespace vkr
 	class ImageView
 	{
 	public:
-		explicit ImageView(Device const& device, vkr::Image const& image, VkImageAspectFlags aspectFlags);
+		explicit ImageView(Device const& device, vko::Image const& image, VkImageAspectFlags aspectFlags);
 		~ImageView();
 
         ImageView(ImageView const&) = default;

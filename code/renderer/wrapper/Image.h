@@ -4,7 +4,7 @@
 #include <memory>
 #include "UniqueHandle.h"
 
-namespace vkr
+namespace vko
 {
     class DeviceMemory;
     class ImageView;

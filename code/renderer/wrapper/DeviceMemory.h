@@ -4,7 +4,7 @@
 #include <vector>
 #include "UniqueHandle.h"
 
-namespace vkr
+namespace vko
 {
     class Device;
     class PhysicalDevice;

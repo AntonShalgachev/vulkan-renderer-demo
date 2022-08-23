@@ -5,7 +5,7 @@
 #include <memory>
 #include "UniqueHandle.h"
 
-namespace vkr
+namespace vko
 {
     class Image;
     class RenderPass;
@@ -39,7 +39,7 @@ namespace vkr
         VkSurfaceFormatKHR getSurfaceFormat() const { return m_config.surfaceFormat; }
 
         std::size_t getImageCount() const { return m_images.size(); }
-        std::vector<std::unique_ptr<vkr::Image>> const& getImages() const { return m_images; }
+        std::vector<std::unique_ptr<vko::Image>> const& getImages() const { return m_images; }
 
     private:
         void retrieveImages();
@@ -53,6 +53,6 @@ namespace vkr
 //         VkSurfaceFormatKHR m_surfaceFormat;
         Config m_config;
 
-        std::vector<std::unique_ptr<vkr::Image>> m_images;
+        std::vector<std::unique_ptr<vko::Image>> m_images;
     };
 }

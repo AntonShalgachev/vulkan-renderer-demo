@@ -5,7 +5,7 @@
 #include "Device.h"
 #include <stdexcept>
 
-namespace vkr
+namespace vko
 {
     Image::Image(Device const& device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage) : m_device(device)
     {
@@ -57,9 +57,9 @@ namespace vkr
         VKR_ASSERT(vkBindImageMemory(m_device.getHandle(), m_handle, memory.getHandle(), 0));
     }
 
-    std::unique_ptr<vkr::ImageView> Image::createImageView(VkImageAspectFlags aspectFlags)
+    std::unique_ptr<vko::ImageView> Image::createImageView(VkImageAspectFlags aspectFlags)
     {
-        return std::make_unique<vkr::ImageView>(m_device, *this, aspectFlags);
+        return std::make_unique<vko::ImageView>(m_device, *this, aspectFlags);
     }
 
 }

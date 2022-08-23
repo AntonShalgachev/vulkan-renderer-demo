@@ -377,16 +377,16 @@ DemoApplication::DemoApplication()
     m_window->addKeyCallback([this](vkr::Window::Action action, vkr::Window::Key key, char c, vkr::Window::Modifiers modifiers) { onKey(action, key, c, modifiers); });
     m_window->addMouseMoveCallback([this](glm::vec2 const& delta) { onMouseMove(delta); });
 
-    auto messageCallback = [](vkr::DebugMessage m)
+    auto messageCallback = [](vko::DebugMessage m)
     {
-		if (m.level == vkr::DebugMessage::Level::Info)
+		if (m.level == vko::DebugMessage::Level::Info)
 			spdlog::info(m.text);
-		if (m.level == vkr::DebugMessage::Level::Warning)
+		if (m.level == vko::DebugMessage::Level::Warning)
 			spdlog::warn(m.text);
-		if (m.level == vkr::DebugMessage::Level::Error)
+		if (m.level == vko::DebugMessage::Level::Error)
 			spdlog::error(m.text);
 
-        assert(m.level != vkr::DebugMessage::Level::Error);
+        assert(m.level != vko::DebugMessage::Level::Error);
     };
 
     m_application = std::make_unique<vkr::Application>("Vulkan demo", VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window, std::move(messageCallback));
@@ -509,7 +509,7 @@ void DemoApplication::loadImgui()
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(m_window->getHandle(), true);
 
-    m_imguiDescriptorPool = std::make_unique<vkr::DescriptorPool>(getApp().getDevice(), 1);
+    m_imguiDescriptorPool = std::make_unique<vko::DescriptorPool>(getApp().getDevice(), 1);
     ImGui_ImplVulkan_InitInfo init_info = {};
     init_info.Instance = getApp().getInstance().getHandle();
     init_info.PhysicalDevice = getApp().getPhysicalDevice().getHandle();
@@ -657,8 +657,8 @@ std::shared_ptr<vkr::SceneObject> DemoApplication::addSceneObjectsFromNode(std::
                 throw std::runtime_error("Failed to find the shader");
 
             auto shaderKey = vkr::Shader::Key{}
-                .addStage(vkr::ShaderModule::Type::Vertex, *vertexShaderPath)
-                .addStage(vkr::ShaderModule::Type::Fragment, *fragmentShaderPath);
+                .addStage(vko::ShaderModule::Type::Vertex, *vertexShaderPath)
+                .addStage(vko::ShaderModule::Type::Fragment, *fragmentShaderPath);
 
             material->setShaderKey(std::move(shaderKey));
 
@@ -743,7 +743,7 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
     m_defaultVertexShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.vert");
     m_defaultFragmentShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.frag");
 
-    m_fallbackSampler = std::make_shared<vkr::Sampler>(getApp().getDevice());
+    m_fallbackSampler = std::make_shared<vko::Sampler>(getApp().getDevice());
     m_fallbackAlbedo = std::make_unique<vkr::Texture>(getApp(), std::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff }, 1, 1, 8, 4, m_fallbackSampler);
     m_fallbackNormalMap = std::make_unique<vkr::Texture>(getApp(), std::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff }, 1, 1, 8, 4, m_fallbackSampler);
 
@@ -768,7 +768,7 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
             vkr::BufferWithMemory buffer{ getApp(), bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
 
             vkr::ScopedOneTimeCommandBuffer commandBuffer{ getApp() };
-            vkr::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), buffer.buffer());
+            vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), buffer.buffer());
             commandBuffer.submit();
 
             m_gltfResources->buffers.push_back(std::make_unique<vkr::BufferWithMemory>(std::move(buffer)));
@@ -786,12 +786,12 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
                 case TINYGLTF_TEXTURE_FILTER_NEAREST:
                 case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST:
                 case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR:
-                    return vkr::Sampler::FilterMode::Nearest;
+                    return vko::Sampler::FilterMode::Nearest;
                 case -1:
                 case TINYGLTF_TEXTURE_FILTER_LINEAR:
                 case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
                 case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR:
-                    return vkr::Sampler::FilterMode::Linear;
+                    return vko::Sampler::FilterMode::Linear;
                 }
 
                 throw std::invalid_argument("gltfMode");
@@ -803,11 +803,11 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
                 {
                 case -1:
                 case TINYGLTF_TEXTURE_WRAP_REPEAT:
-                    return vkr::Sampler::WrapMode::Repeat;
+                    return vko::Sampler::WrapMode::Repeat;
                 case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE:
-                    return vkr::Sampler::WrapMode::ClampToEdge;
+                    return vko::Sampler::WrapMode::ClampToEdge;
                 case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT:
-                    return vkr::Sampler::WrapMode::Mirror;
+                    return vko::Sampler::WrapMode::Mirror;
                 }
 
                 throw std::invalid_argument("gltfMode");
@@ -818,7 +818,7 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
             auto wrapU = convertWrapMode(gltfSampler.wrapS);
             auto wrapV = convertWrapMode(gltfSampler.wrapT);
 
-            auto sampler = std::make_shared<vkr::Sampler>(getApp().getDevice(), magFilter, minFilter, wrapU, wrapV);
+            auto sampler = std::make_shared<vko::Sampler>(getApp().getDevice(), magFilter, minFilter, wrapU, wrapV);
 
             std::size_t const imageIndex = static_cast<std::size_t>(texture.source);
             tinygltf::Image const& gltfImage = gltfModel->images[imageIndex];

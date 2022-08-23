@@ -4,17 +4,21 @@
 #include <vector>
 #include <memory>
 
-namespace vkr
+namespace vko
 {
     class PhysicalDevice;
     class Surface;
-    class QueueFamilyIndices;
     class QueueFamily;
+}
+
+namespace vkr
+{
+    class QueueFamilyIndices;
 
     class PhysicalDeviceSurfaceParameters
     {
     public:
-    	PhysicalDeviceSurfaceParameters(PhysicalDevice const& physicalDevice, Surface const& surface);
+    	PhysicalDeviceSurfaceParameters(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface);
         ~PhysicalDeviceSurfaceParameters();
 
         PhysicalDeviceSurfaceParameters(PhysicalDeviceSurfaceParameters const&) = delete;
@@ -25,7 +29,7 @@ namespace vkr
         VkSurfaceCapabilitiesKHR const& getCapabilities() const { return m_capabilities; }
         std::vector<VkSurfaceFormatKHR> const& getFormats() const { return m_formats; }
         std::vector<VkPresentModeKHR> getPresentModes() const { return m_presentModes; }
-        bool isPresentationSupported(QueueFamily const& queueFamily) const;
+        bool isPresentationSupported(vko::QueueFamily const& queueFamily) const;
 
         void onSurfaceChanged();
 
@@ -45,7 +49,7 @@ namespace vkr
 
         std::unique_ptr<QueueFamilyIndices> m_queueFamilyIndices;
 
-        PhysicalDevice const& m_physicalDevice;
-        Surface const& m_surface;
+        vko::PhysicalDevice const& m_physicalDevice;
+        vko::Surface const& m_surface;
     };
 }

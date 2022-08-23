@@ -151,11 +151,11 @@ namespace
 	}
 }
 
-vkr::Pipeline const* vkr::Pipeline::ms_boundPipeline = nullptr;
+vko::Pipeline const* vko::Pipeline::ms_boundPipeline = nullptr;
 
-vkr::Pipeline::Pipeline(Device const& device, PipelineConfiguration const& config) : m_device(device)
+vko::Pipeline::Pipeline(Device const& device, vkr::PipelineConfiguration const& config) : m_device(device)
 {
-	Shader shader{ device, config.shaderKey };
+	vkr::Shader shader{ device, config.shaderKey };
 
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages = shader.createStageDescriptions();
 
@@ -198,12 +198,12 @@ vkr::Pipeline::Pipeline(Device const& device, PipelineConfiguration const& confi
         throw std::runtime_error("failed to create graphics pipeline!");
 }
 
-vkr::Pipeline::~Pipeline()
+vko::Pipeline::~Pipeline()
 {
     vkDestroyPipeline(m_device.getHandle(), m_handle, nullptr);
 }
 
-void vkr::Pipeline::bind(VkCommandBuffer commandBuffer) const
+void vko::Pipeline::bind(VkCommandBuffer commandBuffer) const
 {
     if (ms_boundPipeline == this)
         return;

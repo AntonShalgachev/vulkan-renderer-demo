@@ -7,10 +7,14 @@
 
 namespace vkr
 {
+    class Texture;
+}
+
+namespace vko
+{
     class DescriptorPool;
     class DescriptorSetLayout;
     class Buffer;
-    class Texture;
     class Device;
 
     class DescriptorSets
@@ -24,7 +28,7 @@ namespace vkr
         DescriptorSets& operator=(DescriptorSets const&) = delete;
         DescriptorSets& operator=(DescriptorSets&&) = delete;
 
-        void update(std::size_t index, Buffer const& uniformBuffer, Texture const* texture, Texture const* normalMap);
+        void update(std::size_t index, Buffer const& uniformBuffer, vkr::Texture const* texture, vkr::Texture const* normalMap);
 
         std::vector<VkDescriptorSet> const& getHandles() const { return m_handles; }
         std::size_t getSize() const;

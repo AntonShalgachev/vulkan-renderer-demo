@@ -4,9 +4,9 @@
 #include "Device.h"
 #include <stdexcept>
 
-namespace vkr
+namespace vko
 {
-	ImageView::ImageView(Device const& device, vkr::Image const& image, VkImageAspectFlags aspectFlags) : m_device(device)
+	ImageView::ImageView(Device const& device, vko::Image const& image, VkImageAspectFlags aspectFlags) : m_device(device)
 	{
 		VkImageViewCreateInfo imageViewCreateInfo{};
 		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;

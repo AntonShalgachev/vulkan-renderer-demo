@@ -111,17 +111,17 @@ void vkr::Texture::setName(std::string_view name)
     m_name = std::string{ name };
 }
 
-vkr::Texture::Texture(Application const& app, std::span<unsigned char const> bytes, uint32_t width, uint32_t height, std::size_t bitsPerComponent, std::size_t components, std::shared_ptr<vkr::Sampler> sampler) : Object(app), m_sampler(std::move(sampler))
+vkr::Texture::Texture(Application const& app, std::span<unsigned char const> bytes, uint32_t width, uint32_t height, std::size_t bitsPerComponent, std::size_t components, std::shared_ptr<vko::Sampler> sampler) : Object(app), m_sampler(std::move(sampler))
 {
     createImage(bytes, width, height, bitsPerComponent, components);
 }
 
-vkr::Sampler const& vkr::Texture::getSampler() const
+vko::Sampler const& vkr::Texture::getSampler() const
 {
     return *m_sampler;
 }
 
-vkr::ImageView const& vkr::Texture::getImageView() const
+vko::ImageView const& vkr::Texture::getImageView() const
 {
     return *m_imageView;
 }

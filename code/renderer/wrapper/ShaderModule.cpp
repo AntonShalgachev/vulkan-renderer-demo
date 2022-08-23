@@ -6,15 +6,15 @@
 
 namespace
 {
-    VkShaderStageFlagBits getStageFlags(vkr::ShaderModule::Type type)
+    VkShaderStageFlagBits getStageFlags(vko::ShaderModule::Type type)
     {
         switch (type)
         {
-        case vkr::ShaderModule::Type::Vertex:
+        case vko::ShaderModule::Type::Vertex:
             return VK_SHADER_STAGE_VERTEX_BIT;
-        case vkr::ShaderModule::Type::Geometry:
+        case vko::ShaderModule::Type::Geometry:
             return VK_SHADER_STAGE_GEOMETRY_BIT;
-        case vkr::ShaderModule::Type::Fragment:
+        case vko::ShaderModule::Type::Fragment:
             return VK_SHADER_STAGE_FRAGMENT_BIT;
         }
 
@@ -39,7 +39,7 @@ namespace
     }
 }
 
-vkr::ShaderModule::ShaderModule(Device const& device, Key key)
+vko::ShaderModule::ShaderModule(Device const& device, Key key)
     : m_device(device)
     , m_key(std::move(key))
 {
@@ -54,13 +54,13 @@ vkr::ShaderModule::ShaderModule(Device const& device, Key key)
         throw std::runtime_error("failed to create shader module!");
 }
 
-vkr::ShaderModule::~ShaderModule()
+vko::ShaderModule::~ShaderModule()
 {
     vkDestroyShaderModule(m_device.getHandle(), m_handle, nullptr);
     m_handle = nullptr;
 }
 
-VkPipelineShaderStageCreateInfo vkr::ShaderModule::createStageCreateInfo() const
+VkPipelineShaderStageCreateInfo vko::ShaderModule::createStageCreateInfo() const
 {
     VkPipelineShaderStageCreateInfo stageCreateInfo{};
     stageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;

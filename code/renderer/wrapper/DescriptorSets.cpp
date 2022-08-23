@@ -10,7 +10,7 @@
 #include <stdexcept>
 #include "ImageView.h"
 
-vkr::DescriptorSets::DescriptorSets(Device const& device, DescriptorPool const& pool, DescriptorSetLayout const& layout)
+vko::DescriptorSets::DescriptorSets(Device const& device, DescriptorPool const& pool, DescriptorSetLayout const& layout)
     : m_device(device)
     , m_pool(pool)
     , m_layout(layout)
@@ -28,12 +28,12 @@ vkr::DescriptorSets::DescriptorSets(Device const& device, DescriptorPool const& 
         throw std::runtime_error("failed to allocate descriptor sets!");
 }
 
-vkr::DescriptorSets::~DescriptorSets()
+vko::DescriptorSets::~DescriptorSets()
 {
     // no need to explicitly free descriptor sets
 }
 
-void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer, Texture const* texture, Texture const* normalMap)
+void vko::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer, vkr::Texture const* texture, vkr::Texture const* normalMap)
 {
     VkDescriptorSet setHandle = m_handles[index];
 
@@ -109,7 +109,7 @@ void vkr::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer,
     vkUpdateDescriptorSets(m_device.getHandle(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 }
 
-std::size_t vkr::DescriptorSets::getSize() const
+std::size_t vko::DescriptorSets::getSize() const
 {
     return m_pool.getSize();
 }

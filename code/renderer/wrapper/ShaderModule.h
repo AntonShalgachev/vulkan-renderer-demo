@@ -5,7 +5,7 @@
 #include "UniqueHandle.h"
 #include "Hash.h"
 
-namespace vkr
+namespace vko
 {
     class Device;
 
@@ -59,9 +59,9 @@ namespace vkr
 namespace std
 {
 	template<>
-	struct hash<vkr::ShaderModule::Key>
+	struct hash<vko::ShaderModule::Key>
 	{
-		std::size_t operator()(vkr::ShaderModule::Key const& rhs) const
+		std::size_t operator()(vko::ShaderModule::Key const& rhs) const
 		{
 			return rhs.computeHash();
 		}

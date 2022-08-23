@@ -3,7 +3,7 @@
 #include <vulkan/vulkan.h>
 #include "UniqueHandle.h"
 
-namespace vkr
+namespace vko
 {
     class RenderPass;
     class ImageView;
@@ -12,7 +12,7 @@ namespace vkr
     class Framebuffer
     {
     public:
-        explicit Framebuffer(Device const& device, vkr::ImageView const& colorImageView, vkr::ImageView const& depthImageView, vkr::RenderPass const& renderPass, VkExtent2D extent);
+        explicit Framebuffer(Device const& device, vko::ImageView const& colorImageView, vko::ImageView const& depthImageView, vko::RenderPass const& renderPass, VkExtent2D extent);
         ~Framebuffer();
 
         Framebuffer(Framebuffer const&) = default;

@@ -1,6 +1,6 @@
 #include "PhysicalDeviceSurfaceContainer.h"
 
-vkr::PhysicalDeviceSurfaceContainer::PhysicalDeviceSurfaceContainer(PhysicalDevice&& physicalDdevice, Surface const& surface)
+vkr::PhysicalDeviceSurfaceContainer::PhysicalDeviceSurfaceContainer(vko::PhysicalDevice&& physicalDdevice, vko::Surface const& surface)
     : m_physicalDevice(std::move(physicalDdevice))
     , m_surface(surface)
     , m_parameters(m_physicalDevice, m_surface)

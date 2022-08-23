@@ -3,7 +3,7 @@
 #include "wrapper/Surface.h"
 #include "QueueFamilyIndices.h"
 
-vkr::PhysicalDeviceSurfaceParameters::PhysicalDeviceSurfaceParameters(PhysicalDevice const& physicalDevice, Surface const& surface) : m_physicalDevice(physicalDevice), m_surface(surface)
+vkr::PhysicalDeviceSurfaceParameters::PhysicalDeviceSurfaceParameters(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface) : m_physicalDevice(physicalDevice), m_surface(surface)
 {
     queryCapabilities();
     queryFormats();
@@ -17,7 +17,7 @@ vkr::PhysicalDeviceSurfaceParameters::~PhysicalDeviceSurfaceParameters() = defau
 
 vkr::PhysicalDeviceSurfaceParameters::PhysicalDeviceSurfaceParameters(PhysicalDeviceSurfaceParameters&&) = default;
 
-bool vkr::PhysicalDeviceSurfaceParameters::isPresentationSupported(QueueFamily const& queueFamily) const
+bool vkr::PhysicalDeviceSurfaceParameters::isPresentationSupported(vko::QueueFamily const& queueFamily) const
 {
     uint32_t index = queueFamily.getIndex();
 
@@ -63,11 +63,11 @@ void vkr::PhysicalDeviceSurfaceParameters::queryPresentModes()
 
 void vkr::PhysicalDeviceSurfaceParameters::queryPresentationSupport()
 {
-    std::vector<QueueFamily> const& queueFamilies = m_physicalDevice.getQueueFamilies();
+    std::vector<vko::QueueFamily> const& queueFamilies = m_physicalDevice.getQueueFamilies();
 
     m_queuePresentationSupport.resize(queueFamilies.size());
 
-    for (QueueFamily const& queueFamily : queueFamilies)
+    for (vko::QueueFamily const& queueFamily : queueFamilies)
     {
         uint32_t index = queueFamily.getIndex();
 

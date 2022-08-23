@@ -7,12 +7,16 @@
 namespace vkr
 {
     class PhysicalDeviceSurfaceContainer;
+}
+
+namespace vko
+{
     class Queue;
 
     class Device
     {
     public:
-        explicit Device(PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceContainer, std::vector<const char*> const& extensions);
+        explicit Device(vkr::PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceContainer, std::vector<const char*> const& extensions);
     	~Device();
 
         Device(Device const&) = default;

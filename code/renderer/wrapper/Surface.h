@@ -3,15 +3,20 @@
 #include <vulkan/vulkan.h>
 #include "UniqueHandle.h"
 
+// TODO remove
 namespace vkr
 {
-    class Instance;
     class Window;
+}
+
+namespace vko
+{
+    class Instance;
 
     class Surface
     {
     public:
-        explicit Surface(Instance const& instance, Window const& window);
+        explicit Surface(Instance const& instance, vkr::Window const& window);
         ~Surface();
 
         Surface(Surface const&) = default;
@@ -28,6 +33,6 @@ namespace vkr
         UniqueHandle<VkSurfaceKHR> m_handle;
 
         Instance const& m_instance;
-        Window const& m_window;
+        vkr::Window const& m_window;
     };
 }

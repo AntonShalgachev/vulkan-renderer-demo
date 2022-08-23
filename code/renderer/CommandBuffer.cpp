@@ -6,7 +6,7 @@
 #include <array>
 #include <stdexcept>
 
-vkr::CommandBuffer::CommandBuffer(std::shared_ptr<CommandBuffers> const& container, std::size_t index)
+vkr::CommandBuffer::CommandBuffer(std::shared_ptr<vko::CommandBuffers> const& container, std::size_t index)
     : m_container(container)
     , m_index(index)
 {
@@ -44,7 +44,7 @@ void vkr::CommandBuffer::end() const
         throw std::runtime_error("failed to record command buffer!");
 }
 
-void vkr::CommandBuffer::submit(Queue const& queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence) const
+void vkr::CommandBuffer::submit(vko::Queue const& queue, vko::Semaphore const* signalSemaphore, vko::Semaphore const* waitSemaphore, vko::Fence const* signalFence) const
 {
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

@@ -5,7 +5,7 @@
 #include <array>
 #include <stdexcept>
 
-vkr::RenderPass::RenderPass(Device const& device, Swapchain const& swapchain, VkFormat depthFormat)
+vko::RenderPass::RenderPass(Device const& device, Swapchain const& swapchain, VkFormat depthFormat)
     : m_device(device)
     , m_depthFormat(depthFormat)
 {
@@ -66,7 +66,7 @@ vkr::RenderPass::RenderPass(Device const& device, Swapchain const& swapchain, Vk
         throw std::runtime_error("failed to create render pass!");
 }
 
-vkr::RenderPass::~RenderPass()
+vko::RenderPass::~RenderPass()
 {
     vkDestroyRenderPass(m_device.getHandle(), m_handle, nullptr);
 }

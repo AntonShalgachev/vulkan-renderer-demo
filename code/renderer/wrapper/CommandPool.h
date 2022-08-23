@@ -6,9 +6,13 @@
 
 namespace vkr
 {
+    class CommandBuffer;
+}
+
+namespace vko
+{
     class Device;
     class QueueFamily;
-    class CommandBuffer;
 
     class CommandPool
     {
@@ -16,9 +20,9 @@ namespace vkr
     	explicit CommandPool(Device const& device, QueueFamily const& queueFamily);
         ~CommandPool();
 
-        // TODO return vkr::CommandBuffers
-        CommandBuffer createCommandBuffer() const;
-        std::vector<CommandBuffer> createCommandBuffers(std::size_t size) const;
+        // TODO return vko::CommandBuffers
+        vkr::CommandBuffer createCommandBuffer() const;
+        std::vector<vkr::CommandBuffer> createCommandBuffers(std::size_t size) const;
 
         CommandPool(CommandPool const&) = default;
         CommandPool(CommandPool&&) = default;

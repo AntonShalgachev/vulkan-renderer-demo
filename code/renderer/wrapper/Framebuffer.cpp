@@ -8,7 +8,7 @@
 #include "Device.h"
 #include <stdexcept>
 
-vkr::Framebuffer::Framebuffer(Device const& device, vkr::ImageView const& colorImageView, vkr::ImageView const& depthImageView, vkr::RenderPass const& renderPass, VkExtent2D extent)
+vko::Framebuffer::Framebuffer(Device const& device, vko::ImageView const& colorImageView, vko::ImageView const& depthImageView, vko::RenderPass const& renderPass, VkExtent2D extent)
     : m_device(device)
 {
     std::array<VkImageView, 2> attachments = { colorImageView.getHandle(), depthImageView.getHandle() };
@@ -26,7 +26,7 @@ vkr::Framebuffer::Framebuffer(Device const& device, vkr::ImageView const& colorI
         throw std::runtime_error("failed to create framebuffer!");
 }
 
-vkr::Framebuffer::~Framebuffer()
+vko::Framebuffer::~Framebuffer()
 {
     vkDestroyFramebuffer(m_device.getHandle(), m_handle, nullptr);
 }

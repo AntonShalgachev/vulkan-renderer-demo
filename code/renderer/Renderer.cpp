@@ -63,7 +63,7 @@ namespace
 
     const int FRAME_RESOURCE_COUNT = 3;
 
-    VkFormat findSupportedFormat(vkr::PhysicalDevice const& physicalDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
+    VkFormat findSupportedFormat(vko::PhysicalDevice const& physicalDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
     {
         for (VkFormat format : candidates)
         {
@@ -79,7 +79,7 @@ namespace
         throw std::runtime_error("failed to find supported format!");
     }
 
-    VkFormat findDepthFormat(vkr::PhysicalDevice const& physicalDevice)
+    VkFormat findDepthFormat(vko::PhysicalDevice const& physicalDevice)
     {
         static const std::vector<VkFormat> candidates = { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT };
 
@@ -107,7 +107,7 @@ namespace
         return VK_PRESENT_MODE_FIFO_KHR;
     }
 
-    VkExtent2D chooseSwapExtent(vkr::Surface const& surface, const VkSurfaceCapabilitiesKHR& capabilities)
+    VkExtent2D chooseSwapExtent(vko::Surface const& surface, const VkSurfaceCapabilitiesKHR& capabilities)
     {
         if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
             return capabilities.currentExtent;
@@ -207,7 +207,7 @@ namespace
         vkr::BufferWithMemory buffer{ app, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
 
         vkr::ScopedOneTimeCommandBuffer commandBuffer{ app };
-        vkr::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), buffer.buffer());
+        vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), buffer.buffer());
         commandBuffer.submit();
 
         return std::make_unique<vkr::BufferWithMemory>(std::move(buffer));
@@ -224,19 +224,19 @@ vkr::Renderer::Renderer(Application const& app)
         m_oneFrameBoxResources.bufferWithMemory = createBufferAndMemory(app, boxBuffer);
         m_oneFrameBoxResources.mesh = std::make_unique<vkr::Mesh>(app, m_oneFrameBoxResources.bufferWithMemory->buffer(), createBoxVertexLayout(), vkr::Mesh::Metadata{ false, false, true, false });
 
-        m_oneFrameBoxResources.pipelineLayout = std::make_unique<vkr::PipelineLayout>(getDevice(), nullptr, sizeof(OneTimeGeometryPushConstants));
+        m_oneFrameBoxResources.pipelineLayout = std::make_unique<vko::PipelineLayout>(getDevice(), nullptr, sizeof(OneTimeGeometryPushConstants));
 
         vkr::PipelineConfiguration configuration;
         configuration.pipelineLayout = m_oneFrameBoxResources.pipelineLayout.get();
         configuration.renderPass = m_renderPass.get();
         configuration.extent = m_swapchain->getExtent();
         configuration.shaderKey = vkr::Shader::Key{}
-            .addStage(vkr::ShaderModule::Type::Vertex, "data/shaders/packaged/debugdraw.vert/shaders/debugdraw.vert.spv")
-            .addStage(vkr::ShaderModule::Type::Fragment, "data/shaders/packaged/debugdraw.frag/shaders/debugdraw.frag.spv"); // TODO use ShaderPackage
+            .addStage(vko::ShaderModule::Type::Vertex, "data/shaders/packaged/debugdraw.vert/shaders/debugdraw.vert.spv")
+            .addStage(vko::ShaderModule::Type::Fragment, "data/shaders/packaged/debugdraw.frag/shaders/debugdraw.frag.spv"); // TODO use ShaderPackage
         configuration.vertexLayoutDescriptions = m_oneFrameBoxResources.mesh->getVertexLayout().getDescriptions();
         configuration.cullBackFaces = false;
         configuration.wireframe = true;
-        m_oneFrameBoxResources.pipeline = std::make_unique<vkr::Pipeline>(getDevice(), configuration);
+        m_oneFrameBoxResources.pipeline = std::make_unique<vko::Pipeline>(getDevice(), configuration);
     }
 }
 
@@ -259,7 +259,7 @@ void vkr::Renderer::addDrawable(SceneObject const& drawableObject)
 
 	auto const& material = drawable->getMaterial();
 
-    DescriptorSetConfiguration config;
+    vko::DescriptorSetConfiguration config;
     config.hasTexture = material.getTexture() != nullptr;
     config.hasNormalMap = material.getNormalMap() != nullptr;
 
@@ -347,7 +347,7 @@ void vkr::Renderer::createSwapchain()
 
     PhysicalDeviceSurfaceParameters const& parameters = getPhysicalDeviceSurfaceParameters();
 
-    Swapchain::Config config;
+    vko::Swapchain::Config config;
     config.surfaceFormat = chooseSwapSurfaceFormat(parameters.getFormats());
     config.presentMode = chooseSwapPresentMode(parameters.getPresentModes());
     config.extent = chooseSwapExtent(getSurface(), parameters.getCapabilities());
@@ -362,8 +362,8 @@ void vkr::Renderer::createSwapchain()
 
     vkr::QueueFamilyIndices const& indices = parameters.getQueueFamilyIndices();
 
-    m_swapchain = std::make_unique<vkr::Swapchain>(getDevice(), getSurface(), indices.getGraphicsQueueFamily(), indices.getPresentQueueFamily(), std::move(config));
-    m_renderPass = std::make_unique<vkr::RenderPass>(getDevice(), *m_swapchain, findDepthFormat(getPhysicalDevice()));
+    m_swapchain = std::make_unique<vko::Swapchain>(getDevice(), getSurface(), indices.getGraphicsQueueFamily(), indices.getPresentQueueFamily(), std::move(config));
+    m_renderPass = std::make_unique<vko::RenderPass>(getDevice(), *m_swapchain, findDepthFormat(getPhysicalDevice()));
 
     auto const& images = m_swapchain->getImages();
     m_swapchainImageViews.reserve(images.size());
@@ -376,8 +376,8 @@ void vkr::Renderer::createSwapchain()
     m_depthImageView = m_depthImage->createImageView(VK_IMAGE_ASPECT_DEPTH_BIT);
 
     m_swapchainFramebuffers.reserve(m_swapchainImageViews.size());
-    for (std::unique_ptr<vkr::ImageView> const& colorImageView : m_swapchainImageViews)
-        m_swapchainFramebuffers.push_back(std::make_unique<vkr::Framebuffer>(getDevice(), *colorImageView, *m_depthImageView, *m_renderPass, m_swapchain->getExtent()));
+    for (std::unique_ptr<vko::ImageView> const& colorImageView : m_swapchainImageViews)
+        m_swapchainFramebuffers.push_back(std::make_unique<vko::Framebuffer>(getDevice(), *colorImageView, *m_depthImageView, *m_renderPass, m_swapchain->getExtent()));
 
     onSwapchainCreated();
 }
@@ -427,15 +427,15 @@ void vkr::Renderer::updateCameraAspect()
 		camera->setAspect(getAspect());
 }
 
-vkr::Renderer::UniformResources const& vkr::Renderer::getUniformResources(DescriptorSetConfiguration const& config)
+vkr::Renderer::UniformResources const& vkr::Renderer::getUniformResources(vko::DescriptorSetConfiguration const& config)
 {
     auto it = m_uniformResources.find(config);
 
     if (it == m_uniformResources.end())
     {
         UniformResources resources;
-        resources.descriptorSetLayout = std::make_unique<vkr::DescriptorSetLayout>(getDevice(), config);
-        resources.pipelineLayout = std::make_unique<vkr::PipelineLayout>(getDevice(), resources.descriptorSetLayout.get(), sizeof(VertexPushConstants)); // TODO make push constants more configurable
+        resources.descriptorSetLayout = std::make_unique<vko::DescriptorSetLayout>(getDevice(), config);
+        resources.pipelineLayout = std::make_unique<vko::PipelineLayout>(getDevice(), resources.descriptorSetLayout.get(), sizeof(VertexPushConstants)); // TODO make push constants more configurable
 
         auto res = m_uniformResources.emplace(config, std::move(resources));
         it = res.first;
@@ -452,7 +452,7 @@ void vkr::Renderer::onSwapchainCreated()
 void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources)
 {
      // TODO remove hacks
-    Pipeline::resetBoundPipeline();
+    vko::Pipeline::resetBoundPipeline();
 
     frameResources.commandPool->reset();
 
@@ -489,7 +489,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
         Mesh const& mesh = drawable.getMesh();
         Material const& material = drawable.getMaterial();
 
-        DescriptorSetConfiguration config;
+        vko::DescriptorSetConfiguration config;
         config.hasTexture = material.getTexture() != nullptr;
         config.hasNormalMap = material.getNormalMap() != nullptr;
 
@@ -508,7 +508,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
         if (it == m_pipelines.end())
             it = m_pipelines.emplace(configuration, createPipeline(configuration)).first;
 
-        Pipeline const& pipeline = *it->second;
+        vko::Pipeline const& pipeline = *it->second;
 
         pipeline.bind(handle);
 
@@ -553,9 +553,9 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
     commandBuffer.end();
 }
 
-std::unique_ptr<vkr::Pipeline> vkr::Renderer::createPipeline(PipelineConfiguration const& configuration)
+std::unique_ptr<vko::Pipeline> vkr::Renderer::createPipeline(PipelineConfiguration const& configuration)
 {
-    return std::make_unique<vkr::Pipeline>(getDevice(), configuration);
+    return std::make_unique<vko::Pipeline>(getDevice(), configuration);
 }
 
 void vkr::Renderer::destroySwapchain()
@@ -579,7 +579,7 @@ vkr::Renderer::FrameResources::FrameResources(Application const& app)
     : imageAvailableSemaphore(app.getDevice())
     , renderFinishedSemaphore(app.getDevice())
     , inFlightFence(app.getDevice())
-    , commandPool(std::make_unique<CommandPool>(app.getDevice(), app.getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily()))
+    , commandPool(std::make_unique<vko::CommandPool>(app.getDevice(), app.getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily()))
     , commandBuffer(commandPool->createCommandBuffer())
 {
     app.setDebugName(imageAvailableSemaphore.getHandle(), "ImageAvailableSemaphore");

@@ -7,15 +7,18 @@
 
 bool operator==(VkExtent2D const& lhs, VkExtent2D const& rhs);
 
+namespace vko
+{
+    class PipelineLayout;
+    class RenderPass;
+}
+
 namespace vkr
 {
-	class PipelineLayout;
-	class RenderPass;
-
 	struct PipelineConfiguration
 	{
-		PipelineLayout const* pipelineLayout = nullptr;
-		RenderPass const* renderPass = nullptr;
+		vko::PipelineLayout const* pipelineLayout = nullptr;
+		vko::RenderPass const* renderPass = nullptr;
 		VkExtent2D extent{ 0, 0 }; // TODO don't use Vulkan struct here
 		Shader::Key shaderKey;
 		VertexLayoutDescriptions vertexLayoutDescriptions;

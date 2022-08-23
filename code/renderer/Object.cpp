@@ -1,22 +1,22 @@
 #include "Object.h"
 #include "Application.h"
 
-vkr::Instance const& vkr::Object::getInstance() const
+vko::Instance const& vkr::Object::getInstance() const
 {
     return getApp().getInstance();
 }
 
-vkr::Surface const& vkr::Object::getSurface() const
+vko::Surface const& vkr::Object::getSurface() const
 {
     return getApp().getSurface();
 }
 
-vkr::Device const& vkr::Object::getDevice() const
+vko::Device const& vkr::Object::getDevice() const
 {
     return getApp().getDevice();
 }
 
-vkr::PhysicalDevice const& vkr::Object::getPhysicalDevice() const
+vko::PhysicalDevice const& vkr::Object::getPhysicalDevice() const
 {
     return getApp().getPhysicalDevice();
 }

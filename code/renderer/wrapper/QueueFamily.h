@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
-namespace vkr
+namespace vko
 {
     class QueueFamily
     {

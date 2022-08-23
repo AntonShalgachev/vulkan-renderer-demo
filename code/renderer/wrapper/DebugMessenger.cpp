@@ -7,14 +7,14 @@
 
 namespace
 {
-    vkr::DebugMessage::Level convertLevel(VkDebugUtilsMessageSeverityFlagBitsEXT severity)
+    vko::DebugMessage::Level convertLevel(VkDebugUtilsMessageSeverityFlagBitsEXT severity)
     {
         if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-            return vkr::DebugMessage::Level::Warning;
+            return vko::DebugMessage::Level::Warning;
         if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-            return vkr::DebugMessage::Level::Error;
+            return vko::DebugMessage::Level::Error;
 
-        return vkr::DebugMessage::Level::Info;
+        return vko::DebugMessage::Level::Info;
     }
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugMessageCallback(
@@ -23,11 +23,11 @@ namespace
         const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
         void* userData)
     {
-        vkr::DebugMessenger* self = static_cast<vkr::DebugMessenger*>(userData);
+        vko::DebugMessenger* self = static_cast<vko::DebugMessenger*>(userData);
 
         if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
-            vkr::DebugMessage message;
+            vko::DebugMessage message;
             message.level = convertLevel(severity);
             message.id = callbackData->pMessageIdName;
             message.text = callbackData->pMessage;
@@ -39,7 +39,7 @@ namespace
     }
 }
 
-vkr::DebugMessenger::DebugMessenger(Instance const& instance, std::function<void(DebugMessage)> onDebugMessage) : m_onDebugMessage(std::move(onDebugMessage)), m_instance(instance)
+vko::DebugMessenger::DebugMessenger(Instance const& instance, std::function<void(DebugMessage)> onDebugMessage) : m_onDebugMessage(std::move(onDebugMessage)), m_instance(instance)
 {
     m_createFunc = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_instance.getHandle(), "vkCreateDebugUtilsMessengerEXT"));
     m_destroyFunc = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_instance.getHandle(), "vkDestroyDebugUtilsMessengerEXT"));
@@ -58,12 +58,12 @@ vkr::DebugMessenger::DebugMessenger(Instance const& instance, std::function<void
         throw std::runtime_error("Failed to create a debug messenger");
 }
 
-vkr::DebugMessenger::~DebugMessenger()
+vko::DebugMessenger::~DebugMessenger()
 {
     m_destroyFunc(m_instance.getHandle(), m_handle, nullptr);
 }
 
-void vkr::DebugMessenger::onMessage(DebugMessage message)
+void vko::DebugMessenger::onMessage(DebugMessage message)
 {
     m_onDebugMessage(std::move(message));
 }

@@ -5,7 +5,7 @@
 #include "CommandBuffer.h"
 #include <stdexcept>
 
-vkr::CommandPool::CommandPool(Device const& device, QueueFamily const& queueFamily)
+vko::CommandPool::CommandPool(Device const& device, QueueFamily const& queueFamily)
     : m_device(device)
     , m_queueFamily(queueFamily)
 {
@@ -18,23 +18,23 @@ vkr::CommandPool::CommandPool(Device const& device, QueueFamily const& queueFami
         throw std::runtime_error("failed to create command pool!");
 }
 
-void vkr::CommandPool::reset() const
+void vko::CommandPool::reset() const
 {
     VkCommandPoolResetFlags flags = 0;
     VKR_ASSERT(vkResetCommandPool(m_device.getHandle(), m_handle, flags));
 }
 
-vkr::CommandPool::~CommandPool()
+vko::CommandPool::~CommandPool()
 {
     vkDestroyCommandPool(m_device.getHandle(), m_handle, nullptr);
 }
 
-vkr::CommandBuffer vkr::CommandPool::createCommandBuffer() const
+vkr::CommandBuffer vko::CommandPool::createCommandBuffer() const
 {
     return createCommandBuffers(1)[0];
 }
 
-std::vector<vkr::CommandBuffer> vkr::CommandPool::createCommandBuffers(std::size_t size) const
+std::vector<vkr::CommandBuffer> vko::CommandPool::createCommandBuffers(std::size_t size) const
 {
     std::shared_ptr<CommandBuffers> container = std::make_shared<CommandBuffers>(m_device, *this, size);
 

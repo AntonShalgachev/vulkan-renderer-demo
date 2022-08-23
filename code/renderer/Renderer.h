@@ -15,9 +15,9 @@
 #include <unordered_map>
 #include <map>
 #include "PipelineConfiguration.h"
-#include "wrapper/DescriptorSetLayout.h" // TODO only DescriptorSetConfiguration is needed
+#include "wrapper/DescriptorSetLayout.h" // TODO only vko::DescriptorSetConfiguration is needed
 
-namespace vkr
+namespace vko
 {
     class CommandBuffers;
     class Swapchain;
@@ -28,15 +28,19 @@ namespace vkr
     class DeviceMemory;
     class ImageView;
     class DescriptorSetLayout;
+    class CommandPool;
+    class Framebuffer;
+    class Sampler;
+}
+
+namespace vkr
+{
     class Mesh;
     class ObjectInstance;
     class Drawable;
-    class CommandPool;
     class CommandBuffer;
     class VertexLayoutDescriptions;
-    class Framebuffer;
     class SceneObject;
-    class Sampler;
     class Texture;
     class BufferWithMemory;
 
@@ -45,8 +49,8 @@ namespace vkr
         std::unique_ptr<vkr::BufferWithMemory> bufferWithMemory;
         std::unique_ptr<vkr::Mesh> mesh;
 
-        std::unique_ptr<vkr::PipelineLayout> pipelineLayout;
-        std::unique_ptr<vkr::Pipeline> pipeline;
+        std::unique_ptr<vko::PipelineLayout> pipelineLayout;
+        std::unique_ptr<vko::Pipeline> pipeline;
     };
 
     struct OneFrameBoxInstance
@@ -61,8 +65,8 @@ namespace vkr
     	Renderer(Application const& app);
         ~Renderer();
 
-        Swapchain const& getSwapchain() const { return *m_swapchain; }
-        RenderPass const& getRenderPass() const { return *m_renderPass; }
+        vko::Swapchain const& getSwapchain() const { return *m_swapchain; }
+        vko::RenderPass const& getRenderPass() const { return *m_renderPass; }
 
         void setWaitUntilWindowInForegroundCallback(std::function<void()> func);
 
@@ -91,25 +95,25 @@ namespace vkr
         {
             FrameResources(Application const& app);
 
-            vkr::Semaphore imageAvailableSemaphore;
-            vkr::Semaphore renderFinishedSemaphore;
-            vkr::Fence inFlightFence;
+            vko::Semaphore imageAvailableSemaphore;
+            vko::Semaphore renderFinishedSemaphore;
+            vko::Fence inFlightFence;
 
-            std::unique_ptr<vkr::CommandPool> commandPool;
+            std::unique_ptr<vko::CommandPool> commandPool;
             vkr::CommandBuffer commandBuffer;
         };
 
         struct UniformResources
         {
-            std::unique_ptr<vkr::DescriptorSetLayout> descriptorSetLayout;
-            std::unique_ptr<vkr::PipelineLayout> pipelineLayout;
+            std::unique_ptr<vko::DescriptorSetLayout> descriptorSetLayout;
+            std::unique_ptr<vko::PipelineLayout> pipelineLayout;
         };
 
     private:
         void createSwapchain();
         void createSyncObjects();
         void recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources);
-        std::unique_ptr<Pipeline> createPipeline(PipelineConfiguration const& configuration);
+        std::unique_ptr<vko::Pipeline> createPipeline(PipelineConfiguration const& configuration);
 
         void destroySwapchain();
         void recreateSwapchain();
@@ -120,19 +124,19 @@ namespace vkr
 
         void updateCameraAspect();
 
-        UniformResources const& getUniformResources(DescriptorSetConfiguration const& config);
+        UniformResources const& getUniformResources(vko::DescriptorSetConfiguration const& config);
 
     private:
         std::shared_ptr<SceneObject> m_activeCameraObject;
 
-        std::unique_ptr<vkr::Swapchain> m_swapchain;
-        std::vector<std::unique_ptr<vkr::Framebuffer>> m_swapchainFramebuffers;
-        std::vector<std::unique_ptr<vkr::ImageView>> m_swapchainImageViews;
-        std::unique_ptr<vkr::RenderPass> m_renderPass;
+        std::unique_ptr<vko::Swapchain> m_swapchain;
+        std::vector<std::unique_ptr<vko::Framebuffer>> m_swapchainFramebuffers;
+        std::vector<std::unique_ptr<vko::ImageView>> m_swapchainImageViews;
+        std::unique_ptr<vko::RenderPass> m_renderPass;
 
-        std::unique_ptr<vkr::Image> m_depthImage;
-        std::unique_ptr<vkr::DeviceMemory> m_depthImageMemory;
-        std::unique_ptr<vkr::ImageView> m_depthImageView;
+        std::unique_ptr<vko::Image> m_depthImage;
+        std::unique_ptr<vko::DeviceMemory> m_depthImageMemory;
+        std::unique_ptr<vko::ImageView> m_depthImageView;
 
         std::vector<FrameResources> m_frameResources;
 
@@ -144,9 +148,9 @@ namespace vkr
         std::vector<ObjectInstance> m_drawableInstances;
         std::shared_ptr<Light> m_light;
 
-        std::map<DescriptorSetConfiguration, UniformResources> m_uniformResources;
+        std::map<vko::DescriptorSetConfiguration, UniformResources> m_uniformResources;
 
-        std::unordered_map<PipelineConfiguration, std::unique_ptr<Pipeline>> m_pipelines;
+        std::unordered_map<PipelineConfiguration, std::unique_ptr<vko::Pipeline>> m_pipelines;
 
         vkr::Timer m_fenceTimer;
         float m_lastFenceTime = 0.0f;

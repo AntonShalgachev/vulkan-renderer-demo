@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace vkr
+namespace vko
 {
     class CommandPool;
     class Device;

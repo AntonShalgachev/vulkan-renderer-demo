@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace vkr
+namespace vko
 {
     struct DebugMessage
     {

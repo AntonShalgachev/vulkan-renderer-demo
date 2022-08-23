@@ -6,7 +6,7 @@
 #include "CommandPool.h"
 #include "QueueFamily.h"
 
-vkr::CommandBuffers::CommandBuffers(Device const& device, CommandPool const& commandPool, std::size_t size)
+vko::CommandBuffers::CommandBuffers(Device const& device, CommandPool const& commandPool, std::size_t size)
     : m_device(device)
     , m_commandPool(commandPool)
 {
@@ -20,7 +20,7 @@ vkr::CommandBuffers::CommandBuffers(Device const& device, CommandPool const& com
     VKR_ASSERT(vkAllocateCommandBuffers(m_device.getHandle(), &commandBufferAllocateInfo, m_handles.data()));
 }
 
-vkr::CommandBuffers::~CommandBuffers()
+vko::CommandBuffers::~CommandBuffers()
 {
     vkFreeCommandBuffers(m_device.getHandle(), m_commandPool.getHandle(), static_cast<uint32_t>(m_handles.size()), m_handles.data());
 }

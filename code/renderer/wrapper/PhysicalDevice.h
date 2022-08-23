@@ -4,7 +4,7 @@
 #include "QueueFamily.h"
 #include <vector>
 
-namespace vkr
+namespace vko
 {
     class PhysicalDevice
     {

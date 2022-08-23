@@ -2,7 +2,7 @@
 #include "Device.h"
 #include <stdexcept>
 
-vkr::Fence::Fence(Device const& device) : m_device(device)
+vko::Fence::Fence(Device const& device) : m_device(device)
 {
     VkFenceCreateInfo fenceCreateInfo{};
     fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
@@ -12,22 +12,22 @@ vkr::Fence::Fence(Device const& device) : m_device(device)
         throw std::runtime_error("failed to create fence!");
 }
 
-vkr::Fence::~Fence()
+vko::Fence::~Fence()
 {
     vkDestroyFence(m_device.getHandle(), m_handle, nullptr);
 }
 
-void vkr::Fence::wait() const
+void vko::Fence::wait() const
 {
     VKR_ASSERT(vkWaitForFences(m_device.getHandle(), 1, &m_handle.get(), VK_TRUE, UINT64_MAX));
 }
 
-void vkr::Fence::reset() const
+void vko::Fence::reset() const
 {
     VKR_ASSERT(vkResetFences(m_device.getHandle(), 1, &m_handle.get()));
 }
 
-bool vkr::Fence::isSignaled() const
+bool vko::Fence::isSignaled() const
 {
     VkResult result = vkGetFenceStatus(m_device.getHandle(), m_handle);
 

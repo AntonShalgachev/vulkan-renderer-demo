@@ -29,7 +29,7 @@ namespace
     }
 }
 
-vkr::Instance::Instance(std::string const& appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump)
+vko::Instance::Instance(std::string const& appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump)
 {
     m_availableLayers = getAvailableLayers();
     m_availableLayerNames.reserve(m_availableLayers.size());
@@ -44,12 +44,12 @@ vkr::Instance::Instance(std::string const& appName, std::vector<char const*> con
     createInstance(appName, extensions, enableValidation, enableApiDump);
 }
 
-vkr::Instance::~Instance()
+vko::Instance::~Instance()
 {
     vkDestroyInstance(m_handle, nullptr);
 }
 
-void vkr::Instance::createInstance(std::string const& appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump)
+void vko::Instance::createInstance(std::string const& appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump)
 {
     std::vector<char const*> requestedLayers;
     if (enableValidation)
@@ -57,10 +57,10 @@ void vkr::Instance::createInstance(std::string const& appName, std::vector<char 
     if (enableApiDump)
         requestedLayers.push_back("VK_LAYER_LUNARG_api_dump");
 
-    if (!utils::hasEveryOption(m_availableLayerNames, requestedLayers))
+    if (!vkr::utils::hasEveryOption(m_availableLayerNames, requestedLayers))
         throw std::runtime_error("Some of the required validation layers aren't supported");
 
-    if (!utils::hasEveryOption(m_availableExtensionNames, extensions))
+    if (!vkr::utils::hasEveryOption(m_availableExtensionNames, extensions))
         throw std::runtime_error("Some of the required extensions aren't supported");
 
     VkApplicationInfo appInfo{};
@@ -83,7 +83,7 @@ void vkr::Instance::createInstance(std::string const& appName, std::vector<char 
         throw std::runtime_error("Failed to create Vulkan instance");
 }
 
-std::vector<vkr::PhysicalDeviceSurfaceContainer> vkr::Instance::findPhysicalDevices(Surface const& surface)
+std::vector<vkr::PhysicalDeviceSurfaceContainer> vko::Instance::findPhysicalDevices(Surface const& surface)
 {
     uint32_t count = 0;
     VKR_ASSERT(vkEnumeratePhysicalDevices(m_handle, &count, nullptr));
@@ -93,7 +93,7 @@ std::vector<vkr::PhysicalDeviceSurfaceContainer> vkr::Instance::findPhysicalDevi
     std::vector<VkPhysicalDevice> physicalDeviceHandles(count);
     VKR_ASSERT(vkEnumeratePhysicalDevices(m_handle, &count, physicalDeviceHandles.data()));
 
-    std::vector<PhysicalDeviceSurfaceContainer> physicalDevices;
+    std::vector<vkr::PhysicalDeviceSurfaceContainer> physicalDevices;
     physicalDevices.reserve(count);
     for (auto const& handle : physicalDeviceHandles)
         physicalDevices.emplace_back(PhysicalDevice{ handle }, surface);

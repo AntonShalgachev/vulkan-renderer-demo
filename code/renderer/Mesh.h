@@ -2,10 +2,14 @@
 
 #include "VertexLayout.h"
 
+namespace vko
+{
+    class Buffer;
+}
+
 namespace vkr
 {
     class Application;
-    class Buffer;
 
     // TODO accept several Buffers (or buffer views)
 
@@ -22,7 +26,7 @@ namespace vkr
 
     public:
         // TODO don't need Application
-        Mesh(Application const& app, Buffer const& buffer, VertexLayout layout, Metadata metadata);
+        Mesh(Application const& app, vko::Buffer const& buffer, VertexLayout layout, Metadata metadata);
         ~Mesh();
 
         VertexLayout const& getVertexLayout() const { return m_vertexLayout; }
@@ -34,7 +38,7 @@ namespace vkr
         void createBuffers(std::vector<unsigned char> const& rawData);
 
     private:
-        Buffer const& m_buffer;
+        vko::Buffer const& m_buffer;
         VertexLayout m_vertexLayout;
         Metadata m_metadata;
     };

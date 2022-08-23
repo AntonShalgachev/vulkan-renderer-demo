@@ -6,7 +6,7 @@
 #include "QueueFamily.h"
 #include <stdexcept>
 
-vkr::Swapchain::Swapchain(Device const& device, Surface const& surface, QueueFamily const& graphics, QueueFamily const& presentation, Config config)
+vko::Swapchain::Swapchain(Device const& device, Surface const& surface, QueueFamily const& graphics, QueueFamily const& presentation, Config config)
     : m_device(device)
     , m_config(std::move(config))
 {
@@ -47,12 +47,12 @@ vkr::Swapchain::Swapchain(Device const& device, Surface const& surface, QueueFam
     retrieveImages();
 }
 
-vkr::Swapchain::~Swapchain()
+vko::Swapchain::~Swapchain()
 {
     vkDestroySwapchainKHR(m_device.getHandle(), m_handle, nullptr);
 }
 
-void vkr::Swapchain::retrieveImages()
+void vko::Swapchain::retrieveImages()
 {
     uint32_t finalImageCount = 0;
     VKR_ASSERT(vkGetSwapchainImagesKHR(m_device.getHandle(), m_handle, &finalImageCount, nullptr));

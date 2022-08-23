@@ -3,7 +3,7 @@
 #include <array>
 #include <stdexcept>
 
-vkr::DescriptorPool::DescriptorPool(Device const& device, std::size_t size)
+vko::DescriptorPool::DescriptorPool(Device const& device, std::size_t size)
     : m_device(device)
     , m_size(size)
 {
@@ -23,7 +23,7 @@ vkr::DescriptorPool::DescriptorPool(Device const& device, std::size_t size)
         throw std::runtime_error("failed to create descriptor pool");
 }
 
-vkr::DescriptorPool::~DescriptorPool()
+vko::DescriptorPool::~DescriptorPool()
 {
     vkDestroyDescriptorPool(m_device.getHandle(), m_handle, nullptr);
 }

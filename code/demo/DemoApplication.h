@@ -15,12 +15,16 @@
 
 class CommandLineService;
 
+namespace vko
+{
+    class DescriptorPool;
+    class Sampler;
+}
+
 namespace vkr
 {
     class Application;
     class Renderer;
-    class DescriptorPool;
-    class Sampler;
     class SceneObject;
     class Light;
     class BufferWithMemory;
@@ -109,7 +113,7 @@ private:
     std::unique_ptr<vkr::ShaderPackage> m_defaultVertexShader;
     std::unique_ptr<vkr::ShaderPackage> m_defaultFragmentShader;
 
-    std::shared_ptr<vkr::Sampler> m_fallbackSampler;
+    std::shared_ptr<vko::Sampler> m_fallbackSampler;
     std::shared_ptr<vkr::Texture> m_fallbackAlbedo;
     std::shared_ptr<vkr::Texture> m_fallbackNormalMap;
 
@@ -118,7 +122,7 @@ private:
     std::shared_ptr<vkr::SceneObject> m_activeCameraObject;
     std::shared_ptr<vkr::Light> m_light;
 
-    std::unique_ptr<vkr::DescriptorPool> m_imguiDescriptorPool;
+    std::unique_ptr<vko::DescriptorPool> m_imguiDescriptorPool;
 
     vkr::Timer m_frameTimer;
     vkr::Timer m_appTime;

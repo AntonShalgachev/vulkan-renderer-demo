@@ -5,17 +5,20 @@
 #include <memory>
 #include <vector>
 
-namespace vkr
+namespace vko
 {
-    class BufferWithMemory;
     class DescriptorSets;
-    class Texture;
     class Sampler;
     class DescriptorSetLayout;
     class PipelineLayout;
-    class Drawable;
-    class Swapchain;
     class DescriptorPool;
+}
+
+namespace vkr
+{
+    class BufferWithMemory;
+    class Texture;
+    class Drawable;
     class Transform;
 
     // TODO merge with Drawable
@@ -23,7 +26,7 @@ namespace vkr
     class ObjectInstance : public Object
     {
     public:
-        ObjectInstance(Application const& app, Drawable const& drawable, Transform const& transform, DescriptorSetLayout const& setLayout, VkDeviceSize uniformBufferSize, std::size_t swapchainImagesCount);
+        ObjectInstance(Application const& app, Drawable const& drawable, Transform const& transform, vko::DescriptorSetLayout const& setLayout, VkDeviceSize uniformBufferSize, std::size_t swapchainImagesCount);
         ObjectInstance(ObjectInstance&& rhs);
         ~ObjectInstance();
 
@@ -31,14 +34,14 @@ namespace vkr
         Transform const& getTransform() const { return m_transform; }
 
         void copyToUniformBuffer(std::size_t index, void const* sourcePointer, std::size_t sourceSize) const;
-        void bindDescriptorSet(VkCommandBuffer commandBuffer, std::size_t imageIndex, PipelineLayout const& pipelineLayout) const;
+        void bindDescriptorSet(VkCommandBuffer commandBuffer, std::size_t imageIndex, vko::PipelineLayout const& pipelineLayout) const;
 
     private:
         Drawable const& m_drawable;
         Transform const& m_transform;
 
         std::vector<vkr::BufferWithMemory> m_uniformBuffers;
-        std::unique_ptr<vkr::DescriptorPool> m_descriptorPool; // TODO move out of here
-        std::unique_ptr<vkr::DescriptorSets> m_descriptorSets;
+        std::unique_ptr<vko::DescriptorPool> m_descriptorPool; // TODO move out of here
+        std::unique_ptr<vko::DescriptorSets> m_descriptorSets;
     };
 }

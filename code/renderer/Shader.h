@@ -19,9 +19,9 @@ namespace vkr
 		class Key
 		{
 		public:
-			std::vector<ShaderModule::Key> const& getModuleKeys() const { return m_moduleKeys; }
+			std::vector<vko::ShaderModule::Key> const& getModuleKeys() const { return m_moduleKeys; }
 
-            Key& addStage(ShaderModule::Type type, std::string path, std::string entryPoint = "main")
+            Key& addStage(vko::ShaderModule::Type type, std::string path, std::string entryPoint = "main")
             {
                 m_moduleKeys.push_back({ type, std::move(path), std::move(entryPoint) });
                 return *this;
@@ -37,16 +37,16 @@ namespace vkr
 			auto operator<=>(Key const& rhs) const = default;
 
 		private:
-			std::vector<ShaderModule::Key> m_moduleKeys;
+			std::vector<vko::ShaderModule::Key> m_moduleKeys;
 		};
 
-        Shader(Device const& device, Key const& key);
+		Shader(vko::Device const& device, Key const& key);
 
-        std::vector<VkPipelineShaderStageCreateInfo> createStageDescriptions() const;
+		std::vector<VkPipelineShaderStageCreateInfo> createStageDescriptions() const;
 
-    private:
-		Device const& m_device;
-        std::vector<ShaderModule> m_shaderModules;
+	private:
+		vko::Device const& m_device;
+		std::vector<vko::ShaderModule> m_shaderModules;
     };
 }
 

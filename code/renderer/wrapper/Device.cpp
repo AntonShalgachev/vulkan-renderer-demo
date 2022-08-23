@@ -6,11 +6,11 @@
 #include <set>
 #include <stdexcept>
 
-vkr::Device::Device(PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceContainer, std::vector<const char*> const& extensions)
+vko::Device::Device(vkr::PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceContainer, std::vector<const char*> const& extensions)
 {
     PhysicalDevice const& physicalDevice = physicalDeviceSurfaceContainer.getPhysicalDevice();
 
-    QueueFamilyIndices const& indices = physicalDeviceSurfaceContainer.getParameters().getQueueFamilyIndices();
+    vkr::QueueFamilyIndices const& indices = physicalDeviceSurfaceContainer.getParameters().getQueueFamilyIndices();
 
     std::set<QueueFamily const*> uniqueQueueFamilies = {&indices.getGraphicsQueueFamily(), &indices.getPresentQueueFamily()};
 
@@ -67,12 +67,12 @@ vkr::Device::Device(PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceC
         throw std::runtime_error("failed to get device queues!");
 }
 
-void vkr::Device::waitIdle() const
+void vko::Device::waitIdle() const
 {
     VKR_ASSERT(vkDeviceWaitIdle(m_handle));
 }
 
-vkr::Device::~Device()
+vko::Device::~Device()
 {
     vkDestroyDevice(m_handle, nullptr);
 }

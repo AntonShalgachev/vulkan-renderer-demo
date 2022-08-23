@@ -1,13 +1,16 @@
 #pragma once
 
-namespace vkr
+namespace vko
 {
-    class Application;
-
     class Instance;
     class Surface;
     class Device;
     class PhysicalDevice;
+}
+
+namespace vkr
+{
+    class Application;
     class PhysicalDeviceSurfaceParameters;
 
     class Object
@@ -17,10 +20,10 @@ namespace vkr
 
         Application const& getApp() const { return m_app; }
 
-        Instance const& getInstance() const;
-        Surface const& getSurface() const;
-        Device const& getDevice() const;
-        PhysicalDevice const& getPhysicalDevice() const;
+        vko::Instance const& getInstance() const;
+        vko::Surface const& getSurface() const;
+        vko::Device const& getDevice() const;
+        vko::PhysicalDevice const& getPhysicalDevice() const;
         PhysicalDeviceSurfaceParameters const& getPhysicalDeviceSurfaceParameters() const;
 
     private:

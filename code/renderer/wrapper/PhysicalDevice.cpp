@@ -1,17 +1,17 @@
 #include "PhysicalDevice.h"
 #include "Utils.h"
 
-vkr::PhysicalDevice::PhysicalDevice(VkPhysicalDevice handle) : m_handle(handle)
+vko::PhysicalDevice::PhysicalDevice(VkPhysicalDevice handle) : m_handle(handle)
 {
     init();
 }
 
-bool vkr::PhysicalDevice::areExtensionsSupported(std::vector<char const*> const& requestedExtensions) const
+bool vko::PhysicalDevice::areExtensionsSupported(std::vector<char const*> const& requestedExtensions) const
 {
-    return utils::hasEveryOption(m_availableExtensionNames, requestedExtensions);
+    return vkr::utils::hasEveryOption(m_availableExtensionNames, requestedExtensions);
 }
 
-void vkr::PhysicalDevice::init()
+void vko::PhysicalDevice::init()
 {
     queryAvailableExtensions();
     queryProperties();
@@ -19,7 +19,7 @@ void vkr::PhysicalDevice::init()
     queryQueueFamilyProperties();
 }
 
-void vkr::PhysicalDevice::queryAvailableExtensions()
+void vko::PhysicalDevice::queryAvailableExtensions()
 {
     uint32_t count;
     VKR_ASSERT(vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, nullptr));
@@ -30,17 +30,17 @@ void vkr::PhysicalDevice::queryAvailableExtensions()
         m_availableExtensionNames.push_back(extension.extensionName);
 }
 
-void vkr::PhysicalDevice::queryProperties()
+void vko::PhysicalDevice::queryProperties()
 {
     vkGetPhysicalDeviceProperties(m_handle, &m_properties);
 }
 
-void vkr::PhysicalDevice::queryFeatures()
+void vko::PhysicalDevice::queryFeatures()
 {
     vkGetPhysicalDeviceFeatures(m_handle, &m_features);
 }
 
-void vkr::PhysicalDevice::queryQueueFamilyProperties()
+void vko::PhysicalDevice::queryQueueFamilyProperties()
 {
     std::vector<VkQueueFamilyProperties> properties;
 

@@ -4,28 +4,28 @@
 
 namespace
 {
-    VkFilter vulkanizeFilterMode(vkr::Sampler::FilterMode mode)
+    VkFilter vulkanizeFilterMode(vko::Sampler::FilterMode mode)
     {
         switch (mode)
         {
-        case vkr::Sampler::FilterMode::Nearest:
+        case vko::Sampler::FilterMode::Nearest:
             return VK_FILTER_NEAREST;
-        case vkr::Sampler::FilterMode::Linear:
+        case vko::Sampler::FilterMode::Linear:
             return VK_FILTER_LINEAR;
         }
 
         throw std::invalid_argument("mode");
     }
 
-    VkSamplerAddressMode vulkanizeWrapMode(vkr::Sampler::WrapMode mode)
+    VkSamplerAddressMode vulkanizeWrapMode(vko::Sampler::WrapMode mode)
     {
         switch (mode)
         {
-        case vkr::Sampler::WrapMode::Repeat:
+        case vko::Sampler::WrapMode::Repeat:
             return VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        case vkr::Sampler::WrapMode::Mirror:
+        case vko::Sampler::WrapMode::Mirror:
             return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
-        case vkr::Sampler::WrapMode::ClampToEdge:
+        case vko::Sampler::WrapMode::ClampToEdge:
             return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
         }
 
@@ -33,9 +33,9 @@ namespace
     }
 }
 
-vkr::Sampler::Sampler(Device const& device) : Sampler(device, FilterMode::Linear, FilterMode::Linear, WrapMode::Repeat, WrapMode::Repeat) {}
+vko::Sampler::Sampler(Device const& device) : Sampler(device, FilterMode::Linear, FilterMode::Linear, WrapMode::Repeat, WrapMode::Repeat) {}
 
-vkr::Sampler::Sampler(Device const& device, FilterMode magFilter, FilterMode minFilter, WrapMode wrapU, WrapMode wrapV)
+vko::Sampler::Sampler(Device const& device, FilterMode magFilter, FilterMode minFilter, WrapMode wrapU, WrapMode wrapV)
     : m_device(device)
 {
     VkSamplerCreateInfo samplerCreateInfo{};
@@ -60,7 +60,7 @@ vkr::Sampler::Sampler(Device const& device, FilterMode magFilter, FilterMode min
         throw std::runtime_error("failed to create texture sampler!");
 }
 
-vkr::Sampler::~Sampler()
+vko::Sampler::~Sampler()
 {
     vkDestroySampler(m_device.getHandle(), m_handle, nullptr);
 }

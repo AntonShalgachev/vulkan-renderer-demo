@@ -2,7 +2,7 @@
 
 #include "wrapper/Buffer.h"
 
-vkr::Mesh::Mesh(Application const& app, Buffer const& buffer, VertexLayout layout, Metadata metadata)
+vkr::Mesh::Mesh(Application const& app, vko::Buffer const& buffer, VertexLayout layout, Metadata metadata)
     : m_buffer(buffer)
     , m_vertexLayout(std::move(layout))
     , m_metadata(std::move(metadata))

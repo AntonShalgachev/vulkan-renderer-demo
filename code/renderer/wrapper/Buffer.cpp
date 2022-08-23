@@ -5,7 +5,7 @@
 #include "Device.h"
 #include <stdexcept>
 
-vkr::Buffer::Buffer(Device const& device, VkDeviceSize size, VkBufferUsageFlags usage)
+vko::Buffer::Buffer(Device const& device, VkDeviceSize size, VkBufferUsageFlags usage)
     : m_device(device)
     , m_size(size)
 {
@@ -19,12 +19,12 @@ vkr::Buffer::Buffer(Device const& device, VkDeviceSize size, VkBufferUsageFlags 
         throw std::runtime_error("failed to create buffer!");
 }
 
-vkr::Buffer::~Buffer()
+vko::Buffer::~Buffer()
 {
     vkDestroyBuffer(m_device.getHandle(), m_handle, nullptr);
 }
 
-VkMemoryRequirements vkr::Buffer::getMemoryRequirements() const
+VkMemoryRequirements vko::Buffer::getMemoryRequirements() const
 {
     // TODO cache
     VkMemoryRequirements memoryRequirements;
@@ -33,12 +33,12 @@ VkMemoryRequirements vkr::Buffer::getMemoryRequirements() const
     return memoryRequirements;
 }
 
-void vkr::Buffer::bindMemory(DeviceMemory const& memory) const
+void vko::Buffer::bindMemory(DeviceMemory const& memory) const
 {
     VKR_ASSERT(vkBindBufferMemory(m_device.getHandle(), m_handle, memory.getHandle(), 0));
 }
 
-void vkr::Buffer::copy(VkCommandBuffer commandBuffer, Buffer const& source, Buffer const& destination)
+void vko::Buffer::copy(VkCommandBuffer commandBuffer, Buffer const& source, Buffer const& destination)
 {
     if (source.getSize() != destination.getSize())
         throw std::runtime_error("Copy operation between buffers of different sizes");

@@ -5,7 +5,7 @@
 
 #include <functional>
 
-namespace vkr
+namespace vko
 {
     class Instance;
     struct DebugMessage;

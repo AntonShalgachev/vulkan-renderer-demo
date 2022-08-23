@@ -6,23 +6,23 @@
 #include "Instance.h"
 #include "Window.h"
 
-vkr::Surface::Surface(Instance const& instance, Window const& window) : m_instance(instance), m_window(window)
+vko::Surface::Surface(Instance const& instance, vkr::Window const& window) : m_instance(instance), m_window(window)
 {
     if (glfwCreateWindowSurface(instance.getHandle(), window.getHandle(), nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create window surface!");
 }
 
-vkr::Surface::~Surface()
+vko::Surface::~Surface()
 {
     vkDestroySurfaceKHR(m_instance.getHandle(), m_handle, nullptr);
 }
 
-int vkr::Surface::getWidth() const
+int vko::Surface::getWidth() const
 {
     return m_window.getWidth();
 }
 
-int vkr::Surface::getHeight() const
+int vko::Surface::getHeight() const
 {
     return m_window.getHeight();
 }

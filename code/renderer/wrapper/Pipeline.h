@@ -5,18 +5,21 @@
 
 namespace vkr
 {
+    struct PipelineConfiguration;
+}
+
+namespace vko
+{
     class ShaderModule;
     class PipelineLayout;
     class RenderPass;
     class VertexLayoutDescriptions;
     class Device;
 
-    struct PipelineConfiguration;
-
     class Pipeline
     {
     public:
-    	explicit Pipeline(Device const& device, PipelineConfiguration const& config);
+    	explicit Pipeline(Device const& device, vkr::PipelineConfiguration const& config);
     	~Pipeline();
 
         void bind(VkCommandBuffer commandBuffer) const;

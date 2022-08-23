@@ -3,7 +3,7 @@
 #include <vulkan/vulkan.h>
 #include "UniqueHandle.h"
 
-namespace vkr
+namespace vko
 {
     class Swapchain;
     class Device;

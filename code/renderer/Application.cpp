@@ -57,12 +57,12 @@ namespace
         return extensions;
     }
 
-    std::unique_ptr<vkr::DebugMessenger> createDebugMessenger(vkr::Instance& instance, bool enableValidation, std::function<void(vkr::DebugMessage)> onDebugMessage)
+    std::unique_ptr<vko::DebugMessenger> createDebugMessenger(vko::Instance& instance, bool enableValidation, std::function<void(vko::DebugMessage)> onDebugMessage)
     {
         if (!enableValidation)
             return nullptr;
 
-        return std::make_unique<vkr::DebugMessenger>(instance, std::move(onDebugMessage));
+        return std::make_unique<vko::DebugMessenger>(instance, std::move(onDebugMessage));
     }
 
     template<typename T>
@@ -93,7 +93,7 @@ namespace vkr
     {
     public:
 
-        ApplicationImpl(std::string const& name, bool enableValidation, bool enableApiDump, Window const& window, std::function<void(DebugMessage)> onDebugMessage)
+        ApplicationImpl(std::string const& name, bool enableValidation, bool enableApiDump, Window const& window, std::function<void(vko::DebugMessage)> onDebugMessage)
             : m_instance(name, createInstanceExtensions(enableValidation, window), enableValidation, enableApiDump)
             , m_debugMessenger(createDebugMessenger(m_instance, enableValidation, std::move(onDebugMessage)))
             , m_surface(m_instance, window)
@@ -104,54 +104,54 @@ namespace vkr
 
         }
 
-        Instance const& getInstance() const { return m_instance; }
-        Surface const& getSurface() const { return m_surface; }
-        Device const& getDevice() const { return m_device; }
+        vko::Instance const& getInstance() const { return m_instance; }
+        vko::Surface const& getSurface() const { return m_surface; }
+        vko::Device const& getDevice() const { return m_device; }
 
         PhysicalDeviceSurfaceContainer const& getPhysicalDeviceSurfaceContainer() const { return m_physicalDevices[m_currentPhysicalDeviceIndex]; }
         PhysicalDeviceSurfaceContainer& getPhysicalDeviceSurfaceContainer() { return m_physicalDevices[m_currentPhysicalDeviceIndex]; }
-        PhysicalDevice const& getPhysicalDevice() const { return getPhysicalDeviceSurfaceContainer().getPhysicalDevice(); }
+        vko::PhysicalDevice const& getPhysicalDevice() const { return getPhysicalDeviceSurfaceContainer().getPhysicalDevice(); }
         PhysicalDeviceSurfaceParameters const& getPhysicalDeviceSurfaceParameters() const { return getPhysicalDeviceSurfaceContainer().getParameters(); }
         PhysicalDeviceSurfaceParameters& getPhysicalDeviceSurfaceParameters() { return getPhysicalDeviceSurfaceContainer().getParameters(); }
 
     private:
-        Instance m_instance;
-        std::unique_ptr<vkr::DebugMessenger> m_debugMessenger;
-        Surface m_surface;
+        vko::Instance m_instance;
+        std::unique_ptr<vko::DebugMessenger> m_debugMessenger;
+        vko::Surface m_surface;
         std::vector<vkr::PhysicalDeviceSurfaceContainer> m_physicalDevices;
         std::size_t m_currentPhysicalDeviceIndex;
-        Device m_device;
+        vko::Device m_device;
     };
 }
 
-vkr::Application::Application(std::string const& name, bool enableValidation, bool enableApiDump, Window const& window, std::function<void(DebugMessage)> onDebugMessage)
+vkr::Application::Application(std::string const& name, bool enableValidation, bool enableApiDump, Window const& window, std::function<void(vko::DebugMessage)> onDebugMessage)
 {
     m_impl = std::make_unique<ApplicationImpl>(name, enableValidation, enableApiDump, window, std::move(onDebugMessage));
 
     setDebugName(getDevice().getGraphicsQueue().getHandle(), "GraphicsQueue");
     setDebugName(getDevice().getPresentQueue().getHandle(), "PresentQueue");
 
-    m_shortLivedCommandPool = std::make_unique<CommandPool>(getDevice(), getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily());
+    m_shortLivedCommandPool = std::make_unique<vko::CommandPool>(getDevice(), getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily());
 }
 
 vkr::Application::~Application() = default;
 
-vkr::Instance const& vkr::Application::getInstance() const
+vko::Instance const& vkr::Application::getInstance() const
 {
     return m_impl->getInstance();
 }
 
-vkr::Surface const& vkr::Application::getSurface() const
+vko::Surface const& vkr::Application::getSurface() const
 {
     return m_impl->getSurface();
 }
 
-vkr::Device const& vkr::Application::getDevice() const
+vko::Device const& vkr::Application::getDevice() const
 {
     return m_impl->getDevice();
 }
 
-vkr::CommandPool const& vkr::Application::getShortLivedCommandPool() const
+vko::CommandPool const& vkr::Application::getShortLivedCommandPool() const
 {
     return *m_shortLivedCommandPool;
 }
@@ -161,7 +161,7 @@ vkr::PhysicalDeviceSurfaceParameters const& vkr::Application::getPhysicalDeviceS
     return m_impl->getPhysicalDeviceSurfaceParameters();
 }
 
-vkr::PhysicalDevice const& vkr::Application::getPhysicalDevice() const
+vko::PhysicalDevice const& vkr::Application::getPhysicalDevice() const
 {
     return m_impl->getPhysicalDevice();
 }
