@@ -4,19 +4,16 @@
 #include <vector>
 #include "UniqueHandle.h"
 
-namespace vkr
-{
-    class PhysicalDeviceSurfaceContainer;
-}
-
 namespace vko
 {
     class Queue;
+    class PhysicalDevice;
+    class QueueFamily;
 
     class Device
     {
     public:
-        explicit Device(vkr::PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceContainer, std::vector<const char*> const& extensions);
+        explicit Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily const& graphics, vko::QueueFamily const& present, std::vector<const char*> const& extensions);
     	~Device();
 
         Device(Device const&) = default;

@@ -6,13 +6,9 @@
 #include <set>
 #include <stdexcept>
 
-vko::Device::Device(vkr::PhysicalDeviceSurfaceContainer const& physicalDeviceSurfaceContainer, std::vector<const char*> const& extensions)
+vko::Device::Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily const& graphics, vko::QueueFamily const& present, std::vector<const char*> const& extensions)
 {
-    PhysicalDevice const& physicalDevice = physicalDeviceSurfaceContainer.getPhysicalDevice();
-
-    vkr::QueueFamilyIndices const& indices = physicalDeviceSurfaceContainer.getParameters().getQueueFamilyIndices();
-
-    std::set<QueueFamily const*> uniqueQueueFamilies = {&indices.getGraphicsQueueFamily(), &indices.getPresentQueueFamily()};
+    std::set<QueueFamily const*> uniqueQueueFamilies = {&graphics, &present};
 
     // The device is created with 1 queue of each family
 
@@ -57,9 +53,9 @@ vko::Device::Device(vkr::PhysicalDeviceSurfaceContainer const& physicalDeviceSur
         vkGetDeviceQueue(m_handle, queueFamily->getIndex(), 0, &handle);
         Queue const& queue = m_queues.emplace_back(handle, *queueFamily);
 
-        if (queueFamily->getIndex() == indices.getGraphicsQueueFamily().getIndex())
+        if (queueFamily->getIndex() == graphics.getIndex())
             m_graphicsQueue = &queue;
-        if (queueFamily->getIndex() == indices.getPresentQueueFamily().getIndex())
+        if (queueFamily->getIndex() == present.getIndex())
             m_presentQueue = &queue;
     }
 

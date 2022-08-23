@@ -99,7 +99,7 @@ namespace vkr
             , m_surface(m_instance, window)
             , m_physicalDevices(m_instance.findPhysicalDevices(m_surface))
             , m_currentPhysicalDeviceIndex(findSuitablePhysicalDeviceIndex(m_physicalDevices))
-            , m_device(getPhysicalDeviceSurfaceContainer(), DEVICE_EXTENSIONS)
+            , m_device(getPhysicalDevice(), getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily(), getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getPresentQueueFamily(), DEVICE_EXTENSIONS)
         {
 
         }
