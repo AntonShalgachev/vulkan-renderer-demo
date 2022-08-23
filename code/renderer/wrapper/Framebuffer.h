@@ -1,18 +1,18 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "Object.h"
 #include "UniqueHandle.h"
 
 namespace vkr
 {
     class RenderPass;
     class ImageView;
+    class Device;
 
-    class Framebuffer : public Object
+    class Framebuffer
     {
     public:
-        explicit Framebuffer(Application const& app, vkr::ImageView const& colorImageView, vkr::ImageView const& depthImageView, vkr::RenderPass const& renderPass, VkExtent2D extent);
+        explicit Framebuffer(Device const& device, vkr::ImageView const& colorImageView, vkr::ImageView const& depthImageView, vkr::RenderPass const& renderPass, VkExtent2D extent);
         ~Framebuffer();
 
         Framebuffer(Framebuffer const&) = default;
@@ -23,6 +23,7 @@ namespace vkr
         VkFramebuffer getHandle() const { return m_handle; }
 
     private:
+        Device const& m_device;
         UniqueHandle<VkFramebuffer> m_handle;
     };
 }

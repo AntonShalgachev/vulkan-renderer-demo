@@ -4,7 +4,8 @@
 #include <array>
 #include <stdexcept>
 
-vkr::PipelineLayout::PipelineLayout(Application const& app, DescriptorSetLayout const* descriptorSetLayout, std::size_t pushConstantsSize) : Object(app)
+vkr::PipelineLayout::PipelineLayout(Device const& device, DescriptorSetLayout const* descriptorSetLayout, std::size_t pushConstantsSize)
+    : m_device(device)
 {
     std::vector<VkDescriptorSetLayout> setLayouts;
 
@@ -28,11 +29,11 @@ vkr::PipelineLayout::PipelineLayout(Application const& app, DescriptorSetLayout 
     pipelineLayoutCreateInfo.pushConstantRangeCount = static_cast<uint32_t>(pushConstantRanges.size());
     pipelineLayoutCreateInfo.pPushConstantRanges = pushConstantRanges.data();
 
-    if (vkCreatePipelineLayout(getDevice().getHandle(), &pipelineLayoutCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
+    if (vkCreatePipelineLayout(m_device.getHandle(), &pipelineLayoutCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create pipeline layout!");
 }
 
 vkr::PipelineLayout::~PipelineLayout()
 {
-    vkDestroyPipelineLayout(getDevice().getHandle(), m_handle, nullptr);
+    vkDestroyPipelineLayout(m_device.getHandle(), m_handle, nullptr);
 }

@@ -41,6 +41,9 @@
 #include "wrapper/Sampler.h"
 #include "Texture.h"
 #include "BufferWithMemory.h"
+#include "wrapper/PhysicalDevice.h"
+#include "wrapper/Surface.h"
+#include "ScopedOneTimeCommandBuffer.h"
 
 namespace
 {
@@ -59,6 +62,64 @@ namespace
     };
 
     const int FRAME_RESOURCE_COUNT = 3;
+
+    VkFormat findSupportedFormat(vkr::PhysicalDevice const& physicalDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
+    {
+        for (VkFormat format : candidates)
+        {
+            VkFormatProperties props;
+            vkGetPhysicalDeviceFormatProperties(physicalDevice.getHandle(), format, &props);
+
+            if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
+                return format;
+            if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features)
+                return format;
+        }
+
+        throw std::runtime_error("failed to find supported format!");
+    }
+
+    VkFormat findDepthFormat(vkr::PhysicalDevice const& physicalDevice)
+    {
+        static const std::vector<VkFormat> candidates = { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT };
+
+        return findSupportedFormat(physicalDevice, candidates, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    }
+
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+    {
+        if (availableFormats.empty())
+            return { VK_FORMAT_UNDEFINED , VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
+
+        for (const auto& availableFormat : availableFormats)
+            if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+                return availableFormat;
+
+        return availableFormats[0];
+    }
+
+    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+    {
+        for (const auto& availablePresentMode : availablePresentModes)
+            if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+                return availablePresentMode;
+
+        return VK_PRESENT_MODE_FIFO_KHR;
+    }
+
+    VkExtent2D chooseSwapExtent(vkr::Surface const& surface, const VkSurfaceCapabilitiesKHR& capabilities)
+    {
+        if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
+            return capabilities.currentExtent;
+
+        auto width = static_cast<uint32_t>(surface.getWidth());
+        auto height = static_cast<uint32_t>(surface.getHeight());
+
+        width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, width));
+        height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, height));
+
+        return { width, height };
+    }
 }
 
 // TODO move somewhere
@@ -144,7 +205,10 @@ namespace
         stagingBuffer.memory().copyFrom(bufferData, bufferSize);
 
         vkr::BufferWithMemory buffer{ app, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
-        vkr::Buffer::copy(stagingBuffer.buffer(), buffer.buffer());
+
+        vkr::ScopedOneTimeCommandBuffer commandBuffer{ app };
+        vkr::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), buffer.buffer());
+        commandBuffer.submit();
 
         return std::make_unique<vkr::BufferWithMemory>(std::move(buffer));
     }
@@ -160,7 +224,7 @@ vkr::Renderer::Renderer(Application const& app)
         m_oneFrameBoxResources.bufferWithMemory = createBufferAndMemory(app, boxBuffer);
         m_oneFrameBoxResources.mesh = std::make_unique<vkr::Mesh>(app, m_oneFrameBoxResources.bufferWithMemory->buffer(), createBoxVertexLayout(), vkr::Mesh::Metadata{ false, false, true, false });
 
-        m_oneFrameBoxResources.pipelineLayout = std::make_unique<vkr::PipelineLayout>(app, nullptr, sizeof(OneTimeGeometryPushConstants));
+        m_oneFrameBoxResources.pipelineLayout = std::make_unique<vkr::PipelineLayout>(getDevice(), nullptr, sizeof(OneTimeGeometryPushConstants));
 
         vkr::PipelineConfiguration configuration;
         configuration.pipelineLayout = m_oneFrameBoxResources.pipelineLayout.get();
@@ -172,7 +236,7 @@ vkr::Renderer::Renderer(Application const& app)
         configuration.vertexLayoutDescriptions = m_oneFrameBoxResources.mesh->getVertexLayout().getDescriptions();
         configuration.cullBackFaces = false;
         configuration.wireframe = true;
-        m_oneFrameBoxResources.pipeline = std::make_unique<vkr::Pipeline>(app, configuration);
+        m_oneFrameBoxResources.pipeline = std::make_unique<vkr::Pipeline>(getDevice(), configuration);
     }
 }
 
@@ -243,7 +307,7 @@ void vkr::Renderer::draw()
     frameResources.inFlightFence.reset();
 
     recordCommandBuffer(imageIndex, frameResources);
-    frameResources.commandBuffer.submit(getApp().getDevice().getGraphicsQueue(), &frameResources.renderFinishedSemaphore, &frameResources.imageAvailableSemaphore, &frameResources.inFlightFence);
+    frameResources.commandBuffer.submit(getDevice().getGraphicsQueue(), &frameResources.renderFinishedSemaphore, &frameResources.imageAvailableSemaphore, &frameResources.inFlightFence);
 
     std::array waitSemaphores{ frameResources.renderFinishedSemaphore.getHandle() };
     VkPresentInfoKHR presentInfo{};
@@ -281,8 +345,25 @@ void vkr::Renderer::createSwapchain()
 {
     m_pipelines.clear();
 
-    m_swapchain = std::make_unique<vkr::Swapchain>(getApp());
-    m_renderPass = std::make_unique<vkr::RenderPass>(getApp(), *m_swapchain);
+    PhysicalDeviceSurfaceParameters const& parameters = getPhysicalDeviceSurfaceParameters();
+
+    Swapchain::Config config;
+    config.surfaceFormat = chooseSwapSurfaceFormat(parameters.getFormats());
+    config.presentMode = chooseSwapPresentMode(parameters.getPresentModes());
+    config.extent = chooseSwapExtent(getSurface(), parameters.getCapabilities());
+
+    const uint32_t minImageCount = parameters.getCapabilities().minImageCount;
+    const uint32_t maxImageCount = parameters.getCapabilities().maxImageCount;
+    config.minImageCount = minImageCount + 1;
+    if (maxImageCount > 0)
+        config.minImageCount = std::min(config.minImageCount, maxImageCount);
+
+    config.preTransform = parameters.getCapabilities().currentTransform;
+
+    vkr::QueueFamilyIndices const& indices = parameters.getQueueFamilyIndices();
+
+    m_swapchain = std::make_unique<vkr::Swapchain>(getDevice(), getSurface(), indices.getGraphicsQueueFamily(), indices.getPresentQueueFamily(), std::move(config));
+    m_renderPass = std::make_unique<vkr::RenderPass>(getDevice(), *m_swapchain, findDepthFormat(getPhysicalDevice()));
 
     auto const& images = m_swapchain->getImages();
     m_swapchainImageViews.reserve(images.size());
@@ -296,7 +377,7 @@ void vkr::Renderer::createSwapchain()
 
     m_swapchainFramebuffers.reserve(m_swapchainImageViews.size());
     for (std::unique_ptr<vkr::ImageView> const& colorImageView : m_swapchainImageViews)
-        m_swapchainFramebuffers.push_back(std::make_unique<vkr::Framebuffer>(getApp(), *colorImageView, *m_depthImageView, *m_renderPass, m_swapchain->getExtent()));
+        m_swapchainFramebuffers.push_back(std::make_unique<vkr::Framebuffer>(getDevice(), *colorImageView, *m_depthImageView, *m_renderPass, m_swapchain->getExtent()));
 
     onSwapchainCreated();
 }
@@ -353,8 +434,8 @@ vkr::Renderer::UniformResources const& vkr::Renderer::getUniformResources(Descri
     if (it == m_uniformResources.end())
     {
         UniformResources resources;
-        resources.descriptorSetLayout = std::make_unique<vkr::DescriptorSetLayout>(getApp(), config);
-        resources.pipelineLayout = std::make_unique<vkr::PipelineLayout>(getApp(), resources.descriptorSetLayout.get(), sizeof(VertexPushConstants)); // TODO make push constants more configurable
+        resources.descriptorSetLayout = std::make_unique<vkr::DescriptorSetLayout>(getDevice(), config);
+        resources.pipelineLayout = std::make_unique<vkr::PipelineLayout>(getDevice(), resources.descriptorSetLayout.get(), sizeof(VertexPushConstants)); // TODO make push constants more configurable
 
         auto res = m_uniformResources.emplace(config, std::move(resources));
         it = res.first;
@@ -474,7 +555,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
 std::unique_ptr<vkr::Pipeline> vkr::Renderer::createPipeline(PipelineConfiguration const& configuration)
 {
-    return std::make_unique<vkr::Pipeline>(getApp(), configuration);
+    return std::make_unique<vkr::Pipeline>(getDevice(), configuration);
 }
 
 void vkr::Renderer::destroySwapchain()
@@ -495,10 +576,10 @@ void vkr::Renderer::createSyncObjects()
 }
 
 vkr::Renderer::FrameResources::FrameResources(Application const& app)
-    : imageAvailableSemaphore(app)
-    , renderFinishedSemaphore(app)
-    , inFlightFence(app)
-    , commandPool(std::make_unique<CommandPool>(app))
+    : imageAvailableSemaphore(app.getDevice())
+    , renderFinishedSemaphore(app.getDevice())
+    , inFlightFence(app.getDevice())
+    , commandPool(std::make_unique<CommandPool>(app.getDevice(), app.getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily()))
     , commandBuffer(commandPool->createCommandBuffer())
 {
     app.setDebugName(imageAvailableSemaphore.getHandle(), "ImageAvailableSemaphore");

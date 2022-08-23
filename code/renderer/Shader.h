@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 
-#include "Object.h"
 #include <vector>
 #include <algorithm>
 #include "wrapper/ShaderModule.h"
@@ -12,7 +11,9 @@ struct VkPipelineShaderStageCreateInfo;
 
 namespace vkr
 {
-    class Shader : vkr::Object
+	class Device;
+
+    class Shader
     {
     public:
 		class Key
@@ -39,11 +40,12 @@ namespace vkr
 			std::vector<ShaderModule::Key> m_moduleKeys;
 		};
 
-        Shader(Application const& app, Key const& key);
+        Shader(Device const& device, Key const& key);
 
         std::vector<VkPipelineShaderStageCreateInfo> createStageDescriptions() const;
 
     private:
+		Device const& m_device;
         std::vector<ShaderModule> m_shaderModules;
     };
 }

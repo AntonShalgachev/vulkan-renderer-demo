@@ -6,8 +6,8 @@
 #include "CommandPool.h"
 #include "QueueFamily.h"
 
-vkr::CommandBuffers::CommandBuffers(Application const& app, CommandPool const& commandPool, std::size_t size)
-    : Object(app)
+vkr::CommandBuffers::CommandBuffers(Device const& device, CommandPool const& commandPool, std::size_t size)
+    : m_device(device)
     , m_commandPool(commandPool)
 {
     VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
@@ -17,10 +17,10 @@ vkr::CommandBuffers::CommandBuffers(Application const& app, CommandPool const& c
     commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(size);
 
     m_handles.resize(size);
-    VKR_ASSERT(vkAllocateCommandBuffers(getDevice().getHandle(), &commandBufferAllocateInfo, m_handles.data()));
+    VKR_ASSERT(vkAllocateCommandBuffers(m_device.getHandle(), &commandBufferAllocateInfo, m_handles.data()));
 }
 
 vkr::CommandBuffers::~CommandBuffers()
 {
-    vkFreeCommandBuffers(getDevice().getHandle(), m_commandPool.getHandle(), static_cast<uint32_t>(m_handles.size()), m_handles.data());
+    vkFreeCommandBuffers(m_device.getHandle(), m_commandPool.getHandle(), static_cast<uint32_t>(m_handles.size()), m_handles.data());
 }

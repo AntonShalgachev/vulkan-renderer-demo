@@ -3,26 +3,24 @@
 #include <vulkan/vulkan.h>
 #include <cstddef>
 
-#include "Object.h"
 #include "UniqueHandle.h"
 
 namespace vkr
 {
-    class DescriptorPool : public Object
+    class Device;
+
+    class DescriptorPool
     {
     public:
-    	explicit DescriptorPool(Application const& app, std::size_t size);
+    	explicit DescriptorPool(Device const& device, std::size_t size);
     	~DescriptorPool();
-
-        DescriptorPool(DescriptorPool const&) = default;
-        DescriptorPool(DescriptorPool&&) = default;
-        DescriptorPool& operator=(DescriptorPool const&) = default;
-        DescriptorPool& operator=(DescriptorPool&&) = default;
 
         VkDescriptorPool getHandle() const { return m_handle; }
         std::size_t getSize() const { return m_size; }
 
     private:
+        Device const& m_device;
+
         UniqueHandle<VkDescriptorPool> m_handle;
         std::size_t m_size;
     };

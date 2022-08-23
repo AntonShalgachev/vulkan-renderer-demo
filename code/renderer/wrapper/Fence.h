@@ -1,15 +1,16 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "Object.h"
 #include "UniqueHandle.h"
 
 namespace vkr
 {
-    class Fence : public Object
+    class Device;
+
+    class Fence
     {
     public:
-    	Fence(Application const& app);
+    	Fence(Device const& device);
     	~Fence();
 
         Fence(Fence const&) = default;
@@ -24,6 +25,7 @@ namespace vkr
         VkFence getHandle() const { return m_handle; }
 
     private:
+        Device const& m_device;
     	UniqueHandle<VkFence> m_handle;
     };
 }

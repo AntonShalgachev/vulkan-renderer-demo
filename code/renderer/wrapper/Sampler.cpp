@@ -33,9 +33,10 @@ namespace
     }
 }
 
-vkr::Sampler::Sampler(Application const& app) : Sampler(app, FilterMode::Linear, FilterMode::Linear, WrapMode::Repeat, WrapMode::Repeat) {}
+vkr::Sampler::Sampler(Device const& device) : Sampler(device, FilterMode::Linear, FilterMode::Linear, WrapMode::Repeat, WrapMode::Repeat) {}
 
-vkr::Sampler::Sampler(Application const& app, FilterMode magFilter, FilterMode minFilter, WrapMode wrapU, WrapMode wrapV) : Object(app)
+vkr::Sampler::Sampler(Device const& device, FilterMode magFilter, FilterMode minFilter, WrapMode wrapU, WrapMode wrapV)
+    : m_device(device)
 {
     VkSamplerCreateInfo samplerCreateInfo{};
     samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -55,11 +56,11 @@ vkr::Sampler::Sampler(Application const& app, FilterMode magFilter, FilterMode m
     samplerCreateInfo.minLod = 0.0f;
     samplerCreateInfo.maxLod = 0.0f;
 
-    if (vkCreateSampler(getDevice().getHandle(), &samplerCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
+    if (vkCreateSampler(m_device.getHandle(), &samplerCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create texture sampler!");
 }
 
 vkr::Sampler::~Sampler()
 {
-    vkDestroySampler(getDevice().getHandle(), m_handle, nullptr);
+    vkDestroySampler(m_device.getHandle(), m_handle, nullptr);
 }

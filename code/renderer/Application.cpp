@@ -131,7 +131,7 @@ vkr::Application::Application(std::string const& name, bool enableValidation, bo
     setDebugName(getDevice().getGraphicsQueue().getHandle(), "GraphicsQueue");
     setDebugName(getDevice().getPresentQueue().getHandle(), "PresentQueue");
 
-    m_shortLivedCommandPool = std::make_unique<CommandPool>(*this);
+    m_shortLivedCommandPool = std::make_unique<CommandPool>(getDevice(), getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily());
 }
 
 vkr::Application::~Application() = default;

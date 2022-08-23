@@ -1,17 +1,19 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "Object.h"
 #include <vector>
 #include "UniqueHandle.h"
 
 namespace vkr
 {
+    class Device;
+    class PhysicalDevice;
+
     // TODO use span?
-    class DeviceMemory : public Object
+    class DeviceMemory
     {
     public:
-        explicit DeviceMemory(Application const& app, VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties);
+        explicit DeviceMemory(Device const& device, PhysicalDevice const& physicalDevice, VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties);
         ~DeviceMemory();
 
         DeviceMemory(DeviceMemory const&) = default;
@@ -30,6 +32,7 @@ namespace vkr
         VkDeviceMemory getHandle() const { return m_handle; };
 
     private:
+        Device const& m_device;
         UniqueHandle<VkDeviceMemory> m_handle;
     };
 }

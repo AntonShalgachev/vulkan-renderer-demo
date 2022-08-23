@@ -2,7 +2,6 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
-#include "Object.h"
 #include "UniqueHandle.h"
 
 namespace vkr
@@ -10,14 +9,14 @@ namespace vkr
     class Device;
     class QueueFamily;
     class CommandBuffer;
-    class Queue;
 
-    class CommandPool : vkr::Object
+    class CommandPool
     {
     public:
-    	explicit CommandPool(Application const& app);
+    	explicit CommandPool(Device const& device, QueueFamily const& queueFamily);
         ~CommandPool();
 
+        // TODO return vkr::CommandBuffers
         CommandBuffer createCommandBuffer() const;
         std::vector<CommandBuffer> createCommandBuffers(std::size_t size) const;
 
@@ -32,8 +31,9 @@ namespace vkr
         void reset() const;
 
     private:
-        UniqueHandle<VkCommandPool> m_handle;
-
+        Device const& m_device;
         QueueFamily const& m_queueFamily;
+
+        UniqueHandle<VkCommandPool> m_handle;
     };
 }

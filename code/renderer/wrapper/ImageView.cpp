@@ -6,7 +6,7 @@
 
 namespace vkr
 {
-	ImageView::ImageView(Application const& app, vkr::Image const& image, VkImageAspectFlags aspectFlags) : Object(app)
+	ImageView::ImageView(Device const& device, vkr::Image const& image, VkImageAspectFlags aspectFlags) : m_device(device)
 	{
 		VkImageViewCreateInfo imageViewCreateInfo{};
 		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -19,12 +19,12 @@ namespace vkr
 		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		imageViewCreateInfo.subresourceRange.layerCount = 1;
 
-		if (vkCreateImageView(getDevice().getHandle(), &imageViewCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
+		if (vkCreateImageView(m_device.getHandle(), &imageViewCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
 			throw std::runtime_error("failed to create texture image view!");
 	}
 
 	ImageView::~ImageView()
 	{
-		vkDestroyImageView(getDevice().getHandle(), m_handle, nullptr);
+		vkDestroyImageView(m_device.getHandle(), m_handle, nullptr);
 	}
 }

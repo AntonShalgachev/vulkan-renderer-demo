@@ -1,17 +1,17 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "Object.h"
 #include "UniqueHandle.h"
 
 namespace vkr
 {
     class Image;
+	class Device;
 
-	class ImageView : public Object
+	class ImageView
 	{
 	public:
-		explicit ImageView(Application const& app, vkr::Image const& image, VkImageAspectFlags aspectFlags);
+		explicit ImageView(Device const& device, vkr::Image const& image, VkImageAspectFlags aspectFlags);
 		~ImageView();
 
         ImageView(ImageView const&) = default;
@@ -22,6 +22,7 @@ namespace vkr
         VkImageView getHandle() const { return m_handle; }
 
 	private:
+		Device const& m_device;
 		UniqueHandle<VkImageView> m_handle;
 	};
 }

@@ -26,27 +26,28 @@ namespace
     }
 }
 
-vkr::DeviceMemory::DeviceMemory(Application const& app, VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties) : Object(app)
+vkr::DeviceMemory::DeviceMemory(Device const& device, PhysicalDevice const& physicalDevice, VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties)
+    : m_device(device)
 {
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memoryRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(getPhysicalDevice(), memoryRequirements.memoryTypeBits, memoryProperties);
+    allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, memoryProperties);
 
-    if (vkAllocateMemory(getDevice().getHandle(), &allocInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
+    if (vkAllocateMemory(m_device.getHandle(), &allocInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to allocate image memory!");
 }
 
 vkr::DeviceMemory::~DeviceMemory()
 {
-    vkFreeMemory(getDevice().getHandle(), m_handle, nullptr);
+    vkFreeMemory(m_device.getHandle(), m_handle, nullptr);
 }
 
 void vkr::DeviceMemory::copyFrom(void const* sourcePointer, std::size_t sourceSize) const
 {
     // TODO make sure sourceSize doesn't exceed allocated size
     void* data;
-    VKR_ASSERT(vkMapMemory(getDevice().getHandle(), m_handle, 0, sourceSize, 0, &data));
+    VKR_ASSERT(vkMapMemory(m_device.getHandle(), m_handle, 0, sourceSize, 0, &data));
     memcpy(data, sourcePointer, sourceSize);
-    vkUnmapMemory(getDevice().getHandle(), m_handle);
+    vkUnmapMemory(m_device.getHandle(), m_handle);
 }

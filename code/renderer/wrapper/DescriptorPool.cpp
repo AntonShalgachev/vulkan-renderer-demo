@@ -3,10 +3,10 @@
 #include <array>
 #include <stdexcept>
 
-vkr::DescriptorPool::DescriptorPool(Application const& app, std::size_t size) : Object(app)
+vkr::DescriptorPool::DescriptorPool(Device const& device, std::size_t size)
+    : m_device(device)
+    , m_size(size)
 {
-    m_size = size;
-
     std::array<VkDescriptorPoolSize, 2> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = static_cast<uint32_t>(size);
@@ -19,11 +19,11 @@ vkr::DescriptorPool::DescriptorPool(Application const& app, std::size_t size) : 
     poolCreateInfo.pPoolSizes = poolSizes.data();
     poolCreateInfo.maxSets = static_cast<uint32_t>(size);
 
-    if (vkCreateDescriptorPool(getDevice().getHandle(), &poolCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
+    if (vkCreateDescriptorPool(m_device.getHandle(), &poolCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create descriptor pool");
 }
 
 vkr::DescriptorPool::~DescriptorPool()
 {
-    vkDestroyDescriptorPool(getDevice().getHandle(), m_handle, nullptr);
+    vkDestroyDescriptorPool(m_device.getHandle(), m_handle, nullptr);
 }

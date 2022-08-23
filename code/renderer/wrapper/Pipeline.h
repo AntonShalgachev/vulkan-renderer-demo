@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "Object.h"
 #include "UniqueHandle.h"
 
 namespace vkr
@@ -10,13 +9,14 @@ namespace vkr
     class PipelineLayout;
     class RenderPass;
     class VertexLayoutDescriptions;
+    class Device;
 
     struct PipelineConfiguration;
 
-    class Pipeline : public Object
+    class Pipeline
     {
     public:
-    	explicit Pipeline(Application const& app, PipelineConfiguration const& config);
+    	explicit Pipeline(Device const& device, PipelineConfiguration const& config);
     	~Pipeline();
 
         void bind(VkCommandBuffer commandBuffer) const;
@@ -32,6 +32,7 @@ namespace vkr
         static void resetBoundPipeline() { ms_boundPipeline = nullptr; }
 
     private:
+        Device const& m_device;
     	UniqueHandle<VkPipeline> m_handle;
 
     private:

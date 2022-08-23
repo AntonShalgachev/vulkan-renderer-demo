@@ -39,7 +39,9 @@ namespace
     }
 }
 
-vkr::ShaderModule::ShaderModule(Application const& app, Key const& key) : Object(app), m_key(key)
+vkr::ShaderModule::ShaderModule(Device const& device, Key key)
+    : m_device(device)
+    , m_key(std::move(key))
 {
     std::vector<char> code = readFile(m_key.path);
 
@@ -48,13 +50,13 @@ vkr::ShaderModule::ShaderModule(Application const& app, Key const& key) : Object
     createInfo.codeSize = code.size();
     createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
-    if (vkCreateShaderModule(getDevice().getHandle(), &createInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
+    if (vkCreateShaderModule(m_device.getHandle(), &createInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create shader module!");
 }
 
 vkr::ShaderModule::~ShaderModule()
 {
-    vkDestroyShaderModule(getDevice().getHandle(), m_handle, nullptr);
+    vkDestroyShaderModule(m_device.getHandle(), m_handle, nullptr);
     m_handle = nullptr;
 }
 

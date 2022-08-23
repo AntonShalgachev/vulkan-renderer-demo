@@ -509,7 +509,7 @@ void DemoApplication::loadImgui()
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(m_window->getHandle(), true);
 
-    m_imguiDescriptorPool = std::make_unique<vkr::DescriptorPool>(getApp(), 1);
+    m_imguiDescriptorPool = std::make_unique<vkr::DescriptorPool>(getApp().getDevice(), 1);
     ImGui_ImplVulkan_InitInfo init_info = {};
     init_info.Instance = getApp().getInstance().getHandle();
     init_info.PhysicalDevice = getApp().getPhysicalDevice().getHandle();
@@ -743,7 +743,7 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
     m_defaultVertexShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.vert");
     m_defaultFragmentShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.frag");
 
-    m_fallbackSampler = std::make_shared<vkr::Sampler>(getApp());
+    m_fallbackSampler = std::make_shared<vkr::Sampler>(getApp().getDevice());
     m_fallbackAlbedo = std::make_unique<vkr::Texture>(getApp(), std::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff }, 1, 1, 8, 4, m_fallbackSampler);
     m_fallbackNormalMap = std::make_unique<vkr::Texture>(getApp(), std::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff }, 1, 1, 8, 4, m_fallbackSampler);
 
@@ -766,7 +766,10 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
             stagingBuffer.memory().copyFrom(bufferData, bufferSize);
 
             vkr::BufferWithMemory buffer{ getApp(), bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
-            vkr::Buffer::copy(stagingBuffer.buffer(), buffer.buffer());
+
+            vkr::ScopedOneTimeCommandBuffer commandBuffer{ getApp() };
+            vkr::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), buffer.buffer());
+            commandBuffer.submit();
 
             m_gltfResources->buffers.push_back(std::make_unique<vkr::BufferWithMemory>(std::move(buffer)));
         }
@@ -815,7 +818,7 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
             auto wrapU = convertWrapMode(gltfSampler.wrapS);
             auto wrapV = convertWrapMode(gltfSampler.wrapT);
 
-            auto sampler = std::make_shared<vkr::Sampler>(getApp(), magFilter, minFilter, wrapU, wrapV);
+            auto sampler = std::make_shared<vkr::Sampler>(getApp().getDevice(), magFilter, minFilter, wrapU, wrapV);
 
             std::size_t const imageIndex = static_cast<std::size_t>(texture.source);
             tinygltf::Image const& gltfImage = gltfModel->images[imageIndex];

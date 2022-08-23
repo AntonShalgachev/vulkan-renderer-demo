@@ -1,17 +1,18 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "Object.h"
 #include "UniqueHandle.h"
 
 namespace vkr
 {
+    class Device;
+
     class DescriptorSetLayout;
 
-    class PipelineLayout : public Object
+    class PipelineLayout
     {
     public:
-    	explicit PipelineLayout(Application const& app, DescriptorSetLayout const* descriptorSetLayout, std::size_t pushConstantsSize);
+    	explicit PipelineLayout(Device const& device, DescriptorSetLayout const* descriptorSetLayout, std::size_t pushConstantsSize);
     	~PipelineLayout();
 
         PipelineLayout(PipelineLayout const&) = default;
@@ -22,6 +23,7 @@ namespace vkr
         VkPipelineLayout getHandle() const { return m_handle; }
 
     private:
+        Device const& m_device;
     	UniqueHandle<VkPipelineLayout> m_handle;
     };
 }

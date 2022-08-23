@@ -3,7 +3,9 @@
 #include <array>
 #include <stdexcept>
 
-vkr::DescriptorSetLayout::DescriptorSetLayout(Application const& app, DescriptorSetConfiguration const& config) : Object(app), m_configuration(std::move(config))
+vkr::DescriptorSetLayout::DescriptorSetLayout(Device const& device, DescriptorSetConfiguration config)
+    : m_device(device)
+    , m_configuration(std::move(config))
 {
     // TODO pass configuration externally
 
@@ -41,11 +43,11 @@ vkr::DescriptorSetLayout::DescriptorSetLayout(Application const& app, Descriptor
     descriptorSetLayoutCreateInfo.bindingCount = static_cast<uint32_t>(bindings.size());
     descriptorSetLayoutCreateInfo.pBindings = bindings.data();
 
-    if (vkCreateDescriptorSetLayout(getDevice().getHandle(), &descriptorSetLayoutCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
+    if (vkCreateDescriptorSetLayout(m_device.getHandle(), &descriptorSetLayoutCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create descriptor set layout!");
 }
 
 vkr::DescriptorSetLayout::~DescriptorSetLayout()
 {
-    vkDestroyDescriptorSetLayout(getDevice().getHandle(), m_handle, nullptr);
+    vkDestroyDescriptorSetLayout(m_device.getHandle(), m_handle, nullptr);
 }

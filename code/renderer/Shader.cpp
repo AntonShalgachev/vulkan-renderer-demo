@@ -11,7 +11,7 @@ std::vector<VkPipelineShaderStageCreateInfo> vkr::Shader::createStageDescription
     return stageDescriptions;
 }
 
-vkr::Shader::Shader(Application const& app, Shader::Key const& key) : vkr::Object(app)
+vkr::Shader::Shader(Device const& device, Shader::Key const& key) : m_device(device)
 {
     std::vector<ShaderModule::Key> const& moduleKeys = key.getModuleKeys();
 	if (moduleKeys.empty())
@@ -19,5 +19,5 @@ vkr::Shader::Shader(Application const& app, Shader::Key const& key) : vkr::Objec
 
     m_shaderModules.reserve(moduleKeys.size());
 	for (ShaderModule::Key const& moduleKey : moduleKeys)
-		m_shaderModules.emplace_back(getApp(), moduleKey);
+		m_shaderModules.emplace_back(m_device, moduleKey);
 }

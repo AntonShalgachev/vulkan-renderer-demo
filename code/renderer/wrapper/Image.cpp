@@ -7,7 +7,7 @@
 
 namespace vkr
 {
-    Image::Image(Application const& app, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage) : Object(app)
+    Image::Image(Device const& device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage) : m_device(device)
     {
         m_isOwned = true;
         m_format = format;
@@ -27,11 +27,11 @@ namespace vkr
         imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 
-        if (vkCreateImage(getDevice().getHandle(), &imageCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
+        if (vkCreateImage(m_device.getHandle(), &imageCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
             throw std::runtime_error("failed to create image!");
     }
 
-    Image::Image(Application const& app, VkImage image, VkFormat format) : Object(app)
+    Image::Image(Device const& device, VkImage image, VkFormat format) : m_device(device)
     {
         m_isOwned = false;
         m_handle = image;
@@ -41,25 +41,25 @@ namespace vkr
     Image::~Image()
     {
         if (m_isOwned)
-            vkDestroyImage(getDevice().getHandle(), m_handle, nullptr);
+            vkDestroyImage(m_device.getHandle(), m_handle, nullptr);
     }
 
     VkMemoryRequirements Image::getMemoryRequirements() const
     {
         VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(getDevice().getHandle(), m_handle, &memRequirements);
+        vkGetImageMemoryRequirements(m_device.getHandle(), m_handle, &memRequirements);
 
         return memRequirements;
     }
 
     void Image::bindMemory(DeviceMemory const& memory) const
     {
-        VKR_ASSERT(vkBindImageMemory(getDevice().getHandle(), m_handle, memory.getHandle(), 0));
+        VKR_ASSERT(vkBindImageMemory(m_device.getHandle(), m_handle, memory.getHandle(), 0));
     }
 
     std::unique_ptr<vkr::ImageView> Image::createImageView(VkImageAspectFlags aspectFlags)
     {
-        return std::make_unique<vkr::ImageView>(getApp(), *this, aspectFlags);
+        return std::make_unique<vkr::ImageView>(m_device, *this, aspectFlags);
     }
 
 }

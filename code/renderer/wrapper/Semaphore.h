@@ -1,15 +1,16 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "Object.h"
 #include "UniqueHandle.h"
 
 namespace vkr
 {
-    class Semaphore : public Object
+    class Device;
+
+    class Semaphore
     {
     public:
-    	Semaphore(Application const& app);
+    	Semaphore(Device const& device);
     	~Semaphore();
 
         Semaphore(Semaphore const&) = default;
@@ -20,6 +21,7 @@ namespace vkr
         VkSemaphore getHandle() const { return m_handle; }
 
     private:
+        Device const& m_device;
     	UniqueHandle<VkSemaphore> m_handle;
     };
 }

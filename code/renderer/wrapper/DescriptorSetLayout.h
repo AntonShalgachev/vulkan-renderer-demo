@@ -1,11 +1,12 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "Object.h"
 #include "UniqueHandle.h"
 
 namespace vkr
 {
+    class Device;
+
     // TODO rename to something like "Uniform metadata"
     struct DescriptorSetConfiguration
     {
@@ -15,10 +16,10 @@ namespace vkr
         auto operator<=>(DescriptorSetConfiguration const& rhs) const = default;
     };
 
-    class DescriptorSetLayout : public Object
+    class DescriptorSetLayout
     {
     public:
-    	explicit DescriptorSetLayout(Application const& app, DescriptorSetConfiguration const& config);
+    	explicit DescriptorSetLayout(Device const& device, DescriptorSetConfiguration config);
     	~DescriptorSetLayout();
 
         DescriptorSetLayout(DescriptorSetLayout const&) = default;
@@ -30,6 +31,8 @@ namespace vkr
         DescriptorSetConfiguration getConfiguration() const { return m_configuration; }
 
     private:
+        Device const& m_device;
+
     	UniqueHandle<VkDescriptorSetLayout> m_handle;
         DescriptorSetConfiguration m_configuration;
     };

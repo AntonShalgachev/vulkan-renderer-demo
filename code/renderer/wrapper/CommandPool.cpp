@@ -1,35 +1,32 @@
 #include "CommandPool.h"
 #include "Device.h"
 #include "QueueFamily.h"
-#include "Application.h"
-#include "PhysicalDeviceSurfaceParameters.h"
-#include "QueueFamilyIndices.h"
 #include "CommandBuffers.h"
 #include "CommandBuffer.h"
 #include <stdexcept>
 
-vkr::CommandPool::CommandPool(Application const& app)
-    : Object(app)
-    , m_queueFamily(app.getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily())
+vkr::CommandPool::CommandPool(Device const& device, QueueFamily const& queueFamily)
+    : m_device(device)
+    , m_queueFamily(queueFamily)
 {
     VkCommandPoolCreateInfo poolCreateInfo{};
     poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolCreateInfo.queueFamilyIndex = m_queueFamily.getIndex();
     poolCreateInfo.flags = 0; // TODO make use of it
 
-    if (vkCreateCommandPool(getApp().getDevice().getHandle(), &poolCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
+    if (vkCreateCommandPool(m_device.getHandle(), &poolCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create command pool!");
 }
 
 void vkr::CommandPool::reset() const
 {
     VkCommandPoolResetFlags flags = 0;
-    VKR_ASSERT(vkResetCommandPool(getDevice().getHandle(), m_handle, flags));
+    VKR_ASSERT(vkResetCommandPool(m_device.getHandle(), m_handle, flags));
 }
 
 vkr::CommandPool::~CommandPool()
 {
-    vkDestroyCommandPool(getApp().getDevice().getHandle(), m_handle, nullptr);
+    vkDestroyCommandPool(m_device.getHandle(), m_handle, nullptr);
 }
 
 vkr::CommandBuffer vkr::CommandPool::createCommandBuffer() const
@@ -39,7 +36,7 @@ vkr::CommandBuffer vkr::CommandPool::createCommandBuffer() const
 
 std::vector<vkr::CommandBuffer> vkr::CommandPool::createCommandBuffers(std::size_t size) const
 {
-    std::shared_ptr<CommandBuffers> container = std::make_shared<CommandBuffers>(getApp(), *this, size);
+    std::shared_ptr<CommandBuffers> container = std::make_shared<CommandBuffers>(m_device, *this, size);
 
     std::vector<vkr::CommandBuffer> commandBuffers;
     commandBuffers.reserve(size);

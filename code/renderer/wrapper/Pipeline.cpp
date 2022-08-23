@@ -153,9 +153,9 @@ namespace
 
 vkr::Pipeline const* vkr::Pipeline::ms_boundPipeline = nullptr;
 
-vkr::Pipeline::Pipeline(Application const& app, PipelineConfiguration const& config) : Object(app)
+vkr::Pipeline::Pipeline(Device const& device, PipelineConfiguration const& config) : m_device(device)
 {
-	Shader shader{ app, config.shaderKey };
+	Shader shader{ device, config.shaderKey };
 
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages = shader.createStageDescriptions();
 
@@ -194,13 +194,13 @@ vkr::Pipeline::Pipeline(Application const& app, PipelineConfiguration const& con
     pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
     pipelineCreateInfo.basePipelineIndex = -1;
 
-    if (vkCreateGraphicsPipelines(getDevice().getHandle(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
+    if (vkCreateGraphicsPipelines(m_device.getHandle(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create graphics pipeline!");
 }
 
 vkr::Pipeline::~Pipeline()
 {
-    vkDestroyPipeline(getDevice().getHandle(), m_handle, nullptr);
+    vkDestroyPipeline(m_device.getHandle(), m_handle, nullptr);
 }
 
 void vkr::Pipeline::bind(VkCommandBuffer commandBuffer) const

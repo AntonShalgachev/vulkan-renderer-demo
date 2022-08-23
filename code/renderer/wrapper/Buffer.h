@@ -1,17 +1,17 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "Object.h"
 #include "UniqueHandle.h"
 
 namespace vkr
 {
     class DeviceMemory;
+    class Device;
 
-    class Buffer : public Object
+    class Buffer
     {
     public:
-        explicit Buffer(Application const& app, VkDeviceSize size, VkBufferUsageFlags usage);
+        explicit Buffer(Device const& device, VkDeviceSize size, VkBufferUsageFlags usage);
         ~Buffer();
 
         Buffer(Buffer const&) = default;
@@ -26,9 +26,10 @@ namespace vkr
         VkDeviceSize getSize() const { return m_size; }
 
     public:
-        static void copy(Buffer const& source, Buffer const& destination);
+        static void copy(VkCommandBuffer commandBuffer, Buffer const& source, Buffer const& destination);
 
     private:
+        Device const& m_device;
         UniqueHandle<VkBuffer> m_handle;
         VkDeviceSize m_size;
     };

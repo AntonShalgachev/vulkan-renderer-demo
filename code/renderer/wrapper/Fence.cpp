@@ -2,34 +2,34 @@
 #include "Device.h"
 #include <stdexcept>
 
-vkr::Fence::Fence(Application const& app) : Object(app)
+vkr::Fence::Fence(Device const& device) : m_device(device)
 {
     VkFenceCreateInfo fenceCreateInfo{};
     fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    if (vkCreateFence(getDevice().getHandle(), &fenceCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
+    if (vkCreateFence(m_device.getHandle(), &fenceCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create fence!");
 }
 
 vkr::Fence::~Fence()
 {
-    vkDestroyFence(getDevice().getHandle(), m_handle, nullptr);
+    vkDestroyFence(m_device.getHandle(), m_handle, nullptr);
 }
 
 void vkr::Fence::wait() const
 {
-    VKR_ASSERT(vkWaitForFences(getDevice().getHandle(), 1, &m_handle.get(), VK_TRUE, UINT64_MAX));
+    VKR_ASSERT(vkWaitForFences(m_device.getHandle(), 1, &m_handle.get(), VK_TRUE, UINT64_MAX));
 }
 
 void vkr::Fence::reset() const
 {
-    VKR_ASSERT(vkResetFences(getDevice().getHandle(), 1, &m_handle.get()));
+    VKR_ASSERT(vkResetFences(m_device.getHandle(), 1, &m_handle.get()));
 }
 
 bool vkr::Fence::isSignaled() const
 {
-    VkResult result = vkGetFenceStatus(getDevice().getHandle(), m_handle);
+    VkResult result = vkGetFenceStatus(m_device.getHandle(), m_handle);
 
     if (result != VK_SUCCESS && result != VK_NOT_READY)
         throw std::runtime_error("unexpected fence status result");

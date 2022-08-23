@@ -19,6 +19,7 @@ namespace vkr
     class CommandPool;
     struct DebugMessage;
 
+    // TODO rename to Context
     class Application
     {
     public:

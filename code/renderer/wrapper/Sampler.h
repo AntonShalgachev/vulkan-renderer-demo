@@ -1,12 +1,13 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "Object.h"
 #include "UniqueHandle.h"
 
 namespace vkr
 {
-    class Sampler : public Object
+    class Device;
+
+    class Sampler
     {
     public:
         enum class FilterMode
@@ -23,8 +24,8 @@ namespace vkr
         };
 
     public:
-        Sampler(Application const& app);
-        Sampler(Application const& app, FilterMode magFilter, FilterMode minFilter, WrapMode wrapU, WrapMode wrapV);
+        Sampler(Device const& device);
+        Sampler(Device const& device, FilterMode magFilter, FilterMode minFilter, WrapMode wrapU, WrapMode wrapV);
         ~Sampler();
 
         Sampler(Sampler const&) = default;
@@ -35,6 +36,7 @@ namespace vkr
         VkSampler getHandle() const { return m_handle; }
 
     private:
+        Device const& m_device;
         UniqueHandle<VkSampler> m_handle;
     };
 }

@@ -1,41 +1,14 @@
 #include "RenderPass.h"
 
 #include "Swapchain.h"
-#include "PhysicalDevice.h"
 #include "Device.h"
 #include <array>
 #include <stdexcept>
 
-namespace
+vkr::RenderPass::RenderPass(Device const& device, Swapchain const& swapchain, VkFormat depthFormat)
+    : m_device(device)
+    , m_depthFormat(depthFormat)
 {
-    VkFormat findSupportedFormat(vkr::PhysicalDevice const& physicalDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
-    {
-        for (VkFormat format : candidates)
-        {
-            VkFormatProperties props;
-            vkGetPhysicalDeviceFormatProperties(physicalDevice.getHandle(), format, &props);
-
-            if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
-                return format;
-            if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features)
-                return format;
-        }
-
-        throw std::runtime_error("failed to find supported format!");
-    }
-
-    VkFormat findDepthFormat(vkr::PhysicalDevice const& physicalDevice)
-    {
-        static const std::vector<VkFormat> candidates = { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT };
-
-        return findSupportedFormat(physicalDevice, candidates, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-    }
-}
-
-vkr::RenderPass::RenderPass(Application const& app, Swapchain const& swapchain) : Object(app)
-{
-    m_depthFormat = findDepthFormat(getPhysicalDevice());
-
     VkAttachmentDescription colorAttachment{};
     colorAttachment.format = swapchain.getSurfaceFormat().format; // TODO it shouldn't depend on the swapchain
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -89,11 +62,11 @@ vkr::RenderPass::RenderPass(Application const& app, Swapchain const& swapchain) 
     renderPassCreateInfo.dependencyCount = 1;
     renderPassCreateInfo.pDependencies = &dependency;
 
-    if (vkCreateRenderPass(getDevice().getHandle(), &renderPassCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
+    if (vkCreateRenderPass(m_device.getHandle(), &renderPassCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create render pass!");
 }
 
 vkr::RenderPass::~RenderPass()
 {
-    vkDestroyRenderPass(getDevice().getHandle(), m_handle, nullptr);
+    vkDestroyRenderPass(m_device.getHandle(), m_handle, nullptr);
 }

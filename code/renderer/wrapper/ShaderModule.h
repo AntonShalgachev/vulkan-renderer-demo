@@ -1,14 +1,15 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "Object.h"
 #include <string>
 #include "UniqueHandle.h"
 #include "Hash.h"
 
 namespace vkr
 {
-    class ShaderModule : Object
+    class Device;
+
+    class ShaderModule
     {
     public:
         enum class Type
@@ -37,7 +38,7 @@ namespace vkr
         };
 
     public:
-        explicit ShaderModule(Application const& app, Key const& key);
+        explicit ShaderModule(Device const& device, Key key);
         ~ShaderModule();
 
         ShaderModule(ShaderModule&&) = default;
@@ -48,9 +49,10 @@ namespace vkr
         VkShaderModule getHandle() const { return m_handle; }
 
     private:
-        UniqueHandle<VkShaderModule> m_handle;
-
+        Device const& m_device;
         Key m_key;
+
+        UniqueHandle<VkShaderModule> m_handle;
     };
 }
 

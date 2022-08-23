@@ -24,8 +24,8 @@ vkr::ObjectInstance::ObjectInstance(Application const& app, Drawable const& draw
 
     Material const& material = m_drawable.getMaterial();
 
-    m_descriptorPool = std::make_unique<vkr::DescriptorPool>(getApp(), swapchainImagesCount);
-    m_descriptorSets = std::make_unique<vkr::DescriptorSets>(getApp(), *m_descriptorPool, setLayout);
+    m_descriptorPool = std::make_unique<vkr::DescriptorPool>(getDevice(), swapchainImagesCount);
+    m_descriptorSets = std::make_unique<vkr::DescriptorSets>(getDevice(), *m_descriptorPool, setLayout);
     for (size_t i = 0; i < m_descriptorSets->getSize(); i++)
         m_descriptorSets->update(i, m_uniformBuffers[i].buffer(), material.getTexture().get(), material.getNormalMap().get());
 }
