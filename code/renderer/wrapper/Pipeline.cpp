@@ -1,16 +1,27 @@
 #include "Pipeline.h"
+
 #include "ShaderModule.h"
 #include "PipelineLayout.h"
 #include "RenderPass.h"
 #include "Device.h"
 #include "VertexLayout.h"
-#include "Shader.h"
+
 #include <stdexcept>
-#include "PipelineConfiguration.h"
+#include <iterator>
+#include <algorithm>
 
 namespace
 {
-	VkPipelineVertexInputStateCreateInfo initVertexInputCreateInfo(vkr::VertexLayoutDescriptions const& vertexLayoutDescriptions)
+	std::vector<VkPipelineShaderStageCreateInfo> createStageDescriptions(std::vector<vko::ShaderModule> const& shaderModules)
+	{
+        std::vector<VkPipelineShaderStageCreateInfo> stageDescriptions;
+		stageDescriptions.reserve(shaderModules.size());
+        std::transform(shaderModules.begin(), shaderModules.end(), std::back_inserter(stageDescriptions),
+            [](vko::ShaderModule const& shaderModule) { return shaderModule.createStageCreateInfo(); });
+        return stageDescriptions;
+	}
+
+	VkPipelineVertexInputStateCreateInfo initVertexInputCreateInfo(std::vector<VkVertexInputBindingDescription> const& bindingDescriptions, std::vector<VkVertexInputAttributeDescription> const& attributeDescriptions)
 	{
 		VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo{};
 		vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -19,11 +30,9 @@ namespace
 		vertexInputCreateInfo.vertexAttributeDescriptionCount = 0;
 		vertexInputCreateInfo.pVertexAttributeDescriptions = nullptr;
 
-		auto const& bindingDescriptions = vertexLayoutDescriptions.getBindingDescriptions();
 		vertexInputCreateInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
 		vertexInputCreateInfo.pVertexBindingDescriptions = bindingDescriptions.data();
 
-		auto const& attributeDescriptions = vertexLayoutDescriptions.getAttributeDescriptions();
 		vertexInputCreateInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
 		vertexInputCreateInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
@@ -151,15 +160,12 @@ namespace
 	}
 }
 
-vko::Pipeline const* vko::Pipeline::ms_boundPipeline = nullptr;
-
-vko::Pipeline::Pipeline(Device const& device, vkr::PipelineConfiguration const& config) : m_device(device)
+vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, RenderPass const& renderPass, std::vector<ShaderModule> const& shaderModules, Config const& config)
+	: m_device(device)
 {
-	vkr::Shader shader{ device, config.shaderKey };
+	std::vector<VkPipelineShaderStageCreateInfo> shaderStages = createStageDescriptions(shaderModules);
 
-	std::vector<VkPipelineShaderStageCreateInfo> shaderStages = shader.createStageDescriptions();
-
-	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = initVertexInputCreateInfo(config.vertexLayoutDescriptions);
+	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = initVertexInputCreateInfo(config.bindingDescriptions, config.attributeDescriptions);
 
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = initInputAssemblyCreateInfo();
 
@@ -188,8 +194,8 @@ vko::Pipeline::Pipeline(Device const& device, vkr::PipelineConfiguration const& 
     pipelineCreateInfo.pDepthStencilState = &depthStencilCreateInfo;
     pipelineCreateInfo.pColorBlendState = &colorBlendingCreateInfo;
     pipelineCreateInfo.pDynamicState = nullptr;
-    pipelineCreateInfo.layout = config.pipelineLayout->getHandle();
-    pipelineCreateInfo.renderPass = config.renderPass->getHandle();
+    pipelineCreateInfo.layout = layout.getHandle();
+    pipelineCreateInfo.renderPass = renderPass.getHandle();
     pipelineCreateInfo.subpass = 0;
     pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
     pipelineCreateInfo.basePipelineIndex = -1;
@@ -205,9 +211,5 @@ vko::Pipeline::~Pipeline()
 
 void vko::Pipeline::bind(VkCommandBuffer commandBuffer) const
 {
-    if (ms_boundPipeline == this)
-        return;
-
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_handle);
-    ms_boundPipeline = this;
 }

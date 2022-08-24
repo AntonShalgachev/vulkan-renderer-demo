@@ -42,7 +42,7 @@ namespace vkr
 
 		Shader(vko::Device const& device, Key const& key);
 
-		std::vector<VkPipelineShaderStageCreateInfo> createStageDescriptions() const;
+		std::vector<vko::ShaderModule> const& getModules() const { return m_shaderModules; }
 
 	private:
 		vko::Device const& m_device;

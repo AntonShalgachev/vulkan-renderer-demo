@@ -236,7 +236,7 @@ vkr::Renderer::Renderer(Application const& app)
         configuration.vertexLayoutDescriptions = m_oneFrameBoxResources.mesh->getVertexLayout().getDescriptions();
         configuration.cullBackFaces = false;
         configuration.wireframe = true;
-        m_oneFrameBoxResources.pipeline = std::make_unique<vko::Pipeline>(getDevice(), configuration);
+        m_oneFrameBoxResources.pipeline = createPipeline(configuration);
     }
 }
 
@@ -451,9 +451,6 @@ void vkr::Renderer::onSwapchainCreated()
 
 void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources)
 {
-     // TODO remove hacks
-    vko::Pipeline::resetBoundPipeline();
-
     frameResources.commandPool->reset();
 
     CommandBuffer const& commandBuffer = frameResources.commandBuffer;
@@ -555,7 +552,19 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
 std::unique_ptr<vko::Pipeline> vkr::Renderer::createPipeline(PipelineConfiguration const& configuration)
 {
-    return std::make_unique<vko::Pipeline>(getDevice(), configuration);
+    vko::PipelineLayout const& layout = *configuration.pipelineLayout;
+    vko::RenderPass const& renderPass = *configuration.renderPass;
+
+    vkr::Shader shader{ getDevice(), configuration.shaderKey };
+
+    vko::Pipeline::Config config;
+    config.extent = configuration.extent;
+    config.bindingDescriptions = configuration.vertexLayoutDescriptions.getBindingDescriptions(); // TODO avoid copy
+    config.attributeDescriptions = configuration.vertexLayoutDescriptions.getAttributeDescriptions(); // TODO avoid copy
+    config.cullBackFaces = configuration.cullBackFaces;
+    config.wireframe = configuration.wireframe;
+
+    return std::make_unique<vko::Pipeline>(getDevice(), layout, renderPass, shader.getModules(), config);
 }
 
 void vkr::Renderer::destroySwapchain()

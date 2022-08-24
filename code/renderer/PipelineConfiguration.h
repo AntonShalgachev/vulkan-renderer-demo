@@ -15,6 +15,7 @@ namespace vko
 
 namespace vkr
 {
+	// TODO remove this struct and merge with vko::Pipeline::Config
 	struct PipelineConfiguration
 	{
 		vko::PipelineLayout const* pipelineLayout = nullptr;

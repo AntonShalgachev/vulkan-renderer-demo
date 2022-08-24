@@ -1,25 +1,34 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
 #include "UniqueHandle.h"
 
-namespace vkr
-{
-    struct PipelineConfiguration;
-}
+#include <vulkan/vulkan.h>
+
+#include <vector>
 
 namespace vko
 {
     class ShaderModule;
     class PipelineLayout;
     class RenderPass;
-    class VertexLayoutDescriptions;
     class Device;
 
     class Pipeline
     {
     public:
-    	explicit Pipeline(Device const& device, vkr::PipelineConfiguration const& config);
+        struct Config
+        {
+            VkExtent2D extent{ 0, 0 };
+
+            // TODO replace with the simplier vertex layout struct
+            std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+            std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+
+            bool cullBackFaces = true;
+            bool wireframe = false;
+        };
+
+    	explicit Pipeline(Device const& device, PipelineLayout const& layout, RenderPass const& renderPass, std::vector<ShaderModule> const& shaderModules, Config const& config);
     	~Pipeline();
 
         void bind(VkCommandBuffer commandBuffer) const;
@@ -31,14 +40,8 @@ namespace vko
 
         VkPipeline getHandle() const { return m_handle; }
 
-    public:
-        static void resetBoundPipeline() { ms_boundPipeline = nullptr; }
-
     private:
         Device const& m_device;
     	UniqueHandle<VkPipeline> m_handle;
-
-    private:
-        static Pipeline const* ms_boundPipeline; // TODO remove this hack
     };
 }

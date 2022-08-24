@@ -19,10 +19,11 @@ namespace vko
             Fragment,
         };
 
+        // TODO rename to Config
         struct Key
         {
             Type type = Type::Vertex;
-            std::string path;
+            std::string path; // TODO have shader bytes instead
             std::string entryPoint;
 
             auto operator<=>(Key const& rhs) const = default;
