@@ -13,10 +13,8 @@
 
 namespace
 {
-    void transitionImageLayout(vkr::Application const& app, VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout)
+    void transitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout)
     {
-        vkr::ScopedOneTimeCommandBuffer commandBuffer{ app };
-
         VkImageMemoryBarrier barrier{};
         barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
         barrier.oldLayout = oldLayout;
@@ -57,7 +55,7 @@ namespace
         }
 
         vkCmdPipelineBarrier(
-            commandBuffer.getHandle(),
+            commandBuffer,
             sourceStage, destinationStage,
             0,
             0, nullptr,
@@ -66,10 +64,8 @@ namespace
         );
     }
 
-    void copyBufferToImage(vkr::Application const& app, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
+    void copyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
     {
-        vkr::ScopedOneTimeCommandBuffer commandBuffer{ app };
-
         VkBufferImageCopy region{};
         region.bufferOffset = 0;
         region.bufferRowLength = 0;
@@ -88,7 +84,7 @@ namespace
         };
 
         vkCmdCopyBufferToImage(
-            commandBuffer.getHandle(),
+            commandBuffer,
             buffer,
             image,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -149,10 +145,16 @@ void vkr::Texture::createImage(std::span<unsigned char const> bytes, uint32_t wi
     // TODO use SRGB for textures data and UNORM for normal maps
     vkr::utils::createImage(getApp(), width, height, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_image, m_memory);
 
-    transitionImageLayout(getApp(), m_image->getHandle(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    // TODO extract to some class
-    copyBufferToImage(getApp(), stagingBuffer.buffer().getHandle(), m_image->getHandle(), width, height);
-    transitionImageLayout(getApp(), m_image->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    {
+        vkr::ScopedOneTimeCommandBuffer commandBuffer{ getApp() };
+
+        transitionImageLayout(commandBuffer.getHandle(), m_image->getHandle(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        // TODO extract to some class
+        copyBufferToImage(commandBuffer.getHandle(), stagingBuffer.buffer().getHandle(), m_image->getHandle(), width, height);
+        transitionImageLayout(commandBuffer.getHandle(), m_image->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+        commandBuffer.submit();
+    }
 
     m_imageView = m_image->createImageView(VK_IMAGE_ASPECT_COLOR_BIT);
 }
