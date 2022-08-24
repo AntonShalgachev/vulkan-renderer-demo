@@ -297,8 +297,6 @@ void vkr::Renderer::draw()
     if (aquireImageResult != VK_SUCCESS && aquireImageResult != VK_SUBOPTIMAL_KHR)
         throw std::runtime_error("failed to acquire swapchain image!");
 
-    updateUniformBuffer(imageIndex);
-
     m_fenceTimer.start();
     frameResources.inFlightFence.wait();
     m_lastFenceTime = m_fenceTimer.getTime();
@@ -393,31 +391,6 @@ void vkr::Renderer::recreateSwapchain()
     createSwapchain();
 }
 
-void vkr::Renderer::updateUniformBuffer(uint32_t currentImage)
-{
-	Camera* camera = m_activeCameraObject->getCamera();
-	if (!camera)
-		return;
-
-	Transform const& cameraTransform = m_activeCameraObject->getTransform();
-
-    for (ObjectInstance const& instance : m_drawableInstances)
-    {
-		Drawable const& drawable = instance.getDrawable();
-        Transform const& transform = instance.getTransform();
-        Material const& material = drawable.getMaterial();
-
-        // TODO split into several buffers
-        UniformBufferObject ubo{};
-        ubo.projection = camera->getProjectionMatrix();
-        ubo.lightPosition = cameraTransform.getViewMatrix() * glm::vec4(m_light->getTransform().getLocalPos(), 1.0f);
-        ubo.lightColor = m_light->getColor() * m_light->getIntensity();
-        ubo.objectColor = material.getColor();
-
-        instance.copyToUniformBuffer(currentImage, &ubo, sizeof(ubo));
-    }
-}
-
 void vkr::Renderer::updateCameraAspect()
 {
     if (!m_activeCameraObject)
@@ -475,6 +448,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
     vkCmdBeginRenderPass(handle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
+    Camera* camera = m_activeCameraObject->getCamera();
     Transform const& cameraTransform = m_activeCameraObject->getTransform();
 
     for (ObjectInstance const& instance : m_drawableInstances)
@@ -485,6 +459,15 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
 
         Mesh const& mesh = drawable.getMesh();
         Material const& material = drawable.getMaterial();
+
+        // TODO split into several buffers
+        // TODO update only if the data has changed
+        UniformBufferObject ubo{};
+        ubo.projection = camera->getProjectionMatrix();
+        ubo.lightPosition = cameraTransform.getViewMatrix() * glm::vec4(m_light->getTransform().getLocalPos(), 1.0f);
+        ubo.lightColor = m_light->getColor() * m_light->getIntensity();
+        ubo.objectColor = material.getColor();
+        instance.copyToUniformBuffer(imageIndex, &ubo, sizeof(ubo));
 
         vko::DescriptorSetConfiguration config;
         config.hasTexture = material.getTexture() != nullptr;

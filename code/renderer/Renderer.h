@@ -120,8 +120,6 @@ namespace vkr
 
         void onSwapchainCreated();
 
-        void updateUniformBuffer(uint32_t currentImage);
-
         void updateCameraAspect();
 
         UniformResources const& getUniformResources(vko::DescriptorSetConfiguration const& config);
