@@ -111,8 +111,8 @@ set(ALL_FILES
     "VertexLayoutDescriptions.h"
     
     
-    "Window.cpp"
-    "Window.h"
+    "GlfwWindow.cpp"
+    "GlfwWindow.h"
 )
 
 add_library(${PROJECT_NAME} ${ALL_FILES})

@@ -10,7 +10,7 @@ struct GLFWwindow;
 
 namespace vkr
 {
-    class Window
+    class GlfwWindow
     {
     public:
         enum class Key
@@ -35,13 +35,13 @@ namespace vkr
         };
 
     public:
-    	Window(int width, int height, std::string const& title);
-    	~Window();
+    	GlfwWindow(int width, int height, std::string const& title);
+    	~GlfwWindow();
 
-        Window(Window const&) = delete;
-        Window(Window&&) = delete;
-        Window& operator=(Window const&) = delete;
-        Window& operator=(Window&&) = delete;
+        GlfwWindow(GlfwWindow const&) = delete;
+        GlfwWindow(GlfwWindow&&) = delete;
+        GlfwWindow& operator=(GlfwWindow const&) = delete;
+        GlfwWindow& operator=(GlfwWindow&&) = delete;
 
         GLFWwindow* getHandle() const { return m_handle; }
 
@@ -122,20 +122,20 @@ namespace vkr
     };
 }
 
-inline vkr::Window::Modifiers operator|(vkr::Window::Modifiers lhs, vkr::Window::Modifiers rhs)
+inline vkr::GlfwWindow::Modifiers operator|(vkr::GlfwWindow::Modifiers lhs, vkr::GlfwWindow::Modifiers rhs)
 {
-    using T = std::underlying_type_t<vkr::Window::Modifiers>;
-    return static_cast<vkr::Window::Modifiers>(static_cast<T>(lhs) | static_cast<T>(rhs));
+    using T = std::underlying_type_t<vkr::GlfwWindow::Modifiers>;
+    return static_cast<vkr::GlfwWindow::Modifiers>(static_cast<T>(lhs) | static_cast<T>(rhs));
 }
 
-inline vkr::Window::Modifiers& operator|=(vkr::Window::Modifiers& lhs, vkr::Window::Modifiers rhs)
+inline vkr::GlfwWindow::Modifiers& operator|=(vkr::GlfwWindow::Modifiers& lhs, vkr::GlfwWindow::Modifiers rhs)
 {
     lhs = lhs | rhs;
     return lhs;
 }
 
-inline auto operator&(vkr::Window::Modifiers lhs, vkr::Window::Modifiers rhs)
+inline auto operator&(vkr::GlfwWindow::Modifiers lhs, vkr::GlfwWindow::Modifiers rhs)
 {
-    using T = std::underlying_type_t<vkr::Window::Modifiers>;
+    using T = std::underlying_type_t<vkr::GlfwWindow::Modifiers>;
     return static_cast<T>(lhs) & static_cast<T>(rhs);
 }

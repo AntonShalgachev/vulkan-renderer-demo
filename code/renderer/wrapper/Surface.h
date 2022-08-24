@@ -6,7 +6,7 @@
 // TODO remove
 namespace vkr
 {
-    class Window;
+    class GlfwWindow;
 }
 
 namespace vko
@@ -16,7 +16,7 @@ namespace vko
     class Surface
     {
     public:
-        explicit Surface(Instance const& instance, vkr::Window const& window);
+        explicit Surface(Instance const& instance, vkr::GlfwWindow const& window);
         ~Surface();
 
         Surface(Surface const&) = default;
@@ -33,6 +33,6 @@ namespace vko
         UniqueHandle<VkSurfaceKHR> m_handle;
 
         Instance const& m_instance;
-        vkr::Window const& m_window;
+        vkr::GlfwWindow const& m_window;
     };
 }

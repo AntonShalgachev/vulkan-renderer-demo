@@ -4,7 +4,7 @@
 
 #include "Shader.h"
 #include "Timer.h"
-#include "Window.h"
+#include "GlfwWindow.h"
 
 #include "ui/DebugConsoleWidget.h"
 #include "ui/NotificationManager.h"
@@ -69,7 +69,7 @@ private:
     void unloadImgui();
 
     void onFramebufferResized();
-    void onKey(vkr::Window::Action action, vkr::Window::Key key, char c, vkr::Window::Modifiers mods);
+    void onKey(vkr::GlfwWindow::Action action, vkr::GlfwWindow::Key key, char c, vkr::GlfwWindow::Modifiers mods);
     void onMouseMove(glm::vec2 const& delta);
 
     std::shared_ptr<vkr::SceneObject> addSceneObjectsFromNode(std::shared_ptr<tinygltf::Model> const& model, tinygltf::Node const& node, Scene& scene);
@@ -102,7 +102,7 @@ private:
 
     ScopedDebugCommands m_commands{ m_services };
 
-    std::unique_ptr<vkr::Window> m_window;
+    std::unique_ptr<vkr::GlfwWindow> m_window;
 
     std::unique_ptr<vkr::Application> m_application;
     std::unique_ptr<vkr::Renderer> m_renderer;
@@ -136,7 +136,7 @@ private:
     bool m_paused = false;
 
     std::vector<bool> m_keyState;
-    vkr::Window::Modifiers m_modifiers = vkr::Window::Modifiers::None;
+    vkr::GlfwWindow::Modifiers m_modifiers = vkr::GlfwWindow::Modifiers::None;
 
     std::optional<ui::NotificationManager> m_notifications;
     std::optional<ui::DebugConsoleWidget> m_debugConsole;

@@ -18,7 +18,7 @@ namespace vko
 
 namespace vkr
 {
-    class Window;
+    class GlfwWindow;
     class ApplicationImpl;
     class PhysicalDeviceSurfaceParameters;
 
@@ -26,7 +26,7 @@ namespace vkr
     class Application
     {
     public:
-        Application(std::string const& name, bool enableValidation, bool enableApiDump, Window const& window, std::function<void(vko::DebugMessage)> onDebugMessage = {});
+        Application(std::string const& name, bool enableValidation, bool enableApiDump, GlfwWindow const& window, std::function<void(vko::DebugMessage)> onDebugMessage = {});
         ~Application();
 
         vko::Instance const& getInstance() const;

@@ -372,9 +372,9 @@ DemoApplication::DemoApplication()
 
     m_keyState.resize(1 << 8 * sizeof(char), false);
 
-    m_window = std::make_unique<vkr::Window>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
+    m_window = std::make_unique<vkr::GlfwWindow>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
     m_window->addResizeCallback([this](int, int) { onFramebufferResized(); });
-    m_window->addKeyCallback([this](vkr::Window::Action action, vkr::Window::Key key, char c, vkr::Window::Modifiers modifiers) { onKey(action, key, c, modifiers); });
+    m_window->addKeyCallback([this](vkr::GlfwWindow::Action action, vkr::GlfwWindow::Key key, char c, vkr::GlfwWindow::Modifiers modifiers) { onKey(action, key, c, modifiers); });
     m_window->addMouseMoveCallback([this](glm::vec2 const& delta) { onMouseMove(delta); });
 
     auto messageCallback = [](vko::DebugMessage m)
@@ -396,9 +396,9 @@ DemoApplication::DemoApplication()
 
     loadImgui();
 
-    m_commands["window.resize"].arguments("width", "height") = coil::bind(&vkr::Window::resize, m_window.get());
-    m_commands["window.width"] = coil::bindProperty(&vkr::Window::getWidth, m_window.get());
-    m_commands["window.height"] = coil::bindProperty(&vkr::Window::getHeight, m_window.get());
+    m_commands["window.resize"].arguments("width", "height") = coil::bind(&vkr::GlfwWindow::resize, m_window.get());
+    m_commands["window.width"] = coil::bindProperty(&vkr::GlfwWindow::getWidth, m_window.get());
+    m_commands["window.height"] = coil::bindProperty(&vkr::GlfwWindow::getHeight, m_window.get());
 
     m_commands["scene.load"].description("Load scene from a GLTF model").arguments("path") = [this](coil::Context context, std::string_view path) {
         std::string pathStr{ path };
@@ -552,12 +552,12 @@ void DemoApplication::onFramebufferResized()
     m_application->onSurfaceChanged();
 }
 
-void DemoApplication::onKey(vkr::Window::Action action, vkr::Window::Key key, char c, vkr::Window::Modifiers mods)
+void DemoApplication::onKey(vkr::GlfwWindow::Action action, vkr::GlfwWindow::Key key, char c, vkr::GlfwWindow::Modifiers mods)
 {
     std::stringstream ss;
     auto separator = "";
 
-    for (vkr::Window::Modifiers value : magic_enum::enum_values<vkr::Window::Modifiers>())
+    for (vkr::GlfwWindow::Modifiers value : magic_enum::enum_values<vkr::GlfwWindow::Modifiers>())
     {
         if (mods & value)
         {
@@ -569,10 +569,10 @@ void DemoApplication::onKey(vkr::Window::Action action, vkr::Window::Key key, ch
     std::cout << magic_enum::enum_name(action) << ' ' << magic_enum::enum_name(key) << ' ' << ss.str() << ": " << "'" << c << "'" << std::endl;
 
     std::size_t index = static_cast<std::size_t>(c);
-    m_keyState[index] = action == vkr::Window::Action::Press;
+    m_keyState[index] = action == vkr::GlfwWindow::Action::Press;
     m_modifiers = mods;
 
-    if (c == '`' && action == vkr::Window::Action::Press)
+    if (c == '`' && action == vkr::GlfwWindow::Action::Press)
         m_debugConsole->toggle();
 }
 

@@ -4,9 +4,9 @@
 #include <stdexcept>
 
 #include "Instance.h"
-#include "Window.h"
+#include "GlfwWindow.h"
 
-vko::Surface::Surface(Instance const& instance, vkr::Window const& window) : m_instance(instance), m_window(window)
+vko::Surface::Surface(Instance const& instance, vkr::GlfwWindow const& window) : m_instance(instance), m_window(window)
 {
     if (glfwCreateWindowSurface(instance.getHandle(), window.getHandle(), nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create window surface!");
