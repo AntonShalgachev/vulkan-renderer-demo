@@ -1,6 +1,9 @@
 #include "GlfwWindow.h"
 
-#define GLFW_INCLUDE_VULKAN
+#include "wrapper/Surface.h"
+#include "wrapper/Instance.h"
+
+#include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
 namespace
@@ -57,6 +60,16 @@ vkr::GlfwWindow::GlfwWindow(int width, int height, std::string const& title)
 void vkr::GlfwWindow::resize(int width, int height)
 {
     glfwSetWindowSize(m_handle, width, height);
+}
+
+vko::Surface vkr::GlfwWindow::createSurface(vko::Instance const& instance) const
+{
+    VkSurfaceKHR handle;
+
+    if (glfwCreateWindowSurface(instance.getHandle(), m_handle, nullptr, &handle) != VK_SUCCESS)
+        throw std::runtime_error("failed to create window surface!");
+
+    return vko::Surface{ handle, instance, *this };
 }
 
 void vkr::GlfwWindow::waitUntilInForeground() const

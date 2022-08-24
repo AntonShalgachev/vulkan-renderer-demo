@@ -56,6 +56,8 @@ set(ALL_FILES
     "wrapper/Swapchain.cpp"
     "wrapper/UniqueHandle.h"
     "wrapper/UniqueHandle.cpp"
+    "wrapper/Window.h"
+    "wrapper/Window.cpp"
 
     "Application.cpp"
     "Application.h"

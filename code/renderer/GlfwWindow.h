@@ -5,12 +5,13 @@
 #include <functional>
 
 #include "glm.h"
+#include "wrapper/Window.h"
 
 struct GLFWwindow;
 
 namespace vkr
 {
-    class GlfwWindow
+    class GlfwWindow : vko::Window
     {
     public:
         enum class Key
@@ -47,10 +48,10 @@ namespace vkr
 
         void resize(int width, int height);
 
-        int getWidth() const { return m_width; }
-        int getHeight() const { return m_height; }
-
-        std::vector<char const*> const& getRequiredInstanceExtensions() const { return m_requiredInstanceExtensions; }
+        vko::Surface createSurface(vko::Instance const& instance) const override;
+        std::size_t getWidth() const override { return m_width; }
+        std::size_t getHeight() const override { return m_height; }
+        std::vector<char const*> const& getRequiredInstanceExtensions() const override { return m_requiredInstanceExtensions; }
 
         bool getCanCaptureCursor() const { return m_canCaptureCursor; }
         void setCanCaptureCursor(bool canCaptureCursor) { m_canCaptureCursor = canCaptureCursor; }
