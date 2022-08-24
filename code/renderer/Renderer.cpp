@@ -580,7 +580,7 @@ vkr::Renderer::FrameResources::FrameResources(Application const& app)
     , renderFinishedSemaphore(app.getDevice())
     , inFlightFence(app.getDevice())
     , commandPool(std::make_unique<vko::CommandPool>(app.getDevice(), app.getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily()))
-    , commandBuffer(commandPool->createCommandBuffer())
+    , commandBuffer(std::make_shared<vko::CommandBuffers>(commandPool->createCommandBuffers(1)), 0)
 {
     app.setDebugName(imageAvailableSemaphore.getHandle(), "ImageAvailableSemaphore");
     app.setDebugName(renderFinishedSemaphore.getHandle(), "RenderFinishedSemaphore");

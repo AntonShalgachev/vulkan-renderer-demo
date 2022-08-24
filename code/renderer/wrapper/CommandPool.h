@@ -4,15 +4,11 @@
 #include <vector>
 #include "UniqueHandle.h"
 
-namespace vkr
-{
-    class CommandBuffer;
-}
-
 namespace vko
 {
     class Device;
     class QueueFamily;
+    class CommandBuffers;
 
     class CommandPool
     {
@@ -20,9 +16,7 @@ namespace vko
     	explicit CommandPool(Device const& device, QueueFamily const& queueFamily);
         ~CommandPool();
 
-        // TODO return vko::CommandBuffers
-        vkr::CommandBuffer createCommandBuffer() const;
-        std::vector<vkr::CommandBuffer> createCommandBuffers(std::size_t size) const;
+        vko::CommandBuffers createCommandBuffers(std::size_t size) const;
 
         CommandPool(CommandPool const&) = default;
         CommandPool(CommandPool&&) = default;

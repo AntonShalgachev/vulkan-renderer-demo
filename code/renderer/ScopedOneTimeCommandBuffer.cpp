@@ -7,25 +7,23 @@
 // TODO pass command pool and queue explicitly?
 vkr::ScopedOneTimeCommandBuffer::ScopedOneTimeCommandBuffer(Application const& app)
     : Object(app)
-    , m_commandBuffer(getApp().getShortLivedCommandPool().createCommandBuffer())
+    , m_commandBuffers(getApp().getShortLivedCommandPool().createCommandBuffers(1))
 {
-    m_commandBuffer.begin(true);
+    m_commandBuffers.begin(0, true);
 }
 
 vkr::ScopedOneTimeCommandBuffer::~ScopedOneTimeCommandBuffer()
 {
-    submit();
+    if (!m_submitted)
+        submit();
 }
 
 void vkr::ScopedOneTimeCommandBuffer::submit()
 {
-    if (m_submitted)
-        return;
-
     vko::Queue const& queue = getApp().getDevice().getGraphicsQueue();
 
-    m_commandBuffer.end();
-    m_commandBuffer.submit(queue, nullptr, nullptr, nullptr);
+    m_commandBuffers.end(0);
+    m_commandBuffers.submit(0, queue, nullptr, nullptr, nullptr);
     queue.waitIdle();
 
     m_submitted = true;

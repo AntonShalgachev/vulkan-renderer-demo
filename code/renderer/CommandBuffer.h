@@ -18,7 +18,7 @@ namespace vkr
     public:
     	CommandBuffer(std::shared_ptr<vko::CommandBuffers> const& container, std::size_t index);
 
-        VkCommandBuffer const& getHandle() const;
+        VkCommandBuffer getHandle() const;
 
         void reset() const;
         void begin(bool oneTime = true) const;

@@ -2,7 +2,6 @@
 #include "Device.h"
 #include "QueueFamily.h"
 #include "CommandBuffers.h"
-#include "CommandBuffer.h"
 #include <stdexcept>
 
 vko::CommandPool::CommandPool(Device const& device, QueueFamily const& queueFamily)
@@ -29,19 +28,7 @@ vko::CommandPool::~CommandPool()
     vkDestroyCommandPool(m_device.getHandle(), m_handle, nullptr);
 }
 
-vkr::CommandBuffer vko::CommandPool::createCommandBuffer() const
+vko::CommandBuffers vko::CommandPool::createCommandBuffers(std::size_t size) const
 {
-    return createCommandBuffers(1)[0];
-}
-
-std::vector<vkr::CommandBuffer> vko::CommandPool::createCommandBuffers(std::size_t size) const
-{
-    std::shared_ptr<CommandBuffers> container = std::make_shared<CommandBuffers>(m_device, *this, size);
-
-    std::vector<vkr::CommandBuffer> commandBuffers;
-    commandBuffers.reserve(size);
-    for (std::size_t i = 0; i < size; i++)
-        commandBuffers.emplace_back(container, i);
-
-    return commandBuffers;
+    return CommandBuffers{ m_device, *this, size };
 }

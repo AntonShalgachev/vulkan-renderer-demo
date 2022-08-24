@@ -4,6 +4,7 @@
 
 #include "CommandBuffer.h"
 #include "Object.h"
+#include "wrapper/CommandBuffers.h"
 
 namespace vkr
 {
@@ -19,12 +20,12 @@ namespace vkr
         ScopedOneTimeCommandBuffer& operator=(ScopedOneTimeCommandBuffer const&) = delete;
         ScopedOneTimeCommandBuffer& operator=(ScopedOneTimeCommandBuffer&&) = delete;
 
-        VkCommandBuffer const& getHandle() const { return m_commandBuffer.getHandle(); }
+        VkCommandBuffer getHandle() const { return m_commandBuffers.getHandle(0); }
 
         void submit();
 
     private:
-        CommandBuffer m_commandBuffer;
+        vko::CommandBuffers m_commandBuffers;
 
         bool m_submitted = false;
     };
