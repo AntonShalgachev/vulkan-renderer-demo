@@ -7,14 +7,9 @@
 
 #include "UniqueHandle.h"
 
-namespace vkr
-{
-    class PhysicalDeviceSurfaceContainer;
-}
-
 namespace vko
 {
-    class Surface;
+    class PhysicalDevice;
 
     class Instance
     {
@@ -29,7 +24,7 @@ namespace vko
 
         VkInstance getHandle() const { return m_handle; }
 
-        std::vector<vkr::PhysicalDeviceSurfaceContainer> findPhysicalDevices(Surface const& surface);
+        std::vector<vko::PhysicalDevice> findPhysicalDevices();
 
     private:
         void createInstance(std::string const& appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump);

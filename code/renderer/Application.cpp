@@ -18,6 +18,17 @@ namespace
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
 
+    std::vector<vkr::PhysicalDeviceSurfaceContainer> createPhysicalDeviceSurfaceContainer(std::vector<vko::PhysicalDevice> devices, vko::Surface const& surface)
+    {
+        std::vector<vkr::PhysicalDeviceSurfaceContainer> result;
+        result.reserve(devices.size());
+
+        for (vko::PhysicalDevice& device : devices)
+            result.emplace_back(std::move(device), surface);
+
+        return result;
+    }
+
     bool isDeviceSuitable(vkr::PhysicalDeviceSurfaceContainer const& container)
     {
         auto const& physicalDevice = container.getPhysicalDevice();
@@ -97,7 +108,7 @@ namespace vkr
             : m_instance(name, createInstanceExtensions(enableValidation, window), enableValidation, enableApiDump)
             , m_debugMessenger(createDebugMessenger(m_instance, enableValidation, std::move(onDebugMessage)))
             , m_surface(m_instance, window)
-            , m_physicalDevices(m_instance.findPhysicalDevices(m_surface))
+            , m_physicalDevices(createPhysicalDeviceSurfaceContainer(m_instance.findPhysicalDevices(), m_surface))
             , m_currentPhysicalDeviceIndex(findSuitablePhysicalDeviceIndex(m_physicalDevices))
             , m_device(getPhysicalDevice(), getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily(), getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getPresentQueueFamily(), DEVICE_EXTENSIONS)
         {

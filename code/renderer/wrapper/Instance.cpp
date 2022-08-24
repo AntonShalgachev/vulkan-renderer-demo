@@ -4,7 +4,6 @@
 
 #include "PhysicalDevice.h"
 #include "Utils.h"
-#include "PhysicalDeviceSurfaceContainer.h"
 
 namespace
 {
@@ -83,7 +82,7 @@ void vko::Instance::createInstance(std::string const& appName, std::vector<char 
         throw std::runtime_error("Failed to create Vulkan instance");
 }
 
-std::vector<vkr::PhysicalDeviceSurfaceContainer> vko::Instance::findPhysicalDevices(Surface const& surface)
+std::vector<vko::PhysicalDevice> vko::Instance::findPhysicalDevices()
 {
     uint32_t count = 0;
     VKR_ASSERT(vkEnumeratePhysicalDevices(m_handle, &count, nullptr));
@@ -93,10 +92,10 @@ std::vector<vkr::PhysicalDeviceSurfaceContainer> vko::Instance::findPhysicalDevi
     std::vector<VkPhysicalDevice> physicalDeviceHandles(count);
     VKR_ASSERT(vkEnumeratePhysicalDevices(m_handle, &count, physicalDeviceHandles.data()));
 
-    std::vector<vkr::PhysicalDeviceSurfaceContainer> physicalDevices;
+    std::vector<vko::PhysicalDevice> physicalDevices;
     physicalDevices.reserve(count);
     for (auto const& handle : physicalDeviceHandles)
-        physicalDevices.emplace_back(PhysicalDevice{ handle }, surface);
+        physicalDevices.emplace_back(handle);
 
     return physicalDevices;
 }

@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include "QueueFamily.h"
 #include <vector>
+#include "UniqueHandle.h"
 
 namespace vko
 {
@@ -28,10 +29,10 @@ namespace vko
         void queryQueueFamilyProperties();
 
     private:
-        VkPhysicalDevice m_handle = VK_NULL_HANDLE;
+        UniqueHandle<VkPhysicalDevice> m_handle;
 
         std::vector<VkExtensionProperties> m_availableExtensions;
-        std::vector<char const*> m_availableExtensionNames;
+        std::vector<std::string> m_availableExtensionNames;
 
         VkPhysicalDeviceProperties m_properties;
         VkPhysicalDeviceFeatures m_features;
