@@ -2,7 +2,6 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
-#include <memory>
 #include "UniqueHandle.h"
 
 namespace vko
@@ -35,11 +34,11 @@ namespace vko
         Swapchain& operator=(Swapchain&&) = default;
 
         VkSwapchainKHR getHandle() const { return m_handle; }
-        VkExtent2D getExtent() const { return m_config.extent; }
-        VkSurfaceFormatKHR getSurfaceFormat() const { return m_config.surfaceFormat; }
+        VkExtent2D getExtent() const;
+        VkSurfaceFormatKHR getSurfaceFormat() const;
 
-        std::size_t getImageCount() const { return m_images.size(); }
-        std::vector<std::unique_ptr<vko::Image>> const& getImages() const { return m_images; }
+        std::size_t getImageCount() const;
+        std::vector<vko::Image> const& getImages() const;
 
     private:
         void retrieveImages();
@@ -49,10 +48,8 @@ namespace vko
 
         UniqueHandle<VkSwapchainKHR> m_handle;
 
-//         VkExtent2D m_extent;
-//         VkSurfaceFormatKHR m_surfaceFormat;
         Config m_config;
 
-        std::vector<std::unique_ptr<vko::Image>> m_images;
+        std::vector<Image> m_images;
     };
 }

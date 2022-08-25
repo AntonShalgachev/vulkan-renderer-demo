@@ -52,6 +52,26 @@ vko::Swapchain::~Swapchain()
     vkDestroySwapchainKHR(m_device.getHandle(), m_handle, nullptr);
 }
 
+VkExtent2D vko::Swapchain::getExtent() const
+{
+    return m_config.extent;
+}
+
+VkSurfaceFormatKHR vko::Swapchain::getSurfaceFormat() const
+{
+    return m_config.surfaceFormat;
+}
+
+std::size_t vko::Swapchain::getImageCount() const
+{
+    return m_images.size();
+}
+
+std::vector<vko::Image> const& vko::Swapchain::getImages() const
+{
+    return m_images;
+}
+
 void vko::Swapchain::retrieveImages()
 {
     uint32_t finalImageCount = 0;
@@ -63,5 +83,5 @@ void vko::Swapchain::retrieveImages()
 
     m_images.reserve(finalImageCount);
     for (VkImage const& handle : imageHandles)
-        m_images.push_back(std::make_unique<Image>(m_device, handle, m_config.surfaceFormat.format));
+        m_images.emplace_back(m_device, handle, m_config.surfaceFormat.format);
 }

@@ -57,9 +57,9 @@ namespace vko
         VKR_ASSERT(vkBindImageMemory(m_device.getHandle(), m_handle, memory.getHandle(), 0));
     }
 
-    std::unique_ptr<vko::ImageView> Image::createImageView(VkImageAspectFlags aspectFlags)
+    ImageView Image::createImageView(VkImageAspectFlags aspectFlags) const
     {
-        return std::make_unique<vko::ImageView>(m_device, *this, aspectFlags);
+        return ImageView{ m_device, *this, aspectFlags };
     }
 
 }

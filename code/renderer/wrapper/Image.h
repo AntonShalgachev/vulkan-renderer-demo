@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include <memory>
 #include "UniqueHandle.h"
 
 namespace vko
@@ -25,7 +24,7 @@ namespace vko
         VkMemoryRequirements getMemoryRequirements() const;
         void bindMemory(DeviceMemory const& memory) const;
 
-        std::unique_ptr<ImageView> createImageView(VkImageAspectFlags aspectFlags);
+        ImageView createImageView(VkImageAspectFlags aspectFlags) const;
 
         VkImage getHandle() const { return m_handle; }
         VkFormat getFormat() const { return m_format; }
