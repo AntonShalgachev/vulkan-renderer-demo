@@ -136,4 +136,5 @@ target_link_libraries(${PROJECT_NAME}
     glm::glm
     tinygltf
     nlohmann_json::nlohmann_json
+    VulkanMemoryAllocator
 )

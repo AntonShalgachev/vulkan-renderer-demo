@@ -73,6 +73,11 @@ FetchContent_Declare(
     URL https://github.com/nlohmann/json/archive/refs/tags/v3.10.5.tar.gz # 3.10.5
 )
 
+FetchContent_Declare(
+    vma
+    URL https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/refs/tags/v3.0.1.tar.gz # 3.0.1
+)
+
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
 set(BUILD_STATIC_LIBS ON CACHE INTERNAL "")
 
@@ -130,6 +135,10 @@ message(STATUS "spdlog directory: ${spdlog_SOURCE_DIR}")
 message(STATUS "Fetching json...")
 FetchContent_MakeAvailable(json)
 message(STATUS "json directory: ${json_SOURCE_DIR}")
+
+message(STATUS "Fetching vma...")
+FetchContent_MakeAvailable(vma)
+message(STATUS "vma directory: ${vma_SOURCE_DIR}")
 ############################### ############ ###############################
 
 add_subdirectory(code/imgui)
