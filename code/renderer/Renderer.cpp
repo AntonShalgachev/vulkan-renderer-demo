@@ -44,6 +44,7 @@
 #include "wrapper/PhysicalDevice.h"
 #include "wrapper/Surface.h"
 #include "ScopedOneTimeCommandBuffer.h"
+#include "wrapper/DescriptorPool.h"
 
 namespace
 {
@@ -265,7 +266,18 @@ void vkr::Renderer::addDrawable(SceneObject const& drawableObject)
 
     auto const& resources = getUniformResources(config);
 
-	m_drawableInstances.emplace_back(getApp(), *drawable, drawableObject.getTransform(), *resources.descriptorSetLayout, sizeof(UniformBufferObject), m_swapchain->getImages().size());
+    std::optional<vko::DescriptorSets> descriptorSets;
+    do 
+    {
+        if (!m_descriptorPools.empty())
+            descriptorSets = m_descriptorPools.back().allocate(*resources.descriptorSetLayout, m_swapchain->getImages().size());
+
+        if (!descriptorSets)
+            m_descriptorPools.emplace_back(getDevice());
+    }
+    while (!descriptorSets);
+
+	m_drawableInstances.emplace_back(getApp(), *drawable, drawableObject.getTransform(), *std::move(descriptorSets), sizeof(UniformBufferObject), m_swapchain->getImages().size());
 }
 
 void vkr::Renderer::clearObjects()

@@ -138,6 +138,8 @@ namespace vkr
 
         std::vector<FrameResources> m_frameResources;
 
+        std::vector<vko::DescriptorPool> m_descriptorPools;
+
         std::size_t m_nextFrameResourcesIndex = 0;
         bool m_framebufferResized = false;
 

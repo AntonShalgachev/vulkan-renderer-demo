@@ -4,6 +4,7 @@
 #include "Object.h"
 #include <memory>
 #include <vector>
+#include "wrapper/DescriptorSets.h"
 
 namespace vko
 {
@@ -26,7 +27,7 @@ namespace vkr
     class ObjectInstance : public Object
     {
     public:
-        ObjectInstance(Application const& app, Drawable const& drawable, Transform const& transform, vko::DescriptorSetLayout const& setLayout, VkDeviceSize uniformBufferSize, std::size_t swapchainImagesCount);
+        ObjectInstance(Application const& app, Drawable const& drawable, Transform const& transform, vko::DescriptorSets descriptorSets, VkDeviceSize uniformBufferSize, std::size_t swapchainImagesCount);
         ObjectInstance(ObjectInstance&& rhs);
         ~ObjectInstance();
 
@@ -41,7 +42,6 @@ namespace vkr
         Transform const& m_transform;
 
         std::vector<vkr::BufferWithMemory> m_uniformBuffers;
-        std::unique_ptr<vko::DescriptorPool> m_descriptorPool; // TODO move out of here
-        std::unique_ptr<vko::DescriptorSets> m_descriptorSets;
+        vko::DescriptorSets m_descriptorSets;
     };
 }

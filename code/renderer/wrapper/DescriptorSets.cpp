@@ -10,27 +10,12 @@
 #include <stdexcept>
 #include "ImageView.h"
 
-vko::DescriptorSets::DescriptorSets(Device const& device, DescriptorPool const& pool, DescriptorSetLayout const& layout)
-    : m_device(device)
-    , m_pool(pool)
-    , m_layout(layout)
+vko::DescriptorSets::DescriptorSets(Device const& device, DescriptorSetLayout const& layout, std::vector<VkDescriptorSet> handles)
+    : m_device(&device)
+    , m_layout(&layout)
+    , m_handles(std::move(handles))
 {
-    std::vector<VkDescriptorSetLayout> layouts(pool.getSize(), layout.getHandle());
 
-    VkDescriptorSetAllocateInfo descriptorSetAllocInfo{};
-    descriptorSetAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    descriptorSetAllocInfo.descriptorPool = m_pool.getHandle();
-    descriptorSetAllocInfo.descriptorSetCount = static_cast<uint32_t>(pool.getSize());
-    descriptorSetAllocInfo.pSetLayouts = layouts.data();
-
-    m_handles.resize(pool.getSize());
-    if (vkAllocateDescriptorSets(m_device.getHandle(), &descriptorSetAllocInfo, m_handles.data()) != VK_SUCCESS)
-        throw std::runtime_error("failed to allocate descriptor sets!");
-}
-
-vko::DescriptorSets::~DescriptorSets()
-{
-    // no need to explicitly free descriptor sets
 }
 
 void vko::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer, vkr::Texture const* texture, vkr::Texture const* normalMap)
@@ -65,7 +50,7 @@ void vko::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer,
     actualConfiguration.hasTexture = texture;
     actualConfiguration.hasNormalMap = normalMap;
 
-    DescriptorSetConfiguration const& descriptorSetConfig = m_layout.getConfiguration();
+    DescriptorSetConfiguration const& descriptorSetConfig = m_layout->getConfiguration();
 
     if (actualConfiguration != descriptorSetConfig)
         throw std::runtime_error("Invalid descriptor set layout");
@@ -106,10 +91,10 @@ void vko::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer,
         descriptorWrite.pImageInfo = &imageInfo;
     }
 
-    vkUpdateDescriptorSets(m_device.getHandle(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+    vkUpdateDescriptorSets(m_device->getHandle(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 }
 
 std::size_t vko::DescriptorSets::getSize() const
 {
-    return m_pool.getSize();
+    return m_handles.size();
 }

@@ -2,8 +2,10 @@
 
 #include <vulkan/vulkan.h>
 #include <cstddef>
+#include <optional>
 
 #include "UniqueHandle.h"
+#include "DescriptorSets.h" // TODO remove if possible
 
 namespace vko
 {
@@ -12,16 +14,21 @@ namespace vko
     class DescriptorPool
     {
     public:
-    	explicit DescriptorPool(Device const& device, std::size_t size);
+    	explicit DescriptorPool(Device const& device);
     	~DescriptorPool();
 
+        DescriptorPool(DescriptorPool const&) = default;
+        DescriptorPool(DescriptorPool&&) = default;
+        DescriptorPool& operator=(DescriptorPool const&) = default;
+        DescriptorPool& operator=(DescriptorPool&&) = default;
+
+        std::optional<DescriptorSets> allocate(DescriptorSetLayout const& layout, std::size_t size);
+
         VkDescriptorPool getHandle() const { return m_handle; }
-        std::size_t getSize() const { return m_size; }
 
     private:
         Device const& m_device;
 
         UniqueHandle<VkDescriptorPool> m_handle;
-        std::size_t m_size;
     };
 }

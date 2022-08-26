@@ -515,7 +515,7 @@ void DemoApplication::loadImgui()
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(m_window->getHandle(), true);
 
-    m_imguiDescriptorPool = std::make_unique<vko::DescriptorPool>(getApp().getDevice(), 1);
+    m_imguiDescriptorPool = std::make_unique<vko::DescriptorPool>(getApp().getDevice());
     ImGui_ImplVulkan_InitInfo init_info = {};
     init_info.Instance = getApp().getInstance().getHandle();
     init_info.PhysicalDevice = getApp().getPhysicalDevice().getHandle();
