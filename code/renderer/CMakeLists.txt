@@ -58,6 +58,13 @@ set(ALL_FILES
     "wrapper/UniqueHandle.cpp"
     "wrapper/Window.h"
     "wrapper/Window.cpp"
+    
+    "vkgfx/Buffer.h"
+    "vkgfx/Buffer.cpp"
+    "vkgfx/Image.h"
+    "vkgfx/Image.cpp"
+    "vkgfx/ResourceManager.h"
+    "vkgfx/ResourceManager.cpp"
 
     "Application.cpp"
     "Application.h"
@@ -111,7 +118,6 @@ set(ALL_FILES
     "VertexLayout.h"
     "VertexLayoutDescriptions.cpp"
     "VertexLayoutDescriptions.h"
-    
     
     "GlfwWindow.cpp"
     "GlfwWindow.h"

@@ -44,6 +44,10 @@
 #include "SceneObject.h"
 #include "ShaderPackage.h"
 
+#include "vkgfx/ResourceManager.h"
+#include "vkgfx/Image.h" // TODO don't include it
+#include "vkgfx/Buffer.h" // TODO don't include it
+
 #include "services/DebugConsoleService.h"
 #include "services/CommandLineService.h"
 #include "services/DebugDrawService.h"
@@ -390,6 +394,8 @@ DemoApplication::DemoApplication()
     };
 
     m_application = std::make_unique<vkr::Application>("Vulkan demo", VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window, std::move(messageCallback));
+
+    m_resourceManager = std::make_unique<vkgfx::ResourceManager>(m_application->getDevice(), m_application->getPhysicalDevice(), m_application->getShortLivedCommandPool(), m_application->getDevice().getGraphicsQueue());
 
     m_renderer = std::make_unique<vkr::Renderer>(getApp());
     m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
@@ -762,16 +768,21 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
             VkDeviceSize bufferSize = sizeof(data[0]) * data.size();
             void const* bufferData = data.data();
 
+            vkr::BufferWithMemory buffer{ getApp().getDevice(), getApp().getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
+
             vkr::BufferWithMemory stagingBuffer{ getApp().getDevice(), getApp().getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
             stagingBuffer.memory().copyFrom(bufferData, bufferSize);
-
-            vkr::BufferWithMemory buffer{ getApp().getDevice(), getApp().getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
 
             vkr::ScopedOneTimeCommandBuffer commandBuffer{ getApp() };
             vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), buffer.buffer());
             commandBuffer.submit();
 
             m_gltfResources->buffers.push_back(std::make_unique<vkr::BufferWithMemory>(std::move(buffer)));
+
+            {
+                auto handle = m_resourceManager->createBuffer(bufferSize);
+                m_resourceManager->uploadBuffer(handle, data);
+            }
         }
 
         for (tinygltf::Texture const& texture : gltfModel->textures)
@@ -829,6 +840,19 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
             std::size_t components = static_cast<std::size_t>(gltfImage.component);
 
             m_gltfResources->textures.push_back(std::make_shared<vkr::Texture>(getApp(), gltfImage.image, width, height, bitsPerComponent, components, sampler));
+
+            {
+                vkgfx::ImageMetadata metadata;
+                metadata.width = width;
+                metadata.height = height;
+                if (bitsPerComponent == 8 && components == 4)
+                    metadata.format = vkgfx::ImageFormat::R8G8B8A8;
+                else
+                    throw std::runtime_error("Not implemented");
+
+                auto handle = m_resourceManager->createImage(metadata);
+                m_resourceManager->uploadImage(handle, gltfImage.image);
+            }
         }
     }
 

@@ -21,6 +21,11 @@ namespace vko
     class Sampler;
 }
 
+namespace vkgfx
+{
+    class ResourceManager;
+}
+
 namespace vkr
 {
     class Application;
@@ -151,4 +156,6 @@ private:
     bool m_reloadImgui = false;
 
     std::string m_currentScenePath = "";
+
+    std::unique_ptr<vkgfx::ResourceManager> m_resourceManager;
 };
