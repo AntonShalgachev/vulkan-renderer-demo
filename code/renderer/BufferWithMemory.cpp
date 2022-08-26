@@ -2,9 +2,9 @@
 
 #include "Application.h"
 
-vkr::BufferWithMemory::BufferWithMemory(Application const& app, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
-    : m_buffer(vko::Buffer{ app.getDevice(), size, usage })
-    , m_memory(vko::DeviceMemory{ app.getDevice(), app.getPhysicalDevice(), m_buffer->getMemoryRequirements(), properties })
+vkr::BufferWithMemory::BufferWithMemory(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
+    : m_buffer(vko::Buffer{ device, size, usage })
+    , m_memory(vko::DeviceMemory{ device, physicalDevice, m_buffer->getMemoryRequirements(), properties })
 {
     m_buffer->bindMemory(*m_memory);
 }

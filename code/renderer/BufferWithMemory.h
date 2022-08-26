@@ -5,6 +5,12 @@
 
 #include <optional>
 
+namespace vko
+{
+    class Device;
+    class PhysicalDevice;
+}
+
 namespace vkr
 {
     class Application;
@@ -12,7 +18,7 @@ namespace vkr
     class BufferWithMemory
     {
     public:
-        BufferWithMemory(Application const& app, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+        BufferWithMemory(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
         ~BufferWithMemory();
 
         BufferWithMemory(BufferWithMemory&& rhs) = default;

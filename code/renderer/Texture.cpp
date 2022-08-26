@@ -10,6 +10,7 @@
 #include "wrapper/ImageView.h"
 #include <stdexcept>
 #include "BufferWithMemory.h"
+#include "Application.h"
 
 namespace
 {
@@ -139,7 +140,7 @@ void vkr::Texture::createImage(std::span<unsigned char const> bytes, uint32_t wi
     if (bytesPerPixel != 4)
         throw std::runtime_error("Unexpected pixel format!");
 
-    vkr::BufferWithMemory stagingBuffer{ getApp(), bytes.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
+    vkr::BufferWithMemory stagingBuffer{ getApp().getDevice(), getApp().getPhysicalDevice(), bytes.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
     stagingBuffer.memory().copyFrom(bytes.data(), bytes.size());
 
     // TODO use SRGB for textures data and UNORM for normal maps

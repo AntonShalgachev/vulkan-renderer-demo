@@ -201,10 +201,10 @@ namespace
         VkDeviceSize bufferSize = sizeof(bytes[0]) * bytes.size();
         void const* bufferData = bytes.data();
 
-        vkr::BufferWithMemory stagingBuffer{ app, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
+        vkr::BufferWithMemory stagingBuffer{ app.getDevice(), app.getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
         stagingBuffer.memory().copyFrom(bufferData, bufferSize);
 
-        vkr::BufferWithMemory buffer{ app, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
+        vkr::BufferWithMemory buffer{ app.getDevice(), app.getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
 
         vkr::ScopedOneTimeCommandBuffer commandBuffer{ app };
         vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), buffer.buffer());

@@ -11,6 +11,7 @@
 #include "wrapper/Pipeline.h"
 #include "wrapper/DescriptorPool.h"
 #include "BufferWithMemory.h"
+#include "Application.h"
 
 vkr::ObjectInstance::ObjectInstance(Application const& app, Drawable const& drawable, Transform const& transform, vko::DescriptorSetLayout const& setLayout, VkDeviceSize uniformBufferSize, std::size_t swapchainImagesCount)
     : Object(app)
@@ -20,7 +21,7 @@ vkr::ObjectInstance::ObjectInstance(Application const& app, Drawable const& draw
     m_uniformBuffers.reserve(swapchainImagesCount);
 
     for (size_t i = 0; i < swapchainImagesCount; i++)
-        m_uniformBuffers.emplace_back(getApp(), uniformBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        m_uniformBuffers.emplace_back(app.getDevice(), app.getPhysicalDevice(), uniformBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
     Material const& material = m_drawable.getMaterial();
 
