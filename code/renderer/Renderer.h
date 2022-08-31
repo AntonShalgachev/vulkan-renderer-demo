@@ -31,6 +31,7 @@ namespace vko
     class CommandPool;
     class Framebuffer;
     class Sampler;
+    class DescriptorPool;
 }
 
 namespace vkr

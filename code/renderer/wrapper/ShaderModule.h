@@ -2,8 +2,8 @@
 
 #include <vulkan/vulkan.h>
 #include <string>
+#include <span>
 #include "UniqueHandle.h"
-#include "Hash.h"
 
 namespace vko
 {
@@ -19,27 +19,8 @@ namespace vko
             Fragment,
         };
 
-        // TODO rename to Config
-        struct Key
-        {
-            Type type = Type::Vertex;
-            std::string path; // TODO have shader bytes instead
-            std::string entryPoint;
-
-            auto operator<=>(Key const& rhs) const = default;
-
-			std::size_t computeHash() const
-			{
-				std::size_t seed = 0;
-                vkr::hash::combine(seed, type);
-                vkr::hash::combine(seed, path);
-                vkr::hash::combine(seed, entryPoint);
-				return seed;
-			}
-        };
-
     public:
-        explicit ShaderModule(Device const& device, Key key);
+        explicit ShaderModule(Device const& device, std::span<unsigned char const> bytes, Type type, std::string entryPoint);
         ~ShaderModule();
 
         ShaderModule(ShaderModule&&) = default;
@@ -51,20 +32,9 @@ namespace vko
 
     private:
         Device const& m_device;
-        Key m_key;
+        Type m_type;
+        std::string m_entryPoint;
 
         UniqueHandle<VkShaderModule> m_handle;
     };
-}
-
-namespace std
-{
-	template<>
-	struct hash<vko::ShaderModule::Key>
-	{
-		std::size_t operator()(vko::ShaderModule::Key const& rhs) const
-		{
-			return rhs.computeHash();
-		}
-	};
 }

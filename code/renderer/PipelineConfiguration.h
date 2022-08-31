@@ -20,7 +20,7 @@ namespace vkr
 	{
 		vko::PipelineLayout const* pipelineLayout = nullptr;
 		vko::RenderPass const* renderPass = nullptr;
-		VkExtent2D extent{ 0, 0 }; // TODO don't use Vulkan struct here
+		VkExtent2D extent{ 0, 0 }; // TODO remove; when extent changes, just recreate pipelines
 		Shader::Key shaderKey;
 		VertexLayoutDescriptions vertexLayoutDescriptions;
 		bool cullBackFaces = true;
