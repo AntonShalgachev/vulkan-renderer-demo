@@ -9,18 +9,17 @@ namespace vko
 {
     class Device;
 
+    enum class ShaderModuleType
+    {
+        Vertex,
+        Geometry,
+        Fragment,
+    };
+
     class ShaderModule
     {
     public:
-        enum class Type
-        {
-            Vertex,
-            Geometry,
-            Fragment,
-        };
-
-    public:
-        explicit ShaderModule(Device const& device, std::span<unsigned char const> bytes, Type type, std::string entryPoint);
+        explicit ShaderModule(Device const& device, std::span<unsigned char const> bytes, ShaderModuleType type, std::string entryPoint);
         ~ShaderModule();
 
         ShaderModule(ShaderModule&&) = default;
@@ -32,7 +31,7 @@ namespace vko
 
     private:
         Device const& m_device;
-        Type m_type;
+        ShaderModuleType m_type;
         std::string m_entryPoint;
 
         UniqueHandle<VkShaderModule> m_handle;

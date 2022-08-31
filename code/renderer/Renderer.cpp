@@ -232,8 +232,8 @@ vkr::Renderer::Renderer(Application const& app)
         configuration.renderPass = m_renderPass.get();
         configuration.extent = m_swapchain->getExtent();
         configuration.shaderKey = vkr::Shader::Key{}
-            .addStage(vko::ShaderModule::Type::Vertex, "data/shaders/packaged/debugdraw.vert/shaders/debugdraw.vert.spv")
-            .addStage(vko::ShaderModule::Type::Fragment, "data/shaders/packaged/debugdraw.frag/shaders/debugdraw.frag.spv"); // TODO use ShaderPackage
+            .addStage(vko::ShaderModuleType::Vertex, "data/shaders/packaged/debugdraw.vert/shaders/debugdraw.vert.spv")
+            .addStage(vko::ShaderModuleType::Fragment, "data/shaders/packaged/debugdraw.frag/shaders/debugdraw.frag.spv"); // TODO use ShaderPackage
         configuration.vertexLayoutDescriptions = m_oneFrameBoxResources.mesh->getVertexLayout().getDescriptions();
         configuration.cullBackFaces = false;
         configuration.wireframe = true;

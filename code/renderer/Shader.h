@@ -15,7 +15,7 @@ namespace vkr
 
     struct ShaderModuleKey
     {
-        vko::ShaderModule::Type type = vko::ShaderModule::Type::Vertex;
+        vko::ShaderModuleType type = vko::ShaderModuleType::Vertex;
         std::string path;
         std::string entryPoint;
 
@@ -39,7 +39,7 @@ namespace vkr
 		public:
 			std::vector<ShaderModuleKey> const& getModuleKeys() const { return m_moduleKeys; }
 
-            Key& addStage(vko::ShaderModule::Type type, std::string path, std::string entryPoint = "main")
+            Key& addStage(vko::ShaderModuleType type, std::string path, std::string entryPoint = "main")
             {
                 m_moduleKeys.push_back({ type, std::move(path), std::move(entryPoint) });
                 return *this;

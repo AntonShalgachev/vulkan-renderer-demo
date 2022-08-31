@@ -4,15 +4,15 @@
 
 namespace
 {
-    VkShaderStageFlagBits getStageFlags(vko::ShaderModule::Type type)
+    VkShaderStageFlagBits getStageFlags(vko::ShaderModuleType type)
     {
         switch (type)
         {
-        case vko::ShaderModule::Type::Vertex:
+        case vko::ShaderModuleType::Vertex:
             return VK_SHADER_STAGE_VERTEX_BIT;
-        case vko::ShaderModule::Type::Geometry:
+        case vko::ShaderModuleType::Geometry:
             return VK_SHADER_STAGE_GEOMETRY_BIT;
-        case vko::ShaderModule::Type::Fragment:
+        case vko::ShaderModuleType::Fragment:
             return VK_SHADER_STAGE_FRAGMENT_BIT;
         }
 
@@ -20,7 +20,7 @@ namespace
     }
 }
 
-vko::ShaderModule::ShaderModule(Device const& device, std::span<unsigned char const> bytes, Type type, std::string entryPoint)
+vko::ShaderModule::ShaderModule(Device const& device, std::span<unsigned char const> bytes, ShaderModuleType type, std::string entryPoint)
     : m_device(device)
     , m_type(type)
     , m_entryPoint(std::move(entryPoint))

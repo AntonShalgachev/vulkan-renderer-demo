@@ -663,8 +663,8 @@ std::shared_ptr<vkr::SceneObject> DemoApplication::addSceneObjectsFromNode(std::
                 throw std::runtime_error("Failed to find the shader");
 
             auto shaderKey = vkr::Shader::Key{}
-                .addStage(vko::ShaderModule::Type::Vertex, *vertexShaderPath)
-                .addStage(vko::ShaderModule::Type::Fragment, *fragmentShaderPath);
+                .addStage(vko::ShaderModuleType::Vertex, *vertexShaderPath)
+                .addStage(vko::ShaderModuleType::Fragment, *fragmentShaderPath);
 
             material->setShaderKey(std::move(shaderKey));
 
