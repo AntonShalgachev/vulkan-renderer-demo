@@ -49,6 +49,8 @@ namespace vkr
 
         std::string const* get( ShaderConfiguration const& config) const;
 
+        std::unordered_map<ShaderConfiguration, std::string> const& getAll() const { return m_shaders; }
+
     private:
         std::unordered_map<ShaderConfiguration, std::string> m_shaders;
     };

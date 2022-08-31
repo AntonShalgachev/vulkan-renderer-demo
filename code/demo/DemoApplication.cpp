@@ -6,6 +6,7 @@
 #include <sstream>
 #include <iostream>
 #include <filesystem>
+#include <fstream>
 
 #include "tiny_gltf.h"
 #include "glm.h"
@@ -47,6 +48,7 @@
 #include "vkgfx/ResourceManager.h"
 #include "vkgfx/Image.h" // TODO don't include it
 #include "vkgfx/Buffer.h" // TODO don't include it
+#include "vkgfx/ShaderModule.h" // TODO don't include it
 
 #include "services/DebugConsoleService.h"
 #include "services/CommandLineService.h"
@@ -313,6 +315,23 @@ namespace
         vkr::BufferWithMemory& buffer = *resources.buffers[static_cast<std::size_t>(bufferIndex)];
 
         return std::make_unique<vkr::Mesh>(app, buffer.buffer(), std::move(layout), std::move(metadata));
+    }
+
+    std::vector<unsigned char> readFile(const std::string& filename)
+    {
+        std::ifstream file(filename, std::ios::ate | std::ios::binary);
+
+        if (!file.is_open())
+            throw std::runtime_error("failed to open file!");
+
+        std::streamsize fileSize = file.tellg();
+        std::vector<unsigned char> buffer(static_cast<std::size_t>(fileSize));
+
+        file.seekg(0);
+        file.read(reinterpret_cast<char*>(buffer.data()), fileSize); // TODO check if okay
+        file.close();
+
+        return buffer;
     }
 
     // TODO move somewhere
@@ -748,6 +767,15 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
 
     m_defaultVertexShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.vert");
     m_defaultFragmentShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.frag");
+
+    for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
+    {
+        m_resourceManager->createShaderModule(readFile(modulePath), vko::ShaderModuleType::Vertex, "main");
+    }
+    for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
+    {
+        m_resourceManager->createShaderModule(readFile(modulePath), vko::ShaderModuleType::Fragment, "main");
+    }
 
     m_fallbackSampler = std::make_shared<vko::Sampler>(getApp().getDevice());
     m_fallbackAlbedo = std::make_unique<vkr::Texture>(getApp(), std::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff }, 1, 1, 8, 4, m_fallbackSampler);

@@ -3,8 +3,10 @@
 #include "wrapper/CommandBuffers.h"
 #include "wrapper/CommandPool.h"
 #include "wrapper/Queue.h"
+#include "wrapper/ShaderModule.h"
 #include "Image.h"
 #include "Buffer.h"
+#include "ShaderModule.h"
 
 namespace
 {
@@ -203,4 +205,16 @@ void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, std::span<unsigne
     OneTimeCommandBuffer commandBuffer{ m_uploadCommandPool, m_uploadQueue };
     vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), buffer.buffer);
     commandBuffer.submit();
+}
+
+vkgfx::ShaderModuleHandle vkgfx::ResourceManager::createShaderModule(std::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint)
+{
+    vko::ShaderModule module{ m_device, bytes, type, std::move(entryPoint) };
+
+    ShaderModuleHandle handle;
+    handle.index = m_shaderModules.size();
+
+    m_shaderModules.emplace_back(std::move(module));
+
+    return handle;
 }

@@ -63,6 +63,8 @@ set(ALL_FILES
     "vkgfx/Buffer.cpp"
     "vkgfx/Image.h"
     "vkgfx/Image.cpp"
+    "vkgfx/ShaderModule.h"
+    "vkgfx/ShaderModule.cpp"
     "vkgfx/ResourceManager.h"
     "vkgfx/ResourceManager.cpp"
 
