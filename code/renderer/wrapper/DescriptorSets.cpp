@@ -18,7 +18,7 @@ vko::DescriptorSets::DescriptorSets(Device const& device, DescriptorSetLayout co
 
 }
 
-void vko::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer, vkr::Texture const* texture, vkr::Texture const* normalMap)
+void vko::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer, std::size_t bufferSize, vkr::Texture const* texture, vkr::Texture const* normalMap)
 {
     VkDescriptorSet setHandle = m_handles[index];
 
@@ -35,13 +35,13 @@ void vko::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer,
         VkDescriptorBufferInfo& bufferInfo = bufferInfos.emplace_back();
         bufferInfo.buffer = uniformBuffer.getHandle();
         bufferInfo.offset = 0;
-        bufferInfo.range = uniformBuffer.getSize();
+        bufferInfo.range = bufferSize;
 
         descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrite.dstSet = setHandle;
         descriptorWrite.dstBinding = 0;
         descriptorWrite.dstArrayElement = 0;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
         descriptorWrite.descriptorCount = 1;
         descriptorWrite.pBufferInfo = &bufferInfo;
     }

@@ -21,7 +21,7 @@ namespace vko
     public:
     	DescriptorSets(Device const& device, DescriptorSetLayout const& layout, std::vector<VkDescriptorSet> handles);
 
-        void update(std::size_t index, Buffer const& uniformBuffer, vkr::Texture const* texture, vkr::Texture const* normalMap);
+        void update(std::size_t index, Buffer const& uniformBuffer, std::size_t bufferSize, vkr::Texture const* texture, vkr::Texture const* normalMap);
 
         VkDescriptorSet getHandle(std::size_t index) const { return m_handles[index]; }
         std::size_t getSize() const;

@@ -27,7 +27,7 @@ namespace vkr
     class ObjectInstance : public Object
     {
     public:
-        ObjectInstance(Application const& app, Drawable const& drawable, Transform const& transform, vko::DescriptorSets descriptorSets, VkDeviceSize uniformBufferSize, std::size_t swapchainImagesCount);
+        ObjectInstance(Application const& app, Drawable const& drawable, Transform const& transform, vko::DescriptorSets descriptorSets, std::size_t uniformBufferSize, std::size_t swapchainImagesCount);
         ObjectInstance(ObjectInstance&& rhs);
         ~ObjectInstance();
 
@@ -42,6 +42,8 @@ namespace vkr
         Transform const& m_transform;
 
         std::vector<vkr::BufferWithMemory> m_uniformBuffers;
+        std::size_t m_uniformBufferSize;
+        std::size_t m_alignedUniformBufferSize;
         vko::DescriptorSets m_descriptorSets;
     };
 }

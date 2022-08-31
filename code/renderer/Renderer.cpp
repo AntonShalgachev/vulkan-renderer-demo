@@ -270,7 +270,7 @@ void vkr::Renderer::addDrawable(SceneObject const& drawableObject)
     do 
     {
         if (!m_descriptorPools.empty())
-            descriptorSets = m_descriptorPools.back().allocate(*resources.descriptorSetLayout, m_swapchain->getImages().size());
+            descriptorSets = m_descriptorPools.back().allocate(*resources.descriptorSetLayout, 1);
 
         if (!descriptorSets)
             m_descriptorPools.emplace_back(getDevice());

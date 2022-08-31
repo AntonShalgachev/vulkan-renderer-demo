@@ -21,12 +21,12 @@ namespace vko
         DeviceMemory& operator=(DeviceMemory const&) = default;
         DeviceMemory& operator=(DeviceMemory&&) = default;
 
-        void copyFrom(void const* sourcePointer, std::size_t sourceSize) const;
+        void copyFrom(void const* sourcePointer, std::size_t sourceSize, std::size_t offset = 0) const;
 
         template<typename T>
-        void copyFrom(std::vector<T> const& source) const
+        void copyFrom(std::vector<T> const& source, std::size_t offset = 0) const
         {
-            copyFrom(source.data(), sizeof(T) * source.size());
+            copyFrom(source.data(), sizeof(T) * source.size(), offset);
         }
 
         VkDeviceMemory getHandle() const { return m_handle; };

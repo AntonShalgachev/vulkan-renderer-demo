@@ -43,11 +43,11 @@ vko::DeviceMemory::~DeviceMemory()
     vkFreeMemory(m_device.getHandle(), m_handle, nullptr);
 }
 
-void vko::DeviceMemory::copyFrom(void const* sourcePointer, std::size_t sourceSize) const
+void vko::DeviceMemory::copyFrom(void const* sourcePointer, std::size_t sourceSize, std::size_t offset) const
 {
     // TODO make sure sourceSize doesn't exceed allocated size
     void* data;
-    VKR_ASSERT(vkMapMemory(m_device.getHandle(), m_handle, 0, sourceSize, 0, &data));
+    VKR_ASSERT(vkMapMemory(m_device.getHandle(), m_handle, offset, sourceSize, 0, &data));
     memcpy(data, sourcePointer, sourceSize);
     vkUnmapMemory(m_device.getHandle(), m_handle);
 }
