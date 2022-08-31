@@ -10,7 +10,7 @@ namespace
     void append(std::string_view line, std::vector<std::string>& arguments)
     {
         auto isQuote = [](char c) { return c == '"'; };
-        auto isComment = [](char c) { return c == ';'; };
+        auto isComment = [](char c) { return c == ';' || c == '#'; };
         auto isChar = [&isComment, &isQuote](char c) { return !std::isspace(c) && !isComment(c) && !isQuote(c); };
 
         for (std::size_t i = 0; i < line.size(); i++)
