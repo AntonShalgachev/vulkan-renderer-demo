@@ -14,7 +14,7 @@ namespace vkgfx
 
     struct ImageHandle
     {
-        std::size_t index; // TODO improve
+        std::size_t index = 0; // TODO improve
     };
 
     struct ImageMetadata
