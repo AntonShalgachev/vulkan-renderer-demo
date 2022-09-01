@@ -53,3 +53,8 @@ std::optional<vko::DescriptorSets> vko::DescriptorPool::allocate(DescriptorSetLa
 
     throw std::runtime_error("failed to allocate descriptor sets!");
 }
+
+void vko::DescriptorPool::reset()
+{
+    VKR_ASSERT(vkResetDescriptorPool(m_device.getHandle(), m_handle, 0));
+}

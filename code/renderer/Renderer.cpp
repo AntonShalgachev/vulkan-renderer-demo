@@ -266,18 +266,7 @@ void vkr::Renderer::addDrawable(SceneObject const& drawableObject)
 
     auto const& resources = getUniformResources(config);
 
-    std::optional<vko::DescriptorSets> descriptorSets;
-    do 
-    {
-        if (!m_descriptorPools.empty())
-            descriptorSets = m_descriptorPools.back().allocate(*resources.descriptorSetLayout, 1);
-
-        if (!descriptorSets)
-            m_descriptorPools.emplace_back(getDevice());
-    }
-    while (!descriptorSets);
-
-	m_drawableInstances.emplace_back(getApp(), *drawable, drawableObject.getTransform(), *std::move(descriptorSets), sizeof(UniformBufferObject), m_swapchain->getImages().size());
+	m_drawableInstances.emplace_back(getApp(), *drawable, drawableObject.getTransform(), sizeof(UniformBufferObject), m_swapchain->getImages().size());
 }
 
 void vkr::Renderer::clearObjects()
@@ -295,7 +284,7 @@ void vkr::Renderer::draw()
     if (!m_activeCameraObject)
         throw std::runtime_error("No camera is set");
 
-    FrameResources const& frameResources = m_frameResources[m_nextFrameResourcesIndex];
+    FrameResources& frameResources = m_frameResources[m_nextFrameResourcesIndex];
 
     uint32_t imageIndex;
     VkResult aquireImageResult = vkAcquireNextImageKHR(getDevice().getHandle(), m_swapchain->getHandle(), std::numeric_limits<uint64_t>::max(), frameResources.imageAvailableSemaphore.getHandle(), VK_NULL_HANDLE, &imageIndex);
@@ -434,8 +423,11 @@ void vkr::Renderer::onSwapchainCreated()
     updateCameraAspect();
 }
 
-void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources)
+void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources& frameResources)
 {
+    for (vko::DescriptorPool& pool : frameResources.descriptorPools)
+        pool.reset();
+
     frameResources.commandPool->reset();
 
     CommandBuffer const& commandBuffer = frameResources.commandBuffer;
@@ -512,7 +504,28 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources c
             vkCmdPushConstants(handle, resources.pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VertexPushConstants), &constants);
         }
 
-		instance.bindDescriptorSet(handle, imageIndex, *resources.pipelineLayout);
+        {
+            std::vector<vko::DescriptorPool>& descriptorPools = frameResources.descriptorPools;
+
+            std::optional<vko::DescriptorSets> descriptorSets;
+            do
+            {
+                if (!descriptorPools.empty())
+                    descriptorSets = descriptorPools.back().allocate(*resources.descriptorSetLayout, 1);
+
+                if (!descriptorSets)
+                    descriptorPools.emplace_back(getDevice());
+            }
+            while (!descriptorSets);
+
+            vkr::BufferWithMemory const& uniformBuffer = instance.getBuffer();
+
+            descriptorSets->update(0, uniformBuffer.buffer(), sizeof(UniformBufferObject), material.getTexture().get(), material.getNormalMap().get());
+
+            VkDescriptorSet descriptorSetHandle = descriptorSets->getHandle(0);
+            uint32_t dynamicOffset = instance.getAlignedUniformBufferSize() * imageIndex;
+            vkCmdBindDescriptorSets(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, resources.pipelineLayout->getHandle(), 0, 1, &descriptorSetHandle, 1, &dynamicOffset);
+        }
 
         mesh.draw(handle);
     }

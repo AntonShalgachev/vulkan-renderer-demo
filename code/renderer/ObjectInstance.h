@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 #include "wrapper/DescriptorSets.h"
+#include "BufferWithMemory.h"
 
 namespace vko
 {
@@ -17,7 +18,6 @@ namespace vko
 
 namespace vkr
 {
-    class BufferWithMemory;
     class Texture;
     class Drawable;
     class Transform;
@@ -27,23 +27,24 @@ namespace vkr
     class ObjectInstance : public Object
     {
     public:
-        ObjectInstance(Application const& app, Drawable const& drawable, Transform const& transform, vko::DescriptorSets descriptorSets, std::size_t uniformBufferSize, std::size_t swapchainImagesCount);
+        ObjectInstance(Application const& app, Drawable const& drawable, Transform const& transform, std::size_t uniformBufferSize, std::size_t swapchainImagesCount);
         ObjectInstance(ObjectInstance&& rhs);
         ~ObjectInstance();
 
         Drawable const& getDrawable() const { return m_drawable; }
         Transform const& getTransform() const { return m_transform; }
 
+        vkr::BufferWithMemory const& getBuffer() const { return m_uniformBuffer; }
+        std::size_t getAlignedUniformBufferSize() const { return m_alignedUniformBufferSize; }
+
         void copyToUniformBuffer(std::size_t index, void const* sourcePointer, std::size_t sourceSize) const;
-        void bindDescriptorSet(VkCommandBuffer commandBuffer, std::size_t imageIndex, vko::PipelineLayout const& pipelineLayout) const;
 
     private:
         Drawable const& m_drawable;
         Transform const& m_transform;
 
-        std::vector<vkr::BufferWithMemory> m_uniformBuffers;
         std::size_t m_uniformBufferSize;
         std::size_t m_alignedUniformBufferSize;
-        vko::DescriptorSets m_descriptorSets;
+        vkr::BufferWithMemory m_uniformBuffer;
     };
 }

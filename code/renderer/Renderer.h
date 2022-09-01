@@ -102,6 +102,7 @@ namespace vkr
 
             std::unique_ptr<vko::CommandPool> commandPool;
             vkr::CommandBuffer commandBuffer;
+            std::vector<vko::DescriptorPool> descriptorPools;
         };
 
         struct UniformResources
@@ -113,7 +114,7 @@ namespace vkr
     private:
         void createSwapchain();
         void createSyncObjects();
-        void recordCommandBuffer(std::size_t imageIndex, FrameResources const& frameResources);
+        void recordCommandBuffer(std::size_t imageIndex, FrameResources& frameResources);
         std::unique_ptr<vko::Pipeline> createPipeline(PipelineConfiguration const& configuration);
 
         void destroySwapchain();
@@ -138,8 +139,6 @@ namespace vkr
         std::unique_ptr<vko::ImageView> m_depthImageView;
 
         std::vector<FrameResources> m_frameResources;
-
-        std::vector<vko::DescriptorPool> m_descriptorPools;
 
         std::size_t m_nextFrameResourcesIndex = 0;
         bool m_framebufferResized = false;

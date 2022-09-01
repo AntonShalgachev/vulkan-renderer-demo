@@ -23,6 +23,7 @@ namespace vko
         DescriptorPool& operator=(DescriptorPool&&) = default;
 
         std::optional<DescriptorSets> allocate(DescriptorSetLayout const& layout, std::size_t size);
+        void reset();
 
         VkDescriptorPool getHandle() const { return m_handle; }
 
