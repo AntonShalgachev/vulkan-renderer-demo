@@ -24,12 +24,30 @@ namespace vkgfx
 
     struct Buffer;
     struct BufferHandle;
+    enum class BufferUsage;
 
     struct ShaderModule;
     struct ShaderModuleHandle;
 
     struct Sampler;
     struct SamplerHandle;
+
+    struct Texture;
+    struct TextureHandle;
+
+    struct Material;
+    struct MaterialHandle;
+
+    struct Mesh;
+    struct MeshHandle;
+
+    // TODO move somewhere
+//     struct Object
+//     {
+//         MeshHandle mesh;
+//         MaterialHandle material;
+//         // TODO transformation matrix and other instance-specific parameters
+//     };
 
     class ResourceManager
     {
@@ -38,14 +56,20 @@ namespace vkgfx
         ~ResourceManager();
 
         ImageHandle createImage(ImageMetadata metadata);
+        void uploadImage(ImageHandle handle, void const* data, std::size_t dataSize);
         void uploadImage(ImageHandle handle, std::span<unsigned char const> bytes);
 
-        BufferHandle createBuffer(std::size_t size);
-        void uploadBuffer(BufferHandle handle, std::span<unsigned char const> bytes);
+        BufferHandle createBuffer(std::size_t size, BufferUsage usage);
+        void uploadBuffer(BufferHandle handle, void const* data, std::size_t dataSize, std::size_t offset = 0);
+        void uploadBuffer(BufferHandle handle, std::span<unsigned char const> bytes, std::size_t offset = 0);
 
         ShaderModuleHandle createShaderModule(std::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint = "main");
 
         SamplerHandle createSampler(vko::SamplerFilterMode magFilter, vko::SamplerFilterMode minFilter, vko::SamplerWrapMode wrapU, vko::SamplerWrapMode wrapV);
+
+        TextureHandle createTexture(Texture texture);
+        MaterialHandle createMaterial(Material material);
+        MeshHandle createMesh(Mesh mesh);
 
     private:
         vko::Device const& m_device;
@@ -57,5 +81,9 @@ namespace vkgfx
         std::vector<Buffer> m_buffers;
         std::vector<ShaderModule> m_shaderModules;
         std::vector<Sampler> m_samplers;
+
+        std::vector<Texture> m_textures;
+        std::vector<Material> m_materials;
+        std::vector<Mesh> m_meshes;
     };
 }

@@ -12,6 +12,7 @@
 #include "services/Services.h"
 
 #include "ScopedDebugCommands.h"
+#include "../renderer/vkgfx/Handles.h"
 
 class CommandLineService;
 
@@ -24,6 +25,13 @@ namespace vko
 namespace vkgfx
 {
     class ResourceManager;
+
+    struct BufferHandle;
+    struct ImageHandle;
+    struct SamplerHandle;
+    struct TextureHandle;
+    struct MaterialHandle;
+    struct MeshHandle;
 }
 
 namespace vkr
@@ -47,6 +55,16 @@ struct GltfVkResources
 {
     std::vector<std::unique_ptr<vkr::BufferWithMemory>> buffers;
     std::vector<std::shared_ptr<vkr::Texture>> textures;
+};
+
+struct GfxResources
+{
+    std::vector<vkgfx::BufferHandle> buffers;
+    std::vector<vkgfx::ImageHandle> images;
+    std::vector<vkgfx::SamplerHandle> samplers;
+    std::vector<vkgfx::TextureHandle> textures;
+    std::vector<vkgfx::MaterialHandle> materials;
+    std::vector<vkgfx::MeshHandle> meshes;
 };
 
 // TODO move to a separate file
@@ -113,6 +131,7 @@ private:
     std::unique_ptr<vkr::Renderer> m_renderer;
 
     std::unique_ptr<GltfVkResources> m_gltfResources;
+    std::unique_ptr<GfxResources> m_gfxResources;
 
     // Resources
     std::unique_ptr<vkr::ShaderPackage> m_defaultVertexShader;
@@ -121,6 +140,12 @@ private:
     std::shared_ptr<vko::Sampler> m_fallbackSampler;
     std::shared_ptr<vkr::Texture> m_fallbackAlbedo;
     std::shared_ptr<vkr::Texture> m_fallbackNormalMap;
+
+    vkgfx::SamplerHandle m_defaultSampler;
+    vkgfx::ImageHandle m_defaultAlbedoImage;
+    vkgfx::TextureHandle m_defaultAlbedoTexture;
+    vkgfx::ImageHandle m_defaultNormalMapImage;
+    vkgfx::TextureHandle m_defaultNormalMapTexture;
 
     // Objects
     Scene m_scene;

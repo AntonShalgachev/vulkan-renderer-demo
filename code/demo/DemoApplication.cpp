@@ -46,14 +46,17 @@
 #include "ShaderPackage.h"
 
 #include "vkgfx/ResourceManager.h"
-#include "vkgfx/Image.h" // TODO don't include it
-#include "vkgfx/Buffer.h" // TODO don't include it
-#include "vkgfx/ShaderModule.h" // TODO don't include it
-#include "vkgfx/Sampler.h" // TODO don't include it
+#include "vkgfx/Handles.h"
+#include "vkgfx/ImageMetadata.h"
+
+#include "vkgfx/Texture.h"
+#include "vkgfx/Mesh.h"
+#include "vkgfx/Material.h"
 
 #include "services/DebugConsoleService.h"
 #include "services/CommandLineService.h"
 #include "services/DebugDrawService.h"
+#include "../renderer/vkgfx/BufferMetadata.h"
 
 namespace
 {
@@ -256,7 +259,7 @@ namespace
         throw std::runtime_error("Unkown attribute name: " + name);
     }
 
-    std::unique_ptr<vkr::Mesh> createMesh(vkr::Application const& app, std::shared_ptr<tinygltf::Model> const& model, tinygltf::Primitive const& primitive, GltfVkResources const& resources)
+    std::unique_ptr<vkr::Mesh> createMesh(vkr::Application const& app, std::shared_ptr<tinygltf::Model> const& model, tinygltf::Primitive const& primitive, GltfVkResources const& resources, GfxResources const& gfxResources)
     {
         vkr::VertexLayout layout;
         vkr::Mesh::Metadata metadata;
@@ -636,7 +639,7 @@ std::shared_ptr<vkr::SceneObject> DemoApplication::addSceneObjectsFromNode(std::
             object->getTransform().addChild(subObject->getTransform());
 
             // TODO don't create mesh if it can be shared with other nodes
-            auto mesh = createMesh(getApp(), model, gltfPrimitive, *m_gltfResources);
+            auto mesh = createMesh(getApp(), model, gltfPrimitive, *m_gltfResources, *m_gfxResources);
 
             auto const& meshMetadata = mesh->getMetadata();
             shaderConfiguration.hasColor = meshMetadata.hasColor;
@@ -782,12 +785,25 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
     m_fallbackAlbedo = std::make_unique<vkr::Texture>(getApp(), std::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff }, 1, 1, 8, 4, m_fallbackSampler);
     m_fallbackNormalMap = std::make_unique<vkr::Texture>(getApp(), std::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff }, 1, 1, 8, 4, m_fallbackSampler);
 
+    {
+        m_defaultSampler = m_resourceManager->createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
+
+        m_defaultAlbedoImage = m_resourceManager->createImage(vkgfx::ImageMetadata{ 1, 1, vkgfx::ImageFormat::R8G8B8A8 });
+        m_resourceManager->uploadImage(m_defaultAlbedoImage, std::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
+        m_defaultAlbedoTexture = m_resourceManager->createTexture(vkgfx::Texture{ m_defaultAlbedoImage, m_defaultSampler });
+
+        m_defaultNormalMapImage = m_resourceManager->createImage(vkgfx::ImageMetadata{ 1, 1, vkgfx::ImageFormat::R8G8B8A8 });
+        m_resourceManager->uploadImage(m_defaultNormalMapImage, std::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff });
+        m_defaultNormalMapTexture = m_resourceManager->createTexture(vkgfx::Texture{ m_defaultNormalMapImage, m_defaultSampler });
+    }
+
     auto gltfModel = gltfPath.empty() ? nullptr : loadModel(gltfPath);
 
     if (!gltfPath.empty() && !gltfModel)
         return false;
 
     m_gltfResources = std::make_unique<GltfVkResources>();
+    m_gfxResources = std::make_unique<GfxResources>();
 
     if (gltfModel)
     {
@@ -807,55 +823,6 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
             commandBuffer.submit();
 
             m_gltfResources->buffers.push_back(std::make_unique<vkr::BufferWithMemory>(std::move(buffer)));
-
-            {
-                auto handle = m_resourceManager->createBuffer(bufferSize);
-                m_resourceManager->uploadBuffer(handle, data);
-            }
-        }
-
-        for (tinygltf::Sampler const& gltfSampler : gltfModel->samplers)
-        {
-            auto convertFilterMode = [](int gltfMode)
-            {
-                switch (gltfMode)
-                {
-                case TINYGLTF_TEXTURE_FILTER_NEAREST:
-                case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST:
-                case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR:
-                    return vko::SamplerFilterMode::Nearest;
-                case -1:
-                case TINYGLTF_TEXTURE_FILTER_LINEAR:
-                case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
-                case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR:
-                    return vko::SamplerFilterMode::Linear;
-                }
-
-                throw std::invalid_argument("gltfMode");
-            };
-
-            auto convertWrapMode = [](int gltfMode)
-            {
-                switch (gltfMode)
-                {
-                case -1:
-                case TINYGLTF_TEXTURE_WRAP_REPEAT:
-                    return vko::SamplerWrapMode::Repeat;
-                case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE:
-                    return vko::SamplerWrapMode::ClampToEdge;
-                case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT:
-                    return vko::SamplerWrapMode::Mirror;
-                }
-
-                throw std::invalid_argument("gltfMode");
-            };
-
-            auto magFilter = convertFilterMode(gltfSampler.magFilter);
-            auto minFilter = convertFilterMode(gltfSampler.minFilter);
-            auto wrapU = convertWrapMode(gltfSampler.wrapS);
-            auto wrapV = convertWrapMode(gltfSampler.wrapT);
-
-            m_resourceManager->createSampler(magFilter, minFilter, wrapU, wrapV);
         }
 
         for (tinygltf::Texture const& texture : gltfModel->textures)
@@ -914,19 +881,134 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
             std::size_t components = static_cast<std::size_t>(gltfImage.component);
 
             m_gltfResources->textures.push_back(std::make_shared<vkr::Texture>(getApp(), gltfImage.image, width, height, bitsPerComponent, components, sampler));
+        }
 
+        for (tinygltf::Buffer const& buffer : gltfModel->buffers)
+        {
+            auto const& data = buffer.data;
+            VkDeviceSize bufferSize = sizeof(data[0]) * data.size();
+
+            auto handle = m_resourceManager->createBuffer(bufferSize, vkgfx::BufferUsage::VertexIndexBuffer); // TODO split buffer into several different parts
+            m_resourceManager->uploadBuffer(handle, data);
+            m_gfxResources->buffers.push_back(handle);
+        }
+
+        for (tinygltf::Sampler const& gltfSampler : gltfModel->samplers)
+        {
+            auto convertFilterMode = [](int gltfMode)
             {
-                vkgfx::ImageMetadata metadata;
-                metadata.width = width;
-                metadata.height = height;
-                if (bitsPerComponent == 8 && components == 4)
-                    metadata.format = vkgfx::ImageFormat::R8G8B8A8;
-                else
-                    throw std::runtime_error("Not implemented");
+                switch (gltfMode)
+                {
+                case TINYGLTF_TEXTURE_FILTER_NEAREST:
+                case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST:
+                case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR:
+                    return vko::SamplerFilterMode::Nearest;
+                case -1:
+                case TINYGLTF_TEXTURE_FILTER_LINEAR:
+                case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
+                case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR:
+                    return vko::SamplerFilterMode::Linear;
+                }
 
-                auto handle = m_resourceManager->createImage(metadata);
-                m_resourceManager->uploadImage(handle, gltfImage.image);
+                throw std::invalid_argument("gltfMode");
+            };
+
+            auto convertWrapMode = [](int gltfMode)
+            {
+                switch (gltfMode)
+                {
+                case -1:
+                case TINYGLTF_TEXTURE_WRAP_REPEAT:
+                    return vko::SamplerWrapMode::Repeat;
+                case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE:
+                    return vko::SamplerWrapMode::ClampToEdge;
+                case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT:
+                    return vko::SamplerWrapMode::Mirror;
+                }
+
+                throw std::invalid_argument("gltfMode");
+            };
+
+            auto magFilter = convertFilterMode(gltfSampler.magFilter);
+            auto minFilter = convertFilterMode(gltfSampler.minFilter);
+            auto wrapU = convertWrapMode(gltfSampler.wrapS);
+            auto wrapV = convertWrapMode(gltfSampler.wrapT);
+
+            auto handle = m_resourceManager->createSampler(magFilter, minFilter, wrapU, wrapV);
+            m_gfxResources->samplers.push_back(handle);
+        }
+
+        for (tinygltf::Image const& gltfImage : gltfModel->images)
+        {
+            uint32_t width = static_cast<uint32_t>(gltfImage.width);
+            uint32_t height = static_cast<uint32_t>(gltfImage.height);
+            std::size_t bitsPerComponent = static_cast<std::size_t>(gltfImage.bits);
+            std::size_t components = static_cast<std::size_t>(gltfImage.component);
+
+            vkgfx::ImageMetadata metadata;
+            metadata.width = width;
+            metadata.height = height;
+            if (bitsPerComponent == 8 && components == 4)
+                metadata.format = vkgfx::ImageFormat::R8G8B8A8;
+            else
+                throw std::runtime_error("Not implemented");
+
+            auto handle = m_resourceManager->createImage(metadata);
+            m_resourceManager->uploadImage(handle, gltfImage.image);
+            m_gfxResources->images.push_back(handle);
+        }
+
+        for (tinygltf::Texture const& gltfTexture : gltfModel->textures)
+        {
+            std::size_t const imageIndex = static_cast<std::size_t>(gltfTexture.source);
+
+            vkgfx::Texture texture;
+            texture.image = m_gfxResources->images[imageIndex];
+            texture.sampler = m_defaultSampler;
+            if (gltfTexture.sampler >= 0)
+            {
+                std::size_t const samplerIndex = static_cast<std::size_t>(gltfTexture.sampler);
+                texture.sampler = m_gfxResources->samplers[samplerIndex];
             }
+
+            vkgfx::TextureHandle handle = m_resourceManager->createTexture(std::move(texture));
+            m_gfxResources->textures.push_back(handle);
+        }
+
+        for (tinygltf::Material const& gltfMaterial : gltfModel->materials)
+        {
+            tinygltf::PbrMetallicRoughness const& gltfRoughness = gltfMaterial.pbrMetallicRoughness;
+
+            vkgfx::Material material;
+            material.albedo = m_defaultAlbedoTexture;
+            if (gltfRoughness.baseColorTexture.index >= 0)
+            {
+                std::size_t const textureIndex = static_cast<std::size_t>(gltfRoughness.baseColorTexture.index);
+                material.albedo = m_gfxResources->textures[textureIndex];
+            }
+
+            material.normalMap = m_defaultNormalMapTexture;
+            if (gltfMaterial.normalTexture.index >= 0)
+            {
+                std::size_t const textureIndex = static_cast<std::size_t>(gltfMaterial.normalTexture.index);
+                material.normalMap = m_gfxResources->textures[textureIndex];
+            }
+
+            struct MaterialUniformBuffer
+            {
+                glm::vec4 color;
+            };
+
+            MaterialUniformBuffer values;
+            values.color = createColor(gltfRoughness.baseColorFactor);
+
+            auto buffer = m_resourceManager->createBuffer(sizeof(MaterialUniformBuffer), vkgfx::BufferUsage::UniformBuffer);
+            m_resourceManager->uploadBuffer(buffer, &values, sizeof(MaterialUniformBuffer));
+        }
+
+        for (tinygltf::Mesh const& gltfMesh : gltfModel->meshes)
+        {
+            // TODO implement
         }
     }
 

@@ -2,19 +2,16 @@
 
 #include "wrapper/DeviceMemory.h"
 #include "wrapper/Buffer.h"
+#include "vkgfx/BufferMetadata.h"
 
 namespace vkgfx
 {
-    struct BufferHandle
-    {
-        std::size_t index = 0; // TODO improve
-    };
-
     struct Buffer
     {
-        Buffer(vko::DeviceMemory memory, vko::Buffer buffer);
+        Buffer(vko::DeviceMemory memory, vko::Buffer buffer, BufferUsage usage);
 
         vko::DeviceMemory memory;
         vko::Buffer buffer;
+        BufferUsage usage;
     };
 }
