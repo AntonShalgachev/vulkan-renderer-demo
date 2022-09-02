@@ -12,6 +12,8 @@ namespace vko
     class Queue;
 
     enum class ShaderModuleType;
+    enum class SamplerFilterMode;
+    enum class SamplerWrapMode;
 }
 
 namespace vkgfx
@@ -25,6 +27,9 @@ namespace vkgfx
 
     struct ShaderModule;
     struct ShaderModuleHandle;
+
+    struct Sampler;
+    struct SamplerHandle;
 
     class ResourceManager
     {
@@ -40,6 +45,8 @@ namespace vkgfx
 
         ShaderModuleHandle createShaderModule(std::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint = "main");
 
+        SamplerHandle createSampler(vko::SamplerFilterMode magFilter, vko::SamplerFilterMode minFilter, vko::SamplerWrapMode wrapU, vko::SamplerWrapMode wrapV);
+
     private:
         vko::Device const& m_device;
         vko::PhysicalDevice const& m_physicalDevice; // TODO replace with the allocator
@@ -49,5 +56,6 @@ namespace vkgfx
         std::vector<Image> m_images;
         std::vector<Buffer> m_buffers;
         std::vector<ShaderModule> m_shaderModules;
+        std::vector<Sampler> m_samplers;
     };
 }

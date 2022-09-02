@@ -65,6 +65,8 @@ set(ALL_FILES
     "vkgfx/Image.cpp"
     "vkgfx/ShaderModule.h"
     "vkgfx/ShaderModule.cpp"
+    "vkgfx/Sampler.h"
+    "vkgfx/Sampler.cpp"
     "vkgfx/ResourceManager.h"
     "vkgfx/ResourceManager.cpp"
 

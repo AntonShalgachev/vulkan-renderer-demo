@@ -49,6 +49,7 @@
 #include "vkgfx/Image.h" // TODO don't include it
 #include "vkgfx/Buffer.h" // TODO don't include it
 #include "vkgfx/ShaderModule.h" // TODO don't include it
+#include "vkgfx/Sampler.h" // TODO don't include it
 
 #include "services/DebugConsoleService.h"
 #include "services/CommandLineService.h"
@@ -813,11 +814,8 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
             }
         }
 
-        for (tinygltf::Texture const& texture : gltfModel->textures)
+        for (tinygltf::Sampler const& gltfSampler : gltfModel->samplers)
         {
-            std::size_t const samplerIndex = static_cast<std::size_t>(texture.sampler);
-            tinygltf::Sampler const& gltfSampler = gltfModel->samplers[samplerIndex];
-
             auto convertFilterMode = [](int gltfMode)
             {
                 switch (gltfMode)
@@ -825,12 +823,12 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
                 case TINYGLTF_TEXTURE_FILTER_NEAREST:
                 case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST:
                 case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR:
-                    return vko::Sampler::FilterMode::Nearest;
+                    return vko::SamplerFilterMode::Nearest;
                 case -1:
                 case TINYGLTF_TEXTURE_FILTER_LINEAR:
                 case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
                 case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR:
-                    return vko::Sampler::FilterMode::Linear;
+                    return vko::SamplerFilterMode::Linear;
                 }
 
                 throw std::invalid_argument("gltfMode");
@@ -842,11 +840,59 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
                 {
                 case -1:
                 case TINYGLTF_TEXTURE_WRAP_REPEAT:
-                    return vko::Sampler::WrapMode::Repeat;
+                    return vko::SamplerWrapMode::Repeat;
                 case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE:
-                    return vko::Sampler::WrapMode::ClampToEdge;
+                    return vko::SamplerWrapMode::ClampToEdge;
                 case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT:
-                    return vko::Sampler::WrapMode::Mirror;
+                    return vko::SamplerWrapMode::Mirror;
+                }
+
+                throw std::invalid_argument("gltfMode");
+            };
+
+            auto magFilter = convertFilterMode(gltfSampler.magFilter);
+            auto minFilter = convertFilterMode(gltfSampler.minFilter);
+            auto wrapU = convertWrapMode(gltfSampler.wrapS);
+            auto wrapV = convertWrapMode(gltfSampler.wrapT);
+
+            m_resourceManager->createSampler(magFilter, minFilter, wrapU, wrapV);
+        }
+
+        for (tinygltf::Texture const& texture : gltfModel->textures)
+        {
+            std::size_t const samplerIndex = static_cast<std::size_t>(texture.sampler);
+            tinygltf::Sampler const& gltfSampler = gltfModel->samplers[samplerIndex];
+
+            // TOOD remove sampler code from here
+            auto convertFilterMode = [](int gltfMode)
+            {
+                switch (gltfMode)
+                {
+                case TINYGLTF_TEXTURE_FILTER_NEAREST:
+                case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST:
+                case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR:
+                    return vko::SamplerFilterMode::Nearest;
+                case -1:
+                case TINYGLTF_TEXTURE_FILTER_LINEAR:
+                case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
+                case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR:
+                    return vko::SamplerFilterMode::Linear;
+                }
+
+                throw std::invalid_argument("gltfMode");
+            };
+
+            auto convertWrapMode = [](int gltfMode)
+            {
+                switch (gltfMode)
+                {
+                case -1:
+                case TINYGLTF_TEXTURE_WRAP_REPEAT:
+                    return vko::SamplerWrapMode::Repeat;
+                case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE:
+                    return vko::SamplerWrapMode::ClampToEdge;
+                case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT:
+                    return vko::SamplerWrapMode::Mirror;
                 }
 
                 throw std::invalid_argument("gltfMode");

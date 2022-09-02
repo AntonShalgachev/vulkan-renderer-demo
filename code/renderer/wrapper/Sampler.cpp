@@ -4,28 +4,28 @@
 
 namespace
 {
-    VkFilter vulkanizeFilterMode(vko::Sampler::FilterMode mode)
+    VkFilter vulkanizeFilterMode(vko::SamplerFilterMode mode)
     {
         switch (mode)
         {
-        case vko::Sampler::FilterMode::Nearest:
+        case vko::SamplerFilterMode::Nearest:
             return VK_FILTER_NEAREST;
-        case vko::Sampler::FilterMode::Linear:
+        case vko::SamplerFilterMode::Linear:
             return VK_FILTER_LINEAR;
         }
 
         throw std::invalid_argument("mode");
     }
 
-    VkSamplerAddressMode vulkanizeWrapMode(vko::Sampler::WrapMode mode)
+    VkSamplerAddressMode vulkanizeWrapMode(vko::SamplerWrapMode mode)
     {
         switch (mode)
         {
-        case vko::Sampler::WrapMode::Repeat:
+        case vko::SamplerWrapMode::Repeat:
             return VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        case vko::Sampler::WrapMode::Mirror:
+        case vko::SamplerWrapMode::Mirror:
             return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
-        case vko::Sampler::WrapMode::ClampToEdge:
+        case vko::SamplerWrapMode::ClampToEdge:
             return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
         }
 
@@ -33,9 +33,9 @@ namespace
     }
 }
 
-vko::Sampler::Sampler(Device const& device) : Sampler(device, FilterMode::Linear, FilterMode::Linear, WrapMode::Repeat, WrapMode::Repeat) {}
+vko::Sampler::Sampler(Device const& device) : Sampler(device, SamplerFilterMode::Linear, SamplerFilterMode::Linear, SamplerWrapMode::Repeat, SamplerWrapMode::Repeat) {}
 
-vko::Sampler::Sampler(Device const& device, FilterMode magFilter, FilterMode minFilter, WrapMode wrapU, WrapMode wrapV)
+vko::Sampler::Sampler(Device const& device, SamplerFilterMode magFilter, SamplerFilterMode minFilter, SamplerWrapMode wrapU, SamplerWrapMode wrapV)
     : m_device(device)
 {
     VkSamplerCreateInfo samplerCreateInfo{};

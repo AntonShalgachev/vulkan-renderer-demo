@@ -7,6 +7,7 @@
 #include "Image.h"
 #include "Buffer.h"
 #include "ShaderModule.h"
+#include "Sampler.h"
 
 namespace
 {
@@ -215,6 +216,18 @@ vkgfx::ShaderModuleHandle vkgfx::ResourceManager::createShaderModule(std::span<u
     handle.index = m_shaderModules.size();
 
     m_shaderModules.emplace_back(std::move(module));
+
+    return handle;
+}
+
+vkgfx::SamplerHandle vkgfx::ResourceManager::createSampler(vko::SamplerFilterMode magFilter, vko::SamplerFilterMode minFilter, vko::SamplerWrapMode wrapU, vko::SamplerWrapMode wrapV)
+{
+    vko::Sampler sampler{ m_device, magFilter, minFilter, wrapU, wrapV };
+
+    SamplerHandle handle;
+    handle.index = m_samplers.size();
+
+    m_samplers.emplace_back(std::move(sampler));
 
     return handle;
 }
