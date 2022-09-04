@@ -1010,10 +1010,9 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
         {
             // TODO implement
         }
-    }
 
-    if (gltfModel)
         m_scene = createSceneObjectHierarchy(gltfModel);
+    }
 
 	auto defaultCameraObject = std::make_shared<vkr::SceneObject>();
 	{

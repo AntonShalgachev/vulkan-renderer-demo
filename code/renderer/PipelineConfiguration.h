@@ -5,12 +5,9 @@
 
 #include "VertexLayoutDescriptions.h"
 
-bool operator==(VkExtent2D const& lhs, VkExtent2D const& rhs);
-
 namespace vko
 {
     class PipelineLayout;
-    class RenderPass;
 }
 
 namespace vkr
@@ -19,8 +16,6 @@ namespace vkr
 	struct PipelineConfiguration
 	{
 		vko::PipelineLayout const* pipelineLayout = nullptr;
-		vko::RenderPass const* renderPass = nullptr;
-		VkExtent2D extent{ 0, 0 }; // TODO remove; when extent changes, just recreate pipelines
 		Shader::Key shaderKey;
 		VertexLayoutDescriptions vertexLayoutDescriptions;
 		bool cullBackFaces = true;
@@ -39,8 +34,6 @@ namespace std
 		{
 			std::size_t seed = 0;
 			vkr::hash::combine(seed, rhs.pipelineLayout);
-			vkr::hash::combine(seed, rhs.renderPass);
-			vkr::hash::combine(seed, rhs.extent);
 			vkr::hash::combine(seed, rhs.shaderKey);
 			vkr::hash::combine(seed, rhs.vertexLayoutDescriptions);
 			vkr::hash::combine(seed, rhs.cullBackFaces);

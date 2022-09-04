@@ -229,8 +229,6 @@ vkr::Renderer::Renderer(Application const& app)
 
         vkr::PipelineConfiguration configuration;
         configuration.pipelineLayout = m_oneFrameBoxResources.pipelineLayout.get();
-        configuration.renderPass = m_renderPass.get();
-        configuration.extent = m_swapchain->getExtent();
         configuration.shaderKey = vkr::Shader::Key{}
             .addStage(vko::ShaderModuleType::Vertex, "data/shaders/packaged/debugdraw.vert/shaders/debugdraw.vert.spv")
             .addStage(vko::ShaderModuleType::Fragment, "data/shaders/packaged/debugdraw.frag/shaders/debugdraw.frag.spv"); // TODO use ShaderPackage
@@ -482,8 +480,6 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources& 
         // TODO don't create heavy configuration for each object instance
         vkr::PipelineConfiguration configuration;
         configuration.pipelineLayout = resources.pipelineLayout.get();
-        configuration.renderPass = m_renderPass.get();
-        configuration.extent = m_swapchain->getExtent();
         configuration.shaderKey = material.getShaderKey();
         configuration.vertexLayoutDescriptions = mesh.getVertexLayout().getDescriptions();
         configuration.cullBackFaces = !material.isDoubleSided();
@@ -561,12 +557,12 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources& 
 std::unique_ptr<vko::Pipeline> vkr::Renderer::createPipeline(PipelineConfiguration const& configuration)
 {
     vko::PipelineLayout const& layout = *configuration.pipelineLayout;
-    vko::RenderPass const& renderPass = *configuration.renderPass;
+    vko::RenderPass const& renderPass = *m_renderPass;
 
     vkr::Shader shader{ getDevice(), configuration.shaderKey };
 
     vko::Pipeline::Config config;
-    config.extent = configuration.extent;
+    config.extent = m_swapchain->getExtent();
     config.bindingDescriptions = configuration.vertexLayoutDescriptions.getBindingDescriptions(); // TODO avoid copy
     config.attributeDescriptions = configuration.vertexLayoutDescriptions.getAttributeDescriptions(); // TODO avoid copy
     config.cullBackFaces = configuration.cullBackFaces;
