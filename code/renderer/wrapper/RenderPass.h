@@ -5,13 +5,12 @@
 
 namespace vko
 {
-    class Swapchain;
     class Device;
 
     class RenderPass
     {
     public:
-        explicit RenderPass(Device const& device, Swapchain const& swapchain, VkFormat depthFormat);
+        explicit RenderPass(Device const& device, VkFormat colorFormat, VkFormat depthFormat);
         ~RenderPass();
 
         RenderPass(RenderPass const&) = default;
@@ -20,11 +19,9 @@ namespace vko
         RenderPass& operator=(RenderPass&&) = default;
 
         VkRenderPass getHandle() const { return m_handle; }
-        VkFormat getDepthFormat() const { return m_depthFormat; }
 
     private:
         Device const& m_device;
         UniqueHandle<VkRenderPass> m_handle;
-        VkFormat m_depthFormat;
     };
 }

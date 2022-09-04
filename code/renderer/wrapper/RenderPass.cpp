@@ -1,16 +1,13 @@
 #include "RenderPass.h"
 
-#include "Swapchain.h"
 #include "Device.h"
 #include <array>
 #include <stdexcept>
 
-vko::RenderPass::RenderPass(Device const& device, Swapchain const& swapchain, VkFormat depthFormat)
-    : m_device(device)
-    , m_depthFormat(depthFormat)
+vko::RenderPass::RenderPass(Device const& device, VkFormat colorFormat, VkFormat depthFormat) : m_device(device)
 {
     VkAttachmentDescription colorAttachment{};
-    colorAttachment.format = swapchain.getSurfaceFormat().format; // TODO it shouldn't depend on the swapchain
+    colorAttachment.format = colorFormat;
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
     colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -20,7 +17,7 @@ vko::RenderPass::RenderPass(Device const& device, Swapchain const& swapchain, Vk
     colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
     VkAttachmentDescription depthAttachment{};
-    depthAttachment.format = m_depthFormat;
+    depthAttachment.format = depthFormat;
     depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
     depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
