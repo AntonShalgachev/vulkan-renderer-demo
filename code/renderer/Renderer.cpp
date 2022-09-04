@@ -220,23 +220,6 @@ vkr::Renderer::Renderer(Application const& app)
 {
     createSwapchain();
     createSyncObjects();
-
-    {
-        m_oneFrameBoxResources.bufferWithMemory = createBufferAndMemory(app, boxBuffer);
-        m_oneFrameBoxResources.mesh = std::make_unique<vkr::Mesh>(app, m_oneFrameBoxResources.bufferWithMemory->buffer(), createBoxVertexLayout(), vkr::Mesh::Metadata{ false, false, true, false });
-
-        m_oneFrameBoxResources.pipelineLayout = std::make_unique<vko::PipelineLayout>(getDevice(), nullptr, sizeof(OneTimeGeometryPushConstants));
-
-        vkr::PipelineConfiguration configuration;
-        configuration.pipelineLayout = m_oneFrameBoxResources.pipelineLayout.get();
-        configuration.shaderKey = vkr::Shader::Key{}
-            .addStage(vko::ShaderModuleType::Vertex, "data/shaders/packaged/debugdraw.vert/shaders/debugdraw.vert.spv")
-            .addStage(vko::ShaderModuleType::Fragment, "data/shaders/packaged/debugdraw.frag/shaders/debugdraw.frag.spv"); // TODO use ShaderPackage
-        configuration.vertexLayoutDescriptions = m_oneFrameBoxResources.mesh->getVertexLayout().getDescriptions();
-        configuration.cullBackFaces = false;
-        configuration.wireframe = true;
-        m_oneFrameBoxResources.pipeline = createPipeline(configuration);
-    }
 }
 
 vkr::Renderer::~Renderer()
@@ -422,6 +405,25 @@ vkr::Renderer::UniformResources const& vkr::Renderer::getUniformResources(vko::D
 void vkr::Renderer::onSwapchainCreated()
 {
     updateCameraAspect();
+
+    {
+        m_oneFrameBoxResources = {};
+
+        m_oneFrameBoxResources.bufferWithMemory = createBufferAndMemory(getApp(), boxBuffer);
+        m_oneFrameBoxResources.mesh = std::make_unique<vkr::Mesh>(getApp(), m_oneFrameBoxResources.bufferWithMemory->buffer(), createBoxVertexLayout(), vkr::Mesh::Metadata{ false, false, true, false });
+
+        m_oneFrameBoxResources.pipelineLayout = std::make_unique<vko::PipelineLayout>(getDevice(), nullptr, sizeof(OneTimeGeometryPushConstants));
+
+        vkr::PipelineConfiguration configuration;
+        configuration.pipelineLayout = m_oneFrameBoxResources.pipelineLayout.get();
+        configuration.shaderKey = vkr::Shader::Key{}
+            .addStage(vko::ShaderModuleType::Vertex, "data/shaders/packaged/debugdraw.vert/shaders/debugdraw.vert.spv")
+            .addStage(vko::ShaderModuleType::Fragment, "data/shaders/packaged/debugdraw.frag/shaders/debugdraw.frag.spv"); // TODO use ShaderPackage
+        configuration.vertexLayoutDescriptions = m_oneFrameBoxResources.mesh->getVertexLayout().getDescriptions();
+        configuration.cullBackFaces = false;
+        configuration.wireframe = true;
+        m_oneFrameBoxResources.pipeline = createPipeline(configuration);
+    }
 }
 
 void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources& frameResources)
