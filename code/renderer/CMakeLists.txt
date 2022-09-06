@@ -72,6 +72,8 @@ set(ALL_FILES
     "vkgfx/Texture.h"
     "vkgfx/Material.h"
     "vkgfx/Mesh.h"
+    "vkgfx/Pipeline.h"
+    "vkgfx/Pipeline.cpp"
     "vkgfx/PipelineKey.h"
     "vkgfx/Handles.h"
     "vkgfx/ResourceManager.h"
@@ -132,7 +134,7 @@ set(ALL_FILES
     
     "GlfwWindow.cpp"
     "GlfwWindow.h"
- "vkgfx/Pipeline.h" "vkgfx/Pipeline.cpp")
+)
 
 add_library(${PROJECT_NAME} ${ALL_FILES})
 
