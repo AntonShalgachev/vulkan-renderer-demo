@@ -9,10 +9,12 @@
 #include "ui/DebugConsoleWidget.h"
 #include "ui/NotificationManager.h"
 
+#include "vkgfx/Handles.h"
+#include "vkgfx/PipelineKey.h"
+
 #include "services/Services.h"
 
 #include "ScopedDebugCommands.h"
-#include "../renderer/vkgfx/Handles.h"
 
 class CommandLineService;
 
@@ -49,6 +51,7 @@ namespace tinygltf
 {
     class Model;
     class Node;
+    class Scene;
 }
 
 struct GltfVkResources
@@ -57,14 +60,94 @@ struct GltfVkResources
     std::vector<std::shared_ptr<vkr::Texture>> textures;
 };
 
+// #include "vkgfx/Mesh.h"
+
+// namespace vkgfx
+// {
+//     struct DescriptorSetLayoutConfiguration
+//     {
+//         UniformConfiguration uniformConfig;
+//     };
+// 
+//     struct PipelineLayoutConfiguration
+//     {
+//         // set layouts
+//         // push constant ranges
+//     };
+// 
+//     struct PipelineConfiguration
+//     {
+//         // pipeline layout
+//         // shader modules
+//         VertexConfiguration vertexConfig;
+//         RenderConfiguration renderConfig;
+//     };
+// }
+
+struct DemoAttributeSemanticsConfiguration
+{
+    bool hasColor = false;
+    bool hasUv = false;
+    bool hasNormal = false;
+    bool hasTangent = false;
+};
+
+// struct DemoShaderConfiguration
+// {
+//     DemoAttributeSemanticsConfiguration attributeConfig;
+//     vkgfx::UniformConfiguration uniformConfig;
+// };
+
+struct DemoMaterialMetadata
+{
+    vkgfx::UniformConfiguration uniformConfig;
+    vkgfx::RenderConfiguration renderConfig;
+};
+
+struct DemoMeshMetadata
+{
+    vkgfx::VertexConfiguration vertexConfig;
+    DemoAttributeSemanticsConfiguration attributeSemanticsConfig;
+    std::size_t materialIndex = 0;
+};
+
+struct DemoObject
+{
+    vkgfx::MeshHandle mesh;
+    vkgfx::MaterialHandle material;
+
+    vkgfx::PipelineHandle pipeline;
+
+    glm::mat4 matrix;
+};
+
+struct DemoScene
+{
+    std::vector<DemoObject> objects;
+};
+
+struct DemoMaterial
+{
+    vkgfx::MaterialHandle handle;
+    DemoMaterialMetadata metadata;
+};
+
+struct DemoMesh
+{
+    vkgfx::MeshHandle handle;
+    DemoMeshMetadata metadata;
+};
+
 struct GfxResources
 {
     std::vector<vkgfx::BufferHandle> buffers;
     std::vector<vkgfx::ImageHandle> images;
     std::vector<vkgfx::SamplerHandle> samplers;
     std::vector<vkgfx::TextureHandle> textures;
-    std::vector<vkgfx::MaterialHandle> materials;
-    std::vector<vkgfx::MeshHandle> meshes;
+    std::vector<DemoMaterial> materials;
+    std::vector<std::vector<DemoMesh>> meshes;
+
+    std::unordered_map<std::string, vkgfx::ShaderModuleHandle> shaderModules;
 };
 
 // TODO move to a separate file
@@ -98,6 +181,9 @@ private:
     std::shared_ptr<vkr::SceneObject> addSceneObjectsFromNode(std::shared_ptr<tinygltf::Model> const& model, tinygltf::Node const& node, Scene& scene);
     std::shared_ptr<vkr::SceneObject> createSceneObjectWithChildren(std::shared_ptr<tinygltf::Model> const& model, Scene& scene, std::size_t nodeIndex);
     Scene createSceneObjectHierarchy(std::shared_ptr<tinygltf::Model> const& model);
+
+    DemoScene createDemoScene(tinygltf::Model const& gltfModel, tinygltf::Scene const& gltfScene) const;
+    void createDemoObjectRecursive(tinygltf::Model const& gltfModel, std::size_t nodeIndex, DemoScene& scene) const;
 
     void clearScene();
     bool loadScene(std::string const& gltfPath);

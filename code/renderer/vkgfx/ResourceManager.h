@@ -3,6 +3,7 @@
 #include <span>
 #include <vector>
 #include <string>
+#include <map>
 
 namespace vko
 {
@@ -41,13 +42,9 @@ namespace vkgfx
     struct Mesh;
     struct MeshHandle;
 
-    // TODO move somewhere
-//     struct Object
-//     {
-//         MeshHandle mesh;
-//         MaterialHandle material;
-//         // TODO transformation matrix and other instance-specific parameters
-//     };
+    struct Pipeline;
+    struct PipelineHandle;
+    struct PipelineKey;
 
     class ResourceManager
     {
@@ -71,6 +68,8 @@ namespace vkgfx
         MaterialHandle createMaterial(Material material);
         MeshHandle createMesh(Mesh mesh);
 
+        PipelineHandle getOrCreatePipeline(PipelineKey const& key);
+
     private:
         vko::Device const& m_device;
         vko::PhysicalDevice const& m_physicalDevice; // TODO replace with the allocator
@@ -85,5 +84,8 @@ namespace vkgfx
         std::vector<Texture> m_textures;
         std::vector<Material> m_materials;
         std::vector<Mesh> m_meshes;
+
+        std::vector<Pipeline> m_pipelines;
+        std::map<PipelineKey, PipelineHandle> m_pipelineHandles;
     };
 }

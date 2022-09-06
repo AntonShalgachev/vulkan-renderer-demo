@@ -175,6 +175,27 @@ namespace
         throw std::invalid_argument("gltfComponentType");
     }
 
+    vkgfx::IndexType findIndexType(int gltfComponentType)
+    {
+        switch (gltfComponentType)
+        {
+        case TINYGLTF_COMPONENT_TYPE_BYTE:
+            return vkgfx::IndexType::Byte;
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
+            return vkgfx::IndexType::UnsignedByte;
+        case TINYGLTF_COMPONENT_TYPE_SHORT:
+            return vkgfx::IndexType::Short;
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+            return vkgfx::IndexType::UnsignedShort;
+        case TINYGLTF_COMPONENT_TYPE_INT:
+            return vkgfx::IndexType::Int;
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
+            return vkgfx::IndexType::UnsignedInt;
+        }
+
+        throw std::invalid_argument("gltfComponentType");
+    }
+
     vkr::VertexLayout::AttributeType findAttributeType(int gltfAttributeType)
     {
         switch (gltfAttributeType)
@@ -194,6 +215,41 @@ namespace
         }
 
         throw std::invalid_argument("gltfAttributeType");
+    }
+
+    vkgfx::AttributeType findAttributeType2(int gltfAttributeType, int gltfComponentType)
+    {
+        if (gltfAttributeType == TINYGLTF_TYPE_VEC2 && gltfComponentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
+            return vkgfx::AttributeType::Vec2f;
+        if (gltfAttributeType == TINYGLTF_TYPE_VEC3 && gltfComponentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
+            return vkgfx::AttributeType::Vec3f;
+        if (gltfAttributeType == TINYGLTF_TYPE_VEC4 && gltfComponentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
+            return vkgfx::AttributeType::Vec4f;
+
+        throw std::invalid_argument("gltfAttributeType and gltfComponentType");
+    }
+
+    std::size_t getAttributeByteSize(vkgfx::AttributeType type)
+    {
+        std::size_t gltfFloatSize = 4;
+
+        switch (type)
+        {
+        case vkgfx::AttributeType::Vec2f:
+            return 2 * gltfFloatSize;
+        case vkgfx::AttributeType::Vec3f:
+            return 3 * gltfFloatSize;
+        case vkgfx::AttributeType::Vec4f:
+            return 4 * gltfFloatSize;
+        case vkgfx::AttributeType::Mat2f:
+            return 4 * gltfFloatSize;
+        case vkgfx::AttributeType::Mat3f:
+            return 9 * gltfFloatSize;
+        case vkgfx::AttributeType::Mat4f:
+            return 16 * gltfFloatSize;
+        }
+
+        throw std::invalid_argument("type");
     }
 
     std::size_t getNumberOfComponents(vkr::VertexLayout::AttributeType type)
@@ -259,7 +315,7 @@ namespace
         throw std::runtime_error("Unkown attribute name: " + name);
     }
 
-    std::unique_ptr<vkr::Mesh> createMesh(vkr::Application const& app, std::shared_ptr<tinygltf::Model> const& model, tinygltf::Primitive const& primitive, GltfVkResources const& resources, GfxResources const& gfxResources)
+    std::unique_ptr<vkr::Mesh> createMesh(vkr::Application const& app, std::shared_ptr<tinygltf::Model> const& model, tinygltf::Primitive const& primitive, GltfVkResources const& resources)
     {
         vkr::VertexLayout layout;
         vkr::Mesh::Metadata metadata;
@@ -279,6 +335,8 @@ namespace
         std::vector<vkr::VertexLayout::Binding> bindings;
 
         bindings.reserve(model->bufferViews.size());
+
+        // WTF
 
         for (auto const& [name, accessorIndex] : primitive.attributes)
         {
@@ -639,7 +697,7 @@ std::shared_ptr<vkr::SceneObject> DemoApplication::addSceneObjectsFromNode(std::
             object->getTransform().addChild(subObject->getTransform());
 
             // TODO don't create mesh if it can be shared with other nodes
-            auto mesh = createMesh(getApp(), model, gltfPrimitive, *m_gltfResources, *m_gfxResources);
+            auto mesh = createMesh(getApp(), model, gltfPrimitive, *m_gltfResources);
 
             auto const& meshMetadata = mesh->getMetadata();
             shaderConfiguration.hasColor = meshMetadata.hasColor;
@@ -752,6 +810,69 @@ Scene DemoApplication::createSceneObjectHierarchy(std::shared_ptr<tinygltf::Mode
     return scene;
 }
 
+DemoScene DemoApplication::createDemoScene(tinygltf::Model const& gltfModel, tinygltf::Scene const& gltfScene) const
+{
+    DemoScene scene;
+
+    for (std::size_t nodeIndex : gltfScene.nodes)
+        createDemoObjectRecursive(gltfModel, nodeIndex, scene);
+
+    return scene;
+}
+
+void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel, std::size_t nodeIndex, DemoScene& scene) const
+{
+    tinygltf::Node const& gltfNode = gltfModel.nodes[nodeIndex];
+
+    if (gltfNode.mesh >= 0)
+    {
+        std::size_t meshIndex = static_cast<std::size_t>(gltfNode.mesh);
+
+        for (DemoMesh const& mesh : m_gfxResources->meshes[meshIndex])
+        {
+            DemoMaterial const& material = m_gfxResources->materials[mesh.metadata.materialIndex];
+
+            vkgfx::PipelineKey pipelineKey;
+            pipelineKey.renderConfig = material.metadata.renderConfig;
+            pipelineKey.uniformConfig = material.metadata.uniformConfig;
+            pipelineKey.vertexConfig = mesh.metadata.vertexConfig;
+
+            // TODO reimplement
+            vkr::ShaderConfiguration shaderConfiguration;
+            shaderConfiguration.hasTexture = material.metadata.uniformConfig.hasAlbedoTexture;
+            shaderConfiguration.hasNormalMap = material.metadata.uniformConfig.hasNormalMap;
+            shaderConfiguration.hasColor = mesh.metadata.attributeSemanticsConfig.hasColor;
+            shaderConfiguration.hasTexCoord = mesh.metadata.attributeSemanticsConfig.hasUv;
+            shaderConfiguration.hasNormal = mesh.metadata.attributeSemanticsConfig.hasNormal;
+            shaderConfiguration.hasTangent = mesh.metadata.attributeSemanticsConfig.hasTangent;
+
+            std::string const* vertexShaderPath = m_defaultVertexShader->get(shaderConfiguration);
+            std::string const* fragmentShaderPath = m_defaultFragmentShader->get(shaderConfiguration);
+
+            if (!vertexShaderPath || !fragmentShaderPath)
+                throw std::runtime_error("Failed to find the shader");
+
+            vkgfx::ShaderModuleHandle vertexShaderModule = m_gfxResources->shaderModules[*vertexShaderPath];
+            vkgfx::ShaderModuleHandle fragmentShaderModule = m_gfxResources->shaderModules[*fragmentShaderPath];
+
+            pipelineKey.shaderHandles = { vertexShaderModule, fragmentShaderModule };
+
+            vkgfx::PipelineHandle pipeline = m_resourceManager->getOrCreatePipeline(pipelineKey);
+
+            DemoObject& object = scene.objects.emplace_back();
+            object.mesh = mesh.handle;
+            object.material = material.handle;
+            object.matrix = glm::identity<glm::mat4>(); // TODO implement
+            object.pipeline = pipeline;
+        }
+    }
+
+    for (auto childNodeIndex : gltfNode.children)
+    {
+        createDemoObjectRecursive(gltfModel, static_cast<std::size_t>(childNodeIndex), scene);
+    }
+}
+
 void DemoApplication::clearScene()
 {
     // move to the renderer
@@ -771,15 +892,6 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
 
     m_defaultVertexShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.vert");
     m_defaultFragmentShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.frag");
-
-    for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
-    {
-        m_resourceManager->createShaderModule(readFile(modulePath), vko::ShaderModuleType::Vertex, "main");
-    }
-    for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
-    {
-        m_resourceManager->createShaderModule(readFile(modulePath), vko::ShaderModuleType::Fragment, "main");
-    }
 
     m_fallbackSampler = std::make_shared<vko::Sampler>(getApp().getDevice());
     m_fallbackAlbedo = std::make_unique<vkr::Texture>(getApp(), std::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff }, 1, 1, 8, 4, m_fallbackSampler);
@@ -805,6 +917,17 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
     m_gltfResources = std::make_unique<GltfVkResources>();
     m_gfxResources = std::make_unique<GfxResources>();
 
+    for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
+    {
+        auto handle = m_resourceManager->createShaderModule(readFile(modulePath), vko::ShaderModuleType::Vertex, "main");
+        m_gfxResources->shaderModules[modulePath] = handle;
+    }
+    for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
+    {
+        auto handle = m_resourceManager->createShaderModule(readFile(modulePath), vko::ShaderModuleType::Fragment, "main");
+        m_gfxResources->shaderModules[modulePath] = handle;
+    }
+
     if (gltfModel)
     {
         for (auto const& buffer : gltfModel->buffers)
@@ -827,9 +950,6 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
 
         for (tinygltf::Texture const& texture : gltfModel->textures)
         {
-            std::size_t const samplerIndex = static_cast<std::size_t>(texture.sampler);
-            tinygltf::Sampler const& gltfSampler = gltfModel->samplers[samplerIndex];
-
             // TOOD remove sampler code from here
             auto convertFilterMode = [](int gltfMode)
             {
@@ -865,12 +985,20 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
                 throw std::invalid_argument("gltfMode");
             };
 
-            auto magFilter = convertFilterMode(gltfSampler.magFilter);
-            auto minFilter = convertFilterMode(gltfSampler.minFilter);
-            auto wrapU = convertWrapMode(gltfSampler.wrapS);
-            auto wrapV = convertWrapMode(gltfSampler.wrapT);
+            std::shared_ptr<vko::Sampler> sampler = m_fallbackSampler;
 
-            auto sampler = std::make_shared<vko::Sampler>(getApp().getDevice(), magFilter, minFilter, wrapU, wrapV);
+            if (texture.sampler >= 0)
+            {
+                std::size_t const samplerIndex = static_cast<std::size_t>(texture.sampler);
+                tinygltf::Sampler const& gltfSampler = gltfModel->samplers[samplerIndex];
+
+                auto magFilter = convertFilterMode(gltfSampler.magFilter);
+                auto minFilter = convertFilterMode(gltfSampler.minFilter);
+                auto wrapU = convertWrapMode(gltfSampler.wrapS);
+                auto wrapV = convertWrapMode(gltfSampler.wrapT);
+
+                sampler = std::make_shared<vko::Sampler>(getApp().getDevice(), magFilter, minFilter, wrapU, wrapV);
+            }
 
             std::size_t const imageIndex = static_cast<std::size_t>(texture.source);
             tinygltf::Image const& gltfImage = gltfModel->images[imageIndex];
@@ -1004,11 +1132,95 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
 
             auto buffer = m_resourceManager->createBuffer(sizeof(MaterialUniformBuffer), vkgfx::BufferUsage::UniformBuffer);
             m_resourceManager->uploadBuffer(buffer, &values, sizeof(MaterialUniformBuffer));
+
+            material.uniformBuffer = buffer;
+
+            DemoMaterial& demoMaterial = m_gfxResources->materials.emplace_back();
+
+            demoMaterial.handle = m_resourceManager->createMaterial(std::move(material));
+
+            demoMaterial.metadata.renderConfig.wireframe = false;
+            demoMaterial.metadata.renderConfig.cullBackfaces = !gltfMaterial.doubleSided;
+            demoMaterial.metadata.uniformConfig.hasAlbedoTexture = true;
+            demoMaterial.metadata.uniformConfig.hasNormalMap = true;
         }
 
         for (tinygltf::Mesh const& gltfMesh : gltfModel->meshes)
         {
-            // TODO implement
+            std::vector<DemoMesh>& demoMeshes = m_gfxResources->meshes.emplace_back();
+            demoMeshes.reserve(gltfMesh.primitives.size());
+
+            for (tinygltf::Primitive const& gltfPrimitive : gltfMesh.primitives)
+            {
+                DemoMesh& demoMesh = demoMeshes.emplace_back();
+
+                vkgfx::Mesh mesh;
+
+                {
+                    tinygltf::Accessor const& gltfAccessor = gltfModel->accessors[static_cast<std::size_t>(gltfPrimitive.indices)];
+                    tinygltf::BufferView const& gltfBufferView = gltfModel->bufferViews[static_cast<std::size_t>(gltfAccessor.bufferView)];
+
+                    mesh.indexBuffer.buffer = m_gfxResources->buffers[static_cast<std::size_t>(gltfBufferView.buffer)];
+                    mesh.indexBuffer.offset = gltfBufferView.byteOffset + gltfAccessor.byteOffset;
+                    mesh.indexCount = gltfAccessor.count;
+                    mesh.indexType = findIndexType(gltfAccessor.componentType);
+                }
+
+                mesh.vertexBuffers.reserve(gltfPrimitive.attributes.size());
+                demoMesh.metadata.vertexConfig.bindings.reserve(gltfPrimitive.attributes.size());
+                demoMesh.metadata.vertexConfig.attributes.reserve(gltfPrimitive.attributes.size());
+
+                std::size_t attributeIndex = 0;
+                for (auto const& [name, accessorIndex] : gltfPrimitive.attributes)
+                {
+                    tinygltf::Accessor const& gltfAccessor = gltfModel->accessors[static_cast<std::size_t>(accessorIndex)];
+                    tinygltf::BufferView const& gltfBufferView = gltfModel->bufferViews[static_cast<std::size_t>(gltfAccessor.bufferView)];
+
+                    vkgfx::BufferWithOffset& attributeBuffer = mesh.vertexBuffers.emplace_back();
+                    attributeBuffer.buffer = m_gfxResources->buffers[static_cast<std::size_t>(gltfBufferView.buffer)];
+                    attributeBuffer.offset = gltfBufferView.byteOffset + gltfAccessor.byteOffset; // TODO can be improved
+
+                    if (name == "COLOR_0")
+                        demoMesh.metadata.attributeSemanticsConfig.hasColor = true;
+                    if (name == "TEXCOORD_0")
+                        demoMesh.metadata.attributeSemanticsConfig.hasUv = true;
+                    if (name == "NORMAL")
+                        demoMesh.metadata.attributeSemanticsConfig.hasNormal = true;
+                    if (name == "TANGENT")
+                        demoMesh.metadata.attributeSemanticsConfig.hasTangent = true;
+
+                    vkgfx::AttributeType attributeType = findAttributeType2(gltfAccessor.type, gltfAccessor.componentType);
+
+                    std::size_t stride = gltfBufferView.byteStride;
+                    if (stride == 0)
+                        stride = getAttributeByteSize(attributeType);
+
+                    vkgfx::VertexConfiguration::Binding& bindingConfig = demoMesh.metadata.vertexConfig.bindings.emplace_back();
+                    bindingConfig.stride = stride;
+
+                    vkgfx::VertexConfiguration::Attribute& attributeConfig = demoMesh.metadata.vertexConfig.attributes.emplace_back();
+                    attributeConfig.binding = attributeIndex;
+                    attributeConfig.location = findAttributeLocation(name);
+                    attributeConfig.offset = 0; // TODO can be improved
+                    attributeConfig.type = attributeType;
+
+                    // TODO implement
+                    assert(gltfPrimitive.mode == TINYGLTF_MODE_TRIANGLES);
+                    demoMesh.metadata.vertexConfig.topology = vkgfx::VertexTopology::Triangles;
+
+                    demoMesh.metadata.materialIndex = gltfPrimitive.material; // TODO check
+
+                    attributeIndex++;
+                }
+
+                demoMesh.handle = m_resourceManager->createMesh(std::move(mesh));
+            }
+        }
+
+        {
+            std::size_t const sceneIndex = static_cast<std::size_t>(gltfModel->defaultScene);
+            tinygltf::Scene const& gltfScene = gltfModel->scenes[sceneIndex];
+            auto demoScene = createDemoScene(*gltfModel, gltfScene);
         }
 
         m_scene = createSceneObjectHierarchy(gltfModel);

@@ -36,4 +36,9 @@ namespace vkgfx
     {
         std::size_t index = 0; // TODO improve
     };
+
+    struct PipelineHandle
+    {
+        std::size_t index = 0; // TODO improve
+    };
 }

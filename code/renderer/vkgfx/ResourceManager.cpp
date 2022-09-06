@@ -12,6 +12,8 @@
 #include "Texture.h"
 #include "Material.h"
 #include "Mesh.h"
+#include "Pipeline.h"
+#include "PipelineKey.h"
 
 namespace
 {
@@ -298,4 +300,9 @@ vkgfx::MeshHandle vkgfx::ResourceManager::createMesh(Mesh mesh)
     m_meshes.push_back(std::move(mesh));
 
     return handle;
+}
+
+vkgfx::PipelineHandle vkgfx::ResourceManager::getOrCreatePipeline(PipelineKey const& key)
+{
+    return {};
 }

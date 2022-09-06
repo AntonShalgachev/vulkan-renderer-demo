@@ -72,6 +72,7 @@ set(ALL_FILES
     "vkgfx/Texture.h"
     "vkgfx/Material.h"
     "vkgfx/Mesh.h"
+    "vkgfx/PipelineKey.h"
     "vkgfx/Handles.h"
     "vkgfx/ResourceManager.h"
     "vkgfx/ResourceManager.cpp"
@@ -103,7 +104,7 @@ set(ALL_FILES
     "PhysicalDeviceSurfaceParameters.cpp"
     "PhysicalDeviceSurfaceParameters.h"
     "PipelineConfiguration.cpp"
-    "PipelineConfiguration.h"
+    "vkgfx/PipelineKey.h"
     "QueueFamilyIndices.cpp"
     "QueueFamilyIndices.h"
     "Renderer.cpp"
@@ -131,7 +132,7 @@ set(ALL_FILES
     
     "GlfwWindow.cpp"
     "GlfwWindow.h"
-)
+ "vkgfx/Pipeline.h" "vkgfx/Pipeline.cpp")
 
 add_library(${PROJECT_NAME} ${ALL_FILES})
 
