@@ -8,10 +8,10 @@ namespace vkgfx
 {
     struct Buffer
     {
-        Buffer(vko::DeviceMemory memory, vko::Buffer buffer, BufferUsage usage);
+        Buffer(vko::DeviceMemory memory, vko::Buffer buffer, BufferMetadata metadata);
 
         vko::DeviceMemory memory;
         vko::Buffer buffer;
-        BufferUsage usage;
+        BufferMetadata metadata;
     };
 }

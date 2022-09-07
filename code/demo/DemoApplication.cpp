@@ -1016,7 +1016,12 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
             auto const& data = buffer.data;
             VkDeviceSize bufferSize = sizeof(data[0]) * data.size();
 
-            auto handle = m_resourceManager->createBuffer(bufferSize, vkgfx::BufferUsage::VertexIndexBuffer); // TODO split buffer into several different parts
+            vkgfx::BufferMetadata metadata{
+                .usage = vkgfx::BufferUsage::VertexIndexBuffer,
+                .location = vkgfx::BufferLocation::DeviceLocal,
+                .isMutable = false,
+            };
+            auto handle = m_resourceManager->createBuffer(bufferSize, std::move(metadata)); // TODO split buffer into several different parts
             m_resourceManager->uploadBuffer(handle, data);
             m_gfxResources->buffers.push_back(handle);
         }
@@ -1130,7 +1135,12 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
             MaterialUniformBuffer values;
             values.color = createColor(gltfRoughness.baseColorFactor);
 
-            auto buffer = m_resourceManager->createBuffer(sizeof(MaterialUniformBuffer), vkgfx::BufferUsage::UniformBuffer);
+            vkgfx::BufferMetadata metadata{
+                .usage = vkgfx::BufferUsage::UniformBuffer,
+                .location = vkgfx::BufferLocation::HostVisible,
+                .isMutable = false,
+            };
+            auto buffer = m_resourceManager->createBuffer(sizeof(MaterialUniformBuffer), std::move(metadata));
             m_resourceManager->uploadBuffer(buffer, &values, sizeof(MaterialUniformBuffer));
 
             material.uniformBuffer = buffer;

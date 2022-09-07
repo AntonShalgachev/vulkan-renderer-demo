@@ -7,4 +7,17 @@ namespace vkgfx
         VertexIndexBuffer,
         UniformBuffer,
     };
+
+    enum class BufferLocation
+    {
+        DeviceLocal,
+        HostVisible,
+    };
+
+    struct BufferMetadata
+    {
+        BufferUsage usage = BufferUsage::VertexIndexBuffer;
+        BufferLocation location = BufferLocation::DeviceLocal;
+        bool isMutable = false;
+    };
 }

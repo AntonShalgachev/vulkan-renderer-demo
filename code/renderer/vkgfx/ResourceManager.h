@@ -25,7 +25,7 @@ namespace vkgfx
 
     struct Buffer;
     struct BufferHandle;
-    enum class BufferUsage;
+    struct BufferMetadata;
 
     struct ShaderModule;
     struct ShaderModuleHandle;
@@ -56,7 +56,7 @@ namespace vkgfx
         void uploadImage(ImageHandle handle, void const* data, std::size_t dataSize);
         void uploadImage(ImageHandle handle, std::span<unsigned char const> bytes);
 
-        BufferHandle createBuffer(std::size_t size, BufferUsage usage);
+        BufferHandle createBuffer(std::size_t size, BufferMetadata metadata);
         void uploadBuffer(BufferHandle handle, void const* data, std::size_t dataSize, std::size_t offset = 0);
         void uploadBuffer(BufferHandle handle, std::span<unsigned char const> bytes, std::size_t offset = 0);
 

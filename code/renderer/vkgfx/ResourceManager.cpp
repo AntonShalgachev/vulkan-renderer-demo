@@ -193,19 +193,28 @@ void vkgfx::ResourceManager::uploadImage(ImageHandle handle, std::span<unsigned 
     return uploadImage(handle, bytes.data(), bytes.size());
 }
 
-vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(std::size_t size, BufferUsage usage)
+vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(std::size_t size, BufferMetadata metadata)
 {
     VkBufferUsageFlags bufferUsageFlags = 0;
     VkMemoryPropertyFlags memoryPropertiesFlags = 0;
 
-    switch (usage)
+    switch (metadata.usage)
     {
     case BufferUsage::VertexIndexBuffer:
-        bufferUsageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-        memoryPropertiesFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        bufferUsageFlags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
         break;
     case BufferUsage::UniformBuffer:
         bufferUsageFlags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+        break;
+    }
+
+    switch (metadata.location)
+    {
+    case BufferLocation::DeviceLocal:
+        memoryPropertiesFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        bufferUsageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        break;
+    case BufferLocation::HostVisible:
         memoryPropertiesFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         break;
     }
@@ -217,7 +226,7 @@ vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(std::size_t size, Buffe
     BufferHandle handle;
     handle.index = m_buffers.size();
 
-    m_buffers.emplace_back(std::move(memory), std::move(buffer), usage);
+    m_buffers.emplace_back(std::move(memory), std::move(buffer), std::move(metadata));
 
     return handle;
 }
@@ -226,9 +235,7 @@ void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, void const* data,
 {
     Buffer const& buffer = m_buffers[handle.index];
 
-    bool useStagingBuffer = buffer.usage == BufferUsage::VertexIndexBuffer;
-
-    if (useStagingBuffer)
+    if (buffer.metadata.location == BufferLocation::DeviceLocal)
     {
         vkr::BufferWithMemory stagingBuffer{ m_device, m_physicalDevice, dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
         stagingBuffer.memory().copyFrom(data, dataSize, offset);
