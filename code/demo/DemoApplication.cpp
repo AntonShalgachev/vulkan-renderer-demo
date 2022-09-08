@@ -7,8 +7,10 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <thread>
 
 #include "tiny_gltf.h"
+#include "stb_image.h"
 #include "glm.h"
 #include "magic_enum.hpp"
 #include "spdlog/spdlog.h"
@@ -131,13 +133,92 @@ namespace
         throw std::runtime_error("unexpected flat color size");
     }
 
+    bool loadImage(tinygltf::Image& image)
+    {
+        auto const* bytes = image.image.data();
+        auto size = image.image.size();
+
+        int w = 0, h = 0, comp = 0, req_comp = 4;
+        unsigned char* data = nullptr;
+        int bits = 8;
+        int pixel_type = TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE;
+
+        if (stbi_is_16_bit_from_memory(bytes, size))
+        {
+            data = reinterpret_cast<unsigned char*>(stbi_load_16_from_memory(bytes, size, &w, &h, &comp, req_comp));
+            if (data)
+            {
+                bits = 16;
+                pixel_type = TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT;
+            }
+        }
+
+        if (!data)
+            data = stbi_load_from_memory(bytes, size, &w, &h, &comp, req_comp);
+
+        if (!data)
+            return false;
+
+        if (w < 1 || h < 1)
+        {
+            stbi_image_free(data);
+            return false;
+        }
+
+        if (req_comp != 0)
+        {
+            // loaded data has `req_comp` channels(components)
+            comp = req_comp;
+        }
+
+        image.width = w;
+        image.height = h;
+        image.component = comp;
+        image.bits = bits;
+        image.pixel_type = pixel_type;
+        image.as_is = false;
+        image.image.resize(static_cast<size_t>(w * h * comp) * size_t(bits / 8));
+        std::copy(data, data + w * h * comp * (bits / 8), image.image.begin());
+        stbi_image_free(data);
+
+        return true;
+    }
+
     std::shared_ptr<tinygltf::Model> loadModel(std::string const& path)
     {
         std::shared_ptr<tinygltf::Model> model = std::make_shared<tinygltf::Model>();
+
         tinygltf::TinyGLTF loader;
+        loader.SetImageLoader([](tinygltf::Image* image, const int image_idx, std::string* err,
+                                 std::string*, int req_width, int req_height,
+                                 const unsigned char* bytes, int size, void*)
+        {
+            if (size < 1)
+                return false;
+
+            image->image.resize(size_t(size));
+            memcpy(image->image.data(), bytes, size_t(size));
+            image->as_is = true;
+
+            return true;
+        }, nullptr);
+
         std::string err;
         std::string warn;
         bool success = loader.LoadASCIIFromFile(model.get(), &err, &warn, path);
+
+        std::vector<std::thread> threads;
+
+        for (tinygltf::Image& image : model->images)
+        {
+            if (!image.as_is)
+                continue;
+
+            threads.emplace_back([](tinygltf::Image* image) { return loadImage(*image); } , &image);
+        }
+
+        for (std::thread& thread : threads)
+            thread.join();
 
         if (!warn.empty())
             std::cout << warn << std::endl;
