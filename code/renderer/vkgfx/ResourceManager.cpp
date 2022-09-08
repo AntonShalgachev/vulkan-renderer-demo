@@ -4,15 +4,16 @@
 #include "wrapper/CommandPool.h"
 #include "wrapper/Queue.h"
 #include "wrapper/ShaderModule.h"
+#include "wrapper/DescriptorSetLayout.h"
+#include "wrapper/PipelineLayout.h"
+#include "wrapper/Pipeline.h"
 #include "Image.h"
 #include "Buffer.h"
-#include "ShaderModule.h"
 #include "Sampler.h"
 #include "Handles.h"
 #include "Texture.h"
 #include "Material.h"
 #include "Mesh.h"
-#include "Pipeline.h"
 #include "PipelineKey.h"
 
 namespace
@@ -125,13 +126,50 @@ namespace
             &region
         );
     }
+
+    VkFormat getVulkanAttributeFormat(vkgfx::AttributeType type)
+    {
+        switch (type)
+        {
+        case vkgfx::AttributeType::Vec2f:
+            return VK_FORMAT_R32G32_SFLOAT;
+        case vkgfx::AttributeType::Vec3f:
+            return VK_FORMAT_R32G32B32_SFLOAT;
+        case vkgfx::AttributeType::Vec4f:
+            return VK_FORMAT_R32G32B32A32_SFLOAT;
+        }
+
+        throw std::invalid_argument("type");
+    }
 }
 
-vkgfx::ResourceManager::ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::CommandPool const& uploadCommandPool, vko::Queue const& uploadQueue)
+// TODO move to another file?
+namespace vkgfx
+{
+    struct DescriptorSetLayoutKey
+    {
+        UniformConfiguration uniformConfig;
+
+        auto operator<=>(DescriptorSetLayoutKey const&) const = default;
+    };
+
+    struct PipelineLayoutKey
+    {
+        std::vector<UniformConfiguration> uniformConfigs;
+        std::vector<PushConstantRange> pushConstantRanges;
+
+        auto operator<=>(PipelineLayoutKey const&) const = default;
+    };
+}
+
+vkgfx::ResourceManager::ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::CommandPool const& uploadCommandPool, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, std::size_t width, std::size_t height)
     : m_device(device)
     , m_physicalDevice(physicalDevice)
     , m_uploadCommandPool(uploadCommandPool)
     , m_uploadQueue(uploadQueue)
+    , m_renderPass(renderPass)
+    , m_width(width)
+    , m_height(height)
 {
 
 }
@@ -257,12 +295,10 @@ void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, std::span<unsigne
 
 vkgfx::ShaderModuleHandle vkgfx::ResourceManager::createShaderModule(std::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint)
 {
-    vko::ShaderModule module{ m_device, bytes, type, std::move(entryPoint) };
-
     ShaderModuleHandle handle;
     handle.index = m_shaderModules.size();
 
-    m_shaderModules.emplace_back(std::move(module));
+    m_shaderModules.emplace_back(m_device, bytes, type, std::move(entryPoint));
 
     return handle;
 }
@@ -311,5 +347,115 @@ vkgfx::MeshHandle vkgfx::ResourceManager::createMesh(Mesh mesh)
 
 vkgfx::PipelineHandle vkgfx::ResourceManager::getOrCreatePipeline(PipelineKey const& key)
 {
-    return {};
+    if (auto it = m_pipelineHandles.find(key); it != m_pipelineHandles.end())
+        return it->second;
+
+    return createPipeline(key);
+}
+
+vkgfx::DescriptorSetLayoutHandle vkgfx::ResourceManager::getOrCreateDescriptorSetLayout(DescriptorSetLayoutKey const& key)
+{
+    if (auto it = m_descriptorSetLayoutHandles.find(key); it != m_descriptorSetLayoutHandles.end())
+        return it->second;
+
+    return createDescriptorSetLayout(key);
+}
+
+vkgfx::DescriptorSetLayoutHandle vkgfx::ResourceManager::createDescriptorSetLayout(DescriptorSetLayoutKey const& key)
+{
+    DescriptorSetLayoutHandle handle;
+    handle.index = m_descriptorSetLayoutHandles.size();
+
+    // TODO avoid filling this structure
+    vko::DescriptorSetConfiguration config;
+    config.hasTexture = key.uniformConfig.hasAlbedoTexture;
+    config.hasNormalMap = key.uniformConfig.hasNormalMap;
+
+    m_descriptorSetLayouts.emplace_back(m_device, std::move(config));
+    m_descriptorSetLayoutHandles[key] = handle;
+
+    return handle;
+}
+
+vkgfx::PipelineLayoutHandle vkgfx::ResourceManager::getOrCreatePipelineLayout(PipelineLayoutKey const& key)
+{
+    if (auto it = m_pipelineLayoutHandles.find(key); it != m_pipelineLayoutHandles.end())
+        return it->second;
+
+    return createPipelineLayout(key);
+}
+
+vkgfx::PipelineLayoutHandle vkgfx::ResourceManager::createPipelineLayout(PipelineLayoutKey const& key)
+{
+    PipelineLayoutHandle handle;
+    handle.index = m_pipelineLayouts.size();
+
+    std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
+    for (UniformConfiguration const& uniformConfig : key.uniformConfigs)
+    {
+        DescriptorSetLayoutKey descriptorSetLayoutKey;
+        descriptorSetLayoutKey.uniformConfig = uniformConfig;
+        DescriptorSetLayoutHandle descriptorSetLayoutHandle = getOrCreateDescriptorSetLayout(descriptorSetLayoutKey);
+        descriptorSetLayouts.push_back(m_descriptorSetLayouts[descriptorSetLayoutHandle.index].getHandle());
+    }
+
+    std::vector<VkPushConstantRange> pushConstantRanges;
+    for (PushConstantRange const& range : key.pushConstantRanges)
+    {
+        VkPushConstantRange& vkRange = pushConstantRanges.emplace_back();
+        vkRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT; // TODO configure
+        vkRange.offset = range.offset;
+        vkRange.size = range.size;
+    }
+
+    m_pipelineLayouts.emplace_back(m_device, std::move(descriptorSetLayouts), std::move(pushConstantRanges));
+    m_pipelineLayoutHandles[key] = handle;
+
+    return handle;
+}
+
+vkgfx::PipelineHandle vkgfx::ResourceManager::createPipeline(PipelineKey const& key)
+{
+    PipelineHandle handle;
+    handle.index = m_pipelines.size();
+
+    vko::Pipeline::Config config;
+    config.extent = { static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height) }; // TODO fix
+    config.cullBackFaces = key.renderConfig.cullBackfaces;
+    config.wireframe = key.renderConfig.wireframe;
+
+    for (std::size_t i = 0; i < key.vertexConfig.bindings.size(); i++)
+    {
+        VertexConfiguration::Binding const& binding = key.vertexConfig.bindings[i];
+        VkVertexInputBindingDescription& desc = config.bindingDescriptions.emplace_back();
+        desc.binding = i;
+        desc.stride = binding.stride;
+        desc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX; // TODO configure
+    }
+
+    for (VertexConfiguration::Attribute const& attribute : key.vertexConfig.attributes)
+    {
+        VkVertexInputAttributeDescription& desc = config.attributeDescriptions.emplace_back();
+        desc.binding = attribute.binding;
+        desc.location = attribute.location;
+        desc.format = ::getVulkanAttributeFormat(attribute.type);
+        desc.offset = attribute.offset;
+    }
+
+    PipelineLayoutKey layoutKey;
+    layoutKey.uniformConfigs = key.uniformConfigs;
+    layoutKey.pushConstantRanges = key.pushConstantRanges;
+
+    PipelineLayoutHandle pipelineLayoutHandle = getOrCreatePipelineLayout(layoutKey);
+
+    std::vector<vko::ShaderModule const*> shaderModules;
+    for (ShaderModuleHandle const& handle : key.shaderHandles)
+        shaderModules.push_back(&m_shaderModules[handle.index]);
+
+    vko::PipelineLayout const& pipelineLayout = m_pipelineLayouts[pipelineLayoutHandle.index];
+
+    m_pipelines.emplace_back(m_device, pipelineLayout, m_renderPass, shaderModules, config);
+    m_pipelineHandles[key] = handle;
+
+    return handle;
 }

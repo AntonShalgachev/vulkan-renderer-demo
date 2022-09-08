@@ -5,6 +5,7 @@
 #include <vulkan/vulkan.h>
 
 #include <vector>
+#include <span>
 
 namespace vko
 {
@@ -28,7 +29,7 @@ namespace vko
             bool wireframe = false;
         };
 
-    	explicit Pipeline(Device const& device, PipelineLayout const& layout, RenderPass const& renderPass, std::vector<ShaderModule> const& shaderModules, Config const& config);
+    	explicit Pipeline(Device const& device, PipelineLayout const& layout, RenderPass const& renderPass, std::span<ShaderModule const*> shaderModules, Config const& config);
     	~Pipeline();
 
         void bind(VkCommandBuffer commandBuffer) const;

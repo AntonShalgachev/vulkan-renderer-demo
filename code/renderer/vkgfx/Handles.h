@@ -15,6 +15,8 @@ namespace vkgfx
     struct ShaderModuleHandle
     {
         std::size_t index = 0; // TODO improve
+
+        auto operator<=>(ShaderModuleHandle const&) const = default;
     };
 
     struct SamplerHandle
@@ -33,6 +35,16 @@ namespace vkgfx
     };
 
     struct MeshHandle
+    {
+        std::size_t index = 0; // TODO improve
+    };
+
+    struct DescriptorSetLayoutHandle
+    {
+        std::size_t index = 0; // TODO improve
+    };
+
+    struct PipelineLayoutHandle
     {
         std::size_t index = 0; // TODO improve
     };

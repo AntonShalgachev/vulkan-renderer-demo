@@ -3,16 +3,16 @@
 #include <vulkan/vulkan.h>
 #include "UniqueHandle.h"
 
+#include <span>
+
 namespace vko
 {
     class Device;
 
-    class DescriptorSetLayout;
-
     class PipelineLayout
     {
     public:
-    	explicit PipelineLayout(Device const& device, DescriptorSetLayout const* descriptorSetLayout, std::size_t pushConstantsSize);
+    	explicit PipelineLayout(Device const& device, std::span<VkDescriptorSetLayout const> setLayouts, std::span<VkPushConstantRange const> pushConstantRanges);
     	~PipelineLayout();
 
         PipelineLayout(PipelineLayout const&) = default;

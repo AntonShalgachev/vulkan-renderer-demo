@@ -12,12 +12,12 @@
 
 namespace
 {
-	std::vector<VkPipelineShaderStageCreateInfo> createStageDescriptions(std::vector<vko::ShaderModule> const& shaderModules)
+	std::vector<VkPipelineShaderStageCreateInfo> createStageDescriptions(std::span<vko::ShaderModule const*> shaderModules)
 	{
         std::vector<VkPipelineShaderStageCreateInfo> stageDescriptions;
 		stageDescriptions.reserve(shaderModules.size());
         std::transform(shaderModules.begin(), shaderModules.end(), std::back_inserter(stageDescriptions),
-            [](vko::ShaderModule const& shaderModule) { return shaderModule.createStageCreateInfo(); });
+            [](vko::ShaderModule const* shaderModule) { return shaderModule->createStageCreateInfo(); });
         return stageDescriptions;
 	}
 
@@ -160,7 +160,7 @@ namespace
 	}
 }
 
-vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, RenderPass const& renderPass, std::vector<ShaderModule> const& shaderModules, Config const& config)
+vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, RenderPass const& renderPass, std::span<ShaderModule const*> shaderModules, Config const& config)
 	: m_device(device)
 {
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages = createStageDescriptions(shaderModules);

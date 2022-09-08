@@ -393,7 +393,20 @@ vkr::Renderer::UniformResources const& vkr::Renderer::getUniformResources(vko::D
     {
         UniformResources resources;
         resources.descriptorSetLayout = std::make_unique<vko::DescriptorSetLayout>(getDevice(), config);
-        resources.pipelineLayout = std::make_unique<vko::PipelineLayout>(getDevice(), resources.descriptorSetLayout.get(), sizeof(VertexPushConstants)); // TODO make push constants more configurable
+
+        std::vector<VkDescriptorSetLayout> layouts = {
+            resources.descriptorSetLayout->getHandle(),
+        };
+
+        std::vector<VkPushConstantRange> ranges = {
+            {
+                .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+                .offset = 0,
+                .size = sizeof(VertexPushConstants),
+            }
+        };
+        
+        resources.pipelineLayout = std::make_unique<vko::PipelineLayout>(getDevice(), std::move(layouts), std::move(ranges));
 
         auto res = m_uniformResources.emplace(config, std::move(resources));
         it = res.first;
@@ -412,7 +425,16 @@ void vkr::Renderer::onSwapchainCreated()
         m_oneFrameBoxResources.bufferWithMemory = createBufferAndMemory(getApp(), boxBuffer);
         m_oneFrameBoxResources.mesh = std::make_unique<vkr::Mesh>(getApp(), m_oneFrameBoxResources.bufferWithMemory->buffer(), createBoxVertexLayout(), vkr::Mesh::Metadata{ false, false, true, false });
 
-        m_oneFrameBoxResources.pipelineLayout = std::make_unique<vko::PipelineLayout>(getDevice(), nullptr, sizeof(OneTimeGeometryPushConstants));
+        std::vector<VkDescriptorSetLayout> layouts = {};
+
+        std::vector<VkPushConstantRange> ranges = {
+            {
+                .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+                .offset = 0,
+                .size = sizeof(OneTimeGeometryPushConstants),
+            }
+        };
+        m_oneFrameBoxResources.pipelineLayout = std::make_unique<vko::PipelineLayout>(getDevice(), std::move(layouts), std::move(ranges));
 
         vkr::PipelineConfiguration configuration;
         configuration.pipelineLayout = m_oneFrameBoxResources.pipelineLayout.get();
@@ -573,7 +595,11 @@ std::unique_ptr<vko::Pipeline> vkr::Renderer::createPipeline(PipelineConfigurati
     config.cullBackFaces = configuration.cullBackFaces;
     config.wireframe = configuration.wireframe;
 
-    return std::make_unique<vko::Pipeline>(getDevice(), layout, renderPass, shader.getModules(), config);
+    std::vector<vko::ShaderModule const*> shaderModules;
+    for (vko::ShaderModule const& module : shader.getModules())
+        shaderModules.push_back(&module);
+
+    return std::make_unique<vko::Pipeline>(getDevice(), layout, renderPass, shaderModules, config);
 }
 
 void vkr::Renderer::destroySwapchain()

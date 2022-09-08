@@ -1,27 +1,11 @@
 #include "PipelineLayout.h"
-#include "DescriptorSetLayout.h"
+
 #include "Device.h"
-#include <array>
 #include <stdexcept>
 
-vko::PipelineLayout::PipelineLayout(Device const& device, DescriptorSetLayout const* descriptorSetLayout, std::size_t pushConstantsSize)
+vko::PipelineLayout::PipelineLayout(Device const& device, std::span<VkDescriptorSetLayout const> setLayouts, std::span<VkPushConstantRange const> pushConstantRanges)
     : m_device(device)
 {
-    std::vector<VkDescriptorSetLayout> setLayouts;
-
-    if (descriptorSetLayout)
-        setLayouts.push_back(descriptorSetLayout->getHandle());
-
-    std::vector<VkPushConstantRange> pushConstantRanges;
-
-    if (pushConstantsSize > 0)
-    {
-        VkPushConstantRange& range = pushConstantRanges.emplace_back();
-        range.offset = 0;
-        range.size = pushConstantsSize;
-        range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    }
-
     VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
     pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(setLayouts.size());

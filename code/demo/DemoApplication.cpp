@@ -476,10 +476,11 @@ DemoApplication::DemoApplication()
 
     m_application = std::make_unique<vkr::Application>("Vulkan demo", VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window, std::move(messageCallback));
 
-    m_resourceManager = std::make_unique<vkgfx::ResourceManager>(m_application->getDevice(), m_application->getPhysicalDevice(), m_application->getShortLivedCommandPool(), m_application->getDevice().getGraphicsQueue());
-
     m_renderer = std::make_unique<vkr::Renderer>(getApp());
     m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
+
+    VkExtent2D extent = m_renderer->getSwapchain().getExtent();
+    m_resourceManager = std::make_unique<vkgfx::ResourceManager>(m_application->getDevice(), m_application->getPhysicalDevice(), m_application->getShortLivedCommandPool(), m_application->getDevice().getGraphicsQueue(), m_renderer->getRenderPass(), extent.width, extent.height);
 
     loadImgui();
 
@@ -834,8 +835,16 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
 
             vkgfx::PipelineKey pipelineKey;
             pipelineKey.renderConfig = material.metadata.renderConfig;
-            pipelineKey.uniformConfig = material.metadata.uniformConfig;
+            pipelineKey.uniformConfigs = { material.metadata.uniformConfig }; // TODO think how to handle multiple descriptor set layouts properly
             pipelineKey.vertexConfig = mesh.metadata.vertexConfig;
+
+            // TODO implement properly
+            struct DefaultPushConstants
+            {
+                glm::mat4 modelView;
+                glm::mat4 normal;
+            };
+            pipelineKey.pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DefaultPushConstants), } };
 
             // TODO reimplement
             vkr::ShaderConfiguration shaderConfiguration;
