@@ -5,12 +5,19 @@
 #define HAS_BITANGENT
 #endif
 
-layout(binding = 0) uniform UniformBufferObject {
+layout(set = 0, binding = 0) uniform ObjectUniformBuffer {
+    vec4 objectColor;
+} objectUniforms;
+
+layout(set = 1, binding = 0) uniform MaterialUniformBuffer {
+    vec4 objectColor;
+} materialUniforms;
+
+layout(set = 2, binding = 0) uniform FrameUniformBuffer {
     mat4 projection;
     vec3 lightPosition;
     vec3 lightColor;
-    vec4 objectColor;
-} ubo;
+} frameUniforms;
 
 layout(push_constant) uniform PushConstants {
     mat4 modelView;
@@ -52,7 +59,7 @@ layout(location = 8) out vec3 fragBitangent;
 void main()
 {
 	vec4 viewPos = pcs.modelView * vec4(inPosition, 1.0);
-	gl_Position = ubo.projection * viewPos;
+	gl_Position = frameUniforms.projection * viewPos;
 
 #ifdef HAS_VERTEX_COLOR
     fragColor = inColor;
@@ -72,9 +79,9 @@ void main()
     fragBitangent = (pcs.normal * vec4(inBitangent, 0.0)).xyz;
 #endif
 
-    objectColor = ubo.objectColor;
+    objectColor = objectUniforms.objectColor * materialUniforms.objectColor;
 
-	lightVec = ubo.lightPosition - viewPos.xyz;
+	lightVec = frameUniforms.lightPosition - viewPos.xyz;
 	viewVec = viewPos.xyz;
-    lightColor = ubo.lightColor;
+    lightColor = frameUniforms.lightColor;
 }

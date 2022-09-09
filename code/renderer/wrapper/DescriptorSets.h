@@ -12,14 +12,13 @@ namespace vkr
 namespace vko
 {
     class DescriptorPool;
-    class DescriptorSetLayout;
     class Buffer;
     class Device;
 
     class DescriptorSets
     {
     public:
-    	DescriptorSets(Device const& device, DescriptorSetLayout const& layout, std::vector<VkDescriptorSet> handles);
+    	DescriptorSets(Device const& device, std::vector<VkDescriptorSet> handles);
 
         void update(std::size_t index, Buffer const& uniformBuffer, std::size_t bufferSize, vkr::Texture const* texture, vkr::Texture const* normalMap);
 
@@ -28,7 +27,6 @@ namespace vko
 
     private:
         Device const* m_device;
-        DescriptorSetLayout const* m_layout;
 
         std::vector<VkDescriptorSet> m_handles;
     };

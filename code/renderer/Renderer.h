@@ -107,7 +107,7 @@ namespace vkr
 
         struct UniformResources
         {
-            std::unique_ptr<vko::DescriptorSetLayout> descriptorSetLayout;
+            std::vector<std::unique_ptr<vko::DescriptorSetLayout>> descriptorSetLayouts;
             std::unique_ptr<vko::PipelineLayout> pipelineLayout;
         };
 
@@ -124,7 +124,7 @@ namespace vkr
 
         void updateCameraAspect();
 
-        UniformResources const& getUniformResources(vko::DescriptorSetConfiguration const& config);
+        UniformResources const& getUniformResources(std::vector<vko::DescriptorSetConfiguration> const& configs);
 
     private:
         std::shared_ptr<SceneObject> m_activeCameraObject;
@@ -148,7 +148,7 @@ namespace vkr
         std::vector<ObjectInstance> m_drawableInstances;
         std::shared_ptr<Light> m_light;
 
-        std::map<vko::DescriptorSetConfiguration, UniformResources> m_uniformResources;
+        std::map<std::vector<vko::DescriptorSetConfiguration>, UniformResources> m_uniformResources;
 
         std::unordered_map<PipelineConfiguration, std::unique_ptr<vko::Pipeline>> m_pipelines;
 

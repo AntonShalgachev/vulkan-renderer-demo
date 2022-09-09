@@ -916,7 +916,11 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
 
             vkgfx::PipelineKey pipelineKey;
             pipelineKey.renderConfig = material.metadata.renderConfig;
-            pipelineKey.uniformConfigs = { material.metadata.uniformConfig }; // TODO think how to handle multiple descriptor set layouts properly
+
+            // TODO think how to handle multiple descriptor set layouts properly
+            vkgfx::UniformConfiguration fakeUniformConfiguration{ .hasAlbedoTexture = false, .hasNormalMap = false, };
+            pipelineKey.uniformConfigs = { material.metadata.uniformConfig, fakeUniformConfiguration, fakeUniformConfiguration };
+
             pipelineKey.vertexConfig = mesh.metadata.vertexConfig;
 
             pipelineKey.pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DemoObjectPushConstants), } };

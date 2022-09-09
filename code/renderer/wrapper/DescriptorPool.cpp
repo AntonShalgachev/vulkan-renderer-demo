@@ -3,8 +3,6 @@
 #include <array>
 #include <stdexcept>
 
-#include "DescriptorSetLayout.h"
-
 vko::DescriptorPool::DescriptorPool(Device const& device)
     : m_device(device)
 {
@@ -30,18 +28,16 @@ vko::DescriptorPool::~DescriptorPool()
     vkDestroyDescriptorPool(m_device.getHandle(), m_handle, nullptr);
 }
 
-std::optional<vko::DescriptorSets> vko::DescriptorPool::allocate(DescriptorSetLayout const& layout, std::size_t size)
+std::optional<vko::DescriptorSets> vko::DescriptorPool::allocate(std::vector<VkDescriptorSetLayout> const& layouts)
 {
-    std::vector<VkDescriptorSetLayout> layouts(size, layout.getHandle());
-
     VkDescriptorSetAllocateInfo descriptorSetAllocInfo{};
     descriptorSetAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     descriptorSetAllocInfo.descriptorPool = m_handle;
-    descriptorSetAllocInfo.descriptorSetCount = static_cast<uint32_t>(size);
+    descriptorSetAllocInfo.descriptorSetCount = static_cast<uint32_t>(layouts.size());
     descriptorSetAllocInfo.pSetLayouts = layouts.data();
 
     std::vector<VkDescriptorSet> descriptorSetHandles;
-    descriptorSetHandles.resize(size);
+    descriptorSetHandles.resize(layouts.size());
 
     VkResult result = vkAllocateDescriptorSets(m_device.getHandle(), &descriptorSetAllocInfo, descriptorSetHandles.data());
 
@@ -49,7 +45,7 @@ std::optional<vko::DescriptorSets> vko::DescriptorPool::allocate(DescriptorSetLa
         return {};
 
     if (result == VK_SUCCESS)
-        return vko::DescriptorSets{ m_device, layout, descriptorSetHandles };
+        return vko::DescriptorSets{ m_device, descriptorSetHandles };
 
     throw std::runtime_error("failed to allocate descriptor sets!");
 }

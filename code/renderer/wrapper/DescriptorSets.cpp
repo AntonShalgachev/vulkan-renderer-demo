@@ -1,6 +1,5 @@
 #include "DescriptorSets.h"
 #include "DescriptorPool.h"
-#include "DescriptorSetLayout.h"
 #include "Buffer.h"
 #include "Texture.h"
 #include "Sampler.h"
@@ -10,9 +9,8 @@
 #include <stdexcept>
 #include "ImageView.h"
 
-vko::DescriptorSets::DescriptorSets(Device const& device, DescriptorSetLayout const& layout, std::vector<VkDescriptorSet> handles)
+vko::DescriptorSets::DescriptorSets(Device const& device, std::vector<VkDescriptorSet> handles)
     : m_device(&device)
-    , m_layout(&layout)
     , m_handles(std::move(handles))
 {
 
@@ -46,16 +44,7 @@ void vko::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer,
         descriptorWrite.pBufferInfo = &bufferInfo;
     }
 
-    DescriptorSetConfiguration actualConfiguration;
-    actualConfiguration.hasTexture = texture;
-    actualConfiguration.hasNormalMap = normalMap;
-
-    DescriptorSetConfiguration const& descriptorSetConfig = m_layout->getConfiguration();
-
-    if (actualConfiguration != descriptorSetConfig)
-        throw std::runtime_error("Invalid descriptor set layout");
-
-    if (descriptorSetConfig.hasTexture)
+    if (texture)
     {
         VkWriteDescriptorSet& descriptorWrite = descriptorWrites.emplace_back();
 
@@ -73,7 +62,7 @@ void vko::DescriptorSets::update(std::size_t index, Buffer const& uniformBuffer,
         descriptorWrite.pImageInfo = &imageInfo;
     }
 
-    if (descriptorSetConfig.hasNormalMap)
+    if (normalMap)
     {
         VkWriteDescriptorSet& descriptorWrite = descriptorWrites.emplace_back();
 

@@ -48,12 +48,21 @@
 
 namespace
 {
-    struct UniformBufferObject
+    struct ObjectUniformBuffer
+    {
+        glm::vec4 objectColor;
+    };
+
+    struct MaterialUniformBuffer
+    {
+        glm::vec4 objectColor;
+    };
+
+    struct FrameUniformBuffer
     {
         glm::mat4 projection;
         glm::vec3 lightPosition;
         glm::vec3 lightColor;
-        glm::vec4 objectColor;
     };
 
     struct VertexPushConstants
@@ -245,9 +254,7 @@ void vkr::Renderer::addDrawable(SceneObject const& drawableObject)
     config.hasTexture = material.getTexture() != nullptr;
     config.hasNormalMap = material.getNormalMap() != nullptr;
 
-    auto const& resources = getUniformResources(config);
-
-	m_drawableInstances.emplace_back(getApp(), *drawable, drawableObject.getTransform(), sizeof(UniformBufferObject), m_swapchain->getImages().size());
+	m_drawableInstances.emplace_back(getApp(), *drawable, drawableObject.getTransform(), sizeof(ObjectUniformBuffer), sizeof(MaterialUniformBuffer), sizeof(FrameUniformBuffer), m_swapchain->getImages().size());
 }
 
 void vkr::Renderer::clearObjects()
@@ -385,18 +392,22 @@ void vkr::Renderer::updateCameraAspect()
 		camera->setAspect(getAspect());
 }
 
-vkr::Renderer::UniformResources const& vkr::Renderer::getUniformResources(vko::DescriptorSetConfiguration const& config)
+vkr::Renderer::UniformResources const& vkr::Renderer::getUniformResources(std::vector<vko::DescriptorSetConfiguration> const& configs)
 {
-    auto it = m_uniformResources.find(config);
+    auto it = m_uniformResources.find(configs);
 
     if (it == m_uniformResources.end())
     {
         UniformResources resources;
-        resources.descriptorSetLayout = std::make_unique<vko::DescriptorSetLayout>(getDevice(), config);
 
-        std::vector<VkDescriptorSetLayout> layouts = {
-            resources.descriptorSetLayout->getHandle(),
-        };
+        std::vector<VkDescriptorSetLayout> layouts;
+
+        for (vko::DescriptorSetConfiguration const& config : configs)
+        {
+            auto layout = std::make_unique<vko::DescriptorSetLayout>(getDevice(), config);
+            layouts.push_back(layout->getHandle());
+            resources.descriptorSetLayouts.push_back(std::move(layout));
+        }
 
         std::vector<VkPushConstantRange> ranges = {
             {
@@ -408,7 +419,7 @@ vkr::Renderer::UniformResources const& vkr::Renderer::getUniformResources(vko::D
         
         resources.pipelineLayout = std::make_unique<vko::PipelineLayout>(getDevice(), std::move(layouts), std::move(ranges));
 
-        auto res = m_uniformResources.emplace(config, std::move(resources));
+        auto res = m_uniformResources.emplace(configs, std::move(resources));
         it = res.first;
     }
 
@@ -489,20 +500,40 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources& 
         Mesh const& mesh = drawable.getMesh();
         Material const& material = drawable.getMaterial();
 
-        // TODO split into several buffers
-        // TODO update only if the data has changed
-        UniformBufferObject ubo{};
-        ubo.projection = camera->getProjectionMatrix();
-        ubo.lightPosition = cameraTransform.getViewMatrix() * glm::vec4(m_light->getTransform().getLocalPos(), 1.0f);
-        ubo.lightColor = m_light->getColor() * m_light->getIntensity();
-        ubo.objectColor = material.getColor();
-        instance.copyToUniformBuffer(imageIndex, &ubo, sizeof(ubo));
+        {
+            ObjectUniformBuffer values;
+            values.objectColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+            instance.copyToObjectUniformBuffer(imageIndex, &values, sizeof(values));
+        }
+
+        {
+            MaterialUniformBuffer values;
+            values.objectColor = material.getColor();
+
+            instance.copyToMaterialUniformBuffer(imageIndex, &values, sizeof(values));
+        }
+
+        {
+            FrameUniformBuffer values;
+            values.projection = camera->getProjectionMatrix();
+            values.lightPosition = cameraTransform.getViewMatrix() * glm::vec4(m_light->getTransform().getLocalPos(), 1.0f);
+            values.lightColor = m_light->getColor() * m_light->getIntensity();
+
+            instance.copyToFrameUniformBuffer(imageIndex, &values, sizeof(values));
+        }
 
         vko::DescriptorSetConfiguration config;
         config.hasTexture = material.getTexture() != nullptr;
         config.hasNormalMap = material.getNormalMap() != nullptr;
 
-        auto const& resources = getUniformResources(config);
+        std::vector<vko::DescriptorSetConfiguration> configs = {
+            std::move(config),
+            vko::DescriptorSetConfiguration{ false, false },
+            vko::DescriptorSetConfiguration{ false, false },
+        };
+
+        auto const& resources = getUniformResources(configs);
 
         // TODO don't create heavy configuration for each object instance
         vkr::PipelineConfiguration configuration;
@@ -530,24 +561,34 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources& 
         {
             std::vector<vko::DescriptorPool>& descriptorPools = frameResources.descriptorPools;
 
+            std::vector<VkDescriptorSetLayout> layouts;
+            for (auto const& layout : resources.descriptorSetLayouts)
+                layouts.push_back(layout->getHandle());
+
             std::optional<vko::DescriptorSets> descriptorSets;
             do
             {
                 if (!descriptorPools.empty())
-                    descriptorSets = descriptorPools.back().allocate(*resources.descriptorSetLayout, 1);
+                    descriptorSets = descriptorPools.back().allocate(layouts);
 
                 if (!descriptorSets)
                     descriptorPools.emplace_back(getDevice());
             }
             while (!descriptorSets);
 
-            vkr::BufferWithMemory const& uniformBuffer = instance.getBuffer();
+            vkr::BufferWithMemory const& objectUniformBuffer = instance.getObjectBuffer();
+            vkr::BufferWithMemory const& materialUniformBuffer = instance.getMaterialBuffer();
+            vkr::BufferWithMemory const& frameUniformBuffer = instance.getFrameBuffer();
 
-            descriptorSets->update(0, uniformBuffer.buffer(), sizeof(UniformBufferObject), material.getTexture().get(), material.getNormalMap().get());
+            // TODO update in one go
+            descriptorSets->update(0, objectUniformBuffer.buffer(), sizeof(ObjectUniformBuffer), material.getTexture().get(), material.getNormalMap().get());
+            descriptorSets->update(1, materialUniformBuffer.buffer(), sizeof(MaterialUniformBuffer), nullptr, nullptr);
+            descriptorSets->update(2, frameUniformBuffer.buffer(), sizeof(FrameUniformBuffer), nullptr, nullptr);
 
-            VkDescriptorSet descriptorSetHandle = descriptorSets->getHandle(0);
-            uint32_t dynamicOffset = instance.getAlignedUniformBufferSize() * imageIndex;
-            vkCmdBindDescriptorSets(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, resources.pipelineLayout->getHandle(), 0, 1, &descriptorSetHandle, 1, &dynamicOffset);
+            std::array descriptorSetHandles = { descriptorSets->getHandle(0), descriptorSets->getHandle(1), descriptorSets->getHandle(2) };
+            auto dynamicOffsets = instance.getBufferOffsets(imageIndex);
+
+            vkCmdBindDescriptorSets(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, resources.pipelineLayout->getHandle(), 0, descriptorSetHandles.size(), descriptorSetHandles.data(), dynamicOffsets.size(), dynamicOffsets.data());
         }
 
         mesh.draw(handle);
