@@ -111,6 +111,25 @@ struct DemoMeshMetadata
     std::size_t materialIndex = 0;
 };
 
+struct DemoObjectPushConstants
+{
+    glm::mat4 modelView;
+    glm::mat4 normal;
+};
+
+struct DemoObjectUniformBuffer
+{
+    glm::vec4 color;
+};
+
+namespace vkgfx
+{
+    struct Blob
+    {
+        std::vector<std::byte> bytes;
+    };
+}
+
 struct DemoObject
 {
     vkgfx::MeshHandle mesh;
@@ -118,7 +137,8 @@ struct DemoObject
 
     vkgfx::PipelineHandle pipeline;
 
-    glm::mat4 matrix;
+    vkgfx::BufferHandle uniformBuffer;
+    vkgfx::Blob pushConstants;
 };
 
 struct DemoScene

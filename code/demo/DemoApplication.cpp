@@ -919,13 +919,7 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
             pipelineKey.uniformConfigs = { material.metadata.uniformConfig }; // TODO think how to handle multiple descriptor set layouts properly
             pipelineKey.vertexConfig = mesh.metadata.vertexConfig;
 
-            // TODO implement properly
-            struct DefaultPushConstants
-            {
-                glm::mat4 modelView;
-                glm::mat4 normal;
-            };
-            pipelineKey.pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DefaultPushConstants), } };
+            pipelineKey.pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DemoObjectPushConstants), } };
 
             // TODO reimplement
             vkr::ShaderConfiguration shaderConfiguration;
@@ -949,11 +943,31 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
 
             vkgfx::PipelineHandle pipeline = m_resourceManager->getOrCreatePipeline(pipelineKey);
 
+            vkgfx::BufferMetadata uniformBufferMetadata{
+                .usage = vkgfx::BufferUsage::UniformBuffer,
+                .location = vkgfx::BufferLocation::HostVisible,
+                .isMutable = false, // TODO change when mutable buffers are implemented
+            };
+            vkgfx::BufferHandle uniformBuffer = m_resourceManager->createBuffer(sizeof(DemoObjectUniformBuffer), std::move(uniformBufferMetadata));
+
+            DemoObjectUniformBuffer uniformValues;
+            uniformValues.color = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f); // TODO change
+            m_resourceManager->uploadBuffer(uniformBuffer, &uniformValues, sizeof(uniformValues));
+
+            DemoObjectPushConstants pushConstants;
+            pushConstants.modelView = createMatrix(gltfNode); // TODO take hierarchy into account
+            pushConstants.normal = glm::transpose(glm::inverse(pushConstants.modelView));
+
+            vkgfx::Blob pushConstantsBlob;
+            pushConstantsBlob.bytes.resize(sizeof(pushConstants));
+            memcpy(pushConstantsBlob.bytes.data(), &pushConstants, pushConstantsBlob.bytes.size());
+
             DemoObject& object = scene.objects.emplace_back();
             object.mesh = mesh.handle;
             object.material = material.handle;
-            object.matrix = glm::identity<glm::mat4>(); // TODO implement
             object.pipeline = pipeline;
+            object.uniformBuffer = uniformBuffer;
+            object.pushConstants = std::move(pushConstantsBlob);
         }
     }
 
