@@ -4,11 +4,6 @@
 #include <vector>
 #include <cstddef>
 
-namespace vkr
-{
-    class Texture;
-}
-
 namespace vko
 {
     class DescriptorPool;
@@ -18,9 +13,33 @@ namespace vko
     class DescriptorSets
     {
     public:
+        struct UpdateConfig
+        {
+            struct SampledImage
+            {
+                std::size_t set = 0;
+                std::size_t binding = 0;
+                VkImageView imageView = VK_NULL_HANDLE;
+                VkSampler sampler = VK_NULL_HANDLE;
+            };
+
+            struct Buffer
+            {
+                std::size_t set = 0;
+                std::size_t binding = 0;
+                VkBuffer buffer = VK_NULL_HANDLE;
+                std::size_t offset = 0;
+                std::size_t size = 0;
+            };
+
+            std::vector<SampledImage> images;
+            std::vector<Buffer> buffers;
+        };
+
+    public:
     	DescriptorSets(Device const& device, std::vector<VkDescriptorSet> handles);
 
-        void update(std::size_t index, Buffer const& uniformBuffer, std::size_t bufferSize, vkr::Texture const* texture, vkr::Texture const* normalMap);
+        void update(UpdateConfig const& updateConfig);
 
         VkDescriptorSet getHandle(std::size_t index) const { return m_handles[index]; }
         std::size_t getSize() const;

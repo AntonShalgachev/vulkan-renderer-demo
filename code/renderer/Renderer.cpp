@@ -580,10 +580,45 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources& 
             vkr::BufferWithMemory const& materialUniformBuffer = instance.getMaterialBuffer();
             vkr::BufferWithMemory const& frameUniformBuffer = instance.getFrameBuffer();
 
-            // TODO update in one go
-            descriptorSets->update(0, objectUniformBuffer.buffer(), sizeof(ObjectUniformBuffer), material.getTexture().get(), material.getNormalMap().get());
-            descriptorSets->update(1, materialUniformBuffer.buffer(), sizeof(MaterialUniformBuffer), nullptr, nullptr);
-            descriptorSets->update(2, frameUniformBuffer.buffer(), sizeof(FrameUniformBuffer), nullptr, nullptr);
+            vko::DescriptorSets::UpdateConfig config;
+            config.buffers = {
+                {
+                    .set = 0,
+                    .binding = 0,
+                    .buffer = objectUniformBuffer.buffer().getHandle(),
+                    .offset = 0,
+                    .size = sizeof(ObjectUniformBuffer),
+                },
+                {
+                    .set = 1,
+                    .binding = 0,
+                    .buffer = materialUniformBuffer.buffer().getHandle(),
+                    .offset = 0,
+                    .size = sizeof(MaterialUniformBuffer),
+                },
+                {
+                    .set = 2,
+                    .binding = 0,
+                    .buffer = frameUniformBuffer.buffer().getHandle(),
+                    .offset = 0,
+                    .size = sizeof(FrameUniformBuffer),
+                },
+            };
+            config.images = {
+                {
+                    .set = 0,
+                    .binding = 1,
+                    .imageView = material.getTexture()->getImageView().getHandle(),
+                    .sampler = material.getTexture()->getSampler().getHandle(),
+                },
+                {
+                    .set = 0,
+                    .binding = 2,
+                    .imageView = material.getNormalMap()->getImageView().getHandle(),
+                    .sampler = material.getNormalMap()->getSampler().getHandle(),
+                },
+            };
+            descriptorSets->update(config);
 
             std::array descriptorSetHandles = { descriptorSets->getHandle(0), descriptorSets->getHandle(1), descriptorSets->getHandle(2) };
             auto dynamicOffsets = instance.getBufferOffsets(imageIndex);
