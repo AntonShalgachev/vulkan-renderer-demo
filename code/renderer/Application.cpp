@@ -7,10 +7,10 @@
 #include "PhysicalDeviceSurfaceParameters.h"
 #include "QueueFamilyIndices.h"
 #include "wrapper/CommandPool.h"
-#include "GlfwWindow.h"
 #include "wrapper/DebugMessenger.h"
 #include <stdexcept>
 #include "wrapper/Queue.h"
+#include "wrapper/Window.h"
 
 namespace
 {
@@ -58,7 +58,7 @@ namespace
         throw std::runtime_error("failed to find a suitable GPU!");
     }
 
-    std::vector<const char*> createInstanceExtensions(bool enableValidation, vkr::GlfwWindow const& window)
+    std::vector<const char*> createInstanceExtensions(bool enableValidation, vko::Window const& window)
     {
         std::vector<const char*> extensions = window.getRequiredInstanceExtensions();
         
@@ -103,7 +103,7 @@ namespace vkr
     class ApplicationImpl
     {
     public:
-        ApplicationImpl(std::string const& name, bool enableValidation, bool enableApiDump, GlfwWindow const& window, std::function<void(vko::DebugMessage)> onDebugMessage)
+        ApplicationImpl(std::string const& name, bool enableValidation, bool enableApiDump, vko::Window const& window, std::function<void(vko::DebugMessage)> onDebugMessage)
             : m_instance(name, createInstanceExtensions(enableValidation, window), enableValidation, enableApiDump)
             , m_debugMessenger(createDebugMessenger(m_instance, enableValidation, std::move(onDebugMessage)))
             , m_surface(window.createSurface(m_instance))
@@ -134,7 +134,7 @@ namespace vkr
     };
 }
 
-vkr::Application::Application(std::string const& name, bool enableValidation, bool enableApiDump, GlfwWindow const& window, std::function<void(vko::DebugMessage)> onDebugMessage)
+vkr::Application::Application(std::string const& name, bool enableValidation, bool enableApiDump, vko::Window const& window, std::function<void(vko::DebugMessage)> onDebugMessage)
 {
     m_impl = std::make_unique<ApplicationImpl>(name, enableValidation, enableApiDump, window, std::move(onDebugMessage));
 

@@ -11,7 +11,7 @@ struct GLFWwindow;
 
 namespace vkr
 {
-    class GlfwWindow : vko::Window
+    class GlfwWindow : public vko::Window
     {
     public:
         enum class Key
