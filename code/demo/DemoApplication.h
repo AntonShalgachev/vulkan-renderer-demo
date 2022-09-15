@@ -26,6 +26,7 @@ namespace vko
 
 namespace vkgfx
 {
+    class Renderer;
     class ResourceManager;
 
     struct BufferHandle;
@@ -288,5 +289,8 @@ private:
 
     std::string m_currentScenePath = "";
 
-    std::unique_ptr<vkgfx::ResourceManager> m_resourceManager;
+    std::unique_ptr<vkgfx::Renderer> m_newRenderer;
+    std::unique_ptr<vkgfx::ResourceManager> m_ownResourceManager;
+
+    vkgfx::ResourceManager* m_resourceManager = nullptr;
 };

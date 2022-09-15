@@ -47,6 +47,7 @@
 #include "SceneObject.h"
 #include "ShaderPackage.h"
 
+#include "vkgfx/Renderer.h"
 #include "vkgfx/ResourceManager.h"
 #include "vkgfx/Handles.h"
 #include "vkgfx/ImageMetadata.h"
@@ -555,13 +556,26 @@ DemoApplication::DemoApplication()
         assert(m.level != vko::DebugMessage::Level::Error);
     };
 
-    m_application = std::make_unique<vkr::Application>("Vulkan demo", VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window, std::move(messageCallback));
+    m_application = std::make_unique<vkr::Application>("Vulkan demo", VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window, messageCallback);
 
     m_renderer = std::make_unique<vkr::Renderer>(getApp());
-    m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
 
-    VkExtent2D extent = m_renderer->getSwapchain().getExtent();
-    m_resourceManager = std::make_unique<vkgfx::ResourceManager>(m_application->getDevice(), m_application->getPhysicalDevice(), m_application->getShortLivedCommandPool(), m_application->getDevice().getGraphicsQueue(), m_renderer->getRenderPass(), extent.width, extent.height);
+//     m_newRenderer = std::make_unique<vkgfx::Renderer>("Vulkan demo with new API", VALIDATION_ENABLED, *m_window, messageCallback);
+
+    if (m_renderer)
+    {
+        m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
+
+        VkExtent2D extent = m_renderer->getSwapchain().getExtent();
+        m_ownResourceManager = std::make_unique<vkgfx::ResourceManager>(m_application->getDevice(), m_application->getPhysicalDevice(), m_application->getShortLivedCommandPool(), m_application->getDevice().getGraphicsQueue(), m_renderer->getRenderPass(), extent.width, extent.height);
+
+        m_resourceManager = m_ownResourceManager.get();
+    }
+
+    if (m_newRenderer)
+    {
+        m_resourceManager = &m_newRenderer->getResourceManager();
+    }
 
     loadImgui();
 
@@ -665,6 +679,9 @@ void DemoApplication::destroyServices()
 
 void DemoApplication::loadImgui()
 {
+    if (!m_renderer)
+        return;
+
     if (ImGui::GetCurrentContext())
         return;
 
@@ -717,7 +734,8 @@ void DemoApplication::unloadImgui()
 
 void DemoApplication::onFramebufferResized()
 {
-    m_renderer->onFramebufferResized();
+    if (m_renderer)
+        m_renderer->onFramebufferResized();
     m_application->onSurfaceChanged();
 }
 
@@ -986,7 +1004,8 @@ void DemoApplication::clearScene()
     // move to the renderer
     getApp().getDevice().waitIdle();
 
-    m_renderer->clearObjects();
+    if (m_renderer)
+        m_renderer->clearObjects();
     m_light = nullptr;
     m_activeCameraObject = nullptr;
     m_gltfResources = nullptr;
@@ -1354,25 +1373,31 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
 	}
     m_scene.objects.push_back(defaultCameraObject);
 
-    for (auto const& object : m_scene.objects)
+    if (m_renderer)
     {
-        if (object->getDrawable())
-            m_renderer->addDrawable(*object);
+        for (auto const& object : m_scene.objects)
+        {
+            if (object->getDrawable())
+                m_renderer->addDrawable(*object);
 
-        if (!m_activeCameraObject && object->getCamera())
-            m_activeCameraObject = object;
+            if (!m_activeCameraObject && object->getCamera())
+                m_activeCameraObject = object;
+        }
     }
 
     if (!m_activeCameraObject)
         m_activeCameraObject = defaultCameraObject;
 
-    m_renderer->setCamera(m_activeCameraObject);
+    if (m_renderer)
+        m_renderer->setCamera(m_activeCameraObject);
 
     m_light = std::make_shared<vkr::Light>();
     m_light->getTransform().setLocalPos(LIGHT_POS);
     m_light->setColor(LIGHT_COLOR);
     m_light->setIntensity(LIGHT_INTENSITY);
-    m_renderer->setLight(m_light);
+
+    if (m_renderer)
+        m_renderer->setLight(m_light);
 
     m_currentScenePath = gltfPath;
 
@@ -1454,14 +1479,22 @@ void DemoApplication::updateUI(float frameTime, float fenceTime)
 void DemoApplication::drawFrame()
 {
     update();
-    m_services.debugDraw().draw(*m_renderer);
-    m_renderer->draw();
+
+    if (m_renderer)
+    {
+        m_services.debugDraw().draw(*m_renderer);
+        m_renderer->draw();
+    }
+
+    if (m_newRenderer)
+        m_newRenderer->draw();
+
     m_fpsDrawnFrames++;
 }
 
 void DemoApplication::update()
 {
-    if (m_frameTimer.getTime() > m_fpsUpdatePeriod)
+    if (m_renderer && m_frameTimer.getTime() > m_fpsUpdatePeriod)
     {
         float multiplier = 1.0f / static_cast<float>(m_fpsDrawnFrames);
         m_lastFrameTime = m_frameTimer.loop() * multiplier;
