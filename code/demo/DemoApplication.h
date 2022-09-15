@@ -112,41 +112,6 @@ struct DemoMeshMetadata
     std::size_t materialIndex = 0;
 };
 
-struct DemoObjectPushConstants
-{
-    glm::mat4 modelView;
-    glm::mat4 normal;
-};
-
-struct DemoObjectUniformBuffer
-{
-    glm::vec4 color;
-};
-
-namespace vkgfx
-{
-    struct Blob
-    {
-        std::vector<std::byte> bytes;
-    };
-}
-
-struct DemoObject
-{
-    vkgfx::MeshHandle mesh;
-    vkgfx::MaterialHandle material;
-
-    vkgfx::PipelineHandle pipeline;
-
-    vkgfx::BufferHandle uniformBuffer;
-    vkgfx::Blob pushConstants;
-};
-
-struct DemoScene
-{
-    std::vector<DemoObject> objects;
-};
-
 struct DemoMaterial
 {
     vkgfx::MaterialHandle handle;
@@ -175,6 +140,22 @@ struct GfxResources
 struct Scene
 {
 	std::vector<std::shared_ptr<vkr::SceneObject>> objects;
+};
+
+struct DemoObject
+{
+    vkgfx::MeshHandle mesh;
+    vkgfx::MaterialHandle material;
+
+    vkgfx::PipelineHandle pipeline;
+
+    vkgfx::BufferHandle uniformBuffer;
+    std::vector<std::byte> pushConstants; // TODO don't use dynamic memory
+};
+
+struct DemoScene
+{
+    std::vector<DemoObject> objects;
 };
 
 class DemoApplication

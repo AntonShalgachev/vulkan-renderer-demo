@@ -922,6 +922,17 @@ DemoScene DemoApplication::createDemoScene(tinygltf::Model const& gltfModel, tin
 
 void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel, std::size_t nodeIndex, DemoScene& scene) const
 {
+    struct DemoObjectPushConstants
+    {
+        glm::mat4 modelView;
+        glm::mat4 normal;
+    };
+
+    struct DemoObjectUniformBuffer
+    {
+        glm::vec4 color;
+    };
+
     tinygltf::Node const& gltfNode = gltfModel.nodes[nodeIndex];
 
     if (gltfNode.mesh >= 0)
@@ -980,16 +991,13 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
             pushConstants.modelView = createMatrix(gltfNode); // TODO take hierarchy into account
             pushConstants.normal = glm::transpose(glm::inverse(pushConstants.modelView));
 
-            vkgfx::Blob pushConstantsBlob;
-            pushConstantsBlob.bytes.resize(sizeof(pushConstants));
-            memcpy(pushConstantsBlob.bytes.data(), &pushConstants, pushConstantsBlob.bytes.size());
-
             DemoObject& object = scene.objects.emplace_back();
             object.mesh = mesh.handle;
             object.material = material.handle;
             object.pipeline = pipeline;
             object.uniformBuffer = uniformBuffer;
-            object.pushConstants = std::move(pushConstantsBlob);
+            object.pushConstants.resize(sizeof(pushConstants));
+            memcpy(object.pushConstants.data(), &pushConstants, object.pushConstants.size());
         }
     }
 

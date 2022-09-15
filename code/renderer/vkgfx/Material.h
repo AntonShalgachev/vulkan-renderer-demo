@@ -9,7 +9,5 @@ namespace vkgfx
         BufferHandle uniformBuffer;
         TextureHandle albedo;
         TextureHandle normalMap;
-//         ShaderModuleHandle vertexShader;
-//         ShaderModuleHandle fragmentShader;
     };
 }
