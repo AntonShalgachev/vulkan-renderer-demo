@@ -261,16 +261,10 @@ namespace
     {
         switch (gltfComponentType)
         {
-        case TINYGLTF_COMPONENT_TYPE_BYTE:
-            return vkgfx::IndexType::Byte;
         case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
             return vkgfx::IndexType::UnsignedByte;
-        case TINYGLTF_COMPONENT_TYPE_SHORT:
-            return vkgfx::IndexType::Short;
         case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
             return vkgfx::IndexType::UnsignedShort;
-        case TINYGLTF_COMPONENT_TYPE_INT:
-            return vkgfx::IndexType::Int;
         case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
             return vkgfx::IndexType::UnsignedInt;
         }

@@ -6,11 +6,8 @@ namespace vkgfx
 {
     enum class IndexType
     {
-        Byte,
         UnsignedByte,
-        Short,
         UnsignedShort,
-        Int,
         UnsignedInt,
     };
 
