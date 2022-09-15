@@ -74,6 +74,8 @@ set(ALL_FILES
     "vkgfx/Handles.h"
     "vkgfx/ResourceManager.h"
     "vkgfx/ResourceManager.cpp"
+    "vkgfx/Renderer.h"
+    "vkgfx/Renderer.cpp"
 
     "Application.cpp"
     "Application.h"
