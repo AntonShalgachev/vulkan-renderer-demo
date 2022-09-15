@@ -15,8 +15,13 @@
 #include "wrapper/CommandBuffers.h"
 #include "wrapper/Device.h"
 #include "wrapper/Queue.h"
+#include "wrapper/Pipeline.h"
+#include "wrapper/Buffer.h"
 
-#include "vkgfx/ResourceManager.h"
+#include "ResourceManager.h"
+#include "TestObject.h"
+#include "Mesh.h"
+#include "Buffer.h"
 
 // TODO remove vkr references
 #include "Application.h"
@@ -87,6 +92,21 @@ namespace
         height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, height));
 
         return { width, height };
+    }
+
+    VkIndexType vulkanizeIndexType(vkgfx::IndexType type)
+    {
+        switch (type)
+        {
+        case vkgfx::IndexType::UnsignedByte:
+            return VK_INDEX_TYPE_UINT8_EXT;
+        case vkgfx::IndexType::UnsignedShort:
+            return VK_INDEX_TYPE_UINT16;
+        case vkgfx::IndexType::UnsignedInt:
+            return VK_INDEX_TYPE_UINT32;
+        }
+
+        throw std::invalid_argument("type");
     }
 }
 
@@ -180,6 +200,11 @@ vkgfx::Renderer::~Renderer()
     m_swapchain = nullptr;
 }
 
+void vkgfx::Renderer::addTestObject(TestObject object)
+{
+    m_testObjects.push_back(std::move(object));
+}
+
 void vkgfx::Renderer::draw()
 {
     RendererFrameResources& frameResources = m_frameResources[m_nextFrameResourcesIndex];
@@ -244,7 +269,7 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
 
     commandBuffers.begin(0, true);
 
-    VkCommandBuffer handle = commandBuffers.getHandle(0);
+    VkCommandBuffer commandBuffer = commandBuffers.getHandle(0);
 
     VkRenderPassBeginInfo renderPassBeginInfo{};
     renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -260,78 +285,42 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
     renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());;
     renderPassBeginInfo.pClearValues = clearValues.data();
 
-    vkCmdBeginRenderPass(handle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    for (TestObject const& object : m_testObjects)
+    {
+        vko::Pipeline const& pipeline = m_resourceManager->getPipeline(object.pipeline);
+        pipeline.bind(commandBuffer);
+
+        if (!object.pushConstants.empty())
+            vkCmdPushConstants(commandBuffer, pipeline.getPipelineLayoutHandle(), VK_SHADER_STAGE_VERTEX_BIT, 0, object.pushConstants.size(), object.pushConstants.data());
+
+        // TODO update and bind descriptor sets
+
+        Mesh const& mesh = m_resourceManager->getMesh(object.mesh);
+        
+        std::vector<VkBuffer> vertexBuffers;
+        std::vector<VkDeviceSize> vertexBuffersOffsets;
+        for (BufferWithOffset const& bufferWithOffset : mesh.vertexBuffers)
+        {
+            Buffer const& vertexBuffer = m_resourceManager->getBuffer(bufferWithOffset.buffer);
+            vertexBuffers.push_back(vertexBuffer.buffer.getHandle());
+            vertexBuffersOffsets.push_back(bufferWithOffset.offset);
+        }
+
+        Buffer const& indexBuffer = m_resourceManager->getBuffer(mesh.indexBuffer.buffer);
+
+        vkCmdBindVertexBuffers(commandBuffer, 0, static_cast<uint32_t>(vertexBuffersOffsets.size()), vertexBuffers.data(), vertexBuffersOffsets.data());
+        vkCmdBindIndexBuffer(commandBuffer, indexBuffer.buffer.getHandle(), mesh.indexBuffer.offset, vulkanizeIndexType(mesh.indexType));
+
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh.indexCount), 1, 0, 0, 0);
+    }
 
 //     Camera* camera = m_activeCameraObject->getCamera();
 //     Transform const& cameraTransform = m_activeCameraObject->getTransform();
 // 
 //     for (ObjectInstance const& instance : m_drawableInstances)
 //     {
-//         Transform const& transform = instance.getTransform();
-// 
-//         Drawable const& drawable = instance.getDrawable();
-// 
-//         Mesh const& mesh = drawable.getMesh();
-//         Material const& material = drawable.getMaterial();
-// 
-//         {
-//             ObjectUniformBuffer values;
-//             values.objectColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-// 
-//             instance.copyToObjectUniformBuffer(imageIndex, &values, sizeof(values));
-//         }
-// 
-//         {
-//             MaterialUniformBuffer values;
-//             values.objectColor = material.getColor();
-// 
-//             instance.copyToMaterialUniformBuffer(imageIndex, &values, sizeof(values));
-//         }
-// 
-//         {
-//             FrameUniformBuffer values;
-//             values.projection = camera->getProjectionMatrix();
-//             values.lightPosition = cameraTransform.getViewMatrix() * glm::vec4(m_light->getTransform().getLocalPos(), 1.0f);
-//             values.lightColor = m_light->getColor() * m_light->getIntensity();
-// 
-//             instance.copyToFrameUniformBuffer(imageIndex, &values, sizeof(values));
-//         }
-// 
-//         vko::DescriptorSetConfiguration config;
-//         config.hasTexture = material.getTexture() != nullptr;
-//         config.hasNormalMap = material.getNormalMap() != nullptr;
-// 
-//         std::vector<vko::DescriptorSetConfiguration> configs = {
-//             std::move(config),
-//             vko::DescriptorSetConfiguration{ false, false },
-//             vko::DescriptorSetConfiguration{ false, false },
-//         };
-// 
-//         auto const& resources = getUniformResources(configs);
-// 
-//         // TODO don't create heavy configuration for each object instance
-//         vkr::PipelineConfiguration configuration;
-//         configuration.pipelineLayout = resources.pipelineLayout.get();
-//         configuration.shaderKey = material.getShaderKey();
-//         configuration.vertexLayoutDescriptions = mesh.getVertexLayout().getDescriptions();
-//         configuration.cullBackFaces = !material.isDoubleSided();
-// 
-//         auto it = m_pipelines.find(configuration);
-//         if (it == m_pipelines.end())
-//             it = m_pipelines.emplace(configuration, createPipeline(configuration)).first;
-// 
-//         vko::Pipeline const& pipeline = *it->second;
-// 
-//         pipeline.bind(handle);
-// 
-//         {
-//             VertexPushConstants constants;
-//             constants.modelView = cameraTransform.getViewMatrix() * transform.getMatrix();
-//             constants.normal = glm::transpose(glm::inverse(constants.modelView));
-// 
-//             vkCmdPushConstants(handle, resources.pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VertexPushConstants), &constants);
-//         }
-// 
 //         {
 //             std::vector<vko::DescriptorPool>& descriptorPools = frameResources.descriptorPools;
 // 
@@ -425,7 +414,7 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
 //         if (ImDrawData* drawData = ImGui::GetDrawData())
 //             ImGui_ImplVulkan_RenderDrawData(drawData, handle);
 
-    vkCmdEndRenderPass(handle);
+    vkCmdEndRenderPass(commandBuffer);
 
     commandBuffers.end(0);
 }

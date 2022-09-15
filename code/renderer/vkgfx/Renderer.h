@@ -26,6 +26,7 @@ namespace vkgfx
 {
     struct RendererFrameResources;
     class ResourceManager;
+    struct TestObject;
 
     class Renderer
     {
@@ -34,6 +35,8 @@ namespace vkgfx
         ~Renderer();
 
         ResourceManager& getResourceManager() const { return *m_resourceManager; }
+
+        void addTestObject(TestObject object);
 
         void draw();
 
@@ -58,5 +61,7 @@ namespace vkgfx
 
         std::vector<RendererFrameResources> m_frameResources;
         std::size_t m_nextFrameResourcesIndex = 0;
+
+        std::vector<TestObject> m_testObjects;
     };
 }

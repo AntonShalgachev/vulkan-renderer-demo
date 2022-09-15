@@ -77,6 +77,8 @@ set(ALL_FILES
     "vkgfx/Renderer.h"
     "vkgfx/Renderer.cpp"
 
+    "vkgfx/TestObject.h"
+
     "Application.cpp"
     "Application.h"
     "BufferWithMemory.h"

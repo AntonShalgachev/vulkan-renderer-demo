@@ -35,6 +35,8 @@ namespace vkgfx
     struct TextureHandle;
     struct MaterialHandle;
     struct MeshHandle;
+
+    struct TestObject;
 }
 
 namespace vkr
@@ -142,20 +144,9 @@ struct Scene
 	std::vector<std::shared_ptr<vkr::SceneObject>> objects;
 };
 
-struct DemoObject
-{
-    vkgfx::MeshHandle mesh;
-    vkgfx::MaterialHandle material;
-
-    vkgfx::PipelineHandle pipeline;
-
-    vkgfx::BufferHandle uniformBuffer;
-    std::vector<std::byte> pushConstants; // TODO don't use dynamic memory
-};
-
 struct DemoScene
 {
-    std::vector<DemoObject> objects;
+    std::vector<vkgfx::TestObject> objects;
 };
 
 class DemoApplication

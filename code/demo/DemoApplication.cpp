@@ -51,15 +51,15 @@
 #include "vkgfx/ResourceManager.h"
 #include "vkgfx/Handles.h"
 #include "vkgfx/ImageMetadata.h"
-
 #include "vkgfx/Texture.h"
 #include "vkgfx/Mesh.h"
 #include "vkgfx/Material.h"
+#include "vkgfx/BufferMetadata.h"
+#include "vkgfx/TestObject.h"
 
 #include "services/DebugConsoleService.h"
 #include "services/CommandLineService.h"
 #include "services/DebugDrawService.h"
-#include "../renderer/vkgfx/BufferMetadata.h"
 
 namespace
 {
@@ -985,7 +985,7 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
             pushConstants.modelView = createMatrix(gltfNode); // TODO take hierarchy into account
             pushConstants.normal = glm::transpose(glm::inverse(pushConstants.modelView));
 
-            DemoObject& object = scene.objects.emplace_back();
+            vkgfx::TestObject& object = scene.objects.emplace_back();
             object.mesh = mesh.handle;
             object.material = material.handle;
             object.pipeline = pipeline;
@@ -1360,6 +1360,12 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
             std::size_t const sceneIndex = static_cast<std::size_t>(gltfModel->defaultScene);
             tinygltf::Scene const& gltfScene = gltfModel->scenes[sceneIndex];
             auto demoScene = createDemoScene(*gltfModel, gltfScene);
+
+            if (m_newRenderer)
+            {
+                for (auto const& demoObject : demoScene.objects)
+                    m_newRenderer->addTestObject(demoObject);
+            }
         }
 
         m_scene = createSceneObjectHierarchy(gltfModel);
