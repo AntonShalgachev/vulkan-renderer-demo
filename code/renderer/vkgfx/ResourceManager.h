@@ -65,20 +65,26 @@ namespace vkgfx
         ImageHandle createImage(ImageMetadata metadata);
         void uploadImage(ImageHandle handle, void const* data, std::size_t dataSize);
         void uploadImage(ImageHandle handle, std::span<unsigned char const> bytes);
+        Image const& getImage(ImageHandle handle);
 
         BufferHandle createBuffer(std::size_t size, BufferMetadata metadata);
         void uploadBuffer(BufferHandle handle, void const* data, std::size_t dataSize, std::size_t offset = 0);
         void uploadBuffer(BufferHandle handle, std::span<unsigned char const> bytes, std::size_t offset = 0);
+        Buffer const& getBuffer(BufferHandle handle);
 
         ShaderModuleHandle createShaderModule(std::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint = "main");
 
         SamplerHandle createSampler(vko::SamplerFilterMode magFilter, vko::SamplerFilterMode minFilter, vko::SamplerWrapMode wrapU, vko::SamplerWrapMode wrapV);
 
         TextureHandle createTexture(Texture texture);
+        Texture const& getTexture(TextureHandle handle);
         MaterialHandle createMaterial(Material material);
+        Material const& getMaterial(MaterialHandle handle);
         MeshHandle createMesh(Mesh mesh);
+        Mesh const& getMesh(MeshHandle handle);
 
         PipelineHandle getOrCreatePipeline(PipelineKey const& key);
+        vko::Pipeline const& getPipeline(PipelineHandle handle);
 
     private:
         DescriptorSetLayoutHandle getOrCreateDescriptorSetLayout(DescriptorSetLayoutKey const& key);

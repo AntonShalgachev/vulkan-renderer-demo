@@ -226,6 +226,11 @@ void vkgfx::ResourceManager::uploadImage(ImageHandle handle, void const* data, s
     commandBuffer.submit();
 }
 
+vkgfx::Image const& vkgfx::ResourceManager::getImage(ImageHandle handle)
+{
+    return m_images[handle.index];
+}
+
 void vkgfx::ResourceManager::uploadImage(ImageHandle handle, std::span<unsigned char const> bytes)
 {
     return uploadImage(handle, bytes.data(), bytes.size());
@@ -288,6 +293,11 @@ void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, void const* data,
     }
 }
 
+vkgfx::Buffer const& vkgfx::ResourceManager::getBuffer(BufferHandle handle)
+{
+    return m_buffers[handle.index];
+}
+
 void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, std::span<unsigned char const> bytes, std::size_t offset)
 {
     return uploadBuffer(handle, bytes.data(), bytes.size(), offset);
@@ -325,6 +335,11 @@ vkgfx::TextureHandle vkgfx::ResourceManager::createTexture(Texture texture)
     return handle;
 }
 
+vkgfx::Texture const& vkgfx::ResourceManager::getTexture(TextureHandle handle)
+{
+    return m_textures[handle.index];
+}
+
 vkgfx::MaterialHandle vkgfx::ResourceManager::createMaterial(Material material)
 {
     MaterialHandle handle;
@@ -333,6 +348,11 @@ vkgfx::MaterialHandle vkgfx::ResourceManager::createMaterial(Material material)
     m_materials.push_back(std::move(material));
 
     return handle;
+}
+
+vkgfx::Material const& vkgfx::ResourceManager::getMaterial(MaterialHandle handle)
+{
+    return m_materials[handle.index];
 }
 
 vkgfx::MeshHandle vkgfx::ResourceManager::createMesh(Mesh mesh)
@@ -345,12 +365,22 @@ vkgfx::MeshHandle vkgfx::ResourceManager::createMesh(Mesh mesh)
     return handle;
 }
 
+vkgfx::Mesh const& vkgfx::ResourceManager::getMesh(MeshHandle handle)
+{
+    return m_meshes[handle.index];
+}
+
 vkgfx::PipelineHandle vkgfx::ResourceManager::getOrCreatePipeline(PipelineKey const& key)
 {
     if (auto it = m_pipelineHandles.find(key); it != m_pipelineHandles.end())
         return it->second;
 
     return createPipeline(key);
+}
+
+vko::Pipeline const& vkgfx::ResourceManager::getPipeline(PipelineHandle handle)
+{
+    return m_pipelines[handle.index];
 }
 
 vkgfx::DescriptorSetLayoutHandle vkgfx::ResourceManager::getOrCreateDescriptorSetLayout(DescriptorSetLayoutKey const& key)
