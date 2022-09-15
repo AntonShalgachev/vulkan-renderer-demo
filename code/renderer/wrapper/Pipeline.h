@@ -41,8 +41,12 @@ namespace vko
 
         VkPipeline getHandle() const { return m_handle; }
 
+        VkPipelineLayout getPipelineLayoutHandle() const { return m_pipelineLayout; }
+
     private:
         Device const& m_device;
     	UniqueHandle<VkPipeline> m_handle;
+
+        VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
     };
 }

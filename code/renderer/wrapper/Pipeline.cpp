@@ -162,6 +162,7 @@ namespace
 
 vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, RenderPass const& renderPass, std::span<ShaderModule const*> shaderModules, Config const& config)
 	: m_device(device)
+	, m_pipelineLayout(layout.getHandle())
 {
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages = createStageDescriptions(shaderModules);
 
