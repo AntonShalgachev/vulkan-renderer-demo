@@ -23,7 +23,7 @@ namespace
     public:
         OneTimeCommandBuffer(vko::CommandPool const& commandPool, vko::Queue const& queue)
             : m_queue(queue)
-            , m_buffers(commandPool.createCommandBuffers(1))
+            , m_buffers(commandPool.allocate(1))
         {
             m_buffers.begin(0, true);
         }

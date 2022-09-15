@@ -35,9 +35,9 @@ namespace vko
         void submit(std::size_t index, Queue const& queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence) const;
 
     private:
-        Device const& m_device;
-        CommandPool const& m_commandPool;
+        VkDevice m_device;
+        VkCommandPool m_commandPool;
 
-        std::vector<UniqueHandle<VkCommandBuffer>> m_handles;
+        std::vector<UniqueHandle<VkCommandBuffer>> m_handles; // TODO fix this ugliness
     };
 }

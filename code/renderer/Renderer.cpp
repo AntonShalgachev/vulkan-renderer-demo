@@ -464,7 +464,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources& 
     for (vko::DescriptorPool& pool : frameResources.descriptorPools)
         pool.reset();
 
-    frameResources.commandPool->reset();
+    frameResources.commandPool.reset();
 
     vko::CommandBuffers const& commandBuffers = frameResources.commandBuffers;
 
@@ -701,8 +701,8 @@ void vkr::Renderer::createSyncObjects()
             .imageAvailableSemaphore{device},
             .renderFinishedSemaphore{device},
             .inFlightFence{device},
-            .commandPool{std::make_unique<vko::CommandPool>(device, graphicsQueueFamily)},
-            .commandBuffers{resources.commandPool->createCommandBuffers(1)},
+            .commandPool{device, graphicsQueueFamily},
+            .commandBuffers{resources.commandPool.allocate(1)},
         };
         m_frameResources.push_back(std::move(resources));
     }

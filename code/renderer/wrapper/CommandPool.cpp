@@ -6,11 +6,10 @@
 
 vko::CommandPool::CommandPool(Device const& device, QueueFamily const& queueFamily)
     : m_device(device)
-    , m_queueFamily(queueFamily)
 {
     VkCommandPoolCreateInfo poolCreateInfo{};
     poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolCreateInfo.queueFamilyIndex = m_queueFamily.getIndex();
+    poolCreateInfo.queueFamilyIndex = queueFamily.getIndex();
     poolCreateInfo.flags = 0; // TODO make use of it
 
     if (vkCreateCommandPool(m_device.getHandle(), &poolCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
@@ -28,7 +27,7 @@ vko::CommandPool::~CommandPool()
     vkDestroyCommandPool(m_device.getHandle(), m_handle, nullptr);
 }
 
-vko::CommandBuffers vko::CommandPool::createCommandBuffers(std::size_t size) const
+vko::CommandBuffers vko::CommandPool::allocate(std::size_t size) const
 {
     return CommandBuffers{ m_device, *this, size };
 }

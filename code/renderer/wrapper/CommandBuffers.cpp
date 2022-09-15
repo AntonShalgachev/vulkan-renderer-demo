@@ -8,18 +8,18 @@
 #include "Queue.h"
 
 vko::CommandBuffers::CommandBuffers(Device const& device, CommandPool const& commandPool, std::size_t size)
-    : m_device(device)
-    , m_commandPool(commandPool)
+    : m_device(device.getHandle())
+    , m_commandPool(commandPool.getHandle())
 {
     VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
     commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    commandBufferAllocateInfo.commandPool = m_commandPool.getHandle();
+    commandBufferAllocateInfo.commandPool = m_commandPool;
     commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(size);
 
     std::vector<VkCommandBuffer> rawHandles;
     rawHandles.resize(size);
-    VKR_ASSERT(vkAllocateCommandBuffers(m_device.getHandle(), &commandBufferAllocateInfo, rawHandles.data()));
+    VKR_ASSERT(vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, rawHandles.data()));
 
     m_handles.reserve(size);
     for (VkCommandBuffer handle : rawHandles)
@@ -36,7 +36,7 @@ vko::CommandBuffers::~CommandBuffers()
     rawHandles.reserve(m_handles.size());
     for (VkCommandBuffer handle : m_handles)
         rawHandles.push_back(handle);
-    vkFreeCommandBuffers(m_device.getHandle(), m_commandPool.getHandle(), static_cast<uint32_t>(rawHandles.size()), rawHandles.data());
+    vkFreeCommandBuffers(m_device, m_commandPool, static_cast<uint32_t>(rawHandles.size()), rawHandles.data());
 }
 
 void vko::CommandBuffers::reset(std::size_t index) const

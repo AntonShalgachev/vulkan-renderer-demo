@@ -7,7 +7,7 @@
 // TODO pass command pool and queue explicitly?
 vkr::ScopedOneTimeCommandBuffer::ScopedOneTimeCommandBuffer(Application const& app)
     : Object(app)
-    , m_commandBuffers(getApp().getShortLivedCommandPool().createCommandBuffers(1))
+    , m_commandBuffers(getApp().getShortLivedCommandPool().allocate(1))
 {
     m_commandBuffers.begin(0, true);
 }

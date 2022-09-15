@@ -11,12 +11,13 @@
 #include "Timer.h"
 #include "Camera.h"
 #include "Light.h"
+#include "wrapper/CommandBuffers.h"
+#include "wrapper/CommandPool.h"
 
 #include <unordered_map>
 #include <map>
 #include "PipelineConfiguration.h"
 #include "wrapper/DescriptorSetLayout.h" // TODO only vko::DescriptorSetConfiguration is needed
-#include "wrapper/CommandBuffers.h"
 
 namespace vko
 {
@@ -29,11 +30,9 @@ namespace vko
     class DeviceMemory;
     class ImageView;
     class DescriptorSetLayout;
-    class CommandPool;
     class Framebuffer;
     class Sampler;
     class DescriptorPool;
-    class CommandBuffers;
 }
 
 namespace vkr
@@ -102,7 +101,7 @@ namespace vkr
 
             std::vector<vko::DescriptorPool> descriptorPools;
 
-            std::unique_ptr<vko::CommandPool> commandPool;
+            vko::CommandPool commandPool;
             vko::CommandBuffers commandBuffers;
         };
 
