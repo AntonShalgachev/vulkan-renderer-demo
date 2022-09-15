@@ -16,6 +16,7 @@
 #include <map>
 #include "PipelineConfiguration.h"
 #include "wrapper/DescriptorSetLayout.h" // TODO only vko::DescriptorSetConfiguration is needed
+#include "wrapper/CommandBuffers.h"
 
 namespace vko
 {
@@ -32,6 +33,7 @@ namespace vko
     class Framebuffer;
     class Sampler;
     class DescriptorPool;
+    class CommandBuffers;
 }
 
 namespace vkr
@@ -94,15 +96,14 @@ namespace vkr
     private:
         struct FrameResources
         {
-            FrameResources(Application const& app);
-
             vko::Semaphore imageAvailableSemaphore;
             vko::Semaphore renderFinishedSemaphore;
             vko::Fence inFlightFence;
 
-            std::unique_ptr<vko::CommandPool> commandPool;
-            vkr::CommandBuffer commandBuffer;
             std::vector<vko::DescriptorPool> descriptorPools;
+
+            std::unique_ptr<vko::CommandPool> commandPool;
+            vko::CommandBuffers commandBuffers;
         };
 
         struct UniformResources

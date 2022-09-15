@@ -294,7 +294,7 @@ void vkr::Renderer::draw()
     frameResources.inFlightFence.reset();
 
     recordCommandBuffer(imageIndex, frameResources);
-    frameResources.commandBuffer.submit(getDevice().getGraphicsQueue(), &frameResources.renderFinishedSemaphore, &frameResources.imageAvailableSemaphore, &frameResources.inFlightFence);
+    frameResources.commandBuffers.submit(0, getDevice().getGraphicsQueue(), &frameResources.renderFinishedSemaphore, &frameResources.imageAvailableSemaphore, &frameResources.inFlightFence);
 
     std::array waitSemaphores{ frameResources.renderFinishedSemaphore.getHandle() };
     VkPresentInfoKHR presentInfo{};
@@ -466,11 +466,11 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources& 
 
     frameResources.commandPool->reset();
 
-    CommandBuffer const& commandBuffer = frameResources.commandBuffer;
+    vko::CommandBuffers const& commandBuffers = frameResources.commandBuffers;
 
-    commandBuffer.begin(true);
+    commandBuffers.begin(0, true);
 
-    VkCommandBuffer handle = commandBuffer.getHandle();
+    VkCommandBuffer handle = commandBuffers.getHandle(0);
 
     VkRenderPassBeginInfo renderPassBeginInfo{};
     renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -654,7 +654,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources& 
 
     vkCmdEndRenderPass(handle);
 
-    commandBuffer.end();
+    commandBuffers.end(0);
 }
 
 std::unique_ptr<vko::Pipeline> vkr::Renderer::createPipeline(PipelineConfiguration const& configuration)
@@ -691,17 +691,19 @@ void vkr::Renderer::destroySwapchain()
 
 void vkr::Renderer::createSyncObjects()
 {
-    for (auto i = 0; i < FRAME_RESOURCE_COUNT; i++)
-        m_frameResources.emplace_back(getApp());
-}
+    vko::Device const& device = getApp().getDevice();
+    vko::QueueFamily const& graphicsQueueFamily = getApp().getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily();
 
-vkr::Renderer::FrameResources::FrameResources(Application const& app)
-    : imageAvailableSemaphore(app.getDevice())
-    , renderFinishedSemaphore(app.getDevice())
-    , inFlightFence(app.getDevice())
-    , commandPool(std::make_unique<vko::CommandPool>(app.getDevice(), app.getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily()))
-    , commandBuffer(std::make_shared<vko::CommandBuffers>(commandPool->createCommandBuffers(1)), 0)
-{
-    app.setDebugName(imageAvailableSemaphore.getHandle(), "ImageAvailableSemaphore");
-    app.setDebugName(renderFinishedSemaphore.getHandle(), "RenderFinishedSemaphore");
+    for (auto i = 0; i < FRAME_RESOURCE_COUNT; i++)
+    {
+        FrameResources resources
+        {
+            .imageAvailableSemaphore{device},
+            .renderFinishedSemaphore{device},
+            .inFlightFence{device},
+            .commandPool{std::make_unique<vko::CommandPool>(device, graphicsQueueFamily)},
+            .commandBuffers{resources.commandPool->createCommandBuffers(1)},
+        };
+        m_frameResources.push_back(std::move(resources));
+    }
 }
