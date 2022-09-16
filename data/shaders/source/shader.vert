@@ -14,14 +14,14 @@ layout(set = 1, binding = 0) uniform MaterialUniformBuffer {
 } materialUniforms;
 
 layout(set = 2, binding = 0) uniform FrameUniformBuffer {
+    mat4 view;
     mat4 projection;
     vec3 lightPosition;
     vec3 lightColor;
 } frameUniforms;
 
 layout(push_constant) uniform PushConstants {
-    mat4 modelView;
-    mat4 normal;
+    mat4 model;
 } pcs;
 
 layout(location = 0) in vec3 inPosition;
@@ -58,8 +58,11 @@ layout(location = 8) out vec3 fragBitangent;
 
 void main()
 {
-	vec4 viewPos = pcs.modelView * vec4(inPosition, 1.0);
+    mat4 modelView = frameUniforms.view * pcs.model;
+	vec4 viewPos = modelView * vec4(inPosition, 1.0);
 	gl_Position = frameUniforms.projection * viewPos;
+
+    mat4 modelViewNormal = transpose(inverse(modelView));
 
 #ifdef HAS_VERTEX_COLOR
     fragColor = inColor;
@@ -68,15 +71,15 @@ void main()
     fragTexCoord = inTexCoord;
 #endif
 #ifdef HAS_NORMAL
-    fragNormal = (pcs.normal * vec4(inNormal, 0.0)).xyz;
+    fragNormal = (modelViewNormal * vec4(inNormal, 0.0)).xyz;
 #endif
 #ifdef HAS_TANGENT
-    fragTangent = (pcs.normal * vec4(inTangent.xyz, 0.0)).xyz;
+    fragTangent = (modelViewNormal * vec4(inTangent.xyz, 0.0)).xyz;
 #endif
 
 #ifdef HAS_BITANGENT
     vec3 inBitangent = cross(inNormal, inTangent.xyz) * inTangent.w;
-    fragBitangent = (pcs.normal * vec4(inBitangent, 0.0)).xyz;
+    fragBitangent = (modelViewNormal * vec4(inBitangent, 0.0)).xyz;
 #endif
 
     objectColor = objectUniforms.objectColor * materialUniforms.objectColor;

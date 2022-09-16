@@ -60,6 +60,7 @@ namespace
 
     struct FrameUniformBuffer
     {
+        glm::mat4 view;
         glm::mat4 projection;
         glm::vec3 lightPosition;
         glm::vec3 lightColor;
@@ -67,8 +68,7 @@ namespace
 
     struct VertexPushConstants
     {
-        glm::mat4 modelView;
-        glm::mat4 normal;
+        glm::mat4 model;
     };
 
     const int FRAME_RESOURCE_COUNT = 3;
@@ -516,6 +516,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources& 
 
         {
             FrameUniformBuffer values;
+            values.view = cameraTransform.getViewMatrix();
             values.projection = camera->getProjectionMatrix();
             values.lightPosition = cameraTransform.getViewMatrix() * glm::vec4(m_light->getTransform().getLocalPos(), 1.0f);
             values.lightColor = m_light->getColor() * m_light->getIntensity();
@@ -552,8 +553,7 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources& 
 
         {
             VertexPushConstants constants;
-            constants.modelView = cameraTransform.getViewMatrix() * transform.getMatrix();
-            constants.normal = glm::transpose(glm::inverse(constants.modelView));
+            constants.model = transform.getMatrix();
 
             vkCmdPushConstants(handle, resources.pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VertexPushConstants), &constants);
         }
