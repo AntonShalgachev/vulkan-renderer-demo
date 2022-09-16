@@ -552,9 +552,8 @@ DemoApplication::DemoApplication()
 
     m_application = std::make_unique<vkr::Application>("Vulkan demo", VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window, messageCallback);
 
-    m_renderer = std::make_unique<vkr::Renderer>(getApp());
-
-//     m_newRenderer = std::make_unique<vkgfx::Renderer>("Vulkan demo with new API", VALIDATION_ENABLED, *m_window, messageCallback);
+//     m_renderer = std::make_unique<vkr::Renderer>(getApp());
+    m_newRenderer = std::make_unique<vkgfx::Renderer>("Vulkan demo with new API", VALIDATION_ENABLED, *m_window, messageCallback);
 
     if (m_renderer)
     {
@@ -759,14 +758,8 @@ void DemoApplication::onKey(vkr::GlfwWindow::Action action, vkr::GlfwWindow::Key
 
 void DemoApplication::onMouseMove(glm::vec2 const& delta)
 {
-    if (!m_activeCameraObject)
-        return;
-
     glm::vec3 angleDelta = m_mouseSensitivity * glm::vec3{ -delta.y, -delta.x, 0.0f };
     glm::quat rotationDelta = createRotation(angleDelta);
-
-    vkr::Transform& cameraTransform = m_activeCameraObject->getTransform();
-    cameraTransform.setLocalRotation(cameraTransform.getLocalRotation() * rotationDelta);
 
     m_cameraTransform.rotation *= rotationDelta;
 }
@@ -1372,13 +1365,8 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
     }
 
 	auto defaultCameraObject = std::make_shared<vkr::SceneObject>();
-	{
-		defaultCameraObject->setCamera(std::make_shared<vkr::Camera>());
+	defaultCameraObject->setCamera(std::make_shared<vkr::Camera>());
 
-		vkr::Transform& cameraTransform = defaultCameraObject->getTransform();
-		cameraTransform.setLocalPos(CAMERA_POS);
-		cameraTransform.setLocalRotation(createRotation(CAMERA_ANGLES));
-	}
     m_scene.objects.push_back(defaultCameraObject);
 
     if (m_renderer)
@@ -1505,12 +1493,15 @@ void DemoApplication::drawFrame()
 
 void DemoApplication::update()
 {
-    if (m_renderer && m_frameTimer.getTime() > m_fpsUpdatePeriod)
+    if (m_frameTimer.getTime() > m_fpsUpdatePeriod)
     {
         float multiplier = 1.0f / static_cast<float>(m_fpsDrawnFrames);
         m_lastFrameTime = m_frameTimer.loop() * multiplier;
-        m_lastFenceTime = m_renderer->getCumulativeFenceTime() * multiplier;
-        m_renderer->resetCumulativeFenceTime();
+        if (m_renderer)
+        {
+            m_lastFenceTime = m_renderer->getCumulativeFenceTime() * multiplier;
+            m_renderer->resetCumulativeFenceTime();
+        }
         m_fpsDrawnFrames = 0;
     }
 
@@ -1533,54 +1524,60 @@ void DemoApplication::updateScene(float)
 
 void DemoApplication::updateCamera(float dt)
 {
-    if (!m_activeCameraObject)
-        return;
-
     // TODO handle input properly
     if (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard)
         return;
 
-    vkr::Transform& cameraTransform = m_activeCameraObject->getTransform();
+    glm::vec3 right = glm::toMat4(m_cameraTransform.rotation) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+    glm::vec3 forward = glm::toMat4(m_cameraTransform.rotation) * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+    glm::vec3 up = glm::toMat4(m_cameraTransform.rotation) * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
 
     glm::vec3 posDelta = glm::zero<glm::vec3>();
 
     if (m_keyState['A'])
-        posDelta += -cameraTransform.getRightVector();
+        posDelta += -right;
     if (m_keyState['D'])
-        posDelta += cameraTransform.getRightVector();
+        posDelta += right;
     if (m_keyState['S'])
-        posDelta += -cameraTransform.getForwardVector();
+        posDelta += -forward;
     if (m_keyState['W'])
-        posDelta += cameraTransform.getForwardVector();
+        posDelta += forward;
     if (m_keyState['Q'])
-        posDelta += -cameraTransform.getUpVector();
+        posDelta += -up;
     if (m_keyState['E'])
-        posDelta += cameraTransform.getUpVector();
+        posDelta += up;
 
     if (glm::length2(posDelta) > glm::epsilon<float>())
         posDelta = glm::normalize(posDelta);
 
-    cameraTransform.setWorldPos(cameraTransform.getWorldPos() + m_cameraSpeed * dt * posDelta);
+    m_cameraTransform.position += m_cameraSpeed * dt * posDelta;
+
+    if (m_activeCameraObject)
+    {
+        vkr::Transform& cameraTransform = m_activeCameraObject->getTransform();
+        cameraTransform.setWorldPos(m_cameraTransform.position);
+        cameraTransform.setLocalRotation(m_cameraTransform.rotation);
+    }
 }
 
 glm::vec3 DemoApplication::getCameraPos() const
 {
-    return m_activeCameraObject->getTransform().getWorldPos();
+    return m_cameraTransform.position;
 }
 
 void DemoApplication::setCameraPos(glm::vec3 const& pos)
 {
-    m_activeCameraObject->getTransform().setWorldPos(pos);
+    m_cameraTransform.position = pos;
 }
 
 glm::quat DemoApplication::getCameraRotation() const
 {
-    return m_activeCameraObject->getTransform().getLocalRotation();
+    return m_cameraTransform.rotation;
 }
 
 void DemoApplication::setCameraRotation(glm::quat const& rotation)
 {
-    m_activeCameraObject->getTransform().setLocalRotation(rotation);
+    m_cameraTransform.rotation = rotation;
 }
 
 float DemoApplication::getCameraNearZ() const
