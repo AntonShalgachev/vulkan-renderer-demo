@@ -7,3 +7,11 @@ vkgfx::Buffer::Buffer(vko::DeviceMemory memory, vko::Buffer buffer, BufferMetada
 {
 
 }
+
+std::size_t vkgfx::Buffer::getDynamicOffset(std::size_t resourceIndex) const
+{
+    if (!metadata.isMutable)
+        return 0;
+
+    return alignedSize * resourceIndex;
+}

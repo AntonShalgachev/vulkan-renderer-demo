@@ -40,12 +40,15 @@ namespace vkgfx
         ResourceManager& getResourceManager() const { return *m_resourceManager; }
 
         void addTestObject(TestObject object);
+        void setCameraTransform(TestCameraTransform transform);
 
         void draw();
 
     private:
         void createCameraResources();
         void recordCommandBuffer(std::size_t imageIndex, RendererFrameResources& frameResources);
+
+        void updateCameraBuffer();
 
     private:
         vko::Window const& m_window;

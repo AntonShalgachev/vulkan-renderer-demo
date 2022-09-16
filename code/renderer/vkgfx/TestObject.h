@@ -16,7 +16,7 @@ namespace vkgfx
         vkgfx::PipelineHandle pipeline;
 
         vkgfx::BufferHandle uniformBuffer;
-        std::vector<std::byte> pushConstants; // TODO don't use dynamic memory
+        std::vector<unsigned char> pushConstants; // TODO don't use dynamic memory
     };
 
     struct TestCameraTransform

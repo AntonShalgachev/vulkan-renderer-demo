@@ -11,6 +11,7 @@
 
 #include "vkgfx/Handles.h"
 #include "vkgfx/PipelineKey.h"
+#include "vkgfx/TestObject.h"
 
 #include "services/Services.h"
 
@@ -265,4 +266,6 @@ private:
     std::unique_ptr<vkgfx::ResourceManager> m_ownResourceManager;
 
     vkgfx::ResourceManager* m_resourceManager = nullptr;
+
+    vkgfx::TestCameraTransform m_cameraTransform;
 };

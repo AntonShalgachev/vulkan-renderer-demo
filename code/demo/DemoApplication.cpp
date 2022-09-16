@@ -561,7 +561,7 @@ DemoApplication::DemoApplication()
         m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
 
         VkExtent2D extent = m_renderer->getSwapchain().getExtent();
-        m_ownResourceManager = std::make_unique<vkgfx::ResourceManager>(m_application->getDevice(), m_application->getPhysicalDevice(), m_application->getShortLivedCommandPool(), m_application->getDevice().getGraphicsQueue(), m_renderer->getRenderPass(), extent.width, extent.height);
+        m_ownResourceManager = std::make_unique<vkgfx::ResourceManager>(m_application->getDevice(), m_application->getPhysicalDevice(), m_application->getShortLivedCommandPool(), m_application->getDevice().getGraphicsQueue(), m_renderer->getRenderPass(), 3, extent.width, extent.height);
 
         m_resourceManager = m_ownResourceManager.get();
     }
@@ -767,6 +767,8 @@ void DemoApplication::onMouseMove(glm::vec2 const& delta)
 
     vkr::Transform& cameraTransform = m_activeCameraObject->getTransform();
     cameraTransform.setLocalRotation(cameraTransform.getLocalRotation() * rotationDelta);
+
+    m_cameraTransform.rotation *= rotationDelta;
 }
 
 std::shared_ptr<vkr::SceneObject> DemoApplication::addSceneObjectsFromNode(std::shared_ptr<tinygltf::Model> const& model, tinygltf::Node const& node, Scene& scene)
@@ -1407,6 +1409,9 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
 
     m_currentScenePath = gltfPath;
 
+    m_cameraTransform.position = CAMERA_POS;
+    m_cameraTransform.rotation = createRotation(CAMERA_ANGLES);
+
     return true;
 }
 
@@ -1516,6 +1521,9 @@ void DemoApplication::update()
     updateUI(m_lastFrameTime, m_lastFenceTime);
     updateScene(dt);
     updateCamera(dt);
+
+    if (m_newRenderer)
+        m_newRenderer->setCameraTransform(m_cameraTransform);
 }
 
 void DemoApplication::updateScene(float)

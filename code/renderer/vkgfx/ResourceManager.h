@@ -59,7 +59,7 @@ namespace vkgfx
     class ResourceManager
     {
     public:
-        ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::CommandPool const& uploadCommandPool, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, std::size_t width, std::size_t height);
+        ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::CommandPool const& uploadCommandPool, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, std::size_t resourceCount, std::size_t width, std::size_t height);
         ~ResourceManager();
 
         ImageHandle createImage(ImageMetadata metadata);
@@ -68,8 +68,10 @@ namespace vkgfx
         Image const& getImage(ImageHandle handle);
 
         BufferHandle createBuffer(std::size_t size, BufferMetadata metadata);
-        void uploadBuffer(BufferHandle handle, void const* data, std::size_t dataSize, std::size_t offset = 0);
-        void uploadBuffer(BufferHandle handle, std::span<unsigned char const> bytes, std::size_t offset = 0);
+        void uploadBuffer(BufferHandle handle, void const* data, std::size_t dataSize);
+        void uploadBuffer(BufferHandle handle, std::span<unsigned char const> bytes);
+        void uploadDynamicBufferToStaging(BufferHandle handle, void const* data, std::size_t dataSize);
+        void transferDynamicBuffersFromStaging(std::size_t resourceIndex);
         Buffer const& getBuffer(BufferHandle handle);
 
         ShaderModuleHandle createShaderModule(std::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint = "main");
@@ -88,6 +90,10 @@ namespace vkgfx
         vko::Pipeline const& getPipeline(PipelineHandle handle);
 
     private:
+        void uploadBuffer(Buffer const& buffer, void const* data, std::size_t dataSize, std::size_t offset);
+        void uploadBuffer(Buffer const& buffer, std::span<unsigned char const> bytes, std::size_t offset);
+        void uploadImage(Image const& image, void const* data, std::size_t dataSize);
+
         DescriptorSetLayoutHandle getOrCreateDescriptorSetLayout(DescriptorSetLayoutKey const& key);
         DescriptorSetLayoutHandle createDescriptorSetLayout(DescriptorSetLayoutKey const& key);
 
@@ -102,6 +108,7 @@ namespace vkgfx
         vko::CommandPool const& m_uploadCommandPool;
         vko::Queue const& m_uploadQueue;
         vko::RenderPass const& m_renderPass; // TODO remove
+        std::size_t m_resourceCount = 0; // TODO rename
         std::size_t m_width = 0; // TODO remove
         std::size_t m_height = 0; // TODO remove
 

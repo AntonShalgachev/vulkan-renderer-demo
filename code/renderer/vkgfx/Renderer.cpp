@@ -39,6 +39,14 @@
 
 namespace
 {
+    struct CameraData
+    {
+        glm::mat4 view;
+        glm::mat4 projection;
+        glm::vec3 lightPosition;
+        glm::vec3 lightColor;
+    };
+
     int const FRAME_RESOURCE_COUNT = 3;
 
     VkFormat findSupportedFormat(vko::PhysicalDevice const& physicalDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
@@ -189,9 +197,33 @@ vkgfx::Renderer::Renderer(std::string const& name, bool enableValidationLayers, 
         m_frameResources.push_back(std::move(resources));
     }
 
-    m_resourceManager = std::make_unique<ResourceManager>(device, physicalDevice, m_application->getShortLivedCommandPool(), device.getGraphicsQueue(), *m_renderPass, swapchainExtent.width, swapchainExtent.height);
+    m_resourceManager = std::make_unique<ResourceManager>(device, physicalDevice, m_application->getShortLivedCommandPool(), device.getGraphicsQueue(), *m_renderPass, FRAME_RESOURCE_COUNT, swapchainExtent.width, swapchainExtent.height);
 
     createCameraResources();
+
+    // TODO move to utils
+    auto quatFromEuler = [](glm::vec3 const& eulerDegrees)
+    {
+        return glm::quat{ glm::radians(eulerDegrees) };
+    };
+
+    // TODO remove hardcoded values
+    m_cameraTransform = {
+        .position = {5.0f, 3.5f, 0.0f},
+        .rotation = quatFromEuler({-15.0f, 90.0f, 0.0f}),
+    };
+
+    m_cameraParameters = {
+        .fov = 45.0f,
+        .nearZ = 0.1f,
+        .farZ = 10000.0f,
+    };
+
+    m_lightParameters = {
+        .position = {0.0, 2.0f, 0.0f},
+        .color = {1.0, 0.0f, 0.0f},
+        .intensity = 30.0f,
+    };
 }
 
 vkgfx::Renderer::~Renderer()
@@ -210,6 +242,11 @@ vkgfx::Renderer::~Renderer()
 void vkgfx::Renderer::addTestObject(TestObject object)
 {
     m_testObjects.push_back(std::move(object));
+}
+
+void vkgfx::Renderer::setCameraTransform(TestCameraTransform transform)
+{
+    m_cameraTransform = std::move(transform);
 }
 
 void vkgfx::Renderer::draw()
@@ -236,6 +273,11 @@ void vkgfx::Renderer::draw()
 //     m_cumulativeFenceTime += m_lastFenceTime;
 
     frameResources.inFlightFence.reset();
+
+    // TODO don't update camera buffer every frame
+    // TODO update camera buffer directly without staging buffer
+    updateCameraBuffer();
+    m_resourceManager->transferDynamicBuffersFromStaging(m_nextFrameResourcesIndex);
 
     recordCommandBuffer(imageIndex, frameResources);
     frameResources.commandBuffers.submit(0, device.getGraphicsQueue(), &frameResources.renderFinishedSemaphore, &frameResources.imageAvailableSemaphore, &frameResources.inFlightFence);
@@ -267,57 +309,12 @@ void vkgfx::Renderer::draw()
 
 void vkgfx::Renderer::createCameraResources()
 {
-    struct CameraData
-    {
-        glm::mat4 view;
-        glm::mat4 projection;
-        glm::vec3 lightPosition;
-        glm::vec3 lightColor;
-    };
-
-    // TODO move to utils
-    auto quatFromEuler = [](glm::vec3 const& eulerDegrees)
-    {
-        return glm::quat{ glm::radians(eulerDegrees) };
-    };
-
-    // TODO remove hardcoded values
-    m_cameraTransform = {
-        .position = {5.0f, 3.5f, 0.0f},
-        .rotation = quatFromEuler({-15.0f, 90.0f, 0.0f}),
-    };
-
-    m_cameraParameters = {
-        .fov = 45.0f,
-        .nearZ = 0.1f,
-        .farZ = 10000.0f,
-    };
-
-    m_lightParameters = {
-        .position = {0.0, 2.0f, 0.0f},
-        .color = {1.0, 0.0f, 0.0f},
-        .intensity = 30.0f,
-    };
-
     BufferMetadata metadata{
         .usage = vkgfx::BufferUsage::UniformBuffer,
         .location = vkgfx::BufferLocation::HostVisible,
-        .isMutable = false, // TODO change when mutable buffers are implemented
+        .isMutable = true,
     };
     m_cameraBuffer = m_resourceManager->createBuffer(sizeof(CameraData), std::move(metadata));
-
-    VkExtent2D extent = m_swapchain->getExtent();
-    auto aspectRatio =  1.0f * extent.width / extent.height;
-
-    CameraData data{
-        .view = glm::inverse(glm::translate(glm::mat4(1.0f), m_cameraTransform.position) * glm::toMat4(m_cameraTransform.rotation)),
-        .projection = glm::perspective(glm::radians(m_cameraParameters.fov), aspectRatio, m_cameraParameters.nearZ, m_cameraParameters.farZ),
-        .lightPosition = data.view * glm::vec4(m_lightParameters.position, 1.0f),
-        .lightColor = m_lightParameters.intensity * m_lightParameters.color,
-    };
-    data.projection[1][1] *= -1;
-
-    m_resourceManager->uploadBuffer(m_cameraBuffer, &data, sizeof(data));
 }
 
 void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameResources& frameResources)
@@ -389,21 +386,21 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
                     .binding = 0,
                     .buffer = objectUniformBuffer.buffer.getHandle(),
                     .offset = 0,
-                    .size = objectUniformBuffer.buffer.getSize(), // TODO change this for mutable buffers
+                    .size = objectUniformBuffer.size,
                 },
                 {
                     .set = 1,
                     .binding = 0,
                     .buffer = materialUniformBuffer.buffer.getHandle(),
                     .offset = 0,
-                    .size = materialUniformBuffer.buffer.getSize(), // TODO change this for mutable buffers
+                    .size = materialUniformBuffer.size,
                 },
                 {
                     .set = 2,
                     .binding = 0,
                     .buffer = frameUniformBuffer.buffer.getHandle(),
                     .offset = 0,
-                    .size = frameUniformBuffer.buffer.getSize(), // TODO change this for mutable buffers
+                    .size = frameUniformBuffer.size,
                 },
             };
             config.images = {
@@ -423,7 +420,11 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
             descriptorSets->update(config);
 
             std::array descriptorSetHandles = { descriptorSets->getHandle(0), descriptorSets->getHandle(1), descriptorSets->getHandle(2) };
-            std::array<uint32_t, 3> dynamicOffsets = {0, 0, 0};
+            std::array<uint32_t, 3> dynamicOffsets = {
+                static_cast<uint32_t>(objectUniformBuffer.getDynamicOffset(m_nextFrameResourcesIndex)),
+                static_cast<uint32_t>(materialUniformBuffer.getDynamicOffset(m_nextFrameResourcesIndex)),
+                static_cast<uint32_t>(frameUniformBuffer.getDynamicOffset(m_nextFrameResourcesIndex)),
+            };
 
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 0, descriptorSetHandles.size(), descriptorSetHandles.data(), dynamicOffsets.size(), dynamicOffsets.data());
         }
@@ -450,4 +451,20 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
     vkCmdEndRenderPass(commandBuffer);
 
     commandBuffers.end(0);
+}
+
+void vkgfx::Renderer::updateCameraBuffer()
+{
+    VkExtent2D extent = m_swapchain->getExtent();
+    auto aspectRatio = 1.0f * extent.width / extent.height;
+
+    CameraData data{
+        .view = glm::inverse(glm::translate(glm::mat4(1.0f), m_cameraTransform.position) * glm::toMat4(m_cameraTransform.rotation)),
+        .projection = glm::perspective(glm::radians(m_cameraParameters.fov), aspectRatio, m_cameraParameters.nearZ, m_cameraParameters.farZ),
+        .lightPosition = data.view * glm::vec4(m_lightParameters.position, 1.0f),
+        .lightColor = m_lightParameters.intensity * m_lightParameters.color,
+    };
+    data.projection[1][1] *= -1;
+
+    m_resourceManager->uploadDynamicBufferToStaging(m_cameraBuffer, &data, sizeof(data));
 }

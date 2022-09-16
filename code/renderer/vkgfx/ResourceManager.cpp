@@ -1,5 +1,7 @@
 #include "ResourceManager.h"
+
 #include "BufferWithMemory.h"
+
 #include "wrapper/CommandBuffers.h"
 #include "wrapper/CommandPool.h"
 #include "wrapper/Queue.h"
@@ -7,6 +9,8 @@
 #include "wrapper/DescriptorSetLayout.h"
 #include "wrapper/PipelineLayout.h"
 #include "wrapper/Pipeline.h"
+#include "wrapper/PhysicalDevice.h"
+
 #include "Image.h"
 #include "Buffer.h"
 #include "Sampler.h"
@@ -15,6 +19,8 @@
 #include "Material.h"
 #include "Mesh.h"
 #include "PipelineKey.h"
+
+#include <cassert>
 
 namespace
 {
@@ -141,6 +147,14 @@ namespace
 
         throw std::invalid_argument("type");
     }
+
+    std::size_t alignSize(std::size_t originalSize, std::size_t alignment)
+    {
+        if (alignment == 0)
+            return originalSize;
+
+        return (originalSize + alignment - 1) & ~(alignment - 1);
+    }
 }
 
 // TODO move to another file?
@@ -162,12 +176,13 @@ namespace vkgfx
     };
 }
 
-vkgfx::ResourceManager::ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::CommandPool const& uploadCommandPool, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, std::size_t width, std::size_t height)
+vkgfx::ResourceManager::ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::CommandPool const& uploadCommandPool, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, std::size_t resourceCount, std::size_t width, std::size_t height)
     : m_device(device)
     , m_physicalDevice(physicalDevice)
     , m_uploadCommandPool(uploadCommandPool)
     , m_uploadQueue(uploadQueue)
     , m_renderPass(renderPass)
+    , m_resourceCount(resourceCount)
     , m_width(width)
     , m_height(height)
 {
@@ -212,28 +227,17 @@ void vkgfx::ResourceManager::uploadImage(ImageHandle handle, void const* data, s
 {
     Image const& image = m_images[handle.index];
 
-    auto width = static_cast<uint32_t>(image.metadata.width);
-    auto height = static_cast<uint32_t>(image.metadata.height);
-
-    vkr::BufferWithMemory stagingBuffer{ m_device, m_physicalDevice, dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
-    stagingBuffer.memory().copyFrom(data, dataSize);
-
-    OneTimeCommandBuffer commandBuffer{ m_uploadCommandPool, m_uploadQueue };
-    transitionImageLayout(commandBuffer.getHandle(), image.image.getHandle(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    // TODO extract to some class
-    copyBufferToImage(commandBuffer.getHandle(), stagingBuffer.buffer().getHandle(), image.image.getHandle(), width, height);
-    transitionImageLayout(commandBuffer.getHandle(), image.image.getHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    commandBuffer.submit();
-}
-
-vkgfx::Image const& vkgfx::ResourceManager::getImage(ImageHandle handle)
-{
-    return m_images[handle.index];
+    return uploadImage(image, data, dataSize);
 }
 
 void vkgfx::ResourceManager::uploadImage(ImageHandle handle, std::span<unsigned char const> bytes)
 {
     return uploadImage(handle, bytes.data(), bytes.size());
+}
+
+vkgfx::Image const& vkgfx::ResourceManager::getImage(ImageHandle handle)
+{
+    return m_images[handle.index];
 }
 
 vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(std::size_t size, BufferMetadata metadata)
@@ -262,45 +266,74 @@ vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(std::size_t size, Buffe
         break;
     }
 
-    vko::Buffer buffer{m_device, size, bufferUsageFlags };
+    std::size_t alignedSize = alignSize(size, m_physicalDevice.getProperties().limits.minUniformBufferOffsetAlignment);
+
+    std::size_t totalBufferSize = size;
+    if (metadata.isMutable)
+        totalBufferSize = alignedSize * m_resourceCount;
+
+    vko::Buffer buffer{m_device, totalBufferSize, bufferUsageFlags };
     vko::DeviceMemory memory{ m_device, m_physicalDevice, buffer.getMemoryRequirements(), memoryPropertiesFlags };
     buffer.bindMemory(memory);
 
     BufferHandle handle;
     handle.index = m_buffers.size();
 
-    m_buffers.emplace_back(std::move(memory), std::move(buffer), std::move(metadata));
+    Buffer& bufferResource = m_buffers.emplace_back(std::move(memory), std::move(buffer), std::move(metadata));
+
+    bufferResource.size = size;
+    if (metadata.isMutable)
+    {
+        bufferResource.stagingBuffer.resize(size);
+        bufferResource.alignedSize = alignedSize;
+    }
 
     return handle;
 }
 
-void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, void const* data, std::size_t dataSize, std::size_t offset)
+void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, void const* data, std::size_t dataSize)
 {
     Buffer const& buffer = m_buffers[handle.index];
 
-    if (buffer.metadata.location == BufferLocation::DeviceLocal)
-    {
-        vkr::BufferWithMemory stagingBuffer{ m_device, m_physicalDevice, dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
-        stagingBuffer.memory().copyFrom(data, dataSize, offset);
+    assert(!buffer.metadata.isMutable);
 
-        OneTimeCommandBuffer commandBuffer{ m_uploadCommandPool, m_uploadQueue };
-        vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), buffer.buffer);
-        commandBuffer.submit();
-    }
-    else
+    return uploadBuffer(buffer, data, dataSize, 0);
+}
+
+void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, std::span<unsigned char const> bytes)
+{
+    return uploadBuffer(handle, bytes.data(), bytes.size());
+}
+
+void vkgfx::ResourceManager::uploadDynamicBufferToStaging(BufferHandle handle, void const* data, std::size_t dataSize)
+{
+    Buffer& buffer = m_buffers[handle.index];
+
+    assert(buffer.metadata.isMutable);
+    assert(buffer.stagingBuffer.size() == dataSize);
+
+    memcpy(buffer.stagingBuffer.data(), data, dataSize);
+}
+
+void vkgfx::ResourceManager::transferDynamicBuffersFromStaging(std::size_t resourceIndex)
+{
+    assert(resourceIndex < m_resourceCount);
+
+    for (Buffer const& buffer : m_buffers)
     {
-        buffer.memory.copyFrom(data, dataSize, offset);
+        if (!buffer.metadata.isMutable)
+            continue;
+
+        // TODO don't upload if data hasn't changed
+
+        std::size_t bufferOffset = buffer.alignedSize * resourceIndex;
+        uploadBuffer(buffer, buffer.stagingBuffer, bufferOffset);
     }
 }
 
 vkgfx::Buffer const& vkgfx::ResourceManager::getBuffer(BufferHandle handle)
 {
     return m_buffers[handle.index];
-}
-
-void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, std::span<unsigned char const> bytes, std::size_t offset)
-{
-    return uploadBuffer(handle, bytes.data(), bytes.size(), offset);
 }
 
 vkgfx::ShaderModuleHandle vkgfx::ResourceManager::createShaderModule(std::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint)
@@ -386,6 +419,45 @@ vkgfx::PipelineHandle vkgfx::ResourceManager::getOrCreatePipeline(PipelineKey co
 vko::Pipeline const& vkgfx::ResourceManager::getPipeline(PipelineHandle handle)
 {
     return m_pipelines[handle.index];
+}
+
+void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, void const* data, std::size_t dataSize, std::size_t offset)
+{
+    if (buffer.metadata.location == BufferLocation::DeviceLocal)
+    {
+        // TODO make use of offset
+        vkr::BufferWithMemory stagingBuffer{ m_device, m_physicalDevice, dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
+        stagingBuffer.memory().copyFrom(data, dataSize, offset);
+
+        OneTimeCommandBuffer commandBuffer{ m_uploadCommandPool, m_uploadQueue };
+        vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), buffer.buffer);
+        commandBuffer.submit();
+    }
+    else
+    {
+        buffer.memory.copyFrom(data, dataSize, offset);
+    }
+}
+
+void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, std::span<unsigned char const> bytes, std::size_t offset)
+{
+    return uploadBuffer(buffer, bytes.data(), bytes.size(), offset);
+}
+
+void vkgfx::ResourceManager::uploadImage(Image const& image, void const* data, std::size_t dataSize)
+{
+    auto width = static_cast<uint32_t>(image.metadata.width);
+    auto height = static_cast<uint32_t>(image.metadata.height);
+
+    vkr::BufferWithMemory stagingBuffer{ m_device, m_physicalDevice, dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
+    stagingBuffer.memory().copyFrom(data, dataSize);
+
+    OneTimeCommandBuffer commandBuffer{ m_uploadCommandPool, m_uploadQueue };
+    transitionImageLayout(commandBuffer.getHandle(), image.image.getHandle(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    // TODO extract to some class
+    copyBufferToImage(commandBuffer.getHandle(), stagingBuffer.buffer().getHandle(), image.image.getHandle(), width, height);
+    transitionImageLayout(commandBuffer.getHandle(), image.image.getHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    commandBuffer.submit();
 }
 
 vkgfx::DescriptorSetLayoutHandle vkgfx::ResourceManager::getOrCreateDescriptorSetLayout(DescriptorSetLayoutKey const& key)
