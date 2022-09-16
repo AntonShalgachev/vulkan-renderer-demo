@@ -127,7 +127,7 @@ namespace
         );
     }
 
-    VkFormat getVulkanAttributeFormat(vkgfx::AttributeType type)
+    VkFormat vulkanizeAttributeFormat(vkgfx::AttributeType type)
     {
         switch (type)
         {
@@ -468,7 +468,7 @@ vkgfx::PipelineHandle vkgfx::ResourceManager::createPipeline(PipelineKey const& 
         VkVertexInputAttributeDescription& desc = config.attributeDescriptions.emplace_back();
         desc.binding = attribute.binding;
         desc.location = attribute.location;
-        desc.format = ::getVulkanAttributeFormat(attribute.type);
+        desc.format = ::vulkanizeAttributeFormat(attribute.type);
         desc.offset = attribute.offset;
     }
 
