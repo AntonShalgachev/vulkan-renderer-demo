@@ -918,8 +918,7 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
 {
     struct DemoObjectPushConstants
     {
-        glm::mat4 modelView;
-        glm::mat4 normal;
+        glm::mat4 model;
     };
 
     struct DemoObjectUniformBuffer
@@ -978,12 +977,11 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
             vkgfx::BufferHandle uniformBuffer = m_resourceManager->createBuffer(sizeof(DemoObjectUniformBuffer), std::move(uniformBufferMetadata));
 
             DemoObjectUniformBuffer uniformValues;
-            uniformValues.color = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f); // TODO change
+            uniformValues.color = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
             m_resourceManager->uploadBuffer(uniformBuffer, &uniformValues, sizeof(uniformValues));
 
             DemoObjectPushConstants pushConstants;
-            pushConstants.modelView = createMatrix(gltfNode); // TODO take hierarchy into account
-            pushConstants.normal = glm::transpose(glm::inverse(pushConstants.modelView));
+            pushConstants.model = createMatrix(gltfNode); // TODO take hierarchy into account
 
             vkgfx::TestObject& object = scene.objects.emplace_back();
             object.mesh = mesh.handle;

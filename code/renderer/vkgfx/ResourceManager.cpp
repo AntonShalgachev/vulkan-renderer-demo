@@ -325,6 +325,11 @@ vkgfx::SamplerHandle vkgfx::ResourceManager::createSampler(vko::SamplerFilterMod
     return handle;
 }
 
+vkgfx::Sampler const& vkgfx::ResourceManager::getSampler(SamplerHandle handle)
+{
+    return m_samplers[handle.index];
+}
+
 vkgfx::TextureHandle vkgfx::ResourceManager::createTexture(Texture texture)
 {
     TextureHandle handle;

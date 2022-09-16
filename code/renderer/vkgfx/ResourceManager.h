@@ -75,6 +75,7 @@ namespace vkgfx
         ShaderModuleHandle createShaderModule(std::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint = "main");
 
         SamplerHandle createSampler(vko::SamplerFilterMode magFilter, vko::SamplerFilterMode minFilter, vko::SamplerWrapMode wrapU, vko::SamplerWrapMode wrapV);
+        Sampler const& getSampler(SamplerHandle handle);
 
         TextureHandle createTexture(Texture texture);
         Texture const& getTexture(TextureHandle handle);

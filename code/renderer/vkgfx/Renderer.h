@@ -5,6 +5,9 @@
 #include <string>
 #include <functional>
 
+#include "Handles.h"
+#include "TestObject.h"
+
 namespace vko
 {
     class Swapchain;
@@ -41,6 +44,7 @@ namespace vkgfx
         void draw();
 
     private:
+        void createCameraResources();
         void recordCommandBuffer(std::size_t imageIndex, RendererFrameResources& frameResources);
 
     private:
@@ -61,6 +65,11 @@ namespace vkgfx
 
         std::vector<RendererFrameResources> m_frameResources;
         std::size_t m_nextFrameResourcesIndex = 0;
+
+        BufferHandle m_cameraBuffer;
+        TestCameraTransform m_cameraTransform;
+        TestCameraParameters m_cameraParameters;
+        TestLightParameters m_lightParameters;
 
         std::vector<TestObject> m_testObjects;
     };

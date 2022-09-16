@@ -203,6 +203,9 @@ vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, Rend
 
     if (vkCreateGraphicsPipelines(m_device.getHandle(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create graphics pipeline!");
+
+	auto layoutsSpan = layout.getDescriptorSetLayouts();
+	m_descriptorSetLayouts.assign(layoutsSpan.begin(), layoutsSpan.end());
 }
 
 vko::Pipeline::~Pipeline()

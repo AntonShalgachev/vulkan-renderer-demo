@@ -15,6 +15,8 @@ vko::PipelineLayout::PipelineLayout(Device const& device, std::span<VkDescriptor
 
     if (vkCreatePipelineLayout(m_device.getHandle(), &pipelineLayoutCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create pipeline layout!");
+
+    m_descriptorSetLayouts.assign(setLayouts.begin(), setLayouts.end());
 }
 
 vko::PipelineLayout::~PipelineLayout()

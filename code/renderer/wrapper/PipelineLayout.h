@@ -4,6 +4,7 @@
 #include "UniqueHandle.h"
 
 #include <span>
+#include <vector>
 
 namespace vko
 {
@@ -21,9 +22,12 @@ namespace vko
         PipelineLayout& operator=(PipelineLayout&&) = default;
 
         VkPipelineLayout getHandle() const { return m_handle; }
+        std::span<VkDescriptorSetLayout const> getDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
 
     private:
         Device const& m_device;
     	UniqueHandle<VkPipelineLayout> m_handle;
+
+        std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
     };
 }

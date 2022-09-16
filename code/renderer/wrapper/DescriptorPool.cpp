@@ -28,7 +28,7 @@ vko::DescriptorPool::~DescriptorPool()
     vkDestroyDescriptorPool(m_device.getHandle(), m_handle, nullptr);
 }
 
-std::optional<vko::DescriptorSets> vko::DescriptorPool::allocate(std::vector<VkDescriptorSetLayout> const& layouts)
+std::optional<vko::DescriptorSets> vko::DescriptorPool::allocate(std::span<VkDescriptorSetLayout const> layouts)
 {
     VkDescriptorSetAllocateInfo descriptorSetAllocInfo{};
     descriptorSetAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;

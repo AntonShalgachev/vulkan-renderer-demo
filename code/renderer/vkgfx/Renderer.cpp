@@ -22,11 +22,16 @@
 #include "TestObject.h"
 #include "Mesh.h"
 #include "Buffer.h"
+#include "Material.h"
+#include "Texture.h"
+#include "Image.h"
+#include "Sampler.h"
 
 // TODO remove vkr references
 #include "Application.h"
 #include "PhysicalDeviceSurfaceParameters.h"
 #include "QueueFamilyIndices.h"
+#include "glm.h"
 
 #include <vulkan/vulkan.h>
 
@@ -149,11 +154,11 @@ vkgfx::Renderer::Renderer(std::string const& name, bool enableValidationLayers, 
 
     vkr::QueueFamilyIndices const& indices = parameters.getQueueFamilyIndices();
 
-    m_swapchain = std::make_unique<vko::Swapchain>(m_application->getDevice(), m_application->getSurface(), indices.getGraphicsQueueFamily(), indices.getPresentQueueFamily(), std::move(config));
+    m_swapchain = std::make_unique<vko::Swapchain>(device, m_application->getSurface(), indices.getGraphicsQueueFamily(), indices.getPresentQueueFamily(), std::move(config));
 
     VkFormat colorFormat = m_swapchain->getSurfaceFormat().format;
     VkFormat depthFormat = findDepthFormat(physicalDevice);
-    m_renderPass = std::make_unique<vko::RenderPass>(m_application->getDevice(), colorFormat, depthFormat);
+    m_renderPass = std::make_unique<vko::RenderPass>(device, colorFormat, depthFormat);
 
     auto const& images = m_swapchain->getImages();
     m_swapchainImageViews.reserve(images.size());
@@ -167,7 +172,7 @@ vkgfx::Renderer::Renderer(std::string const& name, bool enableValidationLayers, 
 
     m_swapchainFramebuffers.reserve(m_swapchainImageViews.size());
     for (std::unique_ptr<vko::ImageView> const& colorImageView : m_swapchainImageViews)
-        m_swapchainFramebuffers.push_back(std::make_unique<vko::Framebuffer>(m_application->getDevice(), *colorImageView, *m_depthImageView, *m_renderPass, m_swapchain->getExtent()));
+        m_swapchainFramebuffers.push_back(std::make_unique<vko::Framebuffer>(device, *colorImageView, *m_depthImageView, *m_renderPass, m_swapchain->getExtent()));
 
     vko::QueueFamily const& graphicsQueueFamily = m_application->getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily();
 
@@ -185,6 +190,8 @@ vkgfx::Renderer::Renderer(std::string const& name, bool enableValidationLayers, 
     }
 
     m_resourceManager = std::make_unique<ResourceManager>(device, physicalDevice, m_application->getShortLivedCommandPool(), device.getGraphicsQueue(), *m_renderPass, swapchainExtent.width, swapchainExtent.height);
+
+    createCameraResources();
 }
 
 vkgfx::Renderer::~Renderer()
@@ -258,6 +265,61 @@ void vkgfx::Renderer::draw()
     m_nextFrameResourcesIndex = (m_nextFrameResourcesIndex + 1) % FRAME_RESOURCE_COUNT;
 }
 
+void vkgfx::Renderer::createCameraResources()
+{
+    struct CameraData
+    {
+        glm::mat4 view;
+        glm::mat4 projection;
+        glm::vec3 lightPosition;
+        glm::vec3 lightColor;
+    };
+
+    // TODO move to utils
+    auto quatFromEuler = [](glm::vec3 const& eulerDegrees)
+    {
+        return glm::quat{ glm::radians(eulerDegrees) };
+    };
+
+    // TODO remove hardcoded values
+    m_cameraTransform = {
+        .position = {5.0f, 3.5f, 0.0f},
+        .rotation = quatFromEuler({-15.0f, 90.0f, 0.0f}),
+    };
+
+    m_cameraParameters = {
+        .fov = 45.0f,
+        .nearZ = 0.1f,
+        .farZ = 10000.0f,
+    };
+
+    m_lightParameters = {
+        .position = {0.0, 2.0f, 0.0f},
+        .color = {1.0, 0.0f, 0.0f},
+        .intensity = 30.0f,
+    };
+
+    BufferMetadata metadata{
+        .usage = vkgfx::BufferUsage::UniformBuffer,
+        .location = vkgfx::BufferLocation::HostVisible,
+        .isMutable = false, // TODO change when mutable buffers are implemented
+    };
+    m_cameraBuffer = m_resourceManager->createBuffer(sizeof(CameraData), std::move(metadata));
+
+    VkExtent2D extent = m_swapchain->getExtent();
+    auto aspectRatio =  1.0f * extent.width / extent.height;
+
+    CameraData data{
+        .view = glm::inverse(glm::translate(glm::mat4(1.0f), m_cameraTransform.position) * glm::toMat4(m_cameraTransform.rotation)),
+        .projection = glm::perspective(glm::radians(m_cameraParameters.fov), aspectRatio, m_cameraParameters.nearZ, m_cameraParameters.farZ),
+        .lightPosition = data.view * glm::vec4(m_lightParameters.position, 1.0f),
+        .lightColor = m_lightParameters.intensity * m_lightParameters.color,
+    };
+    data.projection[1][1] *= -1;
+
+    m_resourceManager->uploadBuffer(m_cameraBuffer, &data, sizeof(data));
+}
+
 void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameResources& frameResources)
 {
     for (vko::DescriptorPool& pool : frameResources.descriptorPools)
@@ -293,9 +355,78 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
         pipeline.bind(commandBuffer);
 
         if (!object.pushConstants.empty())
-            vkCmdPushConstants(commandBuffer, pipeline.getPipelineLayoutHandle(), VK_SHADER_STAGE_VERTEX_BIT, 0, object.pushConstants.size(), object.pushConstants.data());
+            vkCmdPushConstants(commandBuffer, pipeline.getPipelineLayoutHandle(), VK_SHADER_STAGE_VERTEX_BIT, 0, object.pushConstants.size(), object.pushConstants.data()); // TODO configure shader stage
 
-        // TODO update and bind descriptor sets
+        {
+            std::vector<vko::DescriptorPool>& descriptorPools = frameResources.descriptorPools;
+
+            std::optional<vko::DescriptorSets> descriptorSets;
+            do
+            {
+                if (!descriptorPools.empty())
+                    descriptorSets = descriptorPools.back().allocate(pipeline.getDescriptorSetLayouts());
+
+                if (!descriptorSets)
+                    descriptorPools.emplace_back(m_application->getDevice());
+            } while (!descriptorSets);
+
+            Material const& material = m_resourceManager->getMaterial(object.material);
+            Buffer const& materialUniformBuffer = m_resourceManager->getBuffer(material.uniformBuffer);
+            Buffer const& objectUniformBuffer = m_resourceManager->getBuffer(object.uniformBuffer);
+            Buffer const& frameUniformBuffer = m_resourceManager->getBuffer(m_cameraBuffer);
+
+            Texture const& albedoTexture = m_resourceManager->getTexture(material.albedo);
+            Image const& albedoImage = m_resourceManager->getImage(albedoTexture.image);
+            Sampler const& albedoSampler = m_resourceManager->getSampler(albedoTexture.sampler);
+            Texture const& normalMapTexture = m_resourceManager->getTexture(material.normalMap);
+            Image const& normalMapImage = m_resourceManager->getImage(normalMapTexture.image);
+            Sampler const& normalMapSampler = m_resourceManager->getSampler(normalMapTexture.sampler);
+
+            vko::DescriptorSets::UpdateConfig config;
+            config.buffers = {
+                {
+                    .set = 0,
+                    .binding = 0,
+                    .buffer = objectUniformBuffer.buffer.getHandle(),
+                    .offset = 0,
+                    .size = objectUniformBuffer.buffer.getSize(), // TODO change this for mutable buffers
+                },
+                {
+                    .set = 1,
+                    .binding = 0,
+                    .buffer = materialUniformBuffer.buffer.getHandle(),
+                    .offset = 0,
+                    .size = materialUniformBuffer.buffer.getSize(), // TODO change this for mutable buffers
+                },
+                {
+                    .set = 2,
+                    .binding = 0,
+                    .buffer = frameUniformBuffer.buffer.getHandle(),
+                    .offset = 0,
+                    .size = frameUniformBuffer.buffer.getSize(), // TODO change this for mutable buffers
+                },
+            };
+            config.images = {
+                {
+                    .set = 0,
+                    .binding = 1,
+                    .imageView = albedoImage.imageView.getHandle(),
+                    .sampler = albedoSampler.sampler.getHandle(),
+                },
+                {
+                    .set = 0,
+                    .binding = 2,
+                    .imageView = normalMapImage.imageView.getHandle(),
+                    .sampler = normalMapSampler.sampler.getHandle(),
+                },
+            };
+            descriptorSets->update(config);
+
+            std::array descriptorSetHandles = { descriptorSets->getHandle(0), descriptorSets->getHandle(1), descriptorSets->getHandle(2) };
+            std::array<uint32_t, 3> dynamicOffsets = {0, 0, 0};
+
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 0, descriptorSetHandles.size(), descriptorSetHandles.data(), dynamicOffsets.size(), dynamicOffsets.data());
+        }
 
         Mesh const& mesh = m_resourceManager->getMesh(object.mesh);
         
@@ -315,104 +446,6 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
 
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh.indexCount), 1, 0, 0, 0);
     }
-
-//     Camera* camera = m_activeCameraObject->getCamera();
-//     Transform const& cameraTransform = m_activeCameraObject->getTransform();
-// 
-//     for (ObjectInstance const& instance : m_drawableInstances)
-//     {
-//         {
-//             std::vector<vko::DescriptorPool>& descriptorPools = frameResources.descriptorPools;
-// 
-//             std::vector<VkDescriptorSetLayout> layouts;
-//             for (auto const& layout : resources.descriptorSetLayouts)
-//                 layouts.push_back(layout->getHandle());
-// 
-//             std::optional<vko::DescriptorSets> descriptorSets;
-//             do
-//             {
-//                 if (!descriptorPools.empty())
-//                     descriptorSets = descriptorPools.back().allocate(layouts);
-// 
-//                 if (!descriptorSets)
-//                     descriptorPools.emplace_back(getDevice());
-//             } while (!descriptorSets);
-// 
-//             vkr::BufferWithMemory const& objectUniformBuffer = instance.getObjectBuffer();
-//             vkr::BufferWithMemory const& materialUniformBuffer = instance.getMaterialBuffer();
-//             vkr::BufferWithMemory const& frameUniformBuffer = instance.getFrameBuffer();
-// 
-//             vko::DescriptorSets::UpdateConfig config;
-//             config.buffers = {
-//                 {
-//                     .set = 0,
-//                     .binding = 0,
-//                     .buffer = objectUniformBuffer.buffer().getHandle(),
-//                     .offset = 0,
-//                     .size = sizeof(ObjectUniformBuffer),
-//                 },
-//                 {
-//                     .set = 1,
-//                     .binding = 0,
-//                     .buffer = materialUniformBuffer.buffer().getHandle(),
-//                     .offset = 0,
-//                     .size = sizeof(MaterialUniformBuffer),
-//                 },
-//                 {
-//                     .set = 2,
-//                     .binding = 0,
-//                     .buffer = frameUniformBuffer.buffer().getHandle(),
-//                     .offset = 0,
-//                     .size = sizeof(FrameUniformBuffer),
-//                 },
-//             };
-//             config.images = {
-//                 {
-//                     .set = 0,
-//                     .binding = 1,
-//                     .imageView = material.getTexture()->getImageView().getHandle(),
-//                     .sampler = material.getTexture()->getSampler().getHandle(),
-//                 },
-//                 {
-//                     .set = 0,
-//                     .binding = 2,
-//                     .imageView = material.getNormalMap()->getImageView().getHandle(),
-//                     .sampler = material.getNormalMap()->getSampler().getHandle(),
-//                 },
-//             };
-//             descriptorSets->update(config);
-// 
-//             std::array descriptorSetHandles = { descriptorSets->getHandle(0), descriptorSets->getHandle(1), descriptorSets->getHandle(2) };
-//             auto dynamicOffsets = instance.getBufferOffsets(imageIndex);
-// 
-//             vkCmdBindDescriptorSets(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, resources.pipelineLayout->getHandle(), 0, descriptorSetHandles.size(), descriptorSetHandles.data(), dynamicOffsets.size(), dynamicOffsets.data());
-//         }
-// 
-//         mesh.draw(handle);
-//     }
-
-//     // TODO find a better place
-//     {
-//         m_oneFrameBoxResources.pipeline->bind(handle);
-// 
-//         Camera* camera = m_activeCameraObject->getCamera();
-// 
-//         for (auto const& instance : m_oneFrameBoxInstances)
-//         {
-//             OneTimeGeometryPushConstants constants;
-//             constants.modelViewProjection = camera->getProjectionMatrix() * cameraTransform.getViewMatrix() * instance.model;
-// 
-//             vkCmdPushConstants(handle, m_oneFrameBoxResources.pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(OneTimeGeometryPushConstants), &constants);
-//             m_oneFrameBoxResources.mesh->draw(handle);
-//         }
-// 
-//         m_oneFrameBoxInstances.clear();
-//     }
-
-//     // TODO abstract this away
-//     if (ImGui::GetCurrentContext())
-//         if (ImDrawData* drawData = ImGui::GetDrawData())
-//             ImGui_ImplVulkan_RenderDrawData(drawData, handle);
 
     vkCmdEndRenderPass(commandBuffer);
 

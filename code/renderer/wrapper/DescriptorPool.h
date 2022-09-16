@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include <cstddef>
 #include <optional>
+#include <span>
 
 #include "UniqueHandle.h"
 #include "DescriptorSets.h" // TODO remove if possible
@@ -22,7 +23,7 @@ namespace vko
         DescriptorPool& operator=(DescriptorPool const&) = default;
         DescriptorPool& operator=(DescriptorPool&&) = default;
 
-        std::optional<DescriptorSets> allocate(std::vector<VkDescriptorSetLayout> const& layouts);
+        std::optional<DescriptorSets> allocate(std::span<VkDescriptorSetLayout const> layouts);
         void reset();
 
         VkDescriptorPool getHandle() const { return m_handle; }

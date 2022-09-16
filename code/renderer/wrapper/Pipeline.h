@@ -42,11 +42,13 @@ namespace vko
         VkPipeline getHandle() const { return m_handle; }
 
         VkPipelineLayout getPipelineLayoutHandle() const { return m_pipelineLayout; }
+        std::span<VkDescriptorSetLayout const> getDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
 
     private:
         Device const& m_device;
     	UniqueHandle<VkPipeline> m_handle;
 
         VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
+        std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
     };
 }
