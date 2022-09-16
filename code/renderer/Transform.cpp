@@ -137,10 +137,7 @@ glm::mat4 vkr::Transform::getInverseMatrix() const
 
 glm::mat4 vkr::Transform::getViewMatrix() const
 {
-	if (!m_cache.viewMatrix)
-        m_cache.viewMatrix = glm::lookAt(getWorldPos(), getForwardPoint(), getUpVector());
-
-    return *m_cache.viewMatrix;
+    return getInverseMatrix();
 }
 
 void vkr::Transform::onLocalMatrixChanged()
