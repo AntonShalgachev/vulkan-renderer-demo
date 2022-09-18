@@ -249,6 +249,11 @@ void vkgfx::Renderer::setCameraTransform(TestCameraTransform transform)
     m_cameraTransform = std::move(transform);
 }
 
+void vkgfx::Renderer::addOneFrameTestObject(TestObject object)
+{
+    m_oneFrameTestObjects.push_back(std::move(object));
+}
+
 void vkgfx::Renderer::draw()
 {
     RendererFrameResources& frameResources = m_frameResources[m_nextFrameResourcesIndex];
@@ -346,7 +351,7 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    for (TestObject const& object : m_testObjects)
+    auto drawTestObject = [this, commandBuffer, &frameResources](TestObject const& object)
     {
         vko::Pipeline const& pipeline = m_resourceManager->getPipeline(object.pipeline);
         pipeline.bind(commandBuffer);
@@ -430,23 +435,43 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
         }
 
         Mesh const& mesh = m_resourceManager->getMesh(object.mesh);
-        
+
         std::vector<VkBuffer> vertexBuffers;
         std::vector<VkDeviceSize> vertexBuffersOffsets;
+        vertexBuffers.reserve(mesh.vertexBuffers.size());
+        vertexBuffersOffsets.reserve(mesh.vertexBuffers.size());
         for (BufferWithOffset const& bufferWithOffset : mesh.vertexBuffers)
         {
             Buffer const& vertexBuffer = m_resourceManager->getBuffer(bufferWithOffset.buffer);
             vertexBuffers.push_back(vertexBuffer.buffer.getHandle());
-            vertexBuffersOffsets.push_back(bufferWithOffset.offset);
+            vertexBuffersOffsets.push_back(vertexBuffer.getDynamicOffset(m_nextFrameResourcesIndex) + bufferWithOffset.offset);
         }
 
         Buffer const& indexBuffer = m_resourceManager->getBuffer(mesh.indexBuffer.buffer);
+        VkDeviceSize indexBufferOffset = indexBuffer.getDynamicOffset(m_nextFrameResourcesIndex) + mesh.indexBuffer.offset;
+
+        if (object.hasScissors)
+        {
+            VkRect2D scissor;
+            scissor.offset.x = object.scissorOffset.x;
+            scissor.offset.y = object.scissorOffset.y;
+            scissor.extent.width = object.scissorSize.x;
+            scissor.extent.height = object.scissorSize.y;
+            vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+        }
 
         vkCmdBindVertexBuffers(commandBuffer, 0, static_cast<uint32_t>(vertexBuffersOffsets.size()), vertexBuffers.data(), vertexBuffersOffsets.data());
-        vkCmdBindIndexBuffer(commandBuffer, indexBuffer.buffer.getHandle(), mesh.indexBuffer.offset, vulkanizeIndexType(mesh.indexType));
+        vkCmdBindIndexBuffer(commandBuffer, indexBuffer.buffer.getHandle(), indexBufferOffset, vulkanizeIndexType(mesh.indexType));
 
-        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh.indexCount), 1, 0, 0, 0);
-    }
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh.indexCount), 1, static_cast<uint32_t>(mesh.indexOffset), static_cast<uint32_t>(mesh.vertexOffset), 0);
+    };
+
+    for (TestObject const& object : m_testObjects)
+        drawTestObject(object);
+    for (TestObject const& object : m_oneFrameTestObjects)
+        drawTestObject(object);
+
+    m_oneFrameTestObjects.clear();
 
     vkCmdEndRenderPass(commandBuffer);
 

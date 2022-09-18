@@ -3,6 +3,7 @@
 #include "PhysicalDevice.h"
 #include "Device.h"
 #include <stdexcept>
+#include <cassert>
 
 namespace
 {
@@ -28,6 +29,8 @@ namespace
 
 vko::DeviceMemory::DeviceMemory(Device const& device, PhysicalDevice const& physicalDevice, VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties)
     : m_device(device)
+    , m_requirements(memoryRequirements)
+    , m_properties(memoryProperties)
 {
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -36,18 +39,26 @@ vko::DeviceMemory::DeviceMemory(Device const& device, PhysicalDevice const& phys
 
     if (vkAllocateMemory(m_device.getHandle(), &allocInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to allocate image memory!");
+
+    if ((memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+        VKR_ASSERT(vkMapMemory(m_device.getHandle(), m_handle, 0, memoryRequirements.size, 0, &m_data));
 }
 
 vko::DeviceMemory::~DeviceMemory()
 {
+    if (!m_handle)
+        return;
+
+    if (m_data)
+        vkUnmapMemory(m_device.getHandle(), m_handle);
+
     vkFreeMemory(m_device.getHandle(), m_handle, nullptr);
 }
 
 void vko::DeviceMemory::copyFrom(void const* sourcePointer, std::size_t sourceSize, std::size_t offset) const
 {
-    // TODO make sure sourceSize doesn't exceed allocated size
-    void* data;
-    VKR_ASSERT(vkMapMemory(m_device.getHandle(), m_handle, offset, sourceSize, 0, &data));
-    memcpy(data, sourcePointer, sourceSize);
-    vkUnmapMemory(m_device.getHandle(), m_handle);
+    assert(m_data);
+    assert(m_requirements.size - offset >= sourceSize);
+
+    memcpy(static_cast<unsigned char*>(m_data) + offset, sourcePointer, sourceSize);
 }

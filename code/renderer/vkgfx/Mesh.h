@@ -24,5 +24,7 @@ namespace vkgfx
         BufferWithOffset indexBuffer;
         std::size_t indexCount = 0;
         IndexType indexType = IndexType::UnsignedShort;
+        std::size_t indexOffset = 0;
+        std::size_t vertexOffset = 0;
     };
 }

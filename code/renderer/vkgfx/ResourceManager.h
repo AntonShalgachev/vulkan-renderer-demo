@@ -65,29 +65,35 @@ namespace vkgfx
         ImageHandle createImage(ImageMetadata metadata);
         void uploadImage(ImageHandle handle, void const* data, std::size_t dataSize);
         void uploadImage(ImageHandle handle, std::span<unsigned char const> bytes);
-        Image const& getImage(ImageHandle handle);
+        Image const& getImage(ImageHandle handle) const;
 
         BufferHandle createBuffer(std::size_t size, BufferMetadata metadata);
         void uploadBuffer(BufferHandle handle, void const* data, std::size_t dataSize);
         void uploadBuffer(BufferHandle handle, std::span<unsigned char const> bytes);
-        void uploadDynamicBufferToStaging(BufferHandle handle, void const* data, std::size_t dataSize);
+        void uploadDynamicBufferToStaging(BufferHandle handle, void const* data, std::size_t dataSize, std::size_t offset = 0);
         void transferDynamicBuffersFromStaging(std::size_t resourceIndex);
-        Buffer const& getBuffer(BufferHandle handle);
+        std::size_t getBufferSize(BufferHandle handle) const;
+        Buffer const& getBuffer(BufferHandle handle) const;
 
         ShaderModuleHandle createShaderModule(std::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint = "main");
 
         SamplerHandle createSampler(vko::SamplerFilterMode magFilter, vko::SamplerFilterMode minFilter, vko::SamplerWrapMode wrapU, vko::SamplerWrapMode wrapV);
-        Sampler const& getSampler(SamplerHandle handle);
+        Sampler const& getSampler(SamplerHandle handle) const;
 
         TextureHandle createTexture(Texture texture);
-        Texture const& getTexture(TextureHandle handle);
+        void updateTexture(TextureHandle handle, Texture texture);
+        Texture const& getTexture(TextureHandle handle) const;
+
         MaterialHandle createMaterial(Material material);
-        Material const& getMaterial(MaterialHandle handle);
+        void updateMaterial(MaterialHandle handle, Material material);
+        Material const& getMaterial(MaterialHandle handle) const;
+
         MeshHandle createMesh(Mesh mesh);
-        Mesh const& getMesh(MeshHandle handle);
+        void updateMesh(MeshHandle handle, Mesh mesh);
+        Mesh const& getMesh(MeshHandle handle) const;
 
         PipelineHandle getOrCreatePipeline(PipelineKey const& key);
-        vko::Pipeline const& getPipeline(PipelineHandle handle);
+        vko::Pipeline const& getPipeline(PipelineHandle handle) const;
 
     private:
         void uploadBuffer(Buffer const& buffer, void const* data, std::size_t dataSize, std::size_t offset);

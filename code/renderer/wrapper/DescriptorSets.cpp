@@ -19,7 +19,7 @@ void vko::DescriptorSets::update(UpdateConfig const& updateConfig)
     imageInfos.reserve(updateConfig.images.size());
 
     std::vector<VkWriteDescriptorSet> descriptorWrites;
-    descriptorWrites.reserve(bufferInfos.size() + imageInfos.size());
+    descriptorWrites.reserve(bufferInfos.capacity() + imageInfos.capacity());
 
     for (UpdateConfig::Buffer const& buffer : updateConfig.buffers)
     {
@@ -42,6 +42,7 @@ void vko::DescriptorSets::update(UpdateConfig const& updateConfig)
 
     for (UpdateConfig::SampledImage const& image : updateConfig.images)
     {
+        assert(descriptorWrites.size() < descriptorWrites.capacity());
         VkWriteDescriptorSet& descriptorWrite = descriptorWrites.emplace_back();
 
         assert(imageInfos.size() < imageInfos.capacity());

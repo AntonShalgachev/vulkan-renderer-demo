@@ -143,6 +143,8 @@ namespace
             return VK_FORMAT_R32G32B32_SFLOAT;
         case vkgfx::AttributeType::Vec4f:
             return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case vkgfx::AttributeType::UInt32:
+            return VK_FORMAT_R8G8B8A8_UNORM;
         }
 
         throw std::invalid_argument("type");
@@ -203,6 +205,21 @@ vkgfx::ImageHandle vkgfx::ResourceManager::createImage(ImageMetadata metadata)
             return VK_FORMAT_R8G8B8_UNORM;
         }
 
+        assert(false);
+        throw std::invalid_argument("format");
+    }(metadata.format);
+
+    std::size_t bytesPerPixel = [](ImageFormat format)
+    {
+        switch (format)
+        {
+        case ImageFormat::R8G8B8A8:
+            return 4;
+        case ImageFormat::R8G8B8:
+            return 3;
+        }
+
+        assert(false);
         throw std::invalid_argument("format");
     }(metadata.format);
 
@@ -218,7 +235,8 @@ vkgfx::ImageHandle vkgfx::ResourceManager::createImage(ImageMetadata metadata)
     ImageHandle handle;
     handle.index = m_images.size();
 
-    m_images.emplace_back(std::move(vkImageMemory), std::move(vkImage), std::move(vkImageView), std::move(metadata));
+    Image& imageResource = m_images.emplace_back(std::move(vkImageMemory), std::move(vkImage), std::move(vkImageView), std::move(metadata));
+    imageResource.byteSize = metadata.width * metadata.height * bytesPerPixel;
 
     return handle;
 }
@@ -235,7 +253,7 @@ void vkgfx::ResourceManager::uploadImage(ImageHandle handle, std::span<unsigned 
     return uploadImage(handle, bytes.data(), bytes.size());
 }
 
-vkgfx::Image const& vkgfx::ResourceManager::getImage(ImageHandle handle)
+vkgfx::Image const& vkgfx::ResourceManager::getImage(ImageHandle handle) const
 {
     return m_images[handle.index];
 }
@@ -282,6 +300,7 @@ vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(std::size_t size, Buffe
     Buffer& bufferResource = m_buffers.emplace_back(std::move(memory), std::move(buffer), std::move(metadata));
 
     bufferResource.size = size;
+    bufferResource.realSize = totalBufferSize;
     if (metadata.isMutable)
     {
         bufferResource.stagingBuffer.resize(size);
@@ -305,14 +324,14 @@ void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, std::span<unsigne
     return uploadBuffer(handle, bytes.data(), bytes.size());
 }
 
-void vkgfx::ResourceManager::uploadDynamicBufferToStaging(BufferHandle handle, void const* data, std::size_t dataSize)
+void vkgfx::ResourceManager::uploadDynamicBufferToStaging(BufferHandle handle, void const* data, std::size_t dataSize, std::size_t offset)
 {
     Buffer& buffer = m_buffers[handle.index];
 
     assert(buffer.metadata.isMutable);
-    assert(buffer.stagingBuffer.size() == dataSize);
+    assert(buffer.stagingBuffer.size() - offset >= dataSize);
 
-    memcpy(buffer.stagingBuffer.data(), data, dataSize);
+    memcpy(buffer.stagingBuffer.data() + offset, data, dataSize);
 }
 
 void vkgfx::ResourceManager::transferDynamicBuffersFromStaging(std::size_t resourceIndex)
@@ -331,7 +350,12 @@ void vkgfx::ResourceManager::transferDynamicBuffersFromStaging(std::size_t resou
     }
 }
 
-vkgfx::Buffer const& vkgfx::ResourceManager::getBuffer(BufferHandle handle)
+std::size_t vkgfx::ResourceManager::getBufferSize(BufferHandle handle) const
+{
+    return getBuffer(handle).size;
+}
+
+vkgfx::Buffer const& vkgfx::ResourceManager::getBuffer(BufferHandle handle) const
 {
     return m_buffers[handle.index];
 }
@@ -358,7 +382,7 @@ vkgfx::SamplerHandle vkgfx::ResourceManager::createSampler(vko::SamplerFilterMod
     return handle;
 }
 
-vkgfx::Sampler const& vkgfx::ResourceManager::getSampler(SamplerHandle handle)
+vkgfx::Sampler const& vkgfx::ResourceManager::getSampler(SamplerHandle handle) const
 {
     return m_samplers[handle.index];
 }
@@ -373,7 +397,12 @@ vkgfx::TextureHandle vkgfx::ResourceManager::createTexture(Texture texture)
     return handle;
 }
 
-vkgfx::Texture const& vkgfx::ResourceManager::getTexture(TextureHandle handle)
+void vkgfx::ResourceManager::updateTexture(TextureHandle handle, Texture texture)
+{
+    m_textures[handle.index] = std::move(texture);
+}
+
+vkgfx::Texture const& vkgfx::ResourceManager::getTexture(TextureHandle handle) const
 {
     return m_textures[handle.index];
 }
@@ -388,7 +417,12 @@ vkgfx::MaterialHandle vkgfx::ResourceManager::createMaterial(Material material)
     return handle;
 }
 
-vkgfx::Material const& vkgfx::ResourceManager::getMaterial(MaterialHandle handle)
+void vkgfx::ResourceManager::updateMaterial(MaterialHandle handle, Material material)
+{
+    m_materials[handle.index] = std::move(material);
+}
+
+vkgfx::Material const& vkgfx::ResourceManager::getMaterial(MaterialHandle handle) const
 {
     return m_materials[handle.index];
 }
@@ -403,7 +437,12 @@ vkgfx::MeshHandle vkgfx::ResourceManager::createMesh(Mesh mesh)
     return handle;
 }
 
-vkgfx::Mesh const& vkgfx::ResourceManager::getMesh(MeshHandle handle)
+void vkgfx::ResourceManager::updateMesh(MeshHandle handle, Mesh mesh)
+{
+    m_meshes[handle.index] = std::move(mesh);
+}
+
+vkgfx::Mesh const& vkgfx::ResourceManager::getMesh(MeshHandle handle) const
 {
     return m_meshes[handle.index];
 }
@@ -416,13 +455,15 @@ vkgfx::PipelineHandle vkgfx::ResourceManager::getOrCreatePipeline(PipelineKey co
     return createPipeline(key);
 }
 
-vko::Pipeline const& vkgfx::ResourceManager::getPipeline(PipelineHandle handle)
+vko::Pipeline const& vkgfx::ResourceManager::getPipeline(PipelineHandle handle) const
 {
     return m_pipelines[handle.index];
 }
 
 void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, void const* data, std::size_t dataSize, std::size_t offset)
 {
+    assert(buffer.realSize - offset >= dataSize);
+
     if (buffer.metadata.location == BufferLocation::DeviceLocal)
     {
         // TODO make use of offset
@@ -446,6 +487,8 @@ void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, std::span<unsign
 
 void vkgfx::ResourceManager::uploadImage(Image const& image, void const* data, std::size_t dataSize)
 {
+    assert(image.byteSize == dataSize);
+
     auto width = static_cast<uint32_t>(image.metadata.width);
     auto height = static_cast<uint32_t>(image.metadata.height);
 
@@ -528,8 +571,12 @@ vkgfx::PipelineHandle vkgfx::ResourceManager::createPipeline(PipelineKey const& 
 
     vko::Pipeline::Config config;
     config.extent = { static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height) }; // TODO fix
+    // TODO merge these flags with Pipeline::Config
     config.cullBackFaces = key.renderConfig.cullBackfaces;
     config.wireframe = key.renderConfig.wireframe;
+    config.depthTest = key.renderConfig.depthTest;
+    config.alphaBlending = key.renderConfig.alphaBlending;
+    config.dynamicScissor = key.renderConfig.dynamicScissor;
 
     for (std::size_t i = 0; i < key.vertexConfig.bindings.size(); i++)
     {

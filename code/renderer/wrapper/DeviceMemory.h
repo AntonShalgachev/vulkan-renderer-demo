@@ -31,8 +31,15 @@ namespace vko
 
         VkDeviceMemory getHandle() const { return m_handle; };
 
+        VkMemoryRequirements const& getRequirements() const { return m_requirements; }
+        VkMemoryPropertyFlags const& getProperties() const { return m_properties; }
+
     private:
         Device const& m_device;
         UniqueHandle<VkDeviceMemory> m_handle;
+        void* m_data = nullptr;
+
+        VkMemoryRequirements m_requirements{};
+        VkMemoryPropertyFlags m_properties{};
     };
 }

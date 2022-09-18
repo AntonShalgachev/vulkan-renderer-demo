@@ -550,12 +550,11 @@ DemoApplication::DemoApplication()
         assert(m.level != vko::DebugMessage::Level::Error);
     };
 
-    m_application = std::make_unique<vkr::Application>("Vulkan demo", VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window, messageCallback);
-
+//     m_application = std::make_unique<vkr::Application>("Vulkan demo", VALIDATION_ENABLED, API_DUMP_ENABLED, *m_window, messageCallback);
 //     m_renderer = std::make_unique<vkr::Renderer>(getApp());
     m_newRenderer = std::make_unique<vkgfx::Renderer>("Vulkan demo with new API", VALIDATION_ENABLED, *m_window, messageCallback);
 
-    if (m_renderer)
+    if (m_application && m_renderer)
     {
         m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
 
@@ -592,7 +591,8 @@ DemoApplication::~DemoApplication()
     unloadImgui();
 
     // TODO move to the renderer
-    getApp().getDevice().waitIdle();
+    if (m_application)
+        m_application->getDevice().waitIdle();
 
     // TODO come up with a better way to destroy objects with captured services
     m_debugConsole = {};
@@ -672,9 +672,6 @@ void DemoApplication::destroyServices()
 
 void DemoApplication::loadImgui()
 {
-    if (!m_renderer)
-        return;
-
     if (ImGui::GetCurrentContext())
         return;
 
@@ -685,30 +682,35 @@ void DemoApplication::loadImgui()
 
     io.Fonts->AddFontDefault();
 
+    createUIResources();
+
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(m_window->getHandle(), true);
 
-    m_imguiDescriptorPool = std::make_unique<vko::DescriptorPool>(getApp().getDevice());
-    ImGui_ImplVulkan_InitInfo init_info = {};
-    init_info.Instance = getApp().getInstance().getHandle();
-    init_info.PhysicalDevice = getApp().getPhysicalDevice().getHandle();
-    init_info.Device = getApp().getDevice().getHandle();
-    init_info.QueueFamily = getApp().getDevice().getGraphicsQueue().getFamily().getIndex();
-    init_info.Queue = getApp().getDevice().getGraphicsQueue().getHandle();
-    init_info.PipelineCache = VK_NULL_HANDLE;
-    init_info.DescriptorPool = m_imguiDescriptorPool->getHandle();
-    init_info.Allocator = nullptr;
-    init_info.MinImageCount = 2; // TODO fetch?
-    init_info.ImageCount = static_cast<uint32_t>(m_renderer->getSwapchain().getImageCount());
-    init_info.CheckVkResultFn = nullptr;
-    ImGui_ImplVulkan_Init(&init_info, m_renderer->getRenderPass().getHandle());
-
+    if (m_application && m_renderer)
     {
-        vkr::ScopedOneTimeCommandBuffer buffer{ getApp() };
-        ImGui_ImplVulkan_CreateFontsTexture(buffer.getHandle());
-        buffer.submit();
+        m_imguiDescriptorPool = std::make_unique<vko::DescriptorPool>(getApp().getDevice());
+        ImGui_ImplVulkan_InitInfo init_info = {};
+        init_info.Instance = getApp().getInstance().getHandle();
+        init_info.PhysicalDevice = getApp().getPhysicalDevice().getHandle();
+        init_info.Device = getApp().getDevice().getHandle();
+        init_info.QueueFamily = getApp().getDevice().getGraphicsQueue().getFamily().getIndex();
+        init_info.Queue = getApp().getDevice().getGraphicsQueue().getHandle();
+        init_info.PipelineCache = VK_NULL_HANDLE;
+        init_info.DescriptorPool = m_imguiDescriptorPool->getHandle();
+        init_info.Allocator = nullptr;
+        init_info.MinImageCount = 2; // TODO fetch?
+        init_info.ImageCount = static_cast<uint32_t>(m_renderer->getSwapchain().getImageCount());
+        init_info.CheckVkResultFn = nullptr;
+        ImGui_ImplVulkan_Init(&init_info, m_renderer->getRenderPass().getHandle());
 
-        ImGui_ImplVulkan_DestroyFontUploadObjects();
+        {
+            vkr::ScopedOneTimeCommandBuffer buffer{ getApp() };
+            ImGui_ImplVulkan_CreateFontsTexture(buffer.getHandle());
+            buffer.submit();
+
+            ImGui_ImplVulkan_DestroyFontUploadObjects();
+        }
     }
 }
 
@@ -717,10 +719,15 @@ void DemoApplication::unloadImgui()
     if (!ImGui::GetCurrentContext())
         return;
 
-    getApp().getDevice().waitIdle();
+    if (m_application)
+        getApp().getDevice().waitIdle();
 
-    m_imguiDescriptorPool = nullptr;
-    ImGui_ImplVulkan_Shutdown();
+    if (m_renderer)
+    {
+        m_imguiDescriptorPool = nullptr;
+        ImGui_ImplVulkan_Shutdown();
+    }
+
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 }
@@ -729,7 +736,8 @@ void DemoApplication::onFramebufferResized()
 {
     if (m_renderer)
         m_renderer->onFramebufferResized();
-    m_application->onSurfaceChanged();
+    if (m_application)
+        m_application->onSurfaceChanged();
 }
 
 void DemoApplication::onKey(vkr::GlfwWindow::Action action, vkr::GlfwWindow::Key key, char c, vkr::GlfwWindow::Modifiers mods)
@@ -890,11 +898,14 @@ Scene DemoApplication::createSceneObjectHierarchy(std::shared_ptr<tinygltf::Mode
 {
     Scene scene;
 
-    std::size_t const sceneIndex = static_cast<std::size_t>(model->defaultScene);
-    tinygltf::Scene const& gltfScene = model->scenes[sceneIndex];
+    if (m_application)
+    {
+        std::size_t const sceneIndex = static_cast<std::size_t>(model->defaultScene);
+        tinygltf::Scene const& gltfScene = model->scenes[sceneIndex];
 
-    for (std::size_t nodeIndex : gltfScene.nodes)
-        createSceneObjectWithChildren(model, scene, nodeIndex);
+        for (std::size_t nodeIndex : gltfScene.nodes)
+            createSceneObjectWithChildren(model, scene, nodeIndex);
+    }
 
     return scene;
 }
@@ -997,7 +1008,8 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
 void DemoApplication::clearScene()
 {
     // move to the renderer
-    getApp().getDevice().waitIdle();
+    if (m_application)
+        m_application->getDevice().waitIdle();
 
     if (m_renderer)
         m_renderer->clearObjects();
@@ -1015,9 +1027,12 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
     m_defaultVertexShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.vert");
     m_defaultFragmentShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.frag");
 
-    m_fallbackSampler = std::make_shared<vko::Sampler>(getApp().getDevice());
-    m_fallbackAlbedo = std::make_unique<vkr::Texture>(getApp(), std::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff }, 1, 1, 8, 4, m_fallbackSampler);
-    m_fallbackNormalMap = std::make_unique<vkr::Texture>(getApp(), std::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff }, 1, 1, 8, 4, m_fallbackSampler);
+    if (m_application)
+    {
+        m_fallbackSampler = std::make_shared<vko::Sampler>(getApp().getDevice());
+        m_fallbackAlbedo = std::make_unique<vkr::Texture>(getApp(), std::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff }, 1, 1, 8, 4, m_fallbackSampler);
+        m_fallbackNormalMap = std::make_unique<vkr::Texture>(getApp(), std::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff }, 1, 1, 8, 4, m_fallbackSampler);
+    }
 
     {
         m_defaultSampler = m_resourceManager->createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
@@ -1052,85 +1067,88 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
 
     if (gltfModel)
     {
-        for (auto const& buffer : gltfModel->buffers)
+        if (m_application)
         {
-            auto const& data = buffer.data;
-            VkDeviceSize bufferSize = sizeof(data[0]) * data.size();
-            void const* bufferData = data.data();
-
-            vkr::BufferWithMemory buffer{ getApp().getDevice(), getApp().getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
-
-            vkr::BufferWithMemory stagingBuffer{ getApp().getDevice(), getApp().getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
-            stagingBuffer.memory().copyFrom(bufferData, bufferSize);
-
-            vkr::ScopedOneTimeCommandBuffer commandBuffer{ getApp() };
-            vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), buffer.buffer());
-            commandBuffer.submit();
-
-            m_gltfResources->buffers.push_back(std::make_unique<vkr::BufferWithMemory>(std::move(buffer)));
-        }
-
-        for (tinygltf::Texture const& texture : gltfModel->textures)
-        {
-            // TOOD remove sampler code from here
-            auto convertFilterMode = [](int gltfMode)
+            for (auto const& buffer : gltfModel->buffers)
             {
-                switch (gltfMode)
-                {
-                case TINYGLTF_TEXTURE_FILTER_NEAREST:
-                case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST:
-                case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR:
-                    return vko::SamplerFilterMode::Nearest;
-                case -1:
-                case TINYGLTF_TEXTURE_FILTER_LINEAR:
-                case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
-                case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR:
-                    return vko::SamplerFilterMode::Linear;
-                }
+                auto const& data = buffer.data;
+                VkDeviceSize bufferSize = sizeof(data[0]) * data.size();
+                void const* bufferData = data.data();
 
-                throw std::invalid_argument("gltfMode");
-            };
+                vkr::BufferWithMemory buffer{ getApp().getDevice(), getApp().getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
 
-            auto convertWrapMode = [](int gltfMode)
-            {
-                switch (gltfMode)
-                {
-                case -1:
-                case TINYGLTF_TEXTURE_WRAP_REPEAT:
-                    return vko::SamplerWrapMode::Repeat;
-                case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE:
-                    return vko::SamplerWrapMode::ClampToEdge;
-                case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT:
-                    return vko::SamplerWrapMode::Mirror;
-                }
+                vkr::BufferWithMemory stagingBuffer{ getApp().getDevice(), getApp().getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
+                stagingBuffer.memory().copyFrom(bufferData, bufferSize);
 
-                throw std::invalid_argument("gltfMode");
-            };
+                vkr::ScopedOneTimeCommandBuffer commandBuffer{ getApp() };
+                vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), buffer.buffer());
+                commandBuffer.submit();
 
-            std::shared_ptr<vko::Sampler> sampler = m_fallbackSampler;
-
-            if (texture.sampler >= 0)
-            {
-                std::size_t const samplerIndex = static_cast<std::size_t>(texture.sampler);
-                tinygltf::Sampler const& gltfSampler = gltfModel->samplers[samplerIndex];
-
-                auto magFilter = convertFilterMode(gltfSampler.magFilter);
-                auto minFilter = convertFilterMode(gltfSampler.minFilter);
-                auto wrapU = convertWrapMode(gltfSampler.wrapS);
-                auto wrapV = convertWrapMode(gltfSampler.wrapT);
-
-                sampler = std::make_shared<vko::Sampler>(getApp().getDevice(), magFilter, minFilter, wrapU, wrapV);
+                m_gltfResources->buffers.push_back(std::make_unique<vkr::BufferWithMemory>(std::move(buffer)));
             }
 
-            std::size_t const imageIndex = static_cast<std::size_t>(texture.source);
-            tinygltf::Image const& gltfImage = gltfModel->images[imageIndex];
+            for (tinygltf::Texture const& texture : gltfModel->textures)
+            {
+                // TOOD remove sampler code from here
+                auto convertFilterMode = [](int gltfMode)
+                {
+                    switch (gltfMode)
+                    {
+                    case TINYGLTF_TEXTURE_FILTER_NEAREST:
+                    case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST:
+                    case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR:
+                        return vko::SamplerFilterMode::Nearest;
+                    case -1:
+                    case TINYGLTF_TEXTURE_FILTER_LINEAR:
+                    case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
+                    case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR:
+                        return vko::SamplerFilterMode::Linear;
+                    }
 
-            uint32_t width = static_cast<uint32_t>(gltfImage.width);
-            uint32_t height = static_cast<uint32_t>(gltfImage.height);
-            std::size_t bitsPerComponent = static_cast<std::size_t>(gltfImage.bits);
-            std::size_t components = static_cast<std::size_t>(gltfImage.component);
+                    throw std::invalid_argument("gltfMode");
+                };
 
-            m_gltfResources->textures.push_back(std::make_shared<vkr::Texture>(getApp(), gltfImage.image, width, height, bitsPerComponent, components, sampler));
+                auto convertWrapMode = [](int gltfMode)
+                {
+                    switch (gltfMode)
+                    {
+                    case -1:
+                    case TINYGLTF_TEXTURE_WRAP_REPEAT:
+                        return vko::SamplerWrapMode::Repeat;
+                    case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE:
+                        return vko::SamplerWrapMode::ClampToEdge;
+                    case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT:
+                        return vko::SamplerWrapMode::Mirror;
+                    }
+
+                    throw std::invalid_argument("gltfMode");
+                };
+
+                std::shared_ptr<vko::Sampler> sampler = m_fallbackSampler;
+
+                if (texture.sampler >= 0)
+                {
+                    std::size_t const samplerIndex = static_cast<std::size_t>(texture.sampler);
+                    tinygltf::Sampler const& gltfSampler = gltfModel->samplers[samplerIndex];
+
+                    auto magFilter = convertFilterMode(gltfSampler.magFilter);
+                    auto minFilter = convertFilterMode(gltfSampler.minFilter);
+                    auto wrapU = convertWrapMode(gltfSampler.wrapS);
+                    auto wrapV = convertWrapMode(gltfSampler.wrapT);
+
+                    sampler = std::make_shared<vko::Sampler>(getApp().getDevice(), magFilter, minFilter, wrapU, wrapV);
+                }
+
+                std::size_t const imageIndex = static_cast<std::size_t>(texture.source);
+                tinygltf::Image const& gltfImage = gltfModel->images[imageIndex];
+
+                uint32_t width = static_cast<uint32_t>(gltfImage.width);
+                uint32_t height = static_cast<uint32_t>(gltfImage.height);
+                std::size_t bitsPerComponent = static_cast<std::size_t>(gltfImage.bits);
+                std::size_t components = static_cast<std::size_t>(gltfImage.component);
+
+                m_gltfResources->textures.push_back(std::make_shared<vkr::Texture>(getApp(), gltfImage.image, width, height, bitsPerComponent, components, sampler));
+            }
         }
 
         for (tinygltf::Buffer const& buffer : gltfModel->buffers)
@@ -1403,6 +1421,168 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
     return true;
 }
 
+void DemoApplication::createUIResources()
+{
+    // TODO move to an ImGUI renderer
+
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        
+        io.BackendRendererUserData = nullptr;
+        io.BackendRendererName = "vulkan_renderer_demo";
+        io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
+    }
+
+    {
+        std::size_t size = 64 * 1024 * sizeof(ImDrawVert);
+        vkgfx::BufferMetadata metadata{
+            .usage = vkgfx::BufferUsage::VertexIndexBuffer,
+            .location = vkgfx::BufferLocation::HostVisible,
+            .isMutable = true,
+        };
+        m_imGuiVertexBuffer = m_resourceManager->createBuffer(size, std::move(metadata));
+    }
+
+    {
+        std::size_t size = 64 * 1024 * sizeof(ImDrawIdx);
+        vkgfx::BufferMetadata metadata{
+            .usage = vkgfx::BufferUsage::VertexIndexBuffer,
+            .location = vkgfx::BufferLocation::HostVisible,
+            .isMutable = true,
+        };
+        m_imGuiIndexBuffer = m_resourceManager->createBuffer(size, std::move(metadata));
+    }
+
+    {
+        ImGuiIO& io = ImGui::GetIO();
+
+        unsigned char* pixels = nullptr;
+        int width = 0;
+        int height = 0;
+        int bytesPerPixel = 0;
+        io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, &bytesPerPixel); // TODO use GetTexDataAsAlpha8?
+
+        assert(width > 0);
+        assert(height > 0);
+        assert(bytesPerPixel > 0);
+
+        vkgfx::ImageMetadata metadata{
+            .width = static_cast<std::size_t>(width),
+            .height = static_cast<std::size_t>(height),
+            .format = vkgfx::ImageFormat::R8G8B8A8,
+        };
+        m_imGuiFontImage = m_resourceManager->createImage(std::move(metadata));
+
+        m_resourceManager->uploadImage(m_imGuiFontImage, pixels, width * height * bytesPerPixel);
+
+        io.Fonts->SetTexID(&m_imGuiFontImage); // TODO think about that
+    }
+
+    {
+        m_imGuiFontSampler = m_resourceManager->createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
+    }
+
+    {
+        vkgfx::Texture texture{
+            .image = m_imGuiFontImage,
+            .sampler = m_imGuiFontSampler,
+        };
+
+        m_imGuiFontTexture = m_resourceManager->createTexture(std::move(texture));
+    }
+
+    vkgfx::ShaderModuleHandle vertexShaderModule;
+    vkgfx::ShaderModuleHandle fragmentShaderModule;
+
+    {
+        vkr::ShaderPackage package{ "data/shaders/packaged/imgui.vert" };
+        std::string const* path = package.get({});
+        assert(path);
+        if (path)
+            vertexShaderModule = m_resourceManager->createShaderModule(readFile(*path), vko::ShaderModuleType::Vertex, "main");
+    }
+
+    {
+        vkr::ShaderPackage package{ "data/shaders/packaged/imgui.frag" };
+        std::string const* path = package.get({});
+        assert(path);
+        if (path)
+            fragmentShaderModule = m_resourceManager->createShaderModule(readFile(*path), vko::ShaderModuleType::Fragment, "main");
+    }
+
+    {
+        vkgfx::PipelineKey key;
+
+        key.shaderHandles = { vertexShaderModule, fragmentShaderModule };
+        key.uniformConfigs = {
+            // TODO remove unnecessary configs
+            vkgfx::UniformConfiguration{
+                .hasAlbedoTexture = true,
+                .hasNormalMap = true,
+            },
+            vkgfx::UniformConfiguration{
+                .hasAlbedoTexture = false,
+                .hasNormalMap = false,
+            },
+            vkgfx::UniformConfiguration{
+                .hasAlbedoTexture = false,
+                .hasNormalMap = false,
+            },
+        };
+        key.vertexConfig = {
+            .bindings = {
+                vkgfx::VertexConfiguration::Binding{
+                    .stride = sizeof(ImDrawVert),
+                },
+            },
+            .attributes = {
+                vkgfx::VertexConfiguration::Attribute{
+                    .binding = 0,
+                    .location = 0,
+                    .offset = offsetof(ImDrawVert, pos),
+                    .type = vkgfx::AttributeType::Vec2f,
+                },
+                vkgfx::VertexConfiguration::Attribute{
+                    .binding = 0,
+                    .location = 1,
+                    .offset = offsetof(ImDrawVert, uv),
+                    .type = vkgfx::AttributeType::Vec2f,
+                },
+                vkgfx::VertexConfiguration::Attribute{
+                    .binding = 0,
+                    .location = 2,
+                    .offset = offsetof(ImDrawVert, col),
+                    .type = vkgfx::AttributeType::UInt32,
+                },
+            },
+            .topology = vkgfx::VertexTopology::Triangles,
+        };
+        key.renderConfig = {
+            .cullBackfaces = false,
+            .wireframe = false,
+            .depthTest = false,
+            .alphaBlending = true,
+            .dynamicScissor = true,
+        };
+        key.pushConstantRanges = {
+            vkgfx::PushConstantRange{
+                .offset = 0,
+                .size = 2 * sizeof(float) + 2 * sizeof(float),
+            }
+        };
+
+        m_imGuiPipeline = m_resourceManager->getOrCreatePipeline(key);
+    }
+
+    // TODO probably no need create material
+    {
+        vkgfx::Material material = {
+            .albedo = m_imGuiFontTexture,
+        };
+        m_imGuiFontMaterial = m_resourceManager->createMaterial(material);
+    }
+}
+
 void DemoApplication::updateUI(float frameTime, float fenceTime)
 {
     if (m_reloadImgui)
@@ -1418,8 +1598,11 @@ void DemoApplication::updateUI(float frameTime, float fenceTime)
 
     ImGuiIO& io = ImGui::GetIO();
 
-    // TODO implement ImGui bindings manually
-    ImGui_ImplVulkan_NewFrame();
+    if (m_renderer)
+    {
+        ImGui_ImplVulkan_NewFrame();
+    }
+
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
@@ -1515,6 +1698,8 @@ void DemoApplication::update()
 
     if (m_newRenderer)
         m_newRenderer->setCameraTransform(m_cameraTransform);
+
+    renderUI();
 }
 
 void DemoApplication::updateScene(float)
@@ -1557,6 +1742,162 @@ void DemoApplication::updateCamera(float dt)
         vkr::Transform& cameraTransform = m_activeCameraObject->getTransform();
         cameraTransform.setWorldPos(m_cameraTransform.position);
         cameraTransform.setLocalRotation(m_cameraTransform.rotation);
+    }
+}
+
+void DemoApplication::renderUI()
+{
+    if (!ImGui::GetCurrentContext())
+        return;
+
+    ImDrawData* drawData = ImGui::GetDrawData();
+    if (!drawData)
+        return;
+
+    if (drawData->TotalVtxCount > 0)
+    {
+        std::size_t vertexBufferSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
+        std::size_t indexBufferSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
+
+        assert(vertexBufferSize <= m_resourceManager->getBufferSize(m_imGuiVertexBuffer));
+        assert(indexBufferSize <= m_resourceManager->getBufferSize(m_imGuiIndexBuffer));
+
+        std::size_t nextVertexBufferOffset = 0;
+        std::size_t nextIndexBufferOffset = 0;
+
+        for (int n = 0; n < drawData->CmdListsCount; n++)
+        {
+            const ImDrawList* cmdList = drawData->CmdLists[n];
+
+            auto vertexChunkSize = cmdList->VtxBuffer.Size * sizeof(ImDrawVert);
+            auto indexChunkSize = cmdList->IdxBuffer.Size * sizeof(ImDrawIdx);
+
+            m_resourceManager->uploadDynamicBufferToStaging(m_imGuiVertexBuffer, cmdList->VtxBuffer.Data, vertexChunkSize, nextVertexBufferOffset);
+            m_resourceManager->uploadDynamicBufferToStaging(m_imGuiIndexBuffer, cmdList->IdxBuffer.Data, indexChunkSize, nextIndexBufferOffset);
+
+            nextVertexBufferOffset += vertexChunkSize;
+            nextIndexBufferOffset += indexChunkSize;
+        }
+    }
+
+    // TODO implement callbacks (?)
+
+    int framebufferWidth = (int)(drawData->DisplaySize.x * drawData->FramebufferScale.x);
+    int framebufferHeight = (int)(drawData->DisplaySize.y * drawData->FramebufferScale.y);
+
+    ImVec2 clipOffset = drawData->DisplayPos;
+    ImVec2 clipScale = drawData->FramebufferScale;
+
+    std::vector<unsigned char> pushConstantsBytes;
+
+    {
+        struct PushConstants
+        {
+            ImVec2 scale;
+            ImVec2 translate;
+        };
+
+        pushConstantsBytes.resize(sizeof(PushConstants));
+        PushConstants& pushConstants = reinterpret_cast<PushConstants&>(*pushConstantsBytes.data());
+        pushConstants.scale = {
+            2.0f / drawData->DisplaySize.x,
+            2.0f / drawData->DisplaySize.y,
+        };
+        pushConstants.translate = {
+            -1.0f - drawData->DisplayPos.x * pushConstants.scale.x,
+            -1.0f - drawData->DisplayPos.y * pushConstants.scale.y,
+        };
+    }
+
+    std::size_t nextMeshIndex = 0;
+
+    int vertexOffset = 0;
+    int indexOffset = 0;
+    for (int n = 0; n < drawData->CmdListsCount; n++)
+    {
+        const ImDrawList* cmdList = drawData->CmdLists[n];
+
+        for (std::size_t commandIndex = 0; commandIndex < cmdList->CmdBuffer.Size; commandIndex++)
+        {
+            const ImDrawCmd* pcmd = &cmdList->CmdBuffer[commandIndex];
+//             if (pcmd->UserCallback != NULL)
+//             {
+//                 // User callback, registered via ImDrawList::AddCallback()
+//                 // (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
+//                 if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
+//                     ImGui_ImplVulkan_SetupRenderState(drawData, pipeline, command_buffer, rb, framebufferWidth, framebufferHeight);
+//                 else
+//                     pcmd->UserCallback(cmdList, pcmd);
+//             }
+//             else
+            {
+                glm::ivec2 clipMin = { (pcmd->ClipRect.x - clipOffset.x) * clipScale.x, (pcmd->ClipRect.y - clipOffset.y) * clipScale.y };
+                glm::ivec2 clipMax = { (pcmd->ClipRect.z - clipOffset.x) * clipScale.x, (pcmd->ClipRect.w - clipOffset.y) * clipScale.y };
+
+                if (clipMin.x < 0)
+                    clipMin.x = 0;
+                if (clipMin.y < 0)
+                    clipMin.y = 0;
+                if (clipMax.x > framebufferWidth)
+                    clipMax.x = framebufferWidth;
+                if (clipMax.y > framebufferHeight)
+                    clipMax.y = framebufferHeight;
+
+                if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
+                    continue;
+// 
+                // Bind DescriptorSet with font or user texture
+//                 VkDescriptorSet desc_set[1] = { (VkDescriptorSet)pcmd->TextureId };
+//                 if (sizeof(ImTextureID) < sizeof(ImU64))
+//                 {
+//                     // We don't support texture switches if ImTextureID hasn't been redefined to be 64-bit. Do a flaky check that other textures haven't been used.
+//                     IM_ASSERT(pcmd->TextureId == (ImTextureID)bd->FontDescriptorSet);
+//                     desc_set[0] = bd->FontDescriptorSet;
+//                 }
+//                 vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, bd->PipelineLayout, 0, 1, desc_set, 0, NULL);
+
+                vkgfx::MeshHandle meshHandle;
+
+                {
+                    vkgfx::Mesh mesh = {
+                        .vertexBuffers = { {m_imGuiVertexBuffer, 0} },
+                        .indexBuffer = { m_imGuiIndexBuffer, 0 },
+                        .indexCount = pcmd->ElemCount, // WTF
+                        .indexType = vkgfx::IndexType::UnsignedShort,
+                        .indexOffset = pcmd->IdxOffset + indexOffset,
+                        .vertexOffset = pcmd->VtxOffset + vertexOffset,
+                    };
+
+                    if (nextMeshIndex < m_meshHandles.size())
+                    {
+                        meshHandle = m_meshHandles[nextMeshIndex];
+                        m_resourceManager->updateMesh(meshHandle, std::move(mesh));
+                    }
+                    else
+                    {
+                        meshHandle = m_resourceManager->createMesh(mesh);
+                        m_meshHandles.push_back(meshHandle);
+                    }
+
+                    nextMeshIndex++;
+                }
+
+                vkgfx::TestObject object;
+                object.pipeline = m_imGuiPipeline;
+                object.mesh = meshHandle;
+                object.material = m_imGuiFontMaterial; // don't hardcode font material/texture
+                object.pushConstants = pushConstantsBytes;
+
+                object.hasScissors = true;
+                object.scissorOffset = clipMin;
+                object.scissorSize = clipMax - clipMin;
+
+                if (m_newRenderer)
+                    m_newRenderer->addOneFrameTestObject(std::move(object));
+            }
+        }
+        vertexOffset += cmdList->VtxBuffer.Size;
+        indexOffset += cmdList->IdxBuffer.Size;
     }
 }
 

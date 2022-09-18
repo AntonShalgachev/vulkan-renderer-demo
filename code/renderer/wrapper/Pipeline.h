@@ -27,6 +27,9 @@ namespace vko
 
             bool cullBackFaces = true;
             bool wireframe = false;
+            bool depthTest = true;
+            bool alphaBlending = false;
+            bool dynamicScissor = false;
         };
 
     	explicit Pipeline(Device const& device, PipelineLayout const& layout, RenderPass const& renderPass, std::span<ShaderModule const*> shaderModules, Config const& config);

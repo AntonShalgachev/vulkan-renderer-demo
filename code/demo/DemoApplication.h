@@ -181,12 +181,14 @@ private:
 
     void clearScene();
     bool loadScene(std::string const& gltfPath);
+    void createUIResources();
 
     void updateUI(float frameTime, float fenceTime);
     void drawFrame();
     void update();
     void updateScene(float);
     void updateCamera(float dt);
+    void renderUI();
 
     glm::vec3 getCameraPos() const;
     void setCameraPos(glm::vec3 const& pos);
@@ -268,4 +270,14 @@ private:
     vkgfx::ResourceManager* m_resourceManager = nullptr;
 
     vkgfx::TestCameraTransform m_cameraTransform;
+
+    // TODO move to an ImGUI renderer
+    vkgfx::BufferHandle m_imGuiVertexBuffer;
+    vkgfx::BufferHandle m_imGuiIndexBuffer;
+    vkgfx::ImageHandle m_imGuiFontImage;
+    vkgfx::SamplerHandle m_imGuiFontSampler;
+    vkgfx::TextureHandle m_imGuiFontTexture;
+    vkgfx::PipelineHandle m_imGuiPipeline;
+    vkgfx::MaterialHandle m_imGuiFontMaterial;
+    std::vector<vkgfx::MeshHandle> m_meshHandles;
 };

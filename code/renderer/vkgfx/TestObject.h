@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Handles.h"
+#include "Mesh.h" // TODO don't include
+
 #include "glm.h"
 
 #include <vector>
@@ -10,13 +12,17 @@ namespace vkgfx
     // TODO
     struct TestObject
     {
+        vkgfx::PipelineHandle pipeline;
+
         vkgfx::MeshHandle mesh;
         vkgfx::MaterialHandle material;
 
-        vkgfx::PipelineHandle pipeline;
-
         vkgfx::BufferHandle uniformBuffer;
-        std::vector<unsigned char> pushConstants; // TODO don't use dynamic memory
+        std::vector<unsigned char> pushConstants; // TODO have a reference to the buffer instead
+
+        bool hasScissors = false;
+        glm::ivec2 scissorOffset = { 0, 0 };
+        glm::ivec2 scissorSize = { 0, 0 };
     };
 
     struct TestCameraTransform

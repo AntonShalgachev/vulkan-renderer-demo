@@ -42,6 +42,8 @@ namespace vkgfx
         void addTestObject(TestObject object);
         void setCameraTransform(TestCameraTransform transform);
 
+        void addOneFrameTestObject(TestObject object);
+
         void draw();
 
     private:
@@ -75,5 +77,6 @@ namespace vkgfx
         TestLightParameters m_lightParameters;
 
         std::vector<TestObject> m_testObjects;
+        std::vector<TestObject> m_oneFrameTestObjects;
     };
 }

@@ -15,6 +15,7 @@ namespace vkgfx
         BufferMetadata metadata;
 
         std::size_t size = 0;
+        std::size_t realSize = 0;
 
         // Only for mutable buffers
         std::vector<unsigned char> stagingBuffer;

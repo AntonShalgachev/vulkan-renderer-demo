@@ -115,17 +115,17 @@ namespace
         return multisamplingCreateInfo;
     }
 
-    VkPipelineColorBlendAttachmentState initColorBlendAttachment()
+    VkPipelineColorBlendAttachmentState initColorBlendAttachment(bool alphaBlending)
     {
 		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
 		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-		colorBlendAttachment.blendEnable = VK_FALSE;
-		colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-		colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
-		colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-		colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-		colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-		colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+		colorBlendAttachment.blendEnable = alphaBlending ? VK_TRUE : VK_FALSE;
+        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 
         return colorBlendAttachment;
     }
@@ -146,15 +146,18 @@ namespace
         return colorBlendingCreateInfo;
     }
 
-    VkPipelineDepthStencilStateCreateInfo initDepthStencilCreateInfo()
+    VkPipelineDepthStencilStateCreateInfo initDepthStencilCreateInfo(bool depthTest)
     {
 		VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo{};
 		depthStencilCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-		depthStencilCreateInfo.depthTestEnable = VK_TRUE;
-		depthStencilCreateInfo.depthWriteEnable = VK_TRUE;
-		depthStencilCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS;
-		depthStencilCreateInfo.depthBoundsTestEnable = VK_FALSE;
-		depthStencilCreateInfo.stencilTestEnable = VK_FALSE;
+
+		if (depthTest)
+		{
+            depthStencilCreateInfo.depthTestEnable = VK_TRUE;
+            depthStencilCreateInfo.depthWriteEnable = VK_TRUE;
+            depthStencilCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+            depthStencilCreateInfo.depthBoundsTestEnable = VK_FALSE;
+		}
 
         return depthStencilCreateInfo;
 	}
@@ -178,10 +181,19 @@ vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, Rend
 
     VkPipelineMultisampleStateCreateInfo multisamplingCreateInfo = initMultisamplingCreateInfo();
 
-	VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = initDepthStencilCreateInfo();
+	VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = initDepthStencilCreateInfo(config.depthTest);
 
-	VkPipelineColorBlendAttachmentState colorBlendAttachment = initColorBlendAttachment();
-	VkPipelineColorBlendStateCreateInfo colorBlendingCreateInfo = initColorBlendingCreateInfo(colorBlendAttachment);
+	VkPipelineColorBlendAttachmentState colorBlendAttachment = initColorBlendAttachment(config.alphaBlending);
+    VkPipelineColorBlendStateCreateInfo colorBlendingCreateInfo = initColorBlendingCreateInfo(colorBlendAttachment);
+
+    std::vector<VkDynamicState> dynamicStates;
+    if (config.dynamicScissor)
+        dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
+
+    VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo{};
+    dynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamicStateCreateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+    dynamicStateCreateInfo.pDynamicStates = dynamicStates.data();
 
     VkGraphicsPipelineCreateInfo pipelineCreateInfo{};
     pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -194,7 +206,7 @@ vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, Rend
     pipelineCreateInfo.pMultisampleState = &multisamplingCreateInfo;
     pipelineCreateInfo.pDepthStencilState = &depthStencilCreateInfo;
     pipelineCreateInfo.pColorBlendState = &colorBlendingCreateInfo;
-    pipelineCreateInfo.pDynamicState = nullptr;
+    pipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
     pipelineCreateInfo.layout = layout.getHandle();
     pipelineCreateInfo.renderPass = renderPass.getHandle();
     pipelineCreateInfo.subpass = 0;

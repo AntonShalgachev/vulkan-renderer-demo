@@ -7,6 +7,7 @@ namespace vkgfx
         Vec2f,
         Vec3f,
         Vec4f,
+        UInt32,
         Mat2f,
         Mat3f,
         Mat4f,
@@ -55,8 +56,12 @@ namespace vkgfx
 
     struct RenderConfiguration
     {
+        // TODO merge with Pipeline::Config
         bool cullBackfaces = true;
         bool wireframe = false;
+        bool depthTest = true;
+        bool alphaBlending = false;
+        bool dynamicScissor = false;
 
         auto operator<=>(RenderConfiguration const&) const = default;
     };
