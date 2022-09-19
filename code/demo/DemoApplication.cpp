@@ -1475,20 +1475,11 @@ void DemoApplication::createUIResources()
 
         m_resourceManager->uploadImage(m_imGuiFontImage, pixels, width * height * bytesPerPixel);
 
-        io.Fonts->SetTexID(&m_imGuiFontImage); // TODO think about that
+        io.Fonts->SetTexID(reinterpret_cast<ImTextureID>(m_imGuiFontImage.index)); // TODO think about that
     }
 
     {
-        m_imGuiFontSampler = m_resourceManager->createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
-    }
-
-    {
-        vkgfx::Texture texture{
-            .image = m_imGuiFontImage,
-            .sampler = m_imGuiFontSampler,
-        };
-
-        m_imGuiFontTexture = m_resourceManager->createTexture(std::move(texture));
+        m_imGuiImageSampler = m_resourceManager->createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
     }
 
     vkgfx::ShaderModuleHandle vertexShaderModule;
@@ -1572,14 +1563,6 @@ void DemoApplication::createUIResources()
         };
 
         m_imGuiPipeline = m_resourceManager->getOrCreatePipeline(key);
-    }
-
-    // TODO probably no need create material
-    {
-        vkgfx::Material material = {
-            .albedo = m_imGuiFontTexture,
-        };
-        m_imGuiFontMaterial = m_resourceManager->createMaterial(material);
     }
 }
 
@@ -1810,6 +1793,8 @@ void DemoApplication::renderUI()
     }
 
     std::size_t nextMeshIndex = 0;
+    std::size_t nextTextureIndex = 0;
+    std::size_t nextMaterialIndex = 0;
 
     int vertexOffset = 0;
     int indexOffset = 0;
@@ -1846,46 +1831,77 @@ void DemoApplication::renderUI()
                 if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
                     continue;
 // 
-                // Bind DescriptorSet with font or user texture
-//                 VkDescriptorSet desc_set[1] = { (VkDescriptorSet)pcmd->TextureId };
-//                 if (sizeof(ImTextureID) < sizeof(ImU64))
-//                 {
-//                     // We don't support texture switches if ImTextureID hasn't been redefined to be 64-bit. Do a flaky check that other textures haven't been used.
-//                     IM_ASSERT(pcmd->TextureId == (ImTextureID)bd->FontDescriptorSet);
-//                     desc_set[0] = bd->FontDescriptorSet;
-//                 }
-//                 vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, bd->PipelineLayout, 0, 1, desc_set, 0, NULL);
-
                 vkgfx::MeshHandle meshHandle;
 
                 {
                     vkgfx::Mesh mesh = {
                         .vertexBuffers = { {m_imGuiVertexBuffer, 0} },
                         .indexBuffer = { m_imGuiIndexBuffer, 0 },
-                        .indexCount = pcmd->ElemCount, // WTF
+                        .indexCount = pcmd->ElemCount,
                         .indexType = vkgfx::IndexType::UnsignedShort,
                         .indexOffset = pcmd->IdxOffset + indexOffset,
                         .vertexOffset = pcmd->VtxOffset + vertexOffset,
                     };
 
-                    if (nextMeshIndex < m_meshHandles.size())
+                    if (nextMeshIndex < m_imGuiMeshes.size())
                     {
-                        meshHandle = m_meshHandles[nextMeshIndex];
+                        meshHandle = m_imGuiMeshes[nextMeshIndex];
                         m_resourceManager->updateMesh(meshHandle, std::move(mesh));
                     }
                     else
                     {
-                        meshHandle = m_resourceManager->createMesh(mesh);
-                        m_meshHandles.push_back(meshHandle);
+                        meshHandle = m_resourceManager->createMesh(std::move(mesh));
+                        m_imGuiMeshes.push_back(meshHandle);
                     }
 
                     nextMeshIndex++;
                 }
 
+                vkgfx::TextureHandle textureHandle;
+                {
+                    vkgfx::Texture texture = {
+                        .image = vkgfx::ImageHandle{ reinterpret_cast<std::size_t>(pcmd->GetTexID()) },
+                        .sampler = m_imGuiImageSampler,
+                    };
+
+                    if (nextTextureIndex < m_imGuiTextures.size())
+                    {
+                        textureHandle = m_imGuiTextures[nextTextureIndex];
+                        m_resourceManager->updateTexture(textureHandle, std::move(texture));
+                    }
+                    else
+                    {
+                        textureHandle = m_resourceManager->createTexture(std::move(texture));
+                        m_imGuiTextures.push_back(textureHandle);
+                    }
+
+                    nextTextureIndex++;
+                }
+
+                vkgfx::MaterialHandle materialHandle;
+                {
+                    vkgfx::Material material = {
+                        .albedo = textureHandle,
+                    };
+
+                    if (nextMaterialIndex < m_imGuiMaterials.size())
+                    {
+                        materialHandle = m_imGuiMaterials[nextMaterialIndex];
+                        m_resourceManager->updateMaterial(materialHandle, std::move(material));
+                    }
+                    else
+                    {
+                        materialHandle = m_resourceManager->createMaterial(std::move(material));
+                        m_imGuiMaterials.push_back(materialHandle);
+                    }
+
+                    nextMaterialIndex++;
+                }
+
                 vkgfx::TestObject object;
                 object.pipeline = m_imGuiPipeline;
                 object.mesh = meshHandle;
-                object.material = m_imGuiFontMaterial; // don't hardcode font material/texture
+                object.material = materialHandle;
                 object.pushConstants = pushConstantsBytes;
 
                 object.hasScissors = true;

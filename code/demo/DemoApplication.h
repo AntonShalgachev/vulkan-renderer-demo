@@ -275,9 +275,9 @@ private:
     vkgfx::BufferHandle m_imGuiVertexBuffer;
     vkgfx::BufferHandle m_imGuiIndexBuffer;
     vkgfx::ImageHandle m_imGuiFontImage;
-    vkgfx::SamplerHandle m_imGuiFontSampler;
-    vkgfx::TextureHandle m_imGuiFontTexture;
+    vkgfx::SamplerHandle m_imGuiImageSampler;
     vkgfx::PipelineHandle m_imGuiPipeline;
-    vkgfx::MaterialHandle m_imGuiFontMaterial;
-    std::vector<vkgfx::MeshHandle> m_meshHandles;
+    std::vector<vkgfx::MeshHandle> m_imGuiMeshes;
+    std::vector<vkgfx::TextureHandle> m_imGuiTextures;
+    std::vector<vkgfx::MaterialHandle> m_imGuiMaterials;
 };
