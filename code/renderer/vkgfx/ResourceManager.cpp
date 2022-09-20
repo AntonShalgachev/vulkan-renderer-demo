@@ -317,6 +317,11 @@ void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, void const* data,
     return uploadBuffer(buffer, data, dataSize, 0);
 }
 
+void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, std::span<std::byte const> bytes)
+{
+    return uploadBuffer(handle, bytes.data(), bytes.size());
+}
+
 void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, std::span<unsigned char const> bytes)
 {
     return uploadBuffer(handle, bytes.data(), bytes.size());

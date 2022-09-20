@@ -75,7 +75,7 @@ namespace vkgfx
 
     struct PipelineKey
     {
-        std::vector<ShaderModuleHandle> shaderHandles;
+        std::vector<ShaderModuleHandle> shaderHandles; // TODO rename to shaderModules
         std::vector<UniformConfiguration> uniformConfigs;
         VertexConfiguration vertexConfig;
         RenderConfiguration renderConfig;

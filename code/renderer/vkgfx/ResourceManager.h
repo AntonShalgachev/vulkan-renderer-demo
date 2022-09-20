@@ -70,6 +70,7 @@ namespace vkgfx
         BufferHandle createBuffer(std::size_t size, BufferMetadata metadata);
         void uploadBuffer(BufferHandle handle, void const* data, std::size_t dataSize);
         void uploadBuffer(BufferHandle handle, std::span<unsigned char const> bytes);
+        void uploadBuffer(BufferHandle handle, std::span<std::byte const> bytes);
         void uploadDynamicBufferToStaging(BufferHandle handle, void const* data, std::size_t dataSize, std::size_t offset = 0);
         void transferDynamicBuffersFromStaging(std::size_t resourceIndex);
         std::size_t getBufferSize(BufferHandle handle) const;

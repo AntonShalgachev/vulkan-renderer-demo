@@ -572,6 +572,7 @@ DemoApplication::DemoApplication()
     if (m_newRenderer)
     {
         m_resourceManager = &m_newRenderer->getResourceManager();
+        m_services.debugDraw().init(*m_newRenderer);
     }
 
     loadImgui();
@@ -1656,7 +1657,10 @@ void DemoApplication::drawFrame()
     }
 
     if (m_newRenderer)
+    {
+        m_services.debugDraw().draw(*m_newRenderer);
         m_newRenderer->draw();
+    }
 
     m_fpsDrawnFrames++;
 }

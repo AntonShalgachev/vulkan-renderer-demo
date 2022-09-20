@@ -358,6 +358,7 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
         if (!object.pushConstants.empty())
             vkCmdPushConstants(commandBuffer, pipeline.getPipelineLayoutHandle(), VK_SHADER_STAGE_VERTEX_BIT, 0, object.pushConstants.size(), object.pushConstants.data()); // TODO configure shader stage
 
+        if (std::span<VkDescriptorSetLayout const> descriptorSetLayouts = pipeline.getDescriptorSetLayouts(); !descriptorSetLayouts.empty())
         {
             std::vector<vko::DescriptorPool>& descriptorPools = frameResources.descriptorPools;
 
@@ -365,7 +366,7 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
             do
             {
                 if (!descriptorPools.empty())
-                    descriptorSets = descriptorPools.back().allocate(pipeline.getDescriptorSetLayouts());
+                    descriptorSets = descriptorPools.back().allocate(descriptorSetLayouts);
 
                 if (!descriptorSets)
                     descriptorPools.emplace_back(m_application->getDevice());
