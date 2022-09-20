@@ -178,15 +178,13 @@ namespace vkgfx
     };
 }
 
-vkgfx::ResourceManager::ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::CommandPool const& uploadCommandPool, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, std::size_t resourceCount, std::size_t width, std::size_t height)
+vkgfx::ResourceManager::ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::CommandPool const& uploadCommandPool, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, std::size_t resourceCount)
     : m_device(device)
     , m_physicalDevice(physicalDevice)
     , m_uploadCommandPool(uploadCommandPool)
     , m_uploadQueue(uploadQueue)
     , m_renderPass(renderPass)
     , m_resourceCount(resourceCount)
-    , m_width(width)
-    , m_height(height)
 {
 
 }
@@ -570,13 +568,11 @@ vkgfx::PipelineHandle vkgfx::ResourceManager::createPipeline(PipelineKey const& 
     handle.index = m_pipelines.size();
 
     vko::Pipeline::Config config;
-    config.extent = { static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height) }; // TODO fix
     // TODO merge these flags with Pipeline::Config
     config.cullBackFaces = key.renderConfig.cullBackfaces;
     config.wireframe = key.renderConfig.wireframe;
     config.depthTest = key.renderConfig.depthTest;
     config.alphaBlending = key.renderConfig.alphaBlending;
-    config.dynamicScissor = key.renderConfig.dynamicScissor;
 
     for (std::size_t i = 0; i < key.vertexConfig.bindings.size(); i++)
     {

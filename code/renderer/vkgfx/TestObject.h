@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Handles.h"
-#include "Mesh.h" // TODO don't include
 
 #include "glm.h"
 
@@ -21,8 +20,8 @@ namespace vkgfx
         std::vector<unsigned char> pushConstants; // TODO have a reference to the buffer instead
 
         bool hasScissors = false;
-        glm::ivec2 scissorOffset = { 0, 0 };
-        glm::ivec2 scissorSize = { 0, 0 };
+        glm::uvec2 scissorOffset = { 0, 0 };
+        glm::uvec2 scissorSize = { 0, 0 };
     };
 
     struct TestCameraTransform

@@ -31,6 +31,8 @@
 #include "Application.h"
 #include "PhysicalDeviceSurfaceParameters.h"
 #include "QueueFamilyIndices.h"
+#include "wrapper/Window.h"
+
 #include "glm.h"
 
 #include <vulkan/vulkan.h>
@@ -125,6 +127,12 @@ namespace
 
 namespace vkgfx
 {
+    struct RendererData
+    {
+        VkSurfaceFormatKHR m_surfaceFormat{};
+        VkFormat m_depthFormat{};
+    };
+
     struct RendererFrameResources
     {
         vko::Semaphore imageAvailableSemaphore;
@@ -138,49 +146,27 @@ namespace vkgfx
     };
 }
 
-vkgfx::Renderer::Renderer(std::string const& name, bool enableValidationLayers, vko::Window const& window, std::function<void(vko::DebugMessage)> onDebugMessage) : m_window(window)
+vkgfx::Renderer::Renderer(std::string const& name, bool enableValidationLayers, vko::Window& window, std::function<void(vko::DebugMessage)> onDebugMessage) : m_window(window)
 {
+    m_window.addResizeCallback([this](int, int) { onWindowResized(); });
+
     m_application = std::make_unique<vkr::Application>(name, enableValidationLayers, false, window, std::move(onDebugMessage));
+
+    m_data = std::make_unique<RendererData>();
 
     vko::Device const& device = m_application->getDevice();
     vko::PhysicalDevice const& physicalDevice = m_application->getPhysicalDevice();
 
     vkr::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
 
-    vko::Swapchain::Config config;
-    config.surfaceFormat = chooseSwapSurfaceFormat(parameters.getFormats());
-    config.presentMode = chooseSwapPresentMode(parameters.getPresentModes());
-    config.extent = chooseSwapchainExtent(m_application->getSurface(), parameters.getCapabilities());
+    m_data->m_surfaceFormat = chooseSwapSurfaceFormat(parameters.getFormats());
+    m_data->m_depthFormat = findDepthFormat(physicalDevice);
 
-    const uint32_t minImageCount = parameters.getCapabilities().minImageCount;
-    const uint32_t maxImageCount = parameters.getCapabilities().maxImageCount;
-    config.minImageCount = minImageCount + 1;
-    if (maxImageCount > 0)
-        config.minImageCount = std::min(config.minImageCount, maxImageCount);
+    {
+        m_renderPass = std::make_unique<vko::RenderPass>(device, m_data->m_surfaceFormat.format, m_data->m_depthFormat);
+    }
 
-    config.preTransform = parameters.getCapabilities().currentTransform;
-
-    vkr::QueueFamilyIndices const& indices = parameters.getQueueFamilyIndices();
-
-    m_swapchain = std::make_unique<vko::Swapchain>(device, m_application->getSurface(), indices.getGraphicsQueueFamily(), indices.getPresentQueueFamily(), std::move(config));
-
-    VkFormat colorFormat = m_swapchain->getSurfaceFormat().format;
-    VkFormat depthFormat = findDepthFormat(physicalDevice);
-    m_renderPass = std::make_unique<vko::RenderPass>(device, colorFormat, depthFormat);
-
-    auto const& images = m_swapchain->getImages();
-    m_swapchainImageViews.reserve(images.size());
-    for (auto const& image : images)
-        m_swapchainImageViews.push_back(std::make_unique<vko::ImageView>(image.createImageView(VK_IMAGE_ASPECT_COLOR_BIT)));
-
-    // TODO move depth resources to the swapchain?
-    VkExtent2D swapchainExtent = m_swapchain->getExtent();
-    vkr::utils::createImage(*m_application, swapchainExtent.width, swapchainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
-    m_depthImageView = std::make_unique<vko::ImageView>(m_depthImage->createImageView(VK_IMAGE_ASPECT_DEPTH_BIT));
-
-    m_swapchainFramebuffers.reserve(m_swapchainImageViews.size());
-    for (std::unique_ptr<vko::ImageView> const& colorImageView : m_swapchainImageViews)
-        m_swapchainFramebuffers.push_back(std::make_unique<vko::Framebuffer>(device, *colorImageView, *m_depthImageView, *m_renderPass, m_swapchain->getExtent()));
+    createSwapchain();
 
     vko::QueueFamily const& graphicsQueueFamily = m_application->getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily();
 
@@ -197,7 +183,7 @@ vkgfx::Renderer::Renderer(std::string const& name, bool enableValidationLayers, 
         m_frameResources.push_back(std::move(resources));
     }
 
-    m_resourceManager = std::make_unique<ResourceManager>(device, physicalDevice, m_application->getShortLivedCommandPool(), device.getGraphicsQueue(), *m_renderPass, FRAME_RESOURCE_COUNT, swapchainExtent.width, swapchainExtent.height);
+    m_resourceManager = std::make_unique<ResourceManager>(device, physicalDevice, m_application->getShortLivedCommandPool(), device.getGraphicsQueue(), *m_renderPass, FRAME_RESOURCE_COUNT);
 
     createCameraResources();
 
@@ -230,13 +216,7 @@ vkgfx::Renderer::~Renderer()
 {
     m_application->getDevice().waitIdle();
 
-    m_swapchainFramebuffers.clear();
-    m_depthImageView = nullptr;
-    m_depthImage = nullptr;
-    m_depthImageMemory = nullptr;
-    m_swapchainImageViews.clear();
-    m_renderPass = nullptr;
-    m_swapchain = nullptr;
+    destroySwapchain();
 }
 
 void vkgfx::Renderer::addTestObject(TestObject object)
@@ -263,11 +243,11 @@ void vkgfx::Renderer::draw()
     uint32_t imageIndex;
     VkResult aquireImageResult = vkAcquireNextImageKHR(device.getHandle(), m_swapchain->getHandle(), std::numeric_limits<uint64_t>::max(), frameResources.imageAvailableSemaphore.getHandle(), VK_NULL_HANDLE, &imageIndex);
 
-//     if (aquireImageResult == VK_ERROR_OUT_OF_DATE_KHR)
-//     {
-//         recreateSwapchain();
-//         return;
-//     }
+    if (aquireImageResult == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+        recreateSwapchain();
+        return;
+    }
 
     if (aquireImageResult != VK_SUCCESS && aquireImageResult != VK_SUBOPTIMAL_KHR)
         throw std::runtime_error("failed to acquire swapchain image!");
@@ -303,13 +283,21 @@ void vkgfx::Renderer::draw()
     if (presentResult != VK_SUCCESS && presentResult != VK_ERROR_OUT_OF_DATE_KHR)
         throw std::runtime_error("vkQueuePresentKHR failed");
 
-//     if (aquireImageResult == VK_SUBOPTIMAL_KHR || m_framebufferResized)
-//     {
-//         m_framebufferResized = false;
-//         recreateSwapchain();
-//     }
+    if (aquireImageResult == VK_SUBOPTIMAL_KHR)
+    {
+        recreateSwapchain();
+    }
 
     m_nextFrameResourcesIndex = (m_nextFrameResourcesIndex + 1) % FRAME_RESOURCE_COUNT;
+}
+
+void vkgfx::Renderer::onWindowResized()
+{
+    m_window.waitUntilInForeground();
+
+    m_application->onSurfaceChanged(); // TODO remove?
+
+    recreateSwapchain();
 }
 
 void vkgfx::Renderer::createCameraResources()
@@ -348,6 +336,17 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
 
     renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());;
     renderPassBeginInfo.pClearValues = clearValues.data();
+
+    {
+        VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = 1.0f * m_width;
+        viewport.height = 1.0f * m_height;
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+    }
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -450,15 +449,22 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
         Buffer const& indexBuffer = m_resourceManager->getBuffer(mesh.indexBuffer.buffer);
         VkDeviceSize indexBufferOffset = indexBuffer.getDynamicOffset(m_nextFrameResourcesIndex) + mesh.indexBuffer.offset;
 
+        VkRect2D scissor;
         if (object.hasScissors)
         {
-            VkRect2D scissor;
             scissor.offset.x = object.scissorOffset.x;
             scissor.offset.y = object.scissorOffset.y;
             scissor.extent.width = object.scissorSize.x;
             scissor.extent.height = object.scissorSize.y;
-            vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
         }
+        else
+        {
+            scissor.offset.x = 0;
+            scissor.offset.y = 0;
+            scissor.extent.width = m_width;
+            scissor.extent.height = m_height;
+        }
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
         vkCmdBindVertexBuffers(commandBuffer, 0, static_cast<uint32_t>(vertexBuffersOffsets.size()), vertexBuffers.data(), vertexBuffersOffsets.data());
         vkCmdBindIndexBuffer(commandBuffer, indexBuffer.buffer.getHandle(), indexBufferOffset, vulkanizeIndexType(mesh.indexType));
@@ -492,4 +498,63 @@ void vkgfx::Renderer::updateCameraBuffer()
     data.projection[1][1] *= -1;
 
     m_resourceManager->uploadDynamicBufferToStaging(m_cameraBuffer, &data, sizeof(data));
+}
+
+void vkgfx::Renderer::createSwapchain()
+{
+    vko::Device const& device = m_application->getDevice();
+    vkr::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
+    vkr::QueueFamilyIndices const& indices = parameters.getQueueFamilyIndices();
+
+    VkExtent2D extent = chooseSwapchainExtent(m_application->getSurface(), parameters.getCapabilities());
+
+    vko::Swapchain::Config config;
+    config.surfaceFormat = m_data->m_surfaceFormat;
+    config.presentMode = chooseSwapPresentMode(parameters.getPresentModes());
+    config.extent = extent;
+
+    const uint32_t minImageCount = parameters.getCapabilities().minImageCount;
+    const uint32_t maxImageCount = parameters.getCapabilities().maxImageCount;
+    config.minImageCount = minImageCount + 1;
+    if (maxImageCount > 0)
+        config.minImageCount = std::min(config.minImageCount, maxImageCount);
+
+    config.preTransform = parameters.getCapabilities().currentTransform;
+
+    m_swapchain = std::make_unique<vko::Swapchain>(device, m_application->getSurface(), indices.getGraphicsQueueFamily(), indices.getPresentQueueFamily(), std::move(config));
+
+    auto const& images = m_swapchain->getImages();
+    m_swapchainImageViews.reserve(images.size());
+    for (auto const& image : images)
+        m_swapchainImageViews.push_back(std::make_unique<vko::ImageView>(image.createImageView(VK_IMAGE_ASPECT_COLOR_BIT)));
+
+    // TODO move depth resources to the swapchain?
+    VkExtent2D swapchainExtent = m_swapchain->getExtent();
+    vkr::utils::createImage(*m_application, swapchainExtent.width, swapchainExtent.height, m_data->m_depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
+    m_depthImageView = std::make_unique<vko::ImageView>(m_depthImage->createImageView(VK_IMAGE_ASPECT_DEPTH_BIT));
+
+    m_swapchainFramebuffers.reserve(m_swapchainImageViews.size());
+    for (std::unique_ptr<vko::ImageView> const& colorImageView : m_swapchainImageViews)
+        m_swapchainFramebuffers.push_back(std::make_unique<vko::Framebuffer>(device, *colorImageView, *m_depthImageView, *m_renderPass, m_swapchain->getExtent()));
+
+    m_width = extent.width;
+    m_height = extent.height;
+}
+
+void vkgfx::Renderer::destroySwapchain()
+{
+    m_application->getDevice().waitIdle();
+
+    m_swapchainFramebuffers.clear();
+    m_depthImageView = nullptr;
+    m_depthImage = nullptr;
+    m_depthImageMemory = nullptr;
+    m_swapchainImageViews.clear();
+    m_swapchain = nullptr;
+}
+
+void vkgfx::Renderer::recreateSwapchain()
+{
+    destroySwapchain();
+    createSwapchain();
 }

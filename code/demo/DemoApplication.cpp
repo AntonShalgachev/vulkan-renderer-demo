@@ -558,8 +558,7 @@ DemoApplication::DemoApplication()
     {
         m_renderer->setWaitUntilWindowInForegroundCallback([this]() { m_window->waitUntilInForeground(); });
 
-        VkExtent2D extent = m_renderer->getSwapchain().getExtent();
-        m_ownResourceManager = std::make_unique<vkgfx::ResourceManager>(m_application->getDevice(), m_application->getPhysicalDevice(), m_application->getShortLivedCommandPool(), m_application->getDevice().getGraphicsQueue(), m_renderer->getRenderPass(), 3, extent.width, extent.height);
+        m_ownResourceManager = std::make_unique<vkgfx::ResourceManager>(m_application->getDevice(), m_application->getPhysicalDevice(), m_application->getShortLivedCommandPool(), m_application->getDevice().getGraphicsQueue(), m_renderer->getRenderPass(), 3);
 
         m_resourceManager = m_ownResourceManager.get();
     }
@@ -1553,7 +1552,6 @@ void DemoApplication::createUIResources()
             .wireframe = false,
             .depthTest = false,
             .alphaBlending = true,
-            .dynamicScissor = true,
         };
         key.pushConstantRanges = {
             vkgfx::PushConstantRange{

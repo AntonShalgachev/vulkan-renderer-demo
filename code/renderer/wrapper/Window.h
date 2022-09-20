@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 
 namespace vko
 {
@@ -14,5 +15,8 @@ namespace vko
         virtual std::size_t getWidth() const = 0;
         virtual std::size_t getHeight() const = 0;
         virtual std::vector<char const*> const& getRequiredInstanceExtensions() const = 0;
+
+        virtual void waitUntilInForeground() const = 0;
+        virtual void addResizeCallback(std::function<void(int, int)> callback) = 0;
     };
 }

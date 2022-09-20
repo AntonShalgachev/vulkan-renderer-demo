@@ -49,28 +49,6 @@ namespace
         return inputAssemblyCreateInfo;
     }
 
-    VkViewport initViewport(VkExtent2D const& extent)
-    {
-		VkViewport viewport{};
-		viewport.x = 0.0f;
-		viewport.y = 0.0f;
-		viewport.width = static_cast<float>(extent.width);
-		viewport.height = static_cast<float>(extent.height);
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
-
-        return viewport;
-    }
-
-    VkRect2D initScissor(VkExtent2D const& extent)
-    {
-		VkRect2D scissor{};
-		scissor.offset = { 0, 0 };
-		scissor.extent = extent;
-
-        return scissor;
-    }
-
     VkPipelineViewportStateCreateInfo initViewportStateCreateInfo(VkViewport const& viewport, VkRect2D const& scissor)
     {
 		VkPipelineViewportStateCreateInfo viewportStateCreateInfo{};
@@ -173,8 +151,8 @@ vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, Rend
 
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = initInputAssemblyCreateInfo();
 
-    VkViewport viewport = initViewport(config.extent);
-    VkRect2D scissor = initScissor(config.extent);
+	VkViewport viewport{};
+	VkRect2D scissor{};
     VkPipelineViewportStateCreateInfo viewportStateCreateInfo = initViewportStateCreateInfo(viewport, scissor);
 
     VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo = initRasterizerCreateInfo(config.cullBackFaces, config.wireframe);
@@ -186,9 +164,10 @@ vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, Rend
 	VkPipelineColorBlendAttachmentState colorBlendAttachment = initColorBlendAttachment(config.alphaBlending);
     VkPipelineColorBlendStateCreateInfo colorBlendingCreateInfo = initColorBlendingCreateInfo(colorBlendAttachment);
 
-    std::vector<VkDynamicState> dynamicStates;
-    if (config.dynamicScissor)
-        dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
+	std::vector<VkDynamicState> dynamicStates = {
+		VK_DYNAMIC_STATE_SCISSOR,
+		VK_DYNAMIC_STATE_VIEWPORT,
+	};
 
     VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo{};
     dynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;

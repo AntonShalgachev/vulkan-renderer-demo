@@ -27,6 +27,7 @@ namespace vkr
 
 namespace vkgfx
 {
+    struct RendererData;
     struct RendererFrameResources;
     class ResourceManager;
     struct TestObject;
@@ -34,7 +35,7 @@ namespace vkgfx
     class Renderer
     {
     public:
-        Renderer(std::string const& name, bool enableValidationLayers, vko::Window const& window, std::function<void(vko::DebugMessage)> onDebugMessage = {});
+        Renderer(std::string const& name, bool enableValidationLayers, vko::Window& window, std::function<void(vko::DebugMessage)> onDebugMessage = {});
         ~Renderer();
 
         ResourceManager& getResourceManager() const { return *m_resourceManager; }
@@ -47,18 +48,27 @@ namespace vkgfx
         void draw();
 
     private:
+        void onWindowResized();
+
         void createCameraResources();
         void recordCommandBuffer(std::size_t imageIndex, RendererFrameResources& frameResources);
 
         void updateCameraBuffer();
 
+        void createSwapchain();
+        void destroySwapchain();
+
+        void recreateSwapchain();
+
     private:
-        vko::Window const& m_window;
+        vko::Window& m_window;
 
         // TODO don't use unique_ptrs
 
         std::unique_ptr<vkr::Application> m_application; // TODO don't use
         std::unique_ptr<ResourceManager> m_resourceManager;
+
+        std::unique_ptr<RendererData> m_data;
 
         std::unique_ptr<vko::Swapchain> m_swapchain;
         std::vector<std::unique_ptr<vko::Framebuffer>> m_swapchainFramebuffers;
@@ -67,6 +77,8 @@ namespace vkgfx
         std::unique_ptr<vko::Image> m_depthImage;
         std::unique_ptr<vko::DeviceMemory> m_depthImageMemory;
         std::unique_ptr<vko::ImageView> m_depthImageView;
+        std::size_t m_width = 0;
+        std::size_t m_height = 0;
 
         std::vector<RendererFrameResources> m_frameResources;
         std::size_t m_nextFrameResourcesIndex = 0;

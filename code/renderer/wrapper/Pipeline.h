@@ -19,8 +19,6 @@ namespace vko
     public:
         struct Config
         {
-            VkExtent2D extent{ 0, 0 };
-
             // TODO replace with the simplier vertex layout struct
             std::vector<VkVertexInputBindingDescription> bindingDescriptions;
             std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
@@ -29,7 +27,6 @@ namespace vko
             bool wireframe = false;
             bool depthTest = true;
             bool alphaBlending = false;
-            bool dynamicScissor = false;
         };
 
     	explicit Pipeline(Device const& device, PipelineLayout const& layout, RenderPass const& renderPass, std::span<ShaderModule const*> shaderModules, Config const& config);

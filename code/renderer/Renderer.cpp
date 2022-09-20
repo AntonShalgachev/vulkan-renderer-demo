@@ -551,6 +551,25 @@ void vkr::Renderer::recordCommandBuffer(std::size_t imageIndex, FrameResources& 
 
         pipeline.bind(handle);
 
+        auto extent = m_swapchain->getExtent();
+        {
+            VkViewport viewport{};
+            viewport.x = 0.0f;
+            viewport.y = 0.0f;
+            viewport.width = 1.0f * extent.width;
+            viewport.height = 1.0f * extent.height;
+            viewport.minDepth = 0.0f;
+            viewport.maxDepth = 1.0f;
+            vkCmdSetViewport(handle, 0, 1, &viewport);
+        }
+
+        {
+            VkRect2D scissor;
+            scissor.offset = { 0, 0 };
+            scissor.extent = extent;
+            vkCmdSetScissor(handle, 0, 1, &scissor);
+        }
+
         {
             VertexPushConstants constants;
             constants.model = transform.getMatrix();
@@ -665,7 +684,6 @@ std::unique_ptr<vko::Pipeline> vkr::Renderer::createPipeline(PipelineConfigurati
     vkr::Shader shader{ getDevice(), configuration.shaderKey };
 
     vko::Pipeline::Config config;
-    config.extent = m_swapchain->getExtent();
     config.bindingDescriptions = configuration.vertexLayoutDescriptions.getBindingDescriptions(); // TODO avoid copy
     config.attributeDescriptions = configuration.vertexLayoutDescriptions.getAttributeDescriptions(); // TODO avoid copy
     config.cullBackFaces = configuration.cullBackFaces;

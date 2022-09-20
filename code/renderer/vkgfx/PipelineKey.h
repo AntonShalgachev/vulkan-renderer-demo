@@ -61,7 +61,6 @@ namespace vkgfx
         bool wireframe = false;
         bool depthTest = true;
         bool alphaBlending = false;
-        bool dynamicScissor = false;
 
         auto operator<=>(RenderConfiguration const&) const = default;
     };

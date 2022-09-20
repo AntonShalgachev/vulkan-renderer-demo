@@ -66,25 +66,11 @@ namespace vkr
             }
         }
 
-        template<typename Func>
-        void addResizeCallback(Func&& callback)
-        {
-            m_resizeCallbacks.emplace_back(std::forward<Func>(callback));
-        }
+        void addResizeCallback(std::function<void(int, int)> callback) override;
+        void addKeyCallback(std::function<void(Action, Key, char, Modifiers)> callback);
+		void addMouseMoveCallback(std::function<void(glm::vec2)> callback);
 
-        template<typename Func>
-        void addKeyCallback(Func&& callback)
-        {
-            m_keyCallbacks.emplace_back(std::forward<Func>(callback));
-		}
-
-		template<typename Func>
-		void addMouseMoveCallback(Func&& callback)
-		{
-			m_mouseMoveCallbacks.emplace_back(std::forward<Func>(callback));
-		}
-
-        void waitUntilInForeground() const;
+        void waitUntilInForeground() const override;
 
     private:
         void createWindow(std::string const& title);
