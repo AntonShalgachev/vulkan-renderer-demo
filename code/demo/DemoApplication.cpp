@@ -140,22 +140,9 @@ namespace
         auto size = image.image.size();
 
         int w = 0, h = 0, comp = 0, req_comp = 4;
-        unsigned char* data = nullptr;
+        unsigned char* data = stbi_load_from_memory(bytes, size, &w, &h, &comp, req_comp);
         int bits = 8;
         int pixel_type = TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE;
-
-        if (stbi_is_16_bit_from_memory(bytes, size))
-        {
-            data = reinterpret_cast<unsigned char*>(stbi_load_16_from_memory(bytes, size, &w, &h, &comp, req_comp));
-            if (data)
-            {
-                bits = 16;
-                pixel_type = TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT;
-            }
-        }
-
-        if (!data)
-            data = stbi_load_from_memory(bytes, size, &w, &h, &comp, req_comp);
 
         if (!data)
             return false;
@@ -466,7 +453,7 @@ namespace
         std::vector<unsigned char> buffer(static_cast<std::size_t>(fileSize));
 
         file.seekg(0);
-        file.read(reinterpret_cast<char*>(buffer.data()), fileSize); // TODO check if okay
+        file.read(reinterpret_cast<char*>(buffer.data()), fileSize); // safe, since char and unsigned char have the same alignment and representation
         file.close();
 
         return buffer;
@@ -488,6 +475,25 @@ namespace
 
         return coil::overloaded(std::move(toggler), std::move(setter));
     }
+
+    auto imageToTextureId(vkgfx::ImageHandle image)
+    {
+        ImTextureID textureId;
+        static_assert(sizeof(image) <= sizeof(textureId));
+        memcpy(&textureId, &image, sizeof(image));
+
+        return textureId;
+    };
+
+    auto textureIdToImage(ImTextureID textureId)
+    {
+        vkgfx::ImageHandle image;
+
+        static_assert(sizeof(image) <= sizeof(textureId));
+        memcpy(&image, &textureId, sizeof(image));
+
+        return image;
+    };
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1474,7 +1480,7 @@ void DemoApplication::createUIResources()
 
         m_resourceManager->uploadImage(m_imGuiFontImage, pixels, width * height * bytesPerPixel);
 
-        io.Fonts->SetTexID(reinterpret_cast<ImTextureID>(m_imGuiFontImage.index)); // TODO think about that
+        io.Fonts->SetTexID(imageToTextureId(m_imGuiFontImage));
     }
 
     {
@@ -1778,8 +1784,8 @@ void DemoApplication::renderUI()
             ImVec2 translate;
         };
 
-        pushConstantsBytes.resize(sizeof(PushConstants));
-        PushConstants& pushConstants = reinterpret_cast<PushConstants&>(*pushConstantsBytes.data());
+        PushConstants pushConstants;
+
         pushConstants.scale = {
             2.0f / drawData->DisplaySize.x,
             2.0f / drawData->DisplaySize.y,
@@ -1788,6 +1794,9 @@ void DemoApplication::renderUI()
             -1.0f - drawData->DisplayPos.x * pushConstants.scale.x,
             -1.0f - drawData->DisplayPos.y * pushConstants.scale.y,
         };
+
+        pushConstantsBytes.resize(sizeof(PushConstants));
+        memcpy(pushConstantsBytes.data(), &pushConstants, sizeof(pushConstants));
     }
 
     std::size_t nextMeshIndex = 0;
@@ -1858,7 +1867,7 @@ void DemoApplication::renderUI()
                 vkgfx::TextureHandle textureHandle;
                 {
                     vkgfx::Texture texture = {
-                        .image = vkgfx::ImageHandle{ reinterpret_cast<std::size_t>(pcmd->GetTexID()) },
+                        .image = textureIdToImage(pcmd->GetTexID()),
                         .sampler = m_imGuiImageSampler,
                     };
 

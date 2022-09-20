@@ -2,6 +2,8 @@
 
 #include "Device.h"
 
+#include <cassert>
+
 namespace
 {
     VkShaderStageFlagBits getStageFlags(vko::ShaderModuleType type)
@@ -25,10 +27,17 @@ vko::ShaderModule::ShaderModule(Device const& device, std::span<unsigned char co
     , m_type(type)
     , m_entryPoint(std::move(entryPoint))
 {
+    assert(bytes.size() % 4 == 0);
+    static_assert(sizeof(uint32_t) == 4 * sizeof(unsigned char));
+
+    std::vector<uint32_t> code;
+    code.resize(bytes.size() / 4);
+    memcpy(code.data(), bytes.data(), bytes.size());
+
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     createInfo.codeSize = bytes.size();
-    createInfo.pCode = reinterpret_cast<const uint32_t*>(bytes.data()); // TODO check if okay
+    createInfo.pCode = code.data();
 
     if (vkCreateShaderModule(m_device.getHandle(), &createInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create shader module!");
