@@ -14,6 +14,5 @@ layout(location = 0) out vec4 fragOutput;
 
 void main()
 {
-    // fragOutput = vec4(1.0, 0.0, 0.0, 0.0);
     fragOutput = fragInput.color * texture(albedo, fragInput.uv.st);
 }
