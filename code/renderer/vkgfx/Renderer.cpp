@@ -389,9 +389,9 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
                 {
                     .set = 0,
                     .binding = 0,
-                    .buffer = objectUniformBuffer.buffer.getHandle(),
+                    .buffer = frameUniformBuffer.buffer.getHandle(),
                     .offset = 0,
-                    .size = objectUniformBuffer.size,
+                    .size = frameUniformBuffer.size,
                 },
                 {
                     .set = 1,
@@ -403,20 +403,20 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
                 {
                     .set = 2,
                     .binding = 0,
-                    .buffer = frameUniformBuffer.buffer.getHandle(),
+                    .buffer = objectUniformBuffer.buffer.getHandle(),
                     .offset = 0,
-                    .size = frameUniformBuffer.size,
+                    .size = objectUniformBuffer.size,
                 },
             };
             config.images = {
                 {
-                    .set = 0,
+                    .set = 1,
                     .binding = 1,
                     .imageView = albedoImage.imageView.getHandle(),
                     .sampler = albedoSampler.sampler.getHandle(),
                 },
                 {
-                    .set = 0,
+                    .set = 1,
                     .binding = 2,
                     .imageView = normalMapImage.imageView.getHandle(),
                     .sampler = normalMapSampler.sampler.getHandle(),
@@ -426,9 +426,9 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
 
             std::array descriptorSetHandles = { descriptorSets->getHandle(0), descriptorSets->getHandle(1), descriptorSets->getHandle(2) };
             std::array<uint32_t, 3> dynamicOffsets = {
-                static_cast<uint32_t>(objectUniformBuffer.getDynamicOffset(m_nextFrameResourcesIndex)),
-                static_cast<uint32_t>(materialUniformBuffer.getDynamicOffset(m_nextFrameResourcesIndex)),
                 static_cast<uint32_t>(frameUniformBuffer.getDynamicOffset(m_nextFrameResourcesIndex)),
+                static_cast<uint32_t>(materialUniformBuffer.getDynamicOffset(m_nextFrameResourcesIndex)),
+                static_cast<uint32_t>(objectUniformBuffer.getDynamicOffset(m_nextFrameResourcesIndex)),
             };
 
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 0, descriptorSetHandles.size(), descriptorSetHandles.data(), dynamicOffsets.size(), dynamicOffsets.data());

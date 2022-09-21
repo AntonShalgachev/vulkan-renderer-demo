@@ -2,11 +2,11 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 #ifdef HAS_TEXTURE
-layout(set = 0, binding = 1) uniform sampler2D texSampler;
+layout(set = 1, binding = 1) uniform sampler2D texSampler;
 #endif
 
 #ifdef HAS_NORMAL_MAP
-layout(set = 0, binding = 2) uniform sampler2D normalMapSampler;
+layout(set = 1, binding = 2) uniform sampler2D normalMapSampler;
 #endif
 
 #ifdef HAS_NORMAL

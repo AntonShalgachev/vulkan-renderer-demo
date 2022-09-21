@@ -2,55 +2,60 @@
 
 namespace vkgfx
 {
-    struct ImageHandle
+    struct ResourceHandle
     {
-        std::size_t index = 0; // TODO improve
+        std::size_t index = static_cast<std::size_t>(0); // TODO make it -1 by default
+
+        auto operator<=>(ResourceHandle const&) const = default;
     };
 
-    struct BufferHandle
+    struct ImageHandle : ResourceHandle
     {
-        std::size_t index = 0; // TODO improve
+        
     };
 
-    struct ShaderModuleHandle
+    struct BufferHandle : ResourceHandle
     {
-        std::size_t index = 0; // TODO improve
-
-        auto operator<=>(ShaderModuleHandle const&) const = default;
+        
     };
 
-    struct SamplerHandle
+    struct ShaderModuleHandle : ResourceHandle
     {
-        std::size_t index = 0; // TODO improve
+        
     };
 
-    struct TextureHandle
+    struct SamplerHandle : ResourceHandle
     {
-        std::size_t index = 0; // TODO improve
+        
     };
 
-    struct MaterialHandle
+    struct TextureHandle : ResourceHandle
     {
-        std::size_t index = 0; // TODO improve
+        
     };
 
-    struct MeshHandle
+    struct MaterialHandle : ResourceHandle
     {
-        std::size_t index = 0; // TODO improve
+        
     };
 
-    struct DescriptorSetLayoutHandle
+    struct MeshHandle : ResourceHandle
     {
-        std::size_t index = 0; // TODO improve
+        
     };
 
-    struct PipelineLayoutHandle
+    struct DescriptorSetLayoutHandle : ResourceHandle
     {
-        std::size_t index = 0; // TODO improve
+        
     };
 
-    struct PipelineHandle
+    struct PipelineLayoutHandle : ResourceHandle
     {
-        std::size_t index = 0; // TODO improve
+        
+    };
+
+    struct PipelineHandle : ResourceHandle
+    {
+        
     };
 }

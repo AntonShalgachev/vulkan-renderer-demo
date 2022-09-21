@@ -1,6 +1,6 @@
 #version 450 core
 
-layout(set = 0, binding = 1) uniform sampler2D albedo;
+layout(set = 1, binding = 1) uniform sampler2D albedo;
 
 struct Input
 {

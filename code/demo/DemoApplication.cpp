@@ -952,8 +952,17 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
             pipelineKey.renderConfig = material.metadata.renderConfig;
 
             // TODO think how to handle multiple descriptor set layouts properly
-            vkgfx::UniformConfiguration fakeUniformConfiguration{ .hasAlbedoTexture = false, .hasNormalMap = false, };
-            pipelineKey.uniformConfigs = { material.metadata.uniformConfig, fakeUniformConfiguration, fakeUniformConfiguration };
+            pipelineKey.uniformConfigs = {
+                vkgfx::UniformConfiguration{
+                    .hasAlbedoTexture = false,
+                    .hasNormalMap = false,
+                },
+                material.metadata.uniformConfig,
+                vkgfx::UniformConfiguration{
+                    .hasAlbedoTexture = false,
+                    .hasNormalMap = false,
+                },
+            };
 
             pipelineKey.vertexConfig = mesh.metadata.vertexConfig;
 
@@ -1514,12 +1523,12 @@ void DemoApplication::createUIResources()
         key.uniformConfigs = {
             // TODO remove unnecessary configs
             vkgfx::UniformConfiguration{
-                .hasAlbedoTexture = true,
-                .hasNormalMap = true,
-            },
-            vkgfx::UniformConfiguration{
                 .hasAlbedoTexture = false,
                 .hasNormalMap = false,
+            },
+            vkgfx::UniformConfiguration{
+                .hasAlbedoTexture = true,
+                .hasNormalMap = true,
             },
             vkgfx::UniformConfiguration{
                 .hasAlbedoTexture = false,

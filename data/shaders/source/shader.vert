@@ -5,20 +5,20 @@
 #define HAS_BITANGENT
 #endif
 
-layout(set = 0, binding = 0) uniform ObjectUniformBuffer {
-    vec4 objectColor;
-} objectUniforms;
-
-layout(set = 1, binding = 0) uniform MaterialUniformBuffer {
-    vec4 objectColor;
-} materialUniforms;
-
-layout(set = 2, binding = 0) uniform FrameUniformBuffer {
+layout(set = 0, binding = 0) uniform FrameUniformBuffer {
     mat4 view;
     mat4 projection;
     vec3 lightPosition;
     vec3 lightColor;
 } frameUniforms;
+
+layout(set = 1, binding = 0) uniform MaterialUniformBuffer {
+    vec4 objectColor;
+} materialUniforms;
+
+layout(set = 2, binding = 0) uniform ObjectUniformBuffer {
+    vec4 objectColor;
+} objectUniforms;
 
 layout(push_constant) uniform PushConstants {
     mat4 model;
