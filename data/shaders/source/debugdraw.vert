@@ -10,7 +10,7 @@ layout(set = 0, binding = 0) uniform FrameUniformBuffer {
 } frameUniforms;
 
 layout(push_constant) uniform PushConstants {
-    mat4 modelViewProjection;
+    mat4 model;
 } pcs;
 
 layout(location = 0) in vec3 inPosition;
@@ -18,5 +18,5 @@ layout(location = 1) in vec3 inNormal;
 
 void main()
 {
-	gl_Position = pcs.modelViewProjection * vec4(inPosition, 1.0);
+	gl_Position = frameUniforms.projection * frameUniforms.view * pcs.model * vec4(inPosition, 1.0);
 }

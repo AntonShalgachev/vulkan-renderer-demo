@@ -136,7 +136,24 @@ void DebugDrawService::init(vkgfx::Renderer& renderer)
     {
         vkgfx::PipelineKey key;
         key.shaderHandles = { vertexShaderModule, fragmentShaderModule };
-        key.uniformConfigs = {};
+        key.uniformConfigs = {
+            // TODO remove unnecessary configs
+            vkgfx::UniformConfiguration{
+                .hasBuffer = true,
+                .hasAlbedoTexture = false,
+                .hasNormalMap = false,
+            },
+            vkgfx::UniformConfiguration{
+                .hasBuffer = false,
+                .hasAlbedoTexture = false,
+                .hasNormalMap = false,
+            },
+            vkgfx::UniformConfiguration{
+                .hasBuffer = false,
+                .hasAlbedoTexture = false,
+                .hasNormalMap = false,
+            },
+        };
         key.vertexConfig = {
             .bindings = {
                 vkgfx::VertexConfiguration::Binding{
