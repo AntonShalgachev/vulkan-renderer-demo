@@ -1,5 +1,6 @@
 #pragma once
 
+// TODO split into several files?
 namespace vkgfx
 {
     enum class AttributeType
@@ -22,6 +23,7 @@ namespace vkgfx
 
     struct UniformConfiguration
     {
+        bool hasBuffer = true;
         bool hasAlbedoTexture = true;
         bool hasNormalMap = false;
 
@@ -71,6 +73,21 @@ namespace vkgfx
         std::size_t size = 0;
 
         auto operator<=>(PushConstantRange const&) const = default;
+    };
+
+    struct DescriptorSetLayoutKey
+    {
+        UniformConfiguration uniformConfig;
+
+        auto operator<=>(DescriptorSetLayoutKey const&) const = default;
+    };
+
+    struct PipelineLayoutKey
+    {
+        std::vector<UniformConfiguration> uniformConfigs;
+        std::vector<PushConstantRange> pushConstantRanges;
+
+        auto operator<=>(PipelineLayoutKey const&) const = default;
     };
 
     struct PipelineKey

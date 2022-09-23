@@ -93,6 +93,12 @@ namespace vkgfx
         void updateMesh(MeshHandle handle, Mesh mesh);
         Mesh const& getMesh(MeshHandle handle) const;
 
+        DescriptorSetLayoutHandle getOrCreateDescriptorSetLayout(DescriptorSetLayoutKey const& key);
+        vko::DescriptorSetLayout const& getDescriptorSetLayout(DescriptorSetLayoutHandle handle) const;
+
+        PipelineLayoutHandle getOrCreatePipelineLayout(PipelineLayoutKey const& key);
+        vko::PipelineLayout const& getPipelineLayout(PipelineLayoutHandle handle) const;
+
         PipelineHandle getOrCreatePipeline(PipelineKey const& key);
         vko::Pipeline const& getPipeline(PipelineHandle handle) const;
 
@@ -101,10 +107,8 @@ namespace vkgfx
         void uploadBuffer(Buffer const& buffer, std::span<unsigned char const> bytes, std::size_t offset);
         void uploadImage(Image const& image, void const* data, std::size_t dataSize);
 
-        DescriptorSetLayoutHandle getOrCreateDescriptorSetLayout(DescriptorSetLayoutKey const& key);
         DescriptorSetLayoutHandle createDescriptorSetLayout(DescriptorSetLayoutKey const& key);
 
-        PipelineLayoutHandle getOrCreatePipelineLayout(PipelineLayoutKey const& key);
         PipelineLayoutHandle createPipelineLayout(PipelineLayoutKey const& key);
 
         PipelineHandle createPipeline(PipelineKey const& key);

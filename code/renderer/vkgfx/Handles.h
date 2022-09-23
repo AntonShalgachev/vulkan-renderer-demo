@@ -4,9 +4,14 @@ namespace vkgfx
 {
     struct ResourceHandle
     {
-        std::size_t index = static_cast<std::size_t>(0); // TODO make it -1 by default
+        std::size_t index = static_cast<std::size_t>(-1);
 
         auto operator<=>(ResourceHandle const&) const = default;
+
+        operator bool() const
+        {
+            return *this != ResourceHandle{};
+        }
     };
 
     struct ImageHandle : ResourceHandle

@@ -10,6 +10,7 @@ namespace vko
     // TODO rename to something like "Uniform metadata"
     struct DescriptorSetConfiguration
     {
+        bool hasBuffer = false;
         bool hasTexture = false;
         bool hasNormalMap = false;
 

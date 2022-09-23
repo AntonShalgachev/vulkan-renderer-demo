@@ -7,6 +7,7 @@
 
 #include "Handles.h"
 #include "TestObject.h"
+#include "PipelineKey.h"
 
 namespace vko
 {
@@ -87,6 +88,8 @@ namespace vkgfx
         TestCameraTransform m_cameraTransform;
         TestCameraParameters m_cameraParameters;
         TestLightParameters m_lightParameters;
+        UniformConfiguration m_frameUniformConfiguration;
+        DescriptorSetLayoutHandle m_frameDescriptorSetLayout;
 
         std::vector<TestObject> m_testObjects;
         std::vector<TestObject> m_oneFrameTestObjects;

@@ -5,6 +5,7 @@
 #define HAS_BITANGENT
 #endif
 
+// TODO move to an .h file?
 layout(set = 0, binding = 0) uniform FrameUniformBuffer {
     mat4 view;
     mat4 projection;

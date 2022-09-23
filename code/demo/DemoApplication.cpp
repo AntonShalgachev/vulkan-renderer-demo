@@ -399,8 +399,6 @@ namespace
 
         bindings.reserve(model->bufferViews.size());
 
-        // WTF
-
         for (auto const& [name, accessorIndex] : primitive.attributes)
         {
             tinygltf::Accessor const& accessor = model->accessors[static_cast<std::size_t>(accessorIndex)];
@@ -953,12 +951,15 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
 
             // TODO think how to handle multiple descriptor set layouts properly
             pipelineKey.uniformConfigs = {
+                // WTF get shared frame uniform config from the Renderer
                 vkgfx::UniformConfiguration{
+                    .hasBuffer = true,
                     .hasAlbedoTexture = false,
                     .hasNormalMap = false,
                 },
                 material.metadata.uniformConfig,
                 vkgfx::UniformConfiguration{
+                    .hasBuffer = true,
                     .hasAlbedoTexture = false,
                     .hasNormalMap = false,
                 },
@@ -1306,6 +1307,7 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
 
             demoMaterial.metadata.renderConfig.wireframe = false;
             demoMaterial.metadata.renderConfig.cullBackfaces = !gltfMaterial.doubleSided;
+            demoMaterial.metadata.uniformConfig.hasBuffer = true;
             demoMaterial.metadata.uniformConfig.hasAlbedoTexture = true;
             demoMaterial.metadata.uniformConfig.hasNormalMap = true;
         }
@@ -1523,14 +1525,17 @@ void DemoApplication::createUIResources()
         key.uniformConfigs = {
             // TODO remove unnecessary configs
             vkgfx::UniformConfiguration{
+                .hasBuffer = true,
                 .hasAlbedoTexture = false,
                 .hasNormalMap = false,
             },
             vkgfx::UniformConfiguration{
+                .hasBuffer = false,
                 .hasAlbedoTexture = true,
-                .hasNormalMap = true,
+                .hasNormalMap = false,
             },
             vkgfx::UniformConfiguration{
+                .hasBuffer = false,
                 .hasAlbedoTexture = false,
                 .hasNormalMap = false,
             },

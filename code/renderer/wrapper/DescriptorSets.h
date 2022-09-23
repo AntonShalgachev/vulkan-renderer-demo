@@ -10,6 +10,7 @@ namespace vko
     class Buffer;
     class Device;
 
+    // Remove this class?
     class DescriptorSets
     {
     public:

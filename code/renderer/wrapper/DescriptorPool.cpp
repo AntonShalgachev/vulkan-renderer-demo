@@ -2,6 +2,7 @@
 #include "Device.h"
 #include <array>
 #include <stdexcept>
+#include <cassert>
 
 vko::DescriptorPool::DescriptorPool(Device const& device)
     : m_device(device)
@@ -30,6 +31,16 @@ vko::DescriptorPool::~DescriptorPool()
 
 std::optional<vko::DescriptorSets> vko::DescriptorPool::allocate(std::span<VkDescriptorSetLayout const> layouts)
 {
+    std::vector<VkDescriptorSet> descriptorSetHandles = allocateRaw(layouts);
+
+    if (descriptorSetHandles.empty())
+        return {};
+
+    return vko::DescriptorSets{ m_device, descriptorSetHandles };
+}
+
+std::vector<VkDescriptorSet> vko::DescriptorPool::allocateRaw(std::span<VkDescriptorSetLayout const> layouts)
+{
     VkDescriptorSetAllocateInfo descriptorSetAllocInfo{};
     descriptorSetAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     descriptorSetAllocInfo.descriptorPool = m_handle;
@@ -44,10 +55,9 @@ std::optional<vko::DescriptorSets> vko::DescriptorPool::allocate(std::span<VkDes
     if (result == VK_ERROR_OUT_OF_POOL_MEMORY)
         return {};
 
-    if (result == VK_SUCCESS)
-        return vko::DescriptorSets{ m_device, descriptorSetHandles };
+    assert(result == VK_SUCCESS);
 
-    throw std::runtime_error("failed to allocate descriptor sets!");
+    return descriptorSetHandles;
 }
 
 void vko::DescriptorPool::reset()

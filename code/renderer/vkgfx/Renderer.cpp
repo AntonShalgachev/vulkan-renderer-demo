@@ -17,6 +17,8 @@
 #include "wrapper/Queue.h"
 #include "wrapper/Pipeline.h"
 #include "wrapper/Buffer.h"
+#include "wrapper/Window.h"
+#include "wrapper/DescriptorSetLayout.h"
 
 #include "ResourceManager.h"
 #include "TestObject.h"
@@ -26,12 +28,12 @@
 #include "Texture.h"
 #include "Image.h"
 #include "Sampler.h"
+#include "PipelineKey.h"
 
 // TODO remove vkr references
 #include "Application.h"
 #include "PhysicalDeviceSurfaceParameters.h"
 #include "QueueFamilyIndices.h"
-#include "wrapper/Window.h"
 
 #include "glm.h"
 
@@ -123,6 +125,80 @@ namespace
 
         throw std::invalid_argument("type");
     }
+
+    struct DescriptorSetUpdateConfig
+    {
+        struct SampledImage
+        {
+            std::size_t binding = 0;
+            VkImageView imageView = VK_NULL_HANDLE;
+            VkSampler sampler = VK_NULL_HANDLE;
+        };
+
+        struct Buffer
+        {
+            std::size_t binding = 0;
+            VkBuffer buffer = VK_NULL_HANDLE;
+            std::size_t offset = 0;
+            std::size_t size = 0;
+        };
+
+        std::vector<SampledImage> images;
+        std::vector<Buffer> buffers;
+    };
+
+    void updateDescriptorSet(VkDevice device, VkDescriptorSet set, DescriptorSetUpdateConfig const& config)
+    {
+        std::vector<VkDescriptorBufferInfo> bufferInfos;
+        bufferInfos.reserve(config.buffers.size());
+
+        std::vector<VkDescriptorImageInfo> imageInfos;
+        imageInfos.reserve(config.images.size());
+
+        std::vector<VkWriteDescriptorSet> descriptorWrites;
+        descriptorWrites.reserve(bufferInfos.capacity() + imageInfos.capacity());
+
+        for (DescriptorSetUpdateConfig::Buffer const& buffer : config.buffers)
+        {
+            VkWriteDescriptorSet& descriptorWrite = descriptorWrites.emplace_back();
+
+            assert(bufferInfos.size() < bufferInfos.capacity());
+            VkDescriptorBufferInfo& bufferInfo = bufferInfos.emplace_back();
+            bufferInfo.buffer = buffer.buffer;
+            bufferInfo.offset = buffer.offset;
+            bufferInfo.range = buffer.size;
+
+            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrite.dstSet = set;
+            descriptorWrite.dstBinding = buffer.binding;
+            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+            descriptorWrite.descriptorCount = 1;
+            descriptorWrite.pBufferInfo = &bufferInfo;
+        }
+
+        for (DescriptorSetUpdateConfig::SampledImage const& image : config.images)
+        {
+            assert(descriptorWrites.size() < descriptorWrites.capacity());
+            VkWriteDescriptorSet& descriptorWrite = descriptorWrites.emplace_back();
+
+            assert(imageInfos.size() < imageInfos.capacity());
+            VkDescriptorImageInfo& imageInfo = imageInfos.emplace_back();
+            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfo.imageView = image.imageView;
+            imageInfo.sampler = image.sampler;
+
+            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrite.dstSet = set;
+            descriptorWrite.dstBinding = image.binding;
+            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorWrite.descriptorCount = 1;
+            descriptorWrite.pImageInfo = &imageInfo;
+        }
+
+        vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+    }
 }
 
 namespace vkgfx
@@ -131,6 +207,10 @@ namespace vkgfx
     {
         VkSurfaceFormatKHR m_surfaceFormat{};
         VkFormat m_depthFormat{};
+
+        vko::DescriptorPool frameDescriptorPool;
+        VkDescriptorSetLayout frameDescriptorSetLayout = VK_NULL_HANDLE;
+        VkDescriptorSet frameDescriptorSet = VK_NULL_HANDLE;
     };
 
     struct RendererFrameResources
@@ -152,12 +232,14 @@ vkgfx::Renderer::Renderer(std::string const& name, bool enableValidationLayers, 
 
     m_application = std::make_unique<vkr::Application>(name, enableValidationLayers, false, window, std::move(onDebugMessage));
 
-    m_data = std::make_unique<RendererData>();
-
     vko::Device const& device = m_application->getDevice();
     vko::PhysicalDevice const& physicalDevice = m_application->getPhysicalDevice();
 
     vkr::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
+
+    m_data = std::make_unique<RendererData>(RendererData{
+        .frameDescriptorPool{device},
+    });
 
     m_data->m_surfaceFormat = chooseSwapSurfaceFormat(parameters.getFormats());
     m_data->m_depthFormat = findDepthFormat(physicalDevice);
@@ -308,12 +390,44 @@ void vkgfx::Renderer::createCameraResources()
         .isMutable = true,
     };
     m_cameraBuffer = m_resourceManager->createBuffer(sizeof(CameraData), std::move(metadata));
+
+    m_frameUniformConfiguration = {
+        .hasBuffer = true,
+        .hasAlbedoTexture = false,
+        .hasNormalMap = false,
+    };
+
+    DescriptorSetLayoutKey key = {
+        .uniformConfig = m_frameUniformConfiguration,
+    };
+
+    m_frameDescriptorSetLayout = m_resourceManager->getOrCreateDescriptorSetLayout(key);
+    m_data->frameDescriptorSetLayout = m_resourceManager->getDescriptorSetLayout(m_frameDescriptorSetLayout).getHandle();
+    m_data->frameDescriptorSet = m_data->frameDescriptorPool.allocateRaw({ &m_data->frameDescriptorSetLayout, 1 })[0];
+
+    {
+        Buffer const& frameUniformBuffer = m_resourceManager->getBuffer(m_cameraBuffer);
+
+        DescriptorSetUpdateConfig config{
+            .buffers = {
+                {
+                    .binding = 0,
+                    .buffer = frameUniformBuffer.buffer.getHandle(),
+                    .offset = 0,
+                    .size = frameUniformBuffer.size,
+                },
+            },
+        };
+
+        updateDescriptorSet(m_application->getDevice().getHandle(), m_data->frameDescriptorSet, config);
+    }
 }
 
 void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameResources& frameResources)
 {
     for (vko::DescriptorPool& pool : frameResources.descriptorPools)
         pool.reset();
+//     m_data->frameDescriptorPool.reset();
 
     frameResources.commandPool.reset();
 
@@ -360,78 +474,90 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
 
         if (std::span<VkDescriptorSetLayout const> descriptorSetLayouts = pipeline.getDescriptorSetLayouts(); !descriptorSetLayouts.empty())
         {
+            assert(descriptorSetLayouts[0] == m_data->frameDescriptorSetLayout);
+            descriptorSetLayouts = descriptorSetLayouts.subspan(1);
+
             std::vector<vko::DescriptorPool>& descriptorPools = frameResources.descriptorPools;
 
-            std::optional<vko::DescriptorSets> descriptorSets;
+            std::vector<VkDescriptorSet> descriptorSets;
             do
             {
                 if (!descriptorPools.empty())
-                    descriptorSets = descriptorPools.back().allocate(descriptorSetLayouts);
+                    descriptorSets = descriptorPools.back().allocateRaw(descriptorSetLayouts);
 
-                if (!descriptorSets)
+                if (descriptorSets.empty())
                     descriptorPools.emplace_back(m_application->getDevice());
-            } while (!descriptorSets);
+            } while (descriptorSets.empty());
 
             Material const& material = m_resourceManager->getMaterial(object.material);
-            Buffer const& materialUniformBuffer = m_resourceManager->getBuffer(material.uniformBuffer);
-            Buffer const& objectUniformBuffer = m_resourceManager->getBuffer(object.uniformBuffer);
-            Buffer const& frameUniformBuffer = m_resourceManager->getBuffer(m_cameraBuffer);
 
-            Texture const& albedoTexture = m_resourceManager->getTexture(material.albedo);
-            Image const& albedoImage = m_resourceManager->getImage(albedoTexture.image);
-            Sampler const& albedoSampler = m_resourceManager->getSampler(albedoTexture.sampler);
-            Texture const& normalMapTexture = m_resourceManager->getTexture(material.normalMap);
-            Image const& normalMapImage = m_resourceManager->getImage(normalMapTexture.image);
-            Sampler const& normalMapSampler = m_resourceManager->getSampler(normalMapTexture.sampler);
+            DescriptorSetUpdateConfig config1;
+            DescriptorSetUpdateConfig config2;
+            std::vector<uint32_t> dynamicBufferOffsets12;
 
-            vko::DescriptorSets::UpdateConfig config;
-            config.buffers = {
-                {
-                    .set = 0,
-                    .binding = 0,
-                    .buffer = frameUniformBuffer.buffer.getHandle(),
-                    .offset = 0,
-                    .size = frameUniformBuffer.size,
-                },
-                {
-                    .set = 1,
+            if (material.uniformBuffer)
+            {
+                Buffer const& materialUniformBuffer = m_resourceManager->getBuffer(material.uniformBuffer);
+
+                config1.buffers.push_back({
                     .binding = 0,
                     .buffer = materialUniformBuffer.buffer.getHandle(),
                     .offset = 0,
                     .size = materialUniformBuffer.size,
-                },
-                {
-                    .set = 2,
+                });
+
+                dynamicBufferOffsets12.push_back(static_cast<uint32_t>(materialUniformBuffer.getDynamicOffset(m_nextFrameResourcesIndex)));
+            }
+
+            if (object.uniformBuffer)
+            {
+                Buffer const& objectUniformBuffer = m_resourceManager->getBuffer(object.uniformBuffer);
+
+                config2.buffers.push_back({
                     .binding = 0,
                     .buffer = objectUniformBuffer.buffer.getHandle(),
                     .offset = 0,
                     .size = objectUniformBuffer.size,
-                },
-            };
-            config.images = {
-                {
-                    .set = 1,
+                    });
+
+                dynamicBufferOffsets12.push_back(static_cast<uint32_t>(objectUniformBuffer.getDynamicOffset(m_nextFrameResourcesIndex)));
+            }
+
+            if (material.albedo)
+            {
+                Texture const& albedoTexture = m_resourceManager->getTexture(material.albedo);
+                Image const& albedoImage = m_resourceManager->getImage(albedoTexture.image);
+                Sampler const& albedoSampler = m_resourceManager->getSampler(albedoTexture.sampler);
+
+                config1.images.push_back({
                     .binding = 1,
                     .imageView = albedoImage.imageView.getHandle(),
                     .sampler = albedoSampler.sampler.getHandle(),
-                },
-                {
-                    .set = 1,
+                });
+            }
+
+            if (material.normalMap)
+            {
+                Texture const& normalMapTexture = m_resourceManager->getTexture(material.normalMap);
+                Image const& normalMapImage = m_resourceManager->getImage(normalMapTexture.image);
+                Sampler const& normalMapSampler = m_resourceManager->getSampler(normalMapTexture.sampler);
+
+                config1.images.push_back({
                     .binding = 2,
                     .imageView = normalMapImage.imageView.getHandle(),
                     .sampler = normalMapSampler.sampler.getHandle(),
-                },
-            };
-            descriptorSets->update(config);
+                });
+            }
 
-            std::array descriptorSetHandles = { descriptorSets->getHandle(0), descriptorSets->getHandle(1), descriptorSets->getHandle(2) };
-            std::array<uint32_t, 3> dynamicOffsets = {
-                static_cast<uint32_t>(frameUniformBuffer.getDynamicOffset(m_nextFrameResourcesIndex)),
-                static_cast<uint32_t>(materialUniformBuffer.getDynamicOffset(m_nextFrameResourcesIndex)),
-                static_cast<uint32_t>(objectUniformBuffer.getDynamicOffset(m_nextFrameResourcesIndex)),
-            };
+            updateDescriptorSet(m_application->getDevice().getHandle(), descriptorSets[0], config1);
+            updateDescriptorSet(m_application->getDevice().getHandle(), descriptorSets[1], config2);
 
-            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 0, descriptorSetHandles.size(), descriptorSetHandles.data(), dynamicOffsets.size(), dynamicOffsets.data());
+            {
+                auto frameUniformBufferOffset = static_cast<std::uint32_t>(m_resourceManager->getBuffer(m_cameraBuffer).getDynamicOffset(m_nextFrameResourcesIndex));
+                vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 0, 1, &m_data->frameDescriptorSet, 1, &frameUniformBufferOffset);
+            }
+
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 1, descriptorSets.size(), descriptorSets.data(), dynamicBufferOffsets12.size(), dynamicBufferOffsets12.data());
         }
 
         Mesh const& mesh = m_resourceManager->getMesh(object.mesh);

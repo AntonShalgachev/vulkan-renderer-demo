@@ -159,25 +159,6 @@ namespace
     }
 }
 
-// TODO move to another file?
-namespace vkgfx
-{
-    struct DescriptorSetLayoutKey
-    {
-        UniformConfiguration uniformConfig;
-
-        auto operator<=>(DescriptorSetLayoutKey const&) const = default;
-    };
-
-    struct PipelineLayoutKey
-    {
-        std::vector<UniformConfiguration> uniformConfigs;
-        std::vector<PushConstantRange> pushConstantRanges;
-
-        auto operator<=>(PipelineLayoutKey const&) const = default;
-    };
-}
-
 vkgfx::ResourceManager::ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::CommandPool const& uploadCommandPool, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, std::size_t resourceCount)
     : m_device(device)
     , m_physicalDevice(physicalDevice)
@@ -450,6 +431,32 @@ vkgfx::Mesh const& vkgfx::ResourceManager::getMesh(MeshHandle handle) const
     return m_meshes[handle.index];
 }
 
+vkgfx::DescriptorSetLayoutHandle vkgfx::ResourceManager::getOrCreateDescriptorSetLayout(DescriptorSetLayoutKey const& key)
+{
+    if (auto it = m_descriptorSetLayoutHandles.find(key); it != m_descriptorSetLayoutHandles.end())
+        return it->second;
+
+    return createDescriptorSetLayout(key);
+}
+
+vko::DescriptorSetLayout const& vkgfx::ResourceManager::getDescriptorSetLayout(DescriptorSetLayoutHandle handle) const
+{
+    return m_descriptorSetLayouts[handle.index];
+}
+
+vkgfx::PipelineLayoutHandle vkgfx::ResourceManager::getOrCreatePipelineLayout(PipelineLayoutKey const& key)
+{
+    if (auto it = m_pipelineLayoutHandles.find(key); it != m_pipelineLayoutHandles.end())
+        return it->second;
+
+    return createPipelineLayout(key);
+}
+
+vko::PipelineLayout const& vkgfx::ResourceManager::getPipelineLayout(PipelineLayoutHandle handle) const
+{
+    return m_pipelineLayouts[handle.index];
+}
+
 vkgfx::PipelineHandle vkgfx::ResourceManager::getOrCreatePipeline(PipelineKey const& key)
 {
     if (auto it = m_pipelineHandles.find(key); it != m_pipelineHandles.end())
@@ -506,14 +513,6 @@ void vkgfx::ResourceManager::uploadImage(Image const& image, void const* data, s
     commandBuffer.submit();
 }
 
-vkgfx::DescriptorSetLayoutHandle vkgfx::ResourceManager::getOrCreateDescriptorSetLayout(DescriptorSetLayoutKey const& key)
-{
-    if (auto it = m_descriptorSetLayoutHandles.find(key); it != m_descriptorSetLayoutHandles.end())
-        return it->second;
-
-    return createDescriptorSetLayout(key);
-}
-
 vkgfx::DescriptorSetLayoutHandle vkgfx::ResourceManager::createDescriptorSetLayout(DescriptorSetLayoutKey const& key)
 {
     DescriptorSetLayoutHandle handle;
@@ -521,6 +520,7 @@ vkgfx::DescriptorSetLayoutHandle vkgfx::ResourceManager::createDescriptorSetLayo
 
     // TODO avoid filling this structure
     vko::DescriptorSetConfiguration config;
+    config.hasBuffer = key.uniformConfig.hasBuffer;
     config.hasTexture = key.uniformConfig.hasAlbedoTexture;
     config.hasNormalMap = key.uniformConfig.hasNormalMap;
 
@@ -528,14 +528,6 @@ vkgfx::DescriptorSetLayoutHandle vkgfx::ResourceManager::createDescriptorSetLayo
     m_descriptorSetLayoutHandles[key] = handle;
 
     return handle;
-}
-
-vkgfx::PipelineLayoutHandle vkgfx::ResourceManager::getOrCreatePipelineLayout(PipelineLayoutKey const& key)
-{
-    if (auto it = m_pipelineLayoutHandles.find(key); it != m_pipelineLayoutHandles.end())
-        return it->second;
-
-    return createPipelineLayout(key);
 }
 
 vkgfx::PipelineLayoutHandle vkgfx::ResourceManager::createPipelineLayout(PipelineLayoutKey const& key)
