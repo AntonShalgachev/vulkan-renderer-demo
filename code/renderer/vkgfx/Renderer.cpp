@@ -427,7 +427,6 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
 {
     for (vko::DescriptorPool& pool : frameResources.descriptorPools)
         pool.reset();
-//     m_data->frameDescriptorPool.reset();
 
     frameResources.commandPool.reset();
 
@@ -464,16 +463,30 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    auto drawTestObject = [this, commandBuffer, &frameResources](TestObject const& object)
+    PipelineHandle boundPipeline;
+    MaterialHandle boundMaterial;
+
+    auto drawTestObject = [this, commandBuffer, &frameResources, &boundPipeline, &boundMaterial](TestObject const& object)
     {
         vko::Pipeline const& pipeline = m_resourceManager->getPipeline(object.pipeline);
-        pipeline.bind(commandBuffer);
+
+        if (boundPipeline != object.pipeline)
+        {
+            pipeline.bind(commandBuffer);
+
+            auto frameUniformBufferOffset = static_cast<std::uint32_t>(m_resourceManager->getBuffer(m_cameraBuffer).getDynamicOffset(m_nextFrameResourcesIndex));
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 0, 1, &m_data->frameDescriptorSet, 1, &frameUniformBufferOffset);
+
+            boundPipeline = object.pipeline;
+        }
 
         if (!object.pushConstants.empty())
             vkCmdPushConstants(commandBuffer, pipeline.getPipelineLayoutHandle(), VK_SHADER_STAGE_VERTEX_BIT, 0, object.pushConstants.size(), object.pushConstants.data()); // TODO configure shader stage
 
-        if (std::span<VkDescriptorSetLayout const> descriptorSetLayouts = pipeline.getDescriptorSetLayouts(); !descriptorSetLayouts.empty())
+        if (object.material && boundMaterial != object.material)
         {
+            std::span<VkDescriptorSetLayout const> descriptorSetLayouts = pipeline.getDescriptorSetLayouts();
+            assert(!descriptorSetLayouts.empty());
             assert(descriptorSetLayouts[0] == m_data->frameDescriptorSetLayout);
             descriptorSetLayouts = descriptorSetLayouts.subspan(1);
 
@@ -492,7 +505,10 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
             Material const& material = m_resourceManager->getMaterial(object.material);
 
             DescriptorSetUpdateConfig config1;
+            config1.buffers.reserve(1);
+            config1.images.reserve(2);
             DescriptorSetUpdateConfig config2;
+            config2.buffers.reserve(1);
             std::vector<uint32_t> dynamicBufferOffsets12;
 
             if (material.uniformBuffer)
@@ -552,12 +568,9 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
             updateDescriptorSet(m_application->getDevice().getHandle(), descriptorSets[0], config1);
             updateDescriptorSet(m_application->getDevice().getHandle(), descriptorSets[1], config2);
 
-            {
-                auto frameUniformBufferOffset = static_cast<std::uint32_t>(m_resourceManager->getBuffer(m_cameraBuffer).getDynamicOffset(m_nextFrameResourcesIndex));
-                vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 0, 1, &m_data->frameDescriptorSet, 1, &frameUniformBufferOffset);
-            }
-
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 1, descriptorSets.size(), descriptorSets.data(), dynamicBufferOffsets12.size(), dynamicBufferOffsets12.data());
+
+            boundMaterial = object.material;
         }
 
         Mesh const& mesh = m_resourceManager->getMesh(object.mesh);

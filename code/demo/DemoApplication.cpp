@@ -1389,6 +1389,14 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
             tinygltf::Scene const& gltfScene = gltfModel->scenes[sceneIndex];
             auto demoScene = createDemoScene(*gltfModel, gltfScene);
 
+            std::sort(demoScene.objects.begin(), demoScene.objects.end(), [](vkgfx::TestObject const& lhs, vkgfx::TestObject const& rhs)
+            {
+                if (lhs.pipeline != rhs.pipeline)
+                    return lhs.pipeline < rhs.pipeline;
+
+                return lhs.material < rhs.material;
+            });
+
             if (m_newRenderer)
             {
                 for (auto const& demoObject : demoScene.objects)
