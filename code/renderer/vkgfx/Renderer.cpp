@@ -534,7 +534,7 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
                     .buffer = objectUniformBuffer.buffer.getHandle(),
                     .offset = 0,
                     .size = objectUniformBuffer.size,
-                    });
+                });
 
                 dynamicBufferOffsets12.push_back(static_cast<uint32_t>(objectUniformBuffer.getDynamicOffset(m_nextFrameResourcesIndex)));
             }
