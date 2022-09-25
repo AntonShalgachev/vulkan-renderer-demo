@@ -43,6 +43,8 @@ namespace vkgfx
 
         void addTestObject(TestObject object);
         void setCameraTransform(TestCameraTransform transform);
+        void setCameraParameters(TestCameraParameters parameters);
+        void setLightParameters(TestLightParameters parameters);
 
         void addOneFrameTestObject(TestObject object);
 

@@ -311,6 +311,16 @@ void vkgfx::Renderer::setCameraTransform(TestCameraTransform transform)
     m_cameraTransform = std::move(transform);
 }
 
+void vkgfx::Renderer::setCameraParameters(TestCameraParameters parameters)
+{
+    m_cameraParameters = std::move(parameters);
+}
+
+void vkgfx::Renderer::setLightParameters(TestLightParameters parameters)
+{
+    m_lightParameters = std::move(parameters);
+}
+
 void vkgfx::Renderer::addOneFrameTestObject(TestObject object)
 {
     m_oneFrameTestObjects.push_back(std::move(object));
