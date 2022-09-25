@@ -8,6 +8,9 @@ set(ALL_FILES
     "DemoApplication.h"
     "DemoApplication.cpp"
 
+    "ImGuiDrawer.h"
+    "ImGuiDrawer.cpp"
+
     "ScopedDebugCommands.h"
     "ScopedDebugCommands.cpp"
     "CommandProxy.h"

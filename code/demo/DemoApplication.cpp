@@ -19,7 +19,7 @@
 #pragma warning(push, 0)
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_vulkan.h"
+#include "backends/imgui_impl_vulkan.h" // TODO remove
 #pragma warning(pop)
 
 #include "Application.h"
@@ -42,6 +42,7 @@
 #include "Texture.h"
 #include "wrapper/DebugMessage.h"
 #include "BufferWithMemory.h"
+#include "ImGuiDrawer.h"
 
 #include "ScopedDebugCommands.h"
 #include "SceneObject.h"
@@ -686,7 +687,7 @@ void DemoApplication::loadImgui()
 
     io.Fonts->AddFontDefault();
 
-    createUIResources();
+    m_imGuiDrawer = std::make_unique<ImGuiDrawer>(*m_newRenderer);
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(m_window->getHandle(), true);
@@ -1448,149 +1449,7 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
 
 void DemoApplication::createUIResources()
 {
-    // TODO move to an ImGUI renderer
 
-    {
-        ImGuiIO& io = ImGui::GetIO();
-        
-        io.BackendRendererUserData = nullptr;
-        io.BackendRendererName = "vulkan_renderer_demo";
-        io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
-    }
-
-    {
-        std::size_t size = 64 * 1024 * sizeof(ImDrawVert);
-        vkgfx::BufferMetadata metadata{
-            .usage = vkgfx::BufferUsage::VertexIndexBuffer,
-            .location = vkgfx::BufferLocation::HostVisible,
-            .isMutable = true,
-        };
-        m_imGuiVertexBuffer = m_resourceManager->createBuffer(size, std::move(metadata));
-    }
-
-    {
-        std::size_t size = 64 * 1024 * sizeof(ImDrawIdx);
-        vkgfx::BufferMetadata metadata{
-            .usage = vkgfx::BufferUsage::VertexIndexBuffer,
-            .location = vkgfx::BufferLocation::HostVisible,
-            .isMutable = true,
-        };
-        m_imGuiIndexBuffer = m_resourceManager->createBuffer(size, std::move(metadata));
-    }
-
-    {
-        ImGuiIO& io = ImGui::GetIO();
-
-        unsigned char* pixels = nullptr;
-        int width = 0;
-        int height = 0;
-        int bytesPerPixel = 0;
-        io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, &bytesPerPixel); // TODO use GetTexDataAsAlpha8?
-
-        assert(width > 0);
-        assert(height > 0);
-        assert(bytesPerPixel > 0);
-
-        vkgfx::ImageMetadata metadata{
-            .width = static_cast<std::size_t>(width),
-            .height = static_cast<std::size_t>(height),
-            .format = vkgfx::ImageFormat::R8G8B8A8,
-        };
-        m_imGuiFontImage = m_resourceManager->createImage(std::move(metadata));
-
-        m_resourceManager->uploadImage(m_imGuiFontImage, pixels, width * height * bytesPerPixel);
-
-        io.Fonts->SetTexID(imageToTextureId(m_imGuiFontImage));
-    }
-
-    {
-        m_imGuiImageSampler = m_resourceManager->createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
-    }
-
-    vkgfx::ShaderModuleHandle vertexShaderModule;
-    vkgfx::ShaderModuleHandle fragmentShaderModule;
-
-    {
-        vkr::ShaderPackage package{ "data/shaders/packaged/imgui.vert" };
-        std::string const* path = package.get({});
-        assert(path);
-        if (path)
-            vertexShaderModule = m_resourceManager->createShaderModule(readFile(*path), vko::ShaderModuleType::Vertex, "main");
-    }
-
-    {
-        vkr::ShaderPackage package{ "data/shaders/packaged/imgui.frag" };
-        std::string const* path = package.get({});
-        assert(path);
-        if (path)
-            fragmentShaderModule = m_resourceManager->createShaderModule(readFile(*path), vko::ShaderModuleType::Fragment, "main");
-    }
-
-    {
-        vkgfx::PipelineKey key;
-
-        key.shaderHandles = { vertexShaderModule, fragmentShaderModule };
-        key.uniformConfigs = {
-            // TODO remove unnecessary configs
-            vkgfx::UniformConfiguration{
-                .hasBuffer = true,
-                .hasAlbedoTexture = false,
-                .hasNormalMap = false,
-            },
-            vkgfx::UniformConfiguration{
-                .hasBuffer = false,
-                .hasAlbedoTexture = true,
-                .hasNormalMap = false,
-            },
-            vkgfx::UniformConfiguration{
-                .hasBuffer = false,
-                .hasAlbedoTexture = false,
-                .hasNormalMap = false,
-            },
-        };
-        key.vertexConfig = {
-            .bindings = {
-                vkgfx::VertexConfiguration::Binding{
-                    .stride = sizeof(ImDrawVert),
-                },
-            },
-            .attributes = {
-                vkgfx::VertexConfiguration::Attribute{
-                    .binding = 0,
-                    .location = 0,
-                    .offset = offsetof(ImDrawVert, pos),
-                    .type = vkgfx::AttributeType::Vec2f,
-                },
-                vkgfx::VertexConfiguration::Attribute{
-                    .binding = 0,
-                    .location = 1,
-                    .offset = offsetof(ImDrawVert, uv),
-                    .type = vkgfx::AttributeType::Vec2f,
-                },
-                vkgfx::VertexConfiguration::Attribute{
-                    .binding = 0,
-                    .location = 2,
-                    .offset = offsetof(ImDrawVert, col),
-                    .type = vkgfx::AttributeType::UInt32,
-                },
-            },
-            .topology = vkgfx::VertexTopology::Triangles,
-        };
-        key.renderConfig = {
-            .cullBackfaces = false,
-            .wireframe = false,
-            .depthTest = false,
-            .alphaBlending = true,
-        };
-        key.pushConstantRanges = {
-            vkgfx::PushConstantRange{
-                .offset = 0,
-                .size = 2 * sizeof(float) + 2 * sizeof(float),
-            }
-        };
-
-        m_imGuiPipeline = m_resourceManager->getOrCreatePipeline(key);
-    }
 }
 
 void DemoApplication::updateUI(float frameTime, float fenceTime)
@@ -1663,8 +1522,6 @@ void DemoApplication::updateUI(float frameTime, float fenceTime)
     m_notifications->draw();
     m_debugConsole->draw();
 
-    ImGui::Render();
-
     m_window->setCanCaptureCursor(!io.WantCaptureMouse);
 }
 
@@ -1712,7 +1569,7 @@ void DemoApplication::update()
     if (m_newRenderer)
         m_newRenderer->setCameraTransform(m_cameraTransform);
 
-    renderUI();
+    m_imGuiDrawer->draw();
 }
 
 void DemoApplication::updateScene(float)
@@ -1760,196 +1617,7 @@ void DemoApplication::updateCamera(float dt)
 
 void DemoApplication::renderUI()
 {
-    if (!ImGui::GetCurrentContext())
-        return;
-
-    ImDrawData* drawData = ImGui::GetDrawData();
-    if (!drawData)
-        return;
-
-    assert(drawData->Valid);
-
-    if (drawData->TotalVtxCount > 0)
-    {
-        std::size_t vertexBufferSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
-        std::size_t indexBufferSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
-
-        assert(vertexBufferSize <= m_resourceManager->getBufferSize(m_imGuiVertexBuffer));
-        assert(indexBufferSize <= m_resourceManager->getBufferSize(m_imGuiIndexBuffer));
-
-        std::size_t nextVertexBufferOffset = 0;
-        std::size_t nextIndexBufferOffset = 0;
-
-        for (int n = 0; n < drawData->CmdListsCount; n++)
-        {
-            const ImDrawList* cmdList = drawData->CmdLists[n];
-
-            auto vertexChunkSize = cmdList->VtxBuffer.Size * sizeof(ImDrawVert);
-            auto indexChunkSize = cmdList->IdxBuffer.Size * sizeof(ImDrawIdx);
-
-            m_resourceManager->uploadDynamicBufferToStaging(m_imGuiVertexBuffer, cmdList->VtxBuffer.Data, vertexChunkSize, nextVertexBufferOffset);
-            m_resourceManager->uploadDynamicBufferToStaging(m_imGuiIndexBuffer, cmdList->IdxBuffer.Data, indexChunkSize, nextIndexBufferOffset);
-
-            nextVertexBufferOffset += vertexChunkSize;
-            nextIndexBufferOffset += indexChunkSize;
-        }
-    }
-
-    // TODO implement callbacks (?)
-
-    int framebufferWidth = (int)(drawData->DisplaySize.x * drawData->FramebufferScale.x);
-    int framebufferHeight = (int)(drawData->DisplaySize.y * drawData->FramebufferScale.y);
-
-    ImVec2 clipOffset = drawData->DisplayPos;
-    ImVec2 clipScale = drawData->FramebufferScale;
-
-    std::vector<unsigned char> pushConstantsBytes;
-
-    {
-        struct PushConstants
-        {
-            ImVec2 scale;
-            ImVec2 translate;
-        };
-
-        PushConstants pushConstants;
-
-        pushConstants.scale = {
-            2.0f / drawData->DisplaySize.x,
-            2.0f / drawData->DisplaySize.y,
-        };
-        pushConstants.translate = {
-            -1.0f - drawData->DisplayPos.x * pushConstants.scale.x,
-            -1.0f - drawData->DisplayPos.y * pushConstants.scale.y,
-        };
-
-        pushConstantsBytes.resize(sizeof(PushConstants));
-        memcpy(pushConstantsBytes.data(), &pushConstants, sizeof(pushConstants));
-    }
-
-    std::size_t nextMeshIndex = 0;
-    std::size_t nextTextureIndex = 0;
-    std::size_t nextMaterialIndex = 0;
-
-    int vertexOffset = 0;
-    int indexOffset = 0;
-    for (int n = 0; n < drawData->CmdListsCount; n++)
-    {
-        const ImDrawList* cmdList = drawData->CmdLists[n];
-
-        for (std::size_t commandIndex = 0; commandIndex < cmdList->CmdBuffer.Size; commandIndex++)
-        {
-            const ImDrawCmd* pcmd = &cmdList->CmdBuffer[commandIndex];
-//             if (pcmd->UserCallback != NULL)
-//             {
-//                 // User callback, registered via ImDrawList::AddCallback()
-//                 // (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
-//                 if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
-//                     ImGui_ImplVulkan_SetupRenderState(drawData, pipeline, command_buffer, rb, framebufferWidth, framebufferHeight);
-//                 else
-//                     pcmd->UserCallback(cmdList, pcmd);
-//             }
-//             else
-            {
-                glm::ivec2 clipMin = { (pcmd->ClipRect.x - clipOffset.x) * clipScale.x, (pcmd->ClipRect.y - clipOffset.y) * clipScale.y };
-                glm::ivec2 clipMax = { (pcmd->ClipRect.z - clipOffset.x) * clipScale.x, (pcmd->ClipRect.w - clipOffset.y) * clipScale.y };
-
-                if (clipMin.x < 0)
-                    clipMin.x = 0;
-                if (clipMin.y < 0)
-                    clipMin.y = 0;
-                if (clipMax.x > framebufferWidth)
-                    clipMax.x = framebufferWidth;
-                if (clipMax.y > framebufferHeight)
-                    clipMax.y = framebufferHeight;
-
-                if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
-                    continue;
-// 
-                vkgfx::MeshHandle meshHandle;
-
-                {
-                    vkgfx::Mesh mesh = {
-                        .vertexBuffers = { {m_imGuiVertexBuffer, 0} },
-                        .indexBuffer = { m_imGuiIndexBuffer, 0 },
-                        .indexCount = pcmd->ElemCount,
-                        .indexType = vkgfx::IndexType::UnsignedShort,
-                        .indexOffset = pcmd->IdxOffset + indexOffset,
-                        .vertexOffset = pcmd->VtxOffset + vertexOffset,
-                    };
-
-                    if (nextMeshIndex < m_imGuiMeshes.size())
-                    {
-                        meshHandle = m_imGuiMeshes[nextMeshIndex];
-                        m_resourceManager->updateMesh(meshHandle, std::move(mesh));
-                    }
-                    else
-                    {
-                        meshHandle = m_resourceManager->createMesh(std::move(mesh));
-                        m_imGuiMeshes.push_back(meshHandle);
-                    }
-
-                    nextMeshIndex++;
-                }
-
-                vkgfx::TextureHandle textureHandle;
-                {
-                    vkgfx::Texture texture = {
-                        .image = textureIdToImage(pcmd->GetTexID()),
-                        .sampler = m_imGuiImageSampler,
-                    };
-
-                    if (nextTextureIndex < m_imGuiTextures.size())
-                    {
-                        textureHandle = m_imGuiTextures[nextTextureIndex];
-                        m_resourceManager->updateTexture(textureHandle, std::move(texture));
-                    }
-                    else
-                    {
-                        textureHandle = m_resourceManager->createTexture(std::move(texture));
-                        m_imGuiTextures.push_back(textureHandle);
-                    }
-
-                    nextTextureIndex++;
-                }
-
-                vkgfx::MaterialHandle materialHandle;
-                {
-                    vkgfx::Material material = {
-                        .albedo = textureHandle,
-                    };
-
-                    if (nextMaterialIndex < m_imGuiMaterials.size())
-                    {
-                        materialHandle = m_imGuiMaterials[nextMaterialIndex];
-                        m_resourceManager->updateMaterial(materialHandle, std::move(material));
-                    }
-                    else
-                    {
-                        materialHandle = m_resourceManager->createMaterial(std::move(material));
-                        m_imGuiMaterials.push_back(materialHandle);
-                    }
-
-                    nextMaterialIndex++;
-                }
-
-                vkgfx::TestObject object;
-                object.pipeline = m_imGuiPipeline;
-                object.mesh = meshHandle;
-                object.material = materialHandle;
-                object.pushConstants = pushConstantsBytes;
-
-                object.hasScissors = true;
-                object.scissorOffset = clipMin;
-                object.scissorSize = clipMax - clipMin;
-
-                if (m_newRenderer)
-                    m_newRenderer->addOneFrameTestObject(std::move(object));
-            }
-        }
-        vertexOffset += cmdList->VtxBuffer.Size;
-        indexOffset += cmdList->IdxBuffer.Size;
-    }
+    
 }
 
 glm::vec3 DemoApplication::getCameraPos() const

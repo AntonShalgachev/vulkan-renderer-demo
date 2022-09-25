@@ -18,6 +18,7 @@
 #include "ScopedDebugCommands.h"
 
 class CommandLineService;
+class ImGuiDrawer;
 
 namespace vko
 {
@@ -212,6 +213,8 @@ private:
     std::unique_ptr<vkr::Application> m_application;
     std::unique_ptr<vkr::Renderer> m_renderer;
 
+    std::unique_ptr<ImGuiDrawer> m_imGuiDrawer;
+
     std::unique_ptr<GltfVkResources> m_gltfResources;
     std::unique_ptr<GfxResources> m_gfxResources;
 
@@ -270,14 +273,4 @@ private:
     vkgfx::ResourceManager* m_resourceManager = nullptr;
 
     vkgfx::TestCameraTransform m_cameraTransform;
-
-    // TODO move to an ImGUI renderer
-    vkgfx::BufferHandle m_imGuiVertexBuffer;
-    vkgfx::BufferHandle m_imGuiIndexBuffer;
-    vkgfx::ImageHandle m_imGuiFontImage;
-    vkgfx::SamplerHandle m_imGuiImageSampler;
-    vkgfx::PipelineHandle m_imGuiPipeline;
-    std::vector<vkgfx::MeshHandle> m_imGuiMeshes;
-    std::vector<vkgfx::TextureHandle> m_imGuiTextures;
-    std::vector<vkgfx::MaterialHandle> m_imGuiMaterials;
 };
