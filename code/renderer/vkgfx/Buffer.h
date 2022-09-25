@@ -19,6 +19,8 @@ namespace vkgfx
 
         // Only for mutable buffers
         std::vector<unsigned char> stagingBuffer;
+        std::size_t stagingDirtyStart = 0;
+        std::size_t stagingDirtyEnd = 0;
         std::size_t alignedSize = 0;
 
         std::size_t getDynamicOffset(std::size_t resourceIndex) const;

@@ -316,13 +316,19 @@ void vkgfx::ResourceManager::uploadDynamicBufferToStaging(BufferHandle handle, v
     assert(buffer.stagingBuffer.size() - offset >= dataSize);
 
     memcpy(buffer.stagingBuffer.data() + offset, data, dataSize);
+
+    std::size_t start = offset;
+    std::size_t end = offset + dataSize;
+
+    buffer.stagingDirtyStart = std::min(buffer.stagingDirtyStart, start);
+    buffer.stagingDirtyEnd = std::max(buffer.stagingDirtyEnd, end);
 }
 
 void vkgfx::ResourceManager::transferDynamicBuffersFromStaging(std::size_t resourceIndex)
 {
     assert(resourceIndex < m_resourceCount);
 
-    for (Buffer const& buffer : m_buffers)
+    for (Buffer& buffer : m_buffers)
     {
         if (!buffer.metadata.isMutable)
             continue;
@@ -330,7 +336,17 @@ void vkgfx::ResourceManager::transferDynamicBuffersFromStaging(std::size_t resou
         // TODO don't upload if data hasn't changed
 
         std::size_t bufferOffset = buffer.alignedSize * resourceIndex;
-        uploadBuffer(buffer, buffer.stagingBuffer, bufferOffset);
+
+        std::size_t dirtyOffset = buffer.stagingDirtyStart;
+        std::size_t dirtySize = buffer.stagingDirtyEnd - buffer.stagingDirtyStart;
+
+        void* data = buffer.stagingBuffer.data() + dirtyOffset;
+        std::size_t size = dirtySize;
+
+        uploadBuffer(buffer, data, size, bufferOffset + dirtyOffset);
+
+        buffer.stagingDirtyStart = 0;
+        buffer.stagingDirtyEnd = 0;
     }
 }
 
