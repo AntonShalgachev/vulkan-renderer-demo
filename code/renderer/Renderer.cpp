@@ -217,7 +217,7 @@ namespace
         vkr::BufferWithMemory buffer{ app.getDevice(), app.getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
 
         vkr::ScopedOneTimeCommandBuffer commandBuffer{ app };
-        vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), buffer.buffer());
+        vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), 0, buffer.buffer(), 0, bufferSize);
         commandBuffer.submit();
 
         return std::make_unique<vkr::BufferWithMemory>(std::move(buffer));

@@ -1097,7 +1097,7 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
                 stagingBuffer.memory().copyFrom(bufferData, bufferSize);
 
                 vkr::ScopedOneTimeCommandBuffer commandBuffer{ getApp() };
-                vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), buffer.buffer());
+                vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), 0, buffer.buffer(), 0, bufferSize);
                 commandBuffer.submit();
 
                 m_gltfResources->buffers.push_back(std::make_unique<vkr::BufferWithMemory>(std::move(buffer)));

@@ -3,7 +3,7 @@
 #include "DeviceMemory.h"
 #include "ScopedOneTimeCommandBuffer.h"
 #include "Device.h"
-#include <stdexcept>
+#include <cassert>
 
 vko::Buffer::Buffer(Device const& device, VkDeviceSize size, VkBufferUsageFlags usage)
     : m_device(device)
@@ -38,14 +38,14 @@ void vko::Buffer::bindMemory(DeviceMemory const& memory) const
     VKR_ASSERT(vkBindBufferMemory(m_device.getHandle(), m_handle, memory.getHandle(), 0));
 }
 
-void vko::Buffer::copy(VkCommandBuffer commandBuffer, Buffer const& source, Buffer const& destination)
+void vko::Buffer::copy(VkCommandBuffer commandBuffer, Buffer const& source, std::size_t sourceOffset, Buffer const& destination, std::size_t destinationOffset, std::size_t size)
 {
-    if (source.getSize() != destination.getSize())
-        throw std::runtime_error("Copy operation between buffers of different sizes");
+    assert(sourceOffset + size <= source.getSize());
+    assert(destinationOffset + size <= destination.getSize());
 
     VkBufferCopy copyRegion{};
-    copyRegion.dstOffset = 0;
-    copyRegion.srcOffset = 0;
-    copyRegion.size = source.getSize();
+    copyRegion.dstOffset = destinationOffset;
+    copyRegion.srcOffset = sourceOffset;
+    copyRegion.size = size;
     vkCmdCopyBuffer(commandBuffer, source.getHandle(), destination.getHandle(), 1, &copyRegion);
 }

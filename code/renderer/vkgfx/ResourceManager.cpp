@@ -333,12 +333,13 @@ void vkgfx::ResourceManager::transferDynamicBuffersFromStaging(std::size_t resou
         if (!buffer.metadata.isMutable)
             continue;
 
-        // TODO don't upload if data hasn't changed
-
-        std::size_t bufferOffset = buffer.alignedSize * resourceIndex;
-
         std::size_t dirtyOffset = buffer.stagingDirtyStart;
         std::size_t dirtySize = buffer.stagingDirtyEnd - buffer.stagingDirtyStart;
+
+        if (dirtySize == 0)
+            continue;
+
+        std::size_t bufferOffset = buffer.alignedSize * resourceIndex;
 
         void* data = buffer.stagingBuffer.data() + dirtyOffset;
         std::size_t size = dirtySize;
@@ -492,12 +493,11 @@ void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, void const* data
 
     if (buffer.metadata.location == BufferLocation::DeviceLocal)
     {
-        // TODO make use of offset
         vkr::BufferWithMemory stagingBuffer{ m_device, m_physicalDevice, dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
-        stagingBuffer.memory().copyFrom(data, dataSize, offset);
+        stagingBuffer.memory().copyFrom(data, dataSize);
 
         OneTimeCommandBuffer commandBuffer{ m_uploadCommandPool, m_uploadQueue };
-        vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), buffer.buffer);
+        vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), 0, buffer.buffer, offset, dataSize);
         commandBuffer.submit();
     }
     else

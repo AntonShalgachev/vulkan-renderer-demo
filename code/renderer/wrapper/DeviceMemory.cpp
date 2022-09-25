@@ -58,7 +58,7 @@ vko::DeviceMemory::~DeviceMemory()
 void vko::DeviceMemory::copyFrom(void const* sourcePointer, std::size_t sourceSize, std::size_t offset) const
 {
     assert(m_data);
-    assert(m_requirements.size - offset >= sourceSize);
+    assert(offset + sourceSize <= m_requirements.size);
 
     memcpy(static_cast<unsigned char*>(m_data) + offset, sourcePointer, sourceSize);
 }
