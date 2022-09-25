@@ -1767,6 +1767,8 @@ void DemoApplication::renderUI()
     if (!drawData)
         return;
 
+    assert(drawData->Valid);
+
     if (drawData->TotalVtxCount > 0)
     {
         std::size_t vertexBufferSize = drawData->TotalVtxCount * sizeof(ImDrawVert);

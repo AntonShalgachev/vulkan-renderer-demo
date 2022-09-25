@@ -486,7 +486,9 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
         if (object.material && boundMaterial != object.material)
         {
             std::span<VkDescriptorSetLayout const> descriptorSetLayouts = pipeline.getDescriptorSetLayouts();
-            assert(!descriptorSetLayouts.empty());
+
+            // TODO get rid of this hack
+            assert(descriptorSetLayouts.size() == 3);
             assert(descriptorSetLayouts[0] == m_data->frameDescriptorSetLayout);
             descriptorSetLayouts = descriptorSetLayouts.subspan(1);
 
