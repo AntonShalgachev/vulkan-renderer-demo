@@ -465,19 +465,24 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
 
     PipelineHandle boundPipeline;
     MaterialHandle boundMaterial;
+    VkPipelineLayout currentPipelineLayoutForDescriptorSets = VK_NULL_HANDLE; // TODO use PipelineLayoutHandle, and change name
 
-    auto drawTestObject = [this, commandBuffer, &frameResources, &boundPipeline, &boundMaterial](TestObject const& object)
+    auto drawTestObject = [this, commandBuffer, &frameResources, &boundPipeline, &boundMaterial, &currentPipelineLayoutForDescriptorSets](TestObject const& object)
     {
         vko::Pipeline const& pipeline = m_resourceManager->getPipeline(object.pipeline);
 
         if (boundPipeline != object.pipeline)
         {
             pipeline.bind(commandBuffer);
+            boundPipeline = object.pipeline;
+        }
 
+        if (currentPipelineLayoutForDescriptorSets != pipeline.getPipelineLayoutHandle())
+        {
             auto frameUniformBufferOffset = static_cast<std::uint32_t>(m_resourceManager->getBuffer(m_cameraBuffer).getDynamicOffset(m_nextFrameResourcesIndex));
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 0, 1, &m_data->frameDescriptorSet, 1, &frameUniformBufferOffset);
 
-            boundPipeline = object.pipeline;
+            currentPipelineLayoutForDescriptorSets = pipeline.getPipelineLayoutHandle();
         }
 
         if (!object.pushConstants.empty())
