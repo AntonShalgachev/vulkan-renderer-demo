@@ -336,8 +336,9 @@ DemoApplication::DemoApplication()
 
     auto messageCallback = [](vko::DebugMessage m)
     {
-		if (m.level == vko::DebugMessage::Level::Info)
-			spdlog::info(m.text);
+        // TODO don't log "Info" level to the console
+// 		if (m.level == vko::DebugMessage::Level::Info)
+// 			spdlog::info(m.text);
 		if (m.level == vko::DebugMessage::Level::Warning)
 			spdlog::warn(m.text);
 		if (m.level == vko::DebugMessage::Level::Error)
