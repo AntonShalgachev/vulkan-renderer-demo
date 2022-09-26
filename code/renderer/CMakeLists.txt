@@ -10,8 +10,6 @@ set(ALL_FILES
     "wrapper/CommandPool.h"
     "wrapper/CommandPool.cpp"
     "wrapper/DebugMessage.h"
-    "wrapper/DebugMessenger.h"
-    "wrapper/DebugMessenger.cpp"
     "wrapper/DescriptorPool.h"
     "wrapper/DescriptorPool.cpp"
     "wrapper/DescriptorSetLayout.h"

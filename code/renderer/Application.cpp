@@ -7,7 +7,6 @@
 #include "PhysicalDeviceSurfaceParameters.h"
 #include "QueueFamilyIndices.h"
 #include "wrapper/CommandPool.h"
-#include "wrapper/DebugMessenger.h"
 #include <stdexcept>
 #include "wrapper/Queue.h"
 #include "wrapper/Window.h"
@@ -68,14 +67,6 @@ namespace
         return extensions;
     }
 
-    std::unique_ptr<vko::DebugMessenger> createDebugMessenger(vko::Instance& instance, bool enableValidation, std::function<void(vko::DebugMessage)> onDebugMessage)
-    {
-        if (!enableValidation)
-            return nullptr;
-
-        return std::make_unique<vko::DebugMessenger>(instance, std::move(onDebugMessage));
-    }
-
     template<typename T>
     void setDebugName(vkr::Application const& app, T handle, VkObjectType type, char const* name)
     {
@@ -104,8 +95,7 @@ namespace vkr
     {
     public:
         ApplicationImpl(std::string const& name, bool enableValidation, bool enableApiDump, vko::Window const& window, std::function<void(vko::DebugMessage)> onDebugMessage)
-            : m_instance(name, createInstanceExtensions(enableValidation, window), enableValidation, enableApiDump)
-            , m_debugMessenger(createDebugMessenger(m_instance, enableValidation, std::move(onDebugMessage)))
+            : m_instance(name, createInstanceExtensions(enableValidation, window), enableValidation, enableApiDump, enableValidation ? std::move(onDebugMessage) : nullptr)
             , m_surface(window.createSurface(m_instance))
             , m_physicalDevices(createPhysicalDeviceSurfaceContainer(m_instance.findPhysicalDevices(), m_surface))
             , m_currentPhysicalDeviceIndex(findSuitablePhysicalDeviceIndex(m_physicalDevices))
@@ -126,7 +116,6 @@ namespace vkr
 
     private:
         vko::Instance m_instance;
-        std::unique_ptr<vko::DebugMessenger> m_debugMessenger;
         vko::Surface m_surface;
         std::vector<vkr::PhysicalDeviceSurfaceContainer> m_physicalDevices;
         std::size_t m_currentPhysicalDeviceIndex;
