@@ -330,6 +330,8 @@ void vkgfx::Renderer::draw()
 {
     RendererFrameResources& frameResources = m_frameResources[m_nextFrameResourcesIndex];
 
+    frameResources.inFlightFence.wait();
+
     vko::Device const& device = m_application->getDevice();
 
     uint32_t imageIndex;
@@ -343,11 +345,6 @@ void vkgfx::Renderer::draw()
 
     if (aquireImageResult != VK_SUCCESS && aquireImageResult != VK_SUBOPTIMAL_KHR)
         throw std::runtime_error("failed to acquire swapchain image!");
-
-//     m_fenceTimer.start();
-    frameResources.inFlightFence.wait();
-//     m_lastFenceTime = m_fenceTimer.getTime();
-//     m_cumulativeFenceTime += m_lastFenceTime;
 
     frameResources.inFlightFence.reset();
 
