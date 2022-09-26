@@ -19,6 +19,7 @@
 #include "wrapper/Buffer.h"
 #include "wrapper/Window.h"
 #include "wrapper/DescriptorSetLayout.h"
+#include "wrapper/Instance.h"
 
 #include "ResourceManager.h"
 #include "TestObject.h"
@@ -40,6 +41,7 @@
 #include <vulkan/vulkan.h>
 
 #include <array>
+#include <format>
 
 namespace
 {
@@ -232,8 +234,14 @@ vkgfx::Renderer::Renderer(std::string const& name, bool enableValidationLayers, 
 
     m_application = std::make_unique<vkr::Application>(name, enableValidationLayers, false, window, std::move(onDebugMessage));
 
+    vko::Instance const& instance = m_application->getInstance();
     vko::Device const& device = m_application->getDevice();
     vko::PhysicalDevice const& physicalDevice = m_application->getPhysicalDevice();
+
+    instance.setDebugName(device.getHandle(), device.getHandle(), "Device");
+    instance.setDebugName(device.getHandle(), device.getGraphicsQueue().getHandle(), "Graphics");
+    instance.setDebugName(device.getHandle(), device.getPresentQueue().getHandle(), "Present");
+    instance.setDebugName(device.getHandle(), m_application->getShortLivedCommandPool().getHandle(), "Short-lived");
 
     vkr::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
 
@@ -246,6 +254,7 @@ vkgfx::Renderer::Renderer(std::string const& name, bool enableValidationLayers, 
 
     {
         m_renderPass = std::make_unique<vko::RenderPass>(device, m_data->m_surfaceFormat.format, m_data->m_depthFormat);
+        instance.setDebugName(device.getHandle(), m_renderPass->getHandle(), "Main");
     }
 
     createSwapchain();
@@ -262,6 +271,15 @@ vkgfx::Renderer::Renderer(std::string const& name, bool enableValidationLayers, 
             .commandPool{device, graphicsQueueFamily},
             .commandBuffers{resources.commandPool.allocate(1)},
         };
+
+        instance.setDebugName(device.getHandle(), resources.imageAvailableSemaphore.getHandle(), std::format("Image available #{}", i));
+        instance.setDebugName(device.getHandle(), resources.renderFinishedSemaphore.getHandle(), std::format("Render finished #{}", i));
+        instance.setDebugName(device.getHandle(), resources.inFlightFence.getHandle(), std::format("In-flight fence #{}", i));
+        instance.setDebugName(device.getHandle(), resources.commandPool.getHandle(), std::format("Main #{}", i));
+
+        for (std::size_t index = 0; index < resources.commandBuffers.getSize(); index++)
+            instance.setDebugName(device.getHandle(), resources.commandBuffers.getHandle(index), std::format("Buffer{} #{}", index, i));
+
         m_frameResources.push_back(std::move(resources));
     }
 
@@ -656,6 +674,7 @@ void vkgfx::Renderer::updateCameraBuffer()
 
 void vkgfx::Renderer::createSwapchain()
 {
+    vko::Instance const& instance = m_application->getInstance();
     vko::Device const& device = m_application->getDevice();
     vkr::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
     vkr::QueueFamilyIndices const& indices = parameters.getQueueFamilyIndices();
@@ -676,20 +695,35 @@ void vkgfx::Renderer::createSwapchain()
     config.preTransform = parameters.getCapabilities().currentTransform;
 
     m_swapchain = std::make_unique<vko::Swapchain>(device, m_application->getSurface(), indices.getGraphicsQueueFamily(), indices.getPresentQueueFamily(), std::move(config));
+    instance.setDebugName(device.getHandle(), m_swapchain->getHandle(), "Main");
 
     auto const& images = m_swapchain->getImages();
     m_swapchainImageViews.reserve(images.size());
-    for (auto const& image : images)
+
+    for (std::size_t i = 0; i < images.size(); i++)
+    {
+        vko::Image const& image = images[i];
         m_swapchainImageViews.push_back(std::make_unique<vko::ImageView>(image.createImageView(VK_IMAGE_ASPECT_COLOR_BIT)));
+
+        instance.setDebugName(device.getHandle(), image.getHandle(), std::format("Swapchain #{}", i));
+        instance.setDebugName(device.getHandle(), m_swapchainImageViews.back()->getHandle(), std::format("Swapchain #{}", i));
+    }
 
     // TODO move depth resources to the swapchain?
     VkExtent2D swapchainExtent = m_swapchain->getExtent();
     vkr::utils::createImage(*m_application, swapchainExtent.width, swapchainExtent.height, m_data->m_depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
     m_depthImageView = std::make_unique<vko::ImageView>(m_depthImage->createImageView(VK_IMAGE_ASPECT_DEPTH_BIT));
 
+    instance.setDebugName(device.getHandle(), m_depthImage->getHandle(), "Main depth");
+    instance.setDebugName(device.getHandle(), m_depthImageView->getHandle(), "Main depth");
+
     m_swapchainFramebuffers.reserve(m_swapchainImageViews.size());
-    for (std::unique_ptr<vko::ImageView> const& colorImageView : m_swapchainImageViews)
+    for (std::size_t i = 0; i < m_swapchainImageViews.size(); i++)
+    {
+        std::unique_ptr<vko::ImageView> const& colorImageView = m_swapchainImageViews[i];
         m_swapchainFramebuffers.push_back(std::make_unique<vko::Framebuffer>(device, *colorImageView, *m_depthImageView, *m_renderPass, m_swapchain->getExtent()));
+        instance.setDebugName(device.getHandle(), m_swapchainFramebuffers.back()->getHandle(), std::format("Main #{}", i));
+    }
 
     m_width = extent.width;
     m_height = extent.height;

@@ -145,6 +145,20 @@ void vko::Instance::createDebugMessenger()
     VKR_ASSERT(m_vkCreateDebugUtilsMessengerEXT(m_handle.get(), &createInfo, nullptr, &m_debugMessenger.get()));
 }
 
+void vko::Instance::setDebugName(VkDevice device, uint64_t handle, VkObjectType type, char const* name) const
+{
+    if (!m_vkSetDebugUtilsObjectNameEXT)
+        return;
+
+    VkDebugUtilsObjectNameInfoEXT nameInfo{};
+    nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    nameInfo.objectType = type;
+    nameInfo.objectHandle = handle;
+    nameInfo.pObjectName = name;
+
+    VKR_ASSERT(m_vkSetDebugUtilsObjectNameEXT(device, &nameInfo));
+}
+
 std::vector<vko::PhysicalDevice> vko::Instance::findPhysicalDevices()
 {
     uint32_t count = 0;

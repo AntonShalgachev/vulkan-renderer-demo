@@ -66,27 +66,6 @@ namespace
 
         return extensions;
     }
-
-    template<typename T>
-    void setDebugName(vkr::Application const& app, T handle, VkObjectType type, char const* name)
-    {
-        VkInstance instance = app.getInstance().getHandle();
-        VkDevice device = app.getDevice().getHandle();
-
-        // TODO cache function pointer
-		auto pfnSetDebugUtilsObjectNameEXT = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(vkGetInstanceProcAddr(instance, "vkSetDebugUtilsObjectNameEXT"));
-
-        if (pfnSetDebugUtilsObjectNameEXT)
-        {
-            VkDebugUtilsObjectNameInfoEXT nameInfo{};
-            nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
-            nameInfo.objectType = type;
-            nameInfo.objectHandle = reinterpret_cast<uint64_t>(handle);
-            nameInfo.pObjectName = name;
-
-            VKR_ASSERT(pfnSetDebugUtilsObjectNameEXT(device, &nameInfo));
-        }
-    }
 }
 
 namespace vkr
@@ -127,9 +106,7 @@ vkr::Application::Application(std::string const& name, bool enableValidation, bo
 {
     m_impl = std::make_unique<ApplicationImpl>(name, enableValidation, enableApiDump, window, std::move(onDebugMessage));
 
-    setDebugName(getDevice().getGraphicsQueue().getHandle(), "GraphicsQueue");
-    setDebugName(getDevice().getPresentQueue().getHandle(), "PresentQueue");
-
+    // TODO remove
     m_shortLivedCommandPool = std::make_unique<vko::CommandPool>(getDevice(), getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily());
 }
 
@@ -168,19 +145,4 @@ vko::PhysicalDevice const& vkr::Application::getPhysicalDevice() const
 void vkr::Application::onSurfaceChanged()
 {
     m_impl->getPhysicalDeviceSurfaceParameters().onSurfaceChanged();
-}
-
-void vkr::Application::setDebugName(VkQueue handle, char const* name) const
-{
-    ::setDebugName(*this, handle, VK_OBJECT_TYPE_QUEUE, name);
-}
-
-void vkr::Application::setDebugName(VkInstance handle, char const* name) const
-{
-    ::setDebugName(*this, handle, VK_OBJECT_TYPE_INSTANCE, name);
-}
-
-void vkr::Application::setDebugName(VkSemaphore handle, char const* name) const
-{
-    ::setDebugName(*this, handle, VK_OBJECT_TYPE_SEMAPHORE, name);
 }

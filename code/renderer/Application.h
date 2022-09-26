@@ -39,11 +39,6 @@ namespace vkr
         vko::PhysicalDevice const& getPhysicalDevice() const;
 
         void onSurfaceChanged();
-        
-        void setDebugName(VkQueue handle, char const* name) const;
-        void setDebugName(VkSemaphore handle, char const* name) const;
-        void setDebugName(VkInstance handle, char const* name) const;
-
     private:
         std::unique_ptr<ApplicationImpl> m_impl;
         std::unique_ptr<vko::CommandPool> m_shortLivedCommandPool;
