@@ -1,6 +1,5 @@
 #include "Surface.h"
 
-#include <GLFW/glfw3.h>
 #include <stdexcept>
 
 #include "Instance.h"

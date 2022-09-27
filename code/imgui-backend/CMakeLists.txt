@@ -1,4 +1,4 @@
-set(PROJECT_NAME libimguibackend)
+set(PROJECT_NAME imguibackend)
 
 set(ALL_FILES
     "${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp"

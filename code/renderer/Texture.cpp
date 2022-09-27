@@ -1,7 +1,5 @@
 #include "Texture.h"
 
-#include <stb_image.h>
-
 #include "wrapper/Buffer.h"
 #include "wrapper/DeviceMemory.h"
 #include "Utils.h"

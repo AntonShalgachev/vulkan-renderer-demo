@@ -1,4 +1,4 @@
-set(PROJECT_NAME librenderer)
+set(PROJECT_NAME renderer)
 
 set(ALL_FILES
     "glm.h"
@@ -151,7 +151,6 @@ target_link_libraries(${PROJECT_NAME}
     glfw
     Vulkan::Vulkan
     glm::glm
-    tinygltf
     nlohmann_json::nlohmann_json
     VulkanMemoryAllocator
 )

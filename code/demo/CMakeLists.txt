@@ -45,8 +45,8 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE "pch.h")
 set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 
 target_link_libraries(${PROJECT_NAME}
-    librenderer
-    libimguibackend
+    renderer
+    imguibackend
     imgui
     glm::glm
     tinygltf
