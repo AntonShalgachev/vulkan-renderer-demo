@@ -31,7 +31,7 @@ namespace vkgfx
         
     };
 
-    struct SamplerHandle : OldResourceHandle
+    struct SamplerHandle : ResourceHandle
     {
         
     };

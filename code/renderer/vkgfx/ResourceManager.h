@@ -16,6 +16,7 @@ namespace vko
     class RenderPass;
 
     class ShaderModule;
+    class Sampler;
     class DescriptorSetLayout;
     class PipelineLayout;
     class Pipeline;
@@ -37,7 +38,6 @@ namespace vkgfx
 
     struct ShaderModuleHandle;
 
-    struct Sampler;
     struct SamplerHandle;
 
     struct Texture;
@@ -83,7 +83,8 @@ namespace vkgfx
         ShaderModuleHandle createShaderModule(std::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint = "main");
 
         SamplerHandle createSampler(vko::SamplerFilterMode magFilter, vko::SamplerFilterMode minFilter, vko::SamplerWrapMode wrapU, vko::SamplerWrapMode wrapV);
-        Sampler const& getSampler(SamplerHandle handle) const;
+        vko::Sampler* getSampler(SamplerHandle handle);
+        vko::Sampler const* getSampler(SamplerHandle handle) const;
 
         TextureHandle createTexture(Texture texture);
         void updateTexture(TextureHandle handle, Texture texture);
@@ -128,7 +129,7 @@ namespace vkgfx
         ResourceContainer<Image> m_images;
         ResourceContainer<Buffer> m_buffers;
         ResourceContainer<vko::ShaderModule> m_shaderModules;
-        std::vector<Sampler> m_samplers;
+        ResourceContainer<vko::Sampler> m_samplers;
 
         std::vector<Texture> m_textures;
         std::vector<Material> m_materials;

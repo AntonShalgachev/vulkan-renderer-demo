@@ -63,8 +63,6 @@ set(ALL_FILES
     "vkgfx/Image.h"
     "vkgfx/Image.cpp"
     "vkgfx/ImageMetadata.h"
-    "vkgfx/Sampler.h"
-    "vkgfx/Sampler.cpp"
     "vkgfx/Texture.h"
     "vkgfx/Material.h"
     "vkgfx/Mesh.h"

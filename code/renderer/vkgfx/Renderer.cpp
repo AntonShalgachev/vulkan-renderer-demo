@@ -20,6 +20,7 @@
 #include "wrapper/Window.h"
 #include "wrapper/DescriptorSetLayout.h"
 #include "wrapper/Instance.h"
+#include "wrapper/Sampler.h"
 
 #include "ResourceManager.h"
 #include "TestObject.h"
@@ -28,7 +29,6 @@
 #include "Material.h"
 #include "Texture.h"
 #include "Image.h"
-#include "Sampler.h"
 #include "PipelineKey.h"
 
 // TODO remove vkr references
@@ -581,12 +581,13 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
                 Texture const& albedoTexture = m_resourceManager->getTexture(material.albedo);
                 Image const* albedoImage = m_resourceManager->getImage(albedoTexture.image);
                 assert(albedoImage);
-                Sampler const& albedoSampler = m_resourceManager->getSampler(albedoTexture.sampler);
+                vko::Sampler const* albedoSampler = m_resourceManager->getSampler(albedoTexture.sampler);
+                assert(albedoSampler);
 
                 config1.images.push_back({
                     .binding = 1,
                     .imageView = albedoImage->imageView.getHandle(),
-                    .sampler = albedoSampler.sampler.getHandle(),
+                    .sampler = albedoSampler->getHandle(),
                 });
             }
 
@@ -595,12 +596,13 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
                 Texture const& normalMapTexture = m_resourceManager->getTexture(material.normalMap);
                 Image const* normalMapImage = m_resourceManager->getImage(normalMapTexture.image);
                 assert(normalMapImage);
-                Sampler const& normalMapSampler = m_resourceManager->getSampler(normalMapTexture.sampler);
+                vko::Sampler const* normalMapSampler = m_resourceManager->getSampler(normalMapTexture.sampler);
+                assert(normalMapSampler);
 
                 config1.images.push_back({
                     .binding = 2,
                     .imageView = normalMapImage->imageView.getHandle(),
-                    .sampler = normalMapSampler.sampler.getHandle(),
+                    .sampler = normalMapSampler->getHandle(),
                 });
             }
 

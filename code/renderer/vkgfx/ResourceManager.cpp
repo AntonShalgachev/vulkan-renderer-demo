@@ -10,10 +10,10 @@
 #include "wrapper/PipelineLayout.h"
 #include "wrapper/Pipeline.h"
 #include "wrapper/PhysicalDevice.h"
+#include "wrapper/Sampler.h"
 
 #include "Image.h"
 #include "Buffer.h"
-#include "Sampler.h"
 #include "Handles.h"
 #include "Texture.h"
 #include "Material.h"
@@ -392,19 +392,17 @@ vkgfx::ShaderModuleHandle vkgfx::ResourceManager::createShaderModule(std::span<u
 
 vkgfx::SamplerHandle vkgfx::ResourceManager::createSampler(vko::SamplerFilterMode magFilter, vko::SamplerFilterMode minFilter, vko::SamplerWrapMode wrapU, vko::SamplerWrapMode wrapV)
 {
-    vko::Sampler sampler{ m_device, magFilter, minFilter, wrapU, wrapV };
-
-    SamplerHandle handle;
-    handle.index = m_samplers.size();
-
-    m_samplers.emplace_back(std::move(sampler));
-
-    return handle;
+    return { m_samplers.add(vko::Sampler{ m_device, magFilter, minFilter, wrapU, wrapV }) };
 }
 
-vkgfx::Sampler const& vkgfx::ResourceManager::getSampler(SamplerHandle handle) const
+vko::Sampler* vkgfx::ResourceManager::getSampler(SamplerHandle handle)
 {
-    return m_samplers[handle.index];
+    return m_samplers.get(handle);
+}
+
+vko::Sampler const* vkgfx::ResourceManager::getSampler(SamplerHandle handle) const
+{
+    return m_samplers.get(handle);
 }
 
 vkgfx::TextureHandle vkgfx::ResourceManager::createTexture(Texture texture)
