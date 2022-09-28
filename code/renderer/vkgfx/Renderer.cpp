@@ -431,15 +431,16 @@ void vkgfx::Renderer::createCameraResources()
     m_data->frameDescriptorSet = m_data->frameDescriptorPool.allocateRaw({ &m_data->frameDescriptorSetLayout, 1 })[0];
 
     {
-        Buffer const& frameUniformBuffer = m_resourceManager->getBuffer(m_cameraBuffer);
+        Buffer const* frameUniformBuffer = m_resourceManager->getBuffer(m_cameraBuffer);
+        assert(frameUniformBuffer);
 
         DescriptorSetUpdateConfig config{
             .buffers = {
                 {
                     .binding = 0,
-                    .buffer = frameUniformBuffer.buffer.getHandle(),
+                    .buffer = frameUniformBuffer->buffer.getHandle(),
                     .offset = 0,
-                    .size = frameUniformBuffer.size,
+                    .size = frameUniformBuffer->size,
                 },
             },
         };
@@ -504,7 +505,9 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
 
         if (currentPipelineLayoutForDescriptorSets != pipeline.getPipelineLayoutHandle())
         {
-            auto frameUniformBufferOffset = static_cast<std::uint32_t>(m_resourceManager->getBuffer(m_cameraBuffer).getDynamicOffset(m_nextFrameResourcesIndex));
+            auto buffer = m_resourceManager->getBuffer(m_cameraBuffer);
+            assert(buffer);
+            auto frameUniformBufferOffset = static_cast<std::uint32_t>(buffer->getDynamicOffset(m_nextFrameResourcesIndex));
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 0, 1, &m_data->frameDescriptorSet, 1, &frameUniformBufferOffset);
 
             currentPipelineLayoutForDescriptorSets = pipeline.getPipelineLayoutHandle();
@@ -545,30 +548,32 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
 
             if (material.uniformBuffer)
             {
-                Buffer const& materialUniformBuffer = m_resourceManager->getBuffer(material.uniformBuffer);
+                Buffer const* materialUniformBuffer = m_resourceManager->getBuffer(material.uniformBuffer);
+                assert(materialUniformBuffer);
 
                 config1.buffers.push_back({
                     .binding = 0,
-                    .buffer = materialUniformBuffer.buffer.getHandle(),
+                    .buffer = materialUniformBuffer->buffer.getHandle(),
                     .offset = 0,
-                    .size = materialUniformBuffer.size,
+                    .size = materialUniformBuffer->size,
                 });
 
-                dynamicBufferOffsets12.push_back(static_cast<uint32_t>(materialUniformBuffer.getDynamicOffset(m_nextFrameResourcesIndex)));
+                dynamicBufferOffsets12.push_back(static_cast<uint32_t>(materialUniformBuffer->getDynamicOffset(m_nextFrameResourcesIndex)));
             }
 
             if (object.uniformBuffer)
             {
-                Buffer const& objectUniformBuffer = m_resourceManager->getBuffer(object.uniformBuffer);
+                Buffer const* objectUniformBuffer = m_resourceManager->getBuffer(object.uniformBuffer);
+                assert(objectUniformBuffer);
 
                 config2.buffers.push_back({
                     .binding = 0,
-                    .buffer = objectUniformBuffer.buffer.getHandle(),
+                    .buffer = objectUniformBuffer->buffer.getHandle(),
                     .offset = 0,
-                    .size = objectUniformBuffer.size,
+                    .size = objectUniformBuffer->size,
                 });
 
-                dynamicBufferOffsets12.push_back(static_cast<uint32_t>(objectUniformBuffer.getDynamicOffset(m_nextFrameResourcesIndex)));
+                dynamicBufferOffsets12.push_back(static_cast<uint32_t>(objectUniformBuffer->getDynamicOffset(m_nextFrameResourcesIndex)));
             }
 
             if (material.albedo)
@@ -613,13 +618,15 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
         vertexBuffersOffsets.reserve(mesh.vertexBuffers.size());
         for (BufferWithOffset const& bufferWithOffset : mesh.vertexBuffers)
         {
-            Buffer const& vertexBuffer = m_resourceManager->getBuffer(bufferWithOffset.buffer);
-            vertexBuffers.push_back(vertexBuffer.buffer.getHandle());
-            vertexBuffersOffsets.push_back(vertexBuffer.getDynamicOffset(m_nextFrameResourcesIndex) + bufferWithOffset.offset);
+            Buffer const* vertexBuffer = m_resourceManager->getBuffer(bufferWithOffset.buffer);
+            assert(vertexBuffer);
+            vertexBuffers.push_back(vertexBuffer->buffer.getHandle());
+            vertexBuffersOffsets.push_back(vertexBuffer->getDynamicOffset(m_nextFrameResourcesIndex) + bufferWithOffset.offset);
         }
 
-        Buffer const& indexBuffer = m_resourceManager->getBuffer(mesh.indexBuffer.buffer);
-        VkDeviceSize indexBufferOffset = indexBuffer.getDynamicOffset(m_nextFrameResourcesIndex) + mesh.indexBuffer.offset;
+        Buffer const* indexBuffer = m_resourceManager->getBuffer(mesh.indexBuffer.buffer);
+        assert(indexBuffer);
+        VkDeviceSize indexBufferOffset = indexBuffer->getDynamicOffset(m_nextFrameResourcesIndex) + mesh.indexBuffer.offset;
 
         VkRect2D scissor;
         if (object.hasScissors)
@@ -639,7 +646,7 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
         vkCmdBindVertexBuffers(commandBuffer, 0, static_cast<uint32_t>(vertexBuffersOffsets.size()), vertexBuffers.data(), vertexBuffersOffsets.data());
-        vkCmdBindIndexBuffer(commandBuffer, indexBuffer.buffer.getHandle(), indexBufferOffset, vulkanizeIndexType(mesh.indexType));
+        vkCmdBindIndexBuffer(commandBuffer, indexBuffer->buffer.getHandle(), indexBufferOffset, vulkanizeIndexType(mesh.indexType));
 
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh.indexCount), 1, static_cast<uint32_t>(mesh.indexOffset), static_cast<uint32_t>(mesh.vertexOffset), 0);
     };

@@ -5,6 +5,8 @@
 #include <string>
 #include <map>
 
+#include "ResourceContainer.h"
+
 namespace vko
 {
     class Device;
@@ -74,7 +76,8 @@ namespace vkgfx
         void uploadDynamicBufferToStaging(BufferHandle handle, void const* data, std::size_t dataSize, std::size_t offset = 0);
         void transferDynamicBuffersFromStaging(std::size_t resourceIndex);
         std::size_t getBufferSize(BufferHandle handle) const;
-        Buffer const& getBuffer(BufferHandle handle) const;
+        Buffer* getBuffer(BufferHandle handle);
+        Buffer const* getBuffer(BufferHandle handle) const;
 
         ShaderModuleHandle createShaderModule(std::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint = "main");
 
@@ -122,7 +125,7 @@ namespace vkgfx
         std::size_t m_resourceCount = 0; // TODO rename
 
         std::vector<Image> m_images;
-        std::vector<Buffer> m_buffers;
+        ResourceContainer<Buffer> m_buffers;
         std::vector<vko::ShaderModule> m_shaderModules;
         std::vector<Sampler> m_samplers;
 

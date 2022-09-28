@@ -1,20 +1,22 @@
 #pragma once
 
+#include "ResourceContainer.h"
+
 namespace vkgfx
 {
-    struct ResourceHandle
+    struct OldResourceHandle
     {
         std::size_t index = static_cast<std::size_t>(-1);
 
-        auto operator<=>(ResourceHandle const&) const = default;
+        auto operator<=>(OldResourceHandle const&) const = default;
 
         operator bool() const
         {
-            return *this != ResourceHandle{};
+            return *this != OldResourceHandle{};
         }
     };
 
-    struct ImageHandle : ResourceHandle
+    struct ImageHandle : OldResourceHandle
     {
         
     };
@@ -24,42 +26,42 @@ namespace vkgfx
         
     };
 
-    struct ShaderModuleHandle : ResourceHandle
+    struct ShaderModuleHandle : OldResourceHandle
     {
         
     };
 
-    struct SamplerHandle : ResourceHandle
+    struct SamplerHandle : OldResourceHandle
     {
         
     };
 
-    struct TextureHandle : ResourceHandle
+    struct TextureHandle : OldResourceHandle
     {
         
     };
 
-    struct MaterialHandle : ResourceHandle
+    struct MaterialHandle : OldResourceHandle
     {
         
     };
 
-    struct MeshHandle : ResourceHandle
+    struct MeshHandle : OldResourceHandle
     {
         
     };
 
-    struct DescriptorSetLayoutHandle : ResourceHandle
+    struct DescriptorSetLayoutHandle : OldResourceHandle
     {
         
     };
 
-    struct PipelineLayoutHandle : ResourceHandle
+    struct PipelineLayoutHandle : OldResourceHandle
     {
         
     };
 
-    struct PipelineHandle : ResourceHandle
+    struct PipelineHandle : OldResourceHandle
     {
         
     };

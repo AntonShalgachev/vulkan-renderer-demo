@@ -273,29 +273,33 @@ vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(std::size_t size, Buffe
     vko::DeviceMemory memory{ m_device, m_physicalDevice, buffer.getMemoryRequirements(), memoryPropertiesFlags };
     buffer.bindMemory(memory);
 
-    BufferHandle handle;
-    handle.index = m_buffers.size();
+    Buffer bufferResource{
+        .memory = std::move(memory),
+        .buffer = std::move(buffer),
+        .metadata = std::move(metadata),
+        .size = size,
+        .realSize = totalBufferSize,
+    };
 
-    Buffer& bufferResource = m_buffers.emplace_back(std::move(memory), std::move(buffer), std::move(metadata));
-
-    bufferResource.size = size;
-    bufferResource.realSize = totalBufferSize;
     if (metadata.isMutable)
     {
         bufferResource.stagingBuffer.resize(size);
         bufferResource.alignedSize = alignedSize;
     }
 
-    return handle;
+    return { m_buffers.add(std::move(bufferResource)) };
 }
 
 void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, void const* data, std::size_t dataSize)
 {
-    Buffer const& buffer = m_buffers[handle.index];
+    assert(handle);
 
-    assert(!buffer.metadata.isMutable);
+    Buffer const* buffer = getBuffer(handle);
+    assert(buffer);
 
-    return uploadBuffer(buffer, data, dataSize, 0);
+    assert(!buffer->metadata.isMutable);
+
+    return uploadBuffer(*buffer, data, dataSize, 0);
 }
 
 void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, std::span<std::byte const> bytes)
@@ -310,18 +314,21 @@ void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, std::span<unsigne
 
 void vkgfx::ResourceManager::uploadDynamicBufferToStaging(BufferHandle handle, void const* data, std::size_t dataSize, std::size_t offset)
 {
-    Buffer& buffer = m_buffers[handle.index];
+    assert(handle);
 
-    assert(buffer.metadata.isMutable);
-    assert(buffer.stagingBuffer.size() - offset >= dataSize);
+    Buffer* buffer = getBuffer(handle);
+    assert(buffer);
 
-    memcpy(buffer.stagingBuffer.data() + offset, data, dataSize);
+    assert(buffer->metadata.isMutable);
+    assert(buffer->stagingBuffer.size() - offset >= dataSize);
+
+    memcpy(buffer->stagingBuffer.data() + offset, data, dataSize);
 
     std::size_t start = offset;
     std::size_t end = offset + dataSize;
 
-    buffer.stagingDirtyStart = std::min(buffer.stagingDirtyStart, start);
-    buffer.stagingDirtyEnd = std::max(buffer.stagingDirtyEnd, end);
+    buffer->stagingDirtyStart = std::min(buffer->stagingDirtyStart, start);
+    buffer->stagingDirtyEnd = std::max(buffer->stagingDirtyEnd, end);
 }
 
 void vkgfx::ResourceManager::transferDynamicBuffersFromStaging(std::size_t resourceIndex)
@@ -353,12 +360,20 @@ void vkgfx::ResourceManager::transferDynamicBuffersFromStaging(std::size_t resou
 
 std::size_t vkgfx::ResourceManager::getBufferSize(BufferHandle handle) const
 {
-    return getBuffer(handle).size;
+    assert(handle);
+    auto buffer = getBuffer(handle);
+    assert(buffer);
+    return buffer->size;
 }
 
-vkgfx::Buffer const& vkgfx::ResourceManager::getBuffer(BufferHandle handle) const
+vkgfx::Buffer* vkgfx::ResourceManager::getBuffer(BufferHandle handle)
 {
-    return m_buffers[handle.index];
+    return m_buffers.get(handle);
+}
+
+vkgfx::Buffer const* vkgfx::ResourceManager::getBuffer(BufferHandle handle) const
+{
+    return m_buffers.get(handle);
 }
 
 vkgfx::ShaderModuleHandle vkgfx::ResourceManager::createShaderModule(std::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint)
