@@ -579,12 +579,13 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
             if (material.albedo)
             {
                 Texture const& albedoTexture = m_resourceManager->getTexture(material.albedo);
-                Image const& albedoImage = m_resourceManager->getImage(albedoTexture.image);
+                Image const* albedoImage = m_resourceManager->getImage(albedoTexture.image);
+                assert(albedoImage);
                 Sampler const& albedoSampler = m_resourceManager->getSampler(albedoTexture.sampler);
 
                 config1.images.push_back({
                     .binding = 1,
-                    .imageView = albedoImage.imageView.getHandle(),
+                    .imageView = albedoImage->imageView.getHandle(),
                     .sampler = albedoSampler.sampler.getHandle(),
                 });
             }
@@ -592,12 +593,13 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
             if (material.normalMap)
             {
                 Texture const& normalMapTexture = m_resourceManager->getTexture(material.normalMap);
-                Image const& normalMapImage = m_resourceManager->getImage(normalMapTexture.image);
+                Image const* normalMapImage = m_resourceManager->getImage(normalMapTexture.image);
+                assert(normalMapImage);
                 Sampler const& normalMapSampler = m_resourceManager->getSampler(normalMapTexture.sampler);
 
                 config1.images.push_back({
                     .binding = 2,
-                    .imageView = normalMapImage.imageView.getHandle(),
+                    .imageView = normalMapImage->imageView.getHandle(),
                     .sampler = normalMapSampler.sampler.getHandle(),
                 });
             }

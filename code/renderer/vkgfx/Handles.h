@@ -16,7 +16,7 @@ namespace vkgfx
         }
     };
 
-    struct ImageHandle : OldResourceHandle
+    struct ImageHandle : ResourceHandle
     {
         
     };

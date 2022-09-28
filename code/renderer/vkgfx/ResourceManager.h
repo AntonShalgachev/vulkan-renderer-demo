@@ -67,7 +67,8 @@ namespace vkgfx
         ImageHandle createImage(ImageMetadata metadata);
         void uploadImage(ImageHandle handle, void const* data, std::size_t dataSize);
         void uploadImage(ImageHandle handle, std::span<unsigned char const> bytes);
-        Image const& getImage(ImageHandle handle) const;
+        Image* getImage(ImageHandle handle);
+        Image const* getImage(ImageHandle handle) const;
 
         BufferHandle createBuffer(std::size_t size, BufferMetadata metadata);
         void uploadBuffer(BufferHandle handle, void const* data, std::size_t dataSize);
@@ -124,7 +125,7 @@ namespace vkgfx
         vko::RenderPass const& m_renderPass; // TODO remove
         std::size_t m_resourceCount = 0; // TODO rename
 
-        std::vector<Image> m_images;
+        ResourceContainer<Image> m_images;
         ResourceContainer<Buffer> m_buffers;
         std::vector<vko::ShaderModule> m_shaderModules;
         std::vector<Sampler> m_samplers;

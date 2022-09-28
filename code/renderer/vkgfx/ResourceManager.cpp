@@ -211,20 +211,24 @@ vkgfx::ImageHandle vkgfx::ResourceManager::createImage(ImageMetadata metadata)
 
     vko::ImageView vkImageView = vkImage.createImageView(VK_IMAGE_ASPECT_COLOR_BIT);
 
-    ImageHandle handle;
-    handle.index = m_images.size();
+    Image imageResource = {
+        .memory = std::move(vkImageMemory),
+        .image = std::move(vkImage),
+        .imageView = std::move(vkImageView),
+        .metadata = std::move(metadata),
+        .byteSize = metadata.width * metadata.height * bytesPerPixel,
+    };
 
-    Image& imageResource = m_images.emplace_back(std::move(vkImageMemory), std::move(vkImage), std::move(vkImageView), std::move(metadata));
-    imageResource.byteSize = metadata.width * metadata.height * bytesPerPixel;
-
-    return handle;
+    return { m_images.add(std::move(imageResource)) };
 }
 
 void vkgfx::ResourceManager::uploadImage(ImageHandle handle, void const* data, std::size_t dataSize)
 {
-    Image const& image = m_images[handle.index];
+    assert(handle);
+    Image const* image = getImage(handle);
+    assert(image);
 
-    return uploadImage(image, data, dataSize);
+    return uploadImage(*image, data, dataSize);
 }
 
 void vkgfx::ResourceManager::uploadImage(ImageHandle handle, std::span<unsigned char const> bytes)
@@ -232,9 +236,14 @@ void vkgfx::ResourceManager::uploadImage(ImageHandle handle, std::span<unsigned 
     return uploadImage(handle, bytes.data(), bytes.size());
 }
 
-vkgfx::Image const& vkgfx::ResourceManager::getImage(ImageHandle handle) const
+vkgfx::Image* vkgfx::ResourceManager::getImage(ImageHandle handle)
 {
-    return m_images[handle.index];
+    return m_images.get(handle);
+}
+
+vkgfx::Image const* vkgfx::ResourceManager::getImage(ImageHandle handle) const
+{
+    return m_images.get(handle);
 }
 
 vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(std::size_t size, BufferMetadata metadata)
