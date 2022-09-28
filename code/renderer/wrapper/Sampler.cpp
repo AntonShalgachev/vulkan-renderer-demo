@@ -36,7 +36,7 @@ namespace
 vko::Sampler::Sampler(Device const& device) : Sampler(device, SamplerFilterMode::Linear, SamplerFilterMode::Linear, SamplerWrapMode::Repeat, SamplerWrapMode::Repeat) {}
 
 vko::Sampler::Sampler(Device const& device, SamplerFilterMode magFilter, SamplerFilterMode minFilter, SamplerWrapMode wrapU, SamplerWrapMode wrapV)
-    : m_device(device)
+    : m_device(device.getHandle())
 {
     VkSamplerCreateInfo samplerCreateInfo{};
     samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -56,11 +56,11 @@ vko::Sampler::Sampler(Device const& device, SamplerFilterMode magFilter, Sampler
     samplerCreateInfo.minLod = 0.0f;
     samplerCreateInfo.maxLod = 0.0f;
 
-    if (vkCreateSampler(m_device.getHandle(), &samplerCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
+    if (vkCreateSampler(m_device, &samplerCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create texture sampler!");
 }
 
 vko::Sampler::~Sampler()
 {
-    vkDestroySampler(m_device.getHandle(), m_handle, nullptr);
+    vkDestroySampler(m_device, m_handle, nullptr);
 }

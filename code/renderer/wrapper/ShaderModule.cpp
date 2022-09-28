@@ -23,7 +23,7 @@ namespace
 }
 
 vko::ShaderModule::ShaderModule(Device const& device, std::span<unsigned char const> bytes, ShaderModuleType type, std::string entryPoint)
-    : m_device(device)
+    : m_device(device.getHandle())
     , m_type(type)
     , m_entryPoint(std::move(entryPoint))
 {
@@ -39,13 +39,13 @@ vko::ShaderModule::ShaderModule(Device const& device, std::span<unsigned char co
     createInfo.codeSize = bytes.size();
     createInfo.pCode = code.data();
 
-    if (vkCreateShaderModule(m_device.getHandle(), &createInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
+    if (vkCreateShaderModule(m_device, &createInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to create shader module!");
 }
 
 vko::ShaderModule::~ShaderModule()
 {
-    vkDestroyShaderModule(m_device.getHandle(), m_handle, nullptr);
+    vkDestroyShaderModule(m_device, m_handle, nullptr);
     m_handle = nullptr;
 }
 

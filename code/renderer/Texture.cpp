@@ -155,5 +155,5 @@ void vkr::Texture::createImage(std::span<unsigned char const> bytes, uint32_t wi
         commandBuffer.submit();
     }
 
-    m_imageView = std::make_unique<vko::ImageView>(m_image->createImageView(VK_IMAGE_ASPECT_COLOR_BIT));
+    m_imageView = std::make_unique<vko::ImageView>(getDevice(), *m_image, VK_IMAGE_ASPECT_COLOR_BIT);
 }

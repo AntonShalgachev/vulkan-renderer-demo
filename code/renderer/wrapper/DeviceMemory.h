@@ -35,7 +35,7 @@ namespace vko
         VkMemoryPropertyFlags const& getProperties() const { return m_properties; }
 
     private:
-        Device const& m_device;
+        VkDevice m_device;
         UniqueHandle<VkDeviceMemory> m_handle;
         void* m_data = nullptr;
 

@@ -28,7 +28,7 @@ namespace
 }
 
 vko::DeviceMemory::DeviceMemory(Device const& device, PhysicalDevice const& physicalDevice, VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties)
-    : m_device(device)
+    : m_device(device.getHandle())
     , m_requirements(memoryRequirements)
     , m_properties(memoryProperties)
 {
@@ -37,11 +37,11 @@ vko::DeviceMemory::DeviceMemory(Device const& device, PhysicalDevice const& phys
     allocInfo.allocationSize = memoryRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, memoryProperties);
 
-    if (vkAllocateMemory(m_device.getHandle(), &allocInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
+    if (vkAllocateMemory(m_device, &allocInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
         throw std::runtime_error("failed to allocate image memory!");
 
     if ((memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
-        VKR_ASSERT(vkMapMemory(m_device.getHandle(), m_handle, 0, memoryRequirements.size, 0, &m_data));
+        VKR_ASSERT(vkMapMemory(m_device, m_handle, 0, memoryRequirements.size, 0, &m_data));
 }
 
 vko::DeviceMemory::~DeviceMemory()
@@ -50,9 +50,9 @@ vko::DeviceMemory::~DeviceMemory()
         return;
 
     if (m_data)
-        vkUnmapMemory(m_device.getHandle(), m_handle);
+        vkUnmapMemory(m_device, m_handle);
 
-    vkFreeMemory(m_device.getHandle(), m_handle, nullptr);
+    vkFreeMemory(m_device, m_handle, nullptr);
 }
 
 void vko::DeviceMemory::copyFrom(void const* sourcePointer, std::size_t sourceSize, std::size_t offset) const

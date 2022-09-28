@@ -22,7 +22,7 @@ namespace vko
         VkImageView getHandle() const { return m_handle; }
 
 	private:
-		Device const& m_device;
+		VkDevice m_device = VK_NULL_HANDLE;
 		UniqueHandle<VkImageView> m_handle;
 	};
 }

@@ -7,7 +7,7 @@
 
 namespace vko
 {
-    Image::Image(Device const& device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage) : m_device(device)
+    Image::Image(Device const& device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage) : m_device(device.getHandle())
     {
         m_isOwned = true;
         m_format = format;
@@ -27,11 +27,11 @@ namespace vko
         imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 
-        if (vkCreateImage(m_device.getHandle(), &imageCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
+        if (vkCreateImage(m_device, &imageCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
             throw std::runtime_error("failed to create image!");
     }
 
-    Image::Image(Device const& device, VkImage image, VkFormat format) : m_device(device)
+    Image::Image(Device const& device, VkImage image, VkFormat format) : m_device(device.getHandle())
     {
         m_isOwned = false;
         m_handle = image;
@@ -41,25 +41,24 @@ namespace vko
     Image::~Image()
     {
         if (m_isOwned)
-            vkDestroyImage(m_device.getHandle(), m_handle, nullptr);
+            vkDestroyImage(m_device, m_handle, nullptr);
     }
 
     VkMemoryRequirements Image::getMemoryRequirements() const
     {
         VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(m_device.getHandle(), m_handle, &memRequirements);
+        vkGetImageMemoryRequirements(m_device, m_handle, &memRequirements);
 
         return memRequirements;
     }
 
     void Image::bindMemory(DeviceMemory const& memory) const
     {
-        VKR_ASSERT(vkBindImageMemory(m_device.getHandle(), m_handle, memory.getHandle(), 0));
+        VKR_ASSERT(vkBindImageMemory(m_device, m_handle, memory.getHandle(), 0));
     }
 
-    ImageView Image::createImageView(VkImageAspectFlags aspectFlags) const
-    {
-        return ImageView{ m_device, *this, aspectFlags };
-    }
-
+//     ImageView Image::createImageView(VkImageAspectFlags aspectFlags) const
+//     {
+//         return ImageView{ m_device, *this, aspectFlags };
+//     }
 }

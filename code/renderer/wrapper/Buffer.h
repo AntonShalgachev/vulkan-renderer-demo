@@ -29,7 +29,7 @@ namespace vko
         static void copy(VkCommandBuffer commandBuffer, Buffer const& source, std::size_t sourceOffset, Buffer const& destination, std::size_t destinationOffset, std::size_t size);
 
     private:
-        Device const& m_device;
+        VkDevice m_device = VK_NULL_HANDLE;
         UniqueHandle<VkBuffer> m_handle;
         VkDeviceSize m_size;
     };

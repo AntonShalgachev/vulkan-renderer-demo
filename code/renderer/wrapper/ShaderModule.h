@@ -30,7 +30,7 @@ namespace vko
         VkShaderModule getHandle() const { return m_handle; }
 
     private:
-        Device const& m_device;
+        VkDevice m_device;
         ShaderModuleType m_type;
         std::string m_entryPoint;
 

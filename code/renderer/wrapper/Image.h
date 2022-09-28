@@ -24,13 +24,13 @@ namespace vko
         VkMemoryRequirements getMemoryRequirements() const;
         void bindMemory(DeviceMemory const& memory) const;
 
-        ImageView createImageView(VkImageAspectFlags aspectFlags) const;
+//         ImageView createImageView(VkImageAspectFlags aspectFlags) const;
 
         VkImage getHandle() const { return m_handle; }
         VkFormat getFormat() const { return m_format; }
 
     private:
-        Device const& m_device;
+        VkDevice m_device = VK_NULL_HANDLE;
         bool m_isOwned = true;
         UniqueHandle<VkImage> m_handle;
         VkFormat m_format;

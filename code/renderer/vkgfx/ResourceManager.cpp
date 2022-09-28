@@ -209,7 +209,7 @@ vkgfx::ImageHandle vkgfx::ResourceManager::createImage(ImageMetadata metadata)
     vko::DeviceMemory vkImageMemory{ m_device, m_physicalDevice, vkImage.getMemoryRequirements(), VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
     vkImage.bindMemory(vkImageMemory);
 
-    vko::ImageView vkImageView = vkImage.createImageView(VK_IMAGE_ASPECT_COLOR_BIT);
+    vko::ImageView vkImageView{ m_device, vkImage, VK_IMAGE_ASPECT_COLOR_BIT };
 
     Image imageResource = {
         .memory = std::move(vkImageMemory),
@@ -239,6 +239,11 @@ void vkgfx::ResourceManager::uploadImage(ImageHandle handle, std::span<unsigned 
 vkgfx::Image* vkgfx::ResourceManager::getImage(ImageHandle handle)
 {
     return m_images.get(handle);
+}
+
+void vkgfx::ResourceManager::removeImage(ImageHandle handle)
+{
+    m_images.remove(handle);
 }
 
 vkgfx::Image const* vkgfx::ResourceManager::getImage(ImageHandle handle) const
@@ -380,6 +385,11 @@ vkgfx::Buffer* vkgfx::ResourceManager::getBuffer(BufferHandle handle)
     return m_buffers.get(handle);
 }
 
+void vkgfx::ResourceManager::removeBuffer(BufferHandle handle)
+{
+    m_buffers.remove(handle);
+}
+
 vkgfx::Buffer const* vkgfx::ResourceManager::getBuffer(BufferHandle handle) const
 {
     return m_buffers.get(handle);
@@ -390,6 +400,11 @@ vkgfx::ShaderModuleHandle vkgfx::ResourceManager::createShaderModule(std::span<u
     return { m_shaderModules.add(vko::ShaderModule{ m_device, bytes, type, std::move(entryPoint) }) };
 }
 
+void vkgfx::ResourceManager::removeShaderModule(ShaderModuleHandle handle)
+{
+    m_shaderModules.remove(handle);
+}
+
 vkgfx::SamplerHandle vkgfx::ResourceManager::createSampler(vko::SamplerFilterMode magFilter, vko::SamplerFilterMode minFilter, vko::SamplerWrapMode wrapU, vko::SamplerWrapMode wrapV)
 {
     return { m_samplers.add(vko::Sampler{ m_device, magFilter, minFilter, wrapU, wrapV }) };
@@ -398,6 +413,11 @@ vkgfx::SamplerHandle vkgfx::ResourceManager::createSampler(vko::SamplerFilterMod
 vko::Sampler* vkgfx::ResourceManager::getSampler(SamplerHandle handle)
 {
     return m_samplers.get(handle);
+}
+
+void vkgfx::ResourceManager::removeSampler(SamplerHandle handle)
+{
+    m_samplers.remove(handle);
 }
 
 vko::Sampler const* vkgfx::ResourceManager::getSampler(SamplerHandle handle) const
@@ -423,6 +443,11 @@ vkgfx::Texture* vkgfx::ResourceManager::getTexture(TextureHandle handle)
     return m_textures.get(handle);
 }
 
+void vkgfx::ResourceManager::removeTexture(TextureHandle handle)
+{
+    m_textures.remove(handle);
+}
+
 vkgfx::Texture const* vkgfx::ResourceManager::getTexture(TextureHandle handle) const
 {
     return m_textures.get(handle);
@@ -446,6 +471,11 @@ vkgfx::Material* vkgfx::ResourceManager::getMaterial(MaterialHandle handle)
     return m_materials.get(handle);
 }
 
+void vkgfx::ResourceManager::removeMaterial(MaterialHandle handle)
+{
+    m_materials.remove(handle);
+}
+
 vkgfx::Material const* vkgfx::ResourceManager::getMaterial(MaterialHandle handle) const
 {
     return m_materials.get(handle);
@@ -467,6 +497,11 @@ void vkgfx::ResourceManager::updateMesh(MeshHandle handle, Mesh mesh)
 vkgfx::Mesh* vkgfx::ResourceManager::getMesh(MeshHandle handle)
 {
     return m_meshes.get(handle);
+}
+
+void vkgfx::ResourceManager::removeMesh(MeshHandle handle)
+{
+    m_meshes.remove(handle);
 }
 
 vkgfx::Mesh const* vkgfx::ResourceManager::getMesh(MeshHandle handle) const

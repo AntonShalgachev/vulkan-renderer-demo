@@ -35,7 +35,7 @@ namespace vko
         VkSampler getHandle() const { return m_handle; }
 
     private:
-        Device const& m_device;
+        VkDevice m_device;
         UniqueHandle<VkSampler> m_handle;
     };
 }

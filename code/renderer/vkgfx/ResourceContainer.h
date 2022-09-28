@@ -137,7 +137,12 @@ namespace vkgfx
             std::size_t headerIndex1 = m_headerIndexMap[i1];
             std::size_t headerIndex2 = m_headerIndexMap[i2];
 
-            std::swap(m_objects[i1], m_objects[i2]);
+            {
+                T o = std::move(m_objects[i2]);
+                m_objects[i2] = std::move(m_objects[i1]);
+                m_objects[i1] = std::move(o);
+            }
+
             std::swap(m_headers[headerIndex1], m_headers[headerIndex2]);
             std::swap(m_headerIndexMap[i1], m_headerIndexMap[i2]);
 

@@ -358,12 +358,12 @@ void vkr::Renderer::createSwapchain()
     auto const& images = m_swapchain->getImages();
     m_swapchainImageViews.reserve(images.size());
     for (auto const& image : images)
-        m_swapchainImageViews.push_back(std::make_unique<vko::ImageView>(image.createImageView(VK_IMAGE_ASPECT_COLOR_BIT)));
+        m_swapchainImageViews.push_back(std::make_unique<vko::ImageView>(getDevice(), image, VK_IMAGE_ASPECT_COLOR_BIT));
 
     // TODO move depth resources to the swapchain?
     VkExtent2D swapchainExtent = m_swapchain->getExtent();
     vkr::utils::createImage(getApp(), swapchainExtent.width, swapchainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
-    m_depthImageView = std::make_unique<vko::ImageView>(m_depthImage->createImageView(VK_IMAGE_ASPECT_DEPTH_BIT));
+    m_depthImageView = std::make_unique<vko::ImageView>(getDevice(), *m_depthImage, VK_IMAGE_ASPECT_DEPTH_BIT);
 
     m_swapchainFramebuffers.reserve(m_swapchainImageViews.size());
     for (std::unique_ptr<vko::ImageView> const& colorImageView : m_swapchainImageViews)

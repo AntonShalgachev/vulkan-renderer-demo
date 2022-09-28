@@ -69,6 +69,7 @@ namespace vkgfx
         void uploadImage(ImageHandle handle, std::span<unsigned char const> bytes);
         Image* getImage(ImageHandle handle);
         Image const* getImage(ImageHandle handle) const;
+        void removeImage(ImageHandle handle);
 
         BufferHandle createBuffer(std::size_t size, BufferMetadata metadata);
         void uploadBuffer(BufferHandle handle, void const* data, std::size_t dataSize);
@@ -79,27 +80,33 @@ namespace vkgfx
         std::size_t getBufferSize(BufferHandle handle) const;
         Buffer* getBuffer(BufferHandle handle);
         Buffer const* getBuffer(BufferHandle handle) const;
+        void removeBuffer(BufferHandle handle);
 
         ShaderModuleHandle createShaderModule(std::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint = "main");
+        void removeShaderModule(ShaderModuleHandle handle);
 
         SamplerHandle createSampler(vko::SamplerFilterMode magFilter, vko::SamplerFilterMode minFilter, vko::SamplerWrapMode wrapU, vko::SamplerWrapMode wrapV);
         vko::Sampler* getSampler(SamplerHandle handle);
         vko::Sampler const* getSampler(SamplerHandle handle) const;
+        void removeSampler(SamplerHandle handle);
 
         TextureHandle createTexture(Texture texture);
         void updateTexture(TextureHandle handle, Texture texture);
         Texture* getTexture(TextureHandle handle);
         Texture const* getTexture(TextureHandle handle) const;
+        void removeTexture(TextureHandle handle);
 
         MaterialHandle createMaterial(Material material);
         void updateMaterial(MaterialHandle handle, Material material);
         Material* getMaterial(MaterialHandle handle);
         Material const* getMaterial(MaterialHandle handle) const;
+        void removeMaterial(MaterialHandle handle);
 
         MeshHandle createMesh(Mesh mesh);
         void updateMesh(MeshHandle handle, Mesh mesh);
         Mesh const* getMesh(MeshHandle handle) const;
         Mesh* getMesh(MeshHandle handle);
+        void removeMesh(MeshHandle handle);
 
         DescriptorSetLayoutHandle getOrCreateDescriptorSetLayout(DescriptorSetLayoutKey const& key);
         vko::DescriptorSetLayout const& getDescriptorSetLayout(DescriptorSetLayoutHandle handle) const;
