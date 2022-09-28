@@ -537,7 +537,8 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
                     descriptorPools.emplace_back(m_application->getDevice());
             } while (descriptorSets.empty());
 
-            Material const& material = m_resourceManager->getMaterial(object.material);
+            Material const* material = m_resourceManager->getMaterial(object.material);
+            assert(material);
 
             DescriptorSetUpdateConfig config1;
             config1.buffers.reserve(1);
@@ -546,9 +547,9 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
             config2.buffers.reserve(1);
             std::vector<uint32_t> dynamicBufferOffsets12;
 
-            if (material.uniformBuffer)
+            if (material->uniformBuffer)
             {
-                Buffer const* materialUniformBuffer = m_resourceManager->getBuffer(material.uniformBuffer);
+                Buffer const* materialUniformBuffer = m_resourceManager->getBuffer(material->uniformBuffer);
                 assert(materialUniformBuffer);
 
                 config1.buffers.push_back({
@@ -576,12 +577,13 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
                 dynamicBufferOffsets12.push_back(static_cast<uint32_t>(objectUniformBuffer->getDynamicOffset(m_nextFrameResourcesIndex)));
             }
 
-            if (material.albedo)
+            if (material->albedo)
             {
-                Texture const& albedoTexture = m_resourceManager->getTexture(material.albedo);
-                Image const* albedoImage = m_resourceManager->getImage(albedoTexture.image);
+                Texture const* albedoTexture = m_resourceManager->getTexture(material->albedo);
+                assert(albedoTexture);
+                Image const* albedoImage = m_resourceManager->getImage(albedoTexture->image);
                 assert(albedoImage);
-                vko::Sampler const* albedoSampler = m_resourceManager->getSampler(albedoTexture.sampler);
+                vko::Sampler const* albedoSampler = m_resourceManager->getSampler(albedoTexture->sampler);
                 assert(albedoSampler);
 
                 config1.images.push_back({
@@ -591,12 +593,13 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
                 });
             }
 
-            if (material.normalMap)
+            if (material->normalMap)
             {
-                Texture const& normalMapTexture = m_resourceManager->getTexture(material.normalMap);
-                Image const* normalMapImage = m_resourceManager->getImage(normalMapTexture.image);
+                Texture const* normalMapTexture = m_resourceManager->getTexture(material->normalMap);
+                assert(normalMapTexture);
+                Image const* normalMapImage = m_resourceManager->getImage(normalMapTexture->image);
                 assert(normalMapImage);
-                vko::Sampler const* normalMapSampler = m_resourceManager->getSampler(normalMapTexture.sampler);
+                vko::Sampler const* normalMapSampler = m_resourceManager->getSampler(normalMapTexture->sampler);
                 assert(normalMapSampler);
 
                 config1.images.push_back({
@@ -614,13 +617,14 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
             boundMaterial = object.material;
         }
 
-        Mesh const& mesh = m_resourceManager->getMesh(object.mesh);
+        Mesh const* mesh = m_resourceManager->getMesh(object.mesh);
+        assert(mesh);
 
         std::vector<VkBuffer> vertexBuffers;
         std::vector<VkDeviceSize> vertexBuffersOffsets;
-        vertexBuffers.reserve(mesh.vertexBuffers.size());
-        vertexBuffersOffsets.reserve(mesh.vertexBuffers.size());
-        for (BufferWithOffset const& bufferWithOffset : mesh.vertexBuffers)
+        vertexBuffers.reserve(mesh->vertexBuffers.size());
+        vertexBuffersOffsets.reserve(mesh->vertexBuffers.size());
+        for (BufferWithOffset const& bufferWithOffset : mesh->vertexBuffers)
         {
             Buffer const* vertexBuffer = m_resourceManager->getBuffer(bufferWithOffset.buffer);
             assert(vertexBuffer);
@@ -628,9 +632,9 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
             vertexBuffersOffsets.push_back(vertexBuffer->getDynamicOffset(m_nextFrameResourcesIndex) + bufferWithOffset.offset);
         }
 
-        Buffer const* indexBuffer = m_resourceManager->getBuffer(mesh.indexBuffer.buffer);
+        Buffer const* indexBuffer = m_resourceManager->getBuffer(mesh->indexBuffer.buffer);
         assert(indexBuffer);
-        VkDeviceSize indexBufferOffset = indexBuffer->getDynamicOffset(m_nextFrameResourcesIndex) + mesh.indexBuffer.offset;
+        VkDeviceSize indexBufferOffset = indexBuffer->getDynamicOffset(m_nextFrameResourcesIndex) + mesh->indexBuffer.offset;
 
         VkRect2D scissor;
         if (object.hasScissors)
@@ -650,9 +654,9 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
         vkCmdBindVertexBuffers(commandBuffer, 0, static_cast<uint32_t>(vertexBuffersOffsets.size()), vertexBuffers.data(), vertexBuffersOffsets.data());
-        vkCmdBindIndexBuffer(commandBuffer, indexBuffer->buffer.getHandle(), indexBufferOffset, vulkanizeIndexType(mesh.indexType));
+        vkCmdBindIndexBuffer(commandBuffer, indexBuffer->buffer.getHandle(), indexBufferOffset, vulkanizeIndexType(mesh->indexType));
 
-        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh.indexCount), 1, static_cast<uint32_t>(mesh.indexOffset), static_cast<uint32_t>(mesh.vertexOffset), 0);
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh->indexCount), 1, static_cast<uint32_t>(mesh->indexOffset), static_cast<uint32_t>(mesh->vertexOffset), 0);
     };
 
     for (TestObject const& object : m_testObjects)

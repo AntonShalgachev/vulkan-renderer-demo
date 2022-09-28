@@ -36,17 +36,17 @@ namespace vkgfx
         
     };
 
-    struct TextureHandle : OldResourceHandle
+    struct TextureHandle : ResourceHandle
     {
         
     };
 
-    struct MaterialHandle : OldResourceHandle
+    struct MaterialHandle : ResourceHandle
     {
-        
+
     };
 
-    struct MeshHandle : OldResourceHandle
+    struct MeshHandle : ResourceHandle
     {
         
     };

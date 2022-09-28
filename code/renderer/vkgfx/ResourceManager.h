@@ -88,15 +88,18 @@ namespace vkgfx
 
         TextureHandle createTexture(Texture texture);
         void updateTexture(TextureHandle handle, Texture texture);
-        Texture const& getTexture(TextureHandle handle) const;
+        Texture* getTexture(TextureHandle handle);
+        Texture const* getTexture(TextureHandle handle) const;
 
         MaterialHandle createMaterial(Material material);
         void updateMaterial(MaterialHandle handle, Material material);
-        Material const& getMaterial(MaterialHandle handle) const;
+        Material* getMaterial(MaterialHandle handle);
+        Material const* getMaterial(MaterialHandle handle) const;
 
         MeshHandle createMesh(Mesh mesh);
         void updateMesh(MeshHandle handle, Mesh mesh);
-        Mesh const& getMesh(MeshHandle handle) const;
+        Mesh const* getMesh(MeshHandle handle) const;
+        Mesh* getMesh(MeshHandle handle);
 
         DescriptorSetLayoutHandle getOrCreateDescriptorSetLayout(DescriptorSetLayoutKey const& key);
         vko::DescriptorSetLayout const& getDescriptorSetLayout(DescriptorSetLayoutHandle handle) const;
@@ -131,9 +134,9 @@ namespace vkgfx
         ResourceContainer<vko::ShaderModule> m_shaderModules;
         ResourceContainer<vko::Sampler> m_samplers;
 
-        std::vector<Texture> m_textures;
-        std::vector<Material> m_materials;
-        std::vector<Mesh> m_meshes;
+        ResourceContainer<Texture> m_textures;
+        ResourceContainer<Material> m_materials;
+        ResourceContainer<Mesh> m_meshes;
 
         std::vector<vko::DescriptorSetLayout> m_descriptorSetLayouts;
         std::map<DescriptorSetLayoutKey, DescriptorSetLayoutHandle> m_descriptorSetLayoutHandles;

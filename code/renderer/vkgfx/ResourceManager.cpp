@@ -407,62 +407,71 @@ vko::Sampler const* vkgfx::ResourceManager::getSampler(SamplerHandle handle) con
 
 vkgfx::TextureHandle vkgfx::ResourceManager::createTexture(Texture texture)
 {
-    TextureHandle handle;
-    handle.index = m_textures.size();
-
-    m_textures.push_back(std::move(texture));
-
-    return handle;
+    return { m_textures.add(std::move(texture)) };
 }
 
 void vkgfx::ResourceManager::updateTexture(TextureHandle handle, Texture texture)
 {
-    m_textures[handle.index] = std::move(texture);
+    assert(handle);
+    auto item = getTexture(handle);
+    assert(item);
+    *item = std::move(texture);
 }
 
-vkgfx::Texture const& vkgfx::ResourceManager::getTexture(TextureHandle handle) const
+vkgfx::Texture* vkgfx::ResourceManager::getTexture(TextureHandle handle)
 {
-    return m_textures[handle.index];
+    return m_textures.get(handle);
+}
+
+vkgfx::Texture const* vkgfx::ResourceManager::getTexture(TextureHandle handle) const
+{
+    return m_textures.get(handle);
 }
 
 vkgfx::MaterialHandle vkgfx::ResourceManager::createMaterial(Material material)
 {
-    MaterialHandle handle;
-    handle.index = m_materials.size();
-
-    m_materials.push_back(std::move(material));
-
-    return handle;
+    return { m_materials.add(std::move(material)) };
 }
 
 void vkgfx::ResourceManager::updateMaterial(MaterialHandle handle, Material material)
 {
-    m_materials[handle.index] = std::move(material);
+    assert(handle);
+    auto item = getMaterial(handle);
+    assert(item);
+    *item = std::move(material);
 }
 
-vkgfx::Material const& vkgfx::ResourceManager::getMaterial(MaterialHandle handle) const
+vkgfx::Material* vkgfx::ResourceManager::getMaterial(MaterialHandle handle)
 {
-    return m_materials[handle.index];
+    return m_materials.get(handle);
+}
+
+vkgfx::Material const* vkgfx::ResourceManager::getMaterial(MaterialHandle handle) const
+{
+    return m_materials.get(handle);
 }
 
 vkgfx::MeshHandle vkgfx::ResourceManager::createMesh(Mesh mesh)
 {
-    MeshHandle handle;
-    handle.index = m_meshes.size();
-
-    m_meshes.push_back(std::move(mesh));
-
-    return handle;
+    return { m_meshes.add(std::move(mesh)) };
 }
 
 void vkgfx::ResourceManager::updateMesh(MeshHandle handle, Mesh mesh)
 {
-    m_meshes[handle.index] = std::move(mesh);
+    assert(handle);
+    auto item = getMesh(handle);
+    assert(item);
+    *item = std::move(mesh);
 }
 
-vkgfx::Mesh const& vkgfx::ResourceManager::getMesh(MeshHandle handle) const
+vkgfx::Mesh* vkgfx::ResourceManager::getMesh(MeshHandle handle)
 {
-    return m_meshes[handle.index];
+    return m_meshes.get(handle);
+}
+
+vkgfx::Mesh const* vkgfx::ResourceManager::getMesh(MeshHandle handle) const
+{
+    return m_meshes.get(handle);
 }
 
 vkgfx::DescriptorSetLayoutHandle vkgfx::ResourceManager::getOrCreateDescriptorSetLayout(DescriptorSetLayoutKey const& key)
