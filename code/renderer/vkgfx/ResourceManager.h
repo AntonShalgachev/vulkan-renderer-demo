@@ -127,7 +127,7 @@ namespace vkgfx
 
         ResourceContainer<Image> m_images;
         ResourceContainer<Buffer> m_buffers;
-        std::vector<vko::ShaderModule> m_shaderModules;
+        ResourceContainer<vko::ShaderModule> m_shaderModules;
         std::vector<Sampler> m_samplers;
 
         std::vector<Texture> m_textures;

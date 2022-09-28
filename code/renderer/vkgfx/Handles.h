@@ -26,7 +26,7 @@ namespace vkgfx
         
     };
 
-    struct ShaderModuleHandle : OldResourceHandle
+    struct ShaderModuleHandle : ResourceHandle
     {
         
     };

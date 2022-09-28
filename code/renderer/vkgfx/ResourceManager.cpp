@@ -387,12 +387,7 @@ vkgfx::Buffer const* vkgfx::ResourceManager::getBuffer(BufferHandle handle) cons
 
 vkgfx::ShaderModuleHandle vkgfx::ResourceManager::createShaderModule(std::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint)
 {
-    ShaderModuleHandle handle;
-    handle.index = m_shaderModules.size();
-
-    m_shaderModules.emplace_back(m_device, bytes, type, std::move(entryPoint));
-
-    return handle;
+    return { m_shaderModules.add(vko::ShaderModule{ m_device, bytes, type, std::move(entryPoint) }) };
 }
 
 vkgfx::SamplerHandle vkgfx::ResourceManager::createSampler(vko::SamplerFilterMode magFilter, vko::SamplerFilterMode minFilter, vko::SamplerWrapMode wrapU, vko::SamplerWrapMode wrapV)
@@ -637,7 +632,12 @@ vkgfx::PipelineHandle vkgfx::ResourceManager::createPipeline(PipelineKey const& 
 
     std::vector<vko::ShaderModule const*> shaderModules;
     for (ShaderModuleHandle const& handle : key.shaderHandles)
-        shaderModules.push_back(&m_shaderModules[handle.index]);
+    {
+        assert(handle);
+        vko::ShaderModule const* shaderModule = m_shaderModules.get(handle);
+        assert(shaderModule);
+        shaderModules.push_back(shaderModule);
+    }
 
     vko::PipelineLayout const& pipelineLayout = m_pipelineLayouts[pipelineLayoutHandle.index];
 
