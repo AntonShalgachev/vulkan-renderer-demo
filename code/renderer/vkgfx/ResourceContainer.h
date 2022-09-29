@@ -143,7 +143,7 @@ namespace vkgfx
                 m_objects[i1] = std::move(o);
             }
 
-            std::swap(m_headers[headerIndex1], m_headers[headerIndex2]);
+            std::swap(m_headers[headerIndex1].objectIndex, m_headers[headerIndex2].objectIndex);
             std::swap(m_headerIndexMap[i1], m_headerIndexMap[i2]);
 
             validateInvariants();
