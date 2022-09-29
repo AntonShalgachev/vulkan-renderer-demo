@@ -1,8 +1,8 @@
 #include "ResourceContainer.h"
 
-namespace
+namespace vkgfx
 {
-    void test()
+    void testResourceContainer()
     {
         struct Data
         {
