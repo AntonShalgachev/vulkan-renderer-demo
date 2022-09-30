@@ -87,9 +87,6 @@ set(ALL_FILES
     "PhysicalDeviceSurfaceParameters.h"
     "QueueFamilyIndices.cpp"
     "QueueFamilyIndices.h"
-    
-    "GlfwWindow.cpp"
-    "GlfwWindow.h"
 )
 
 add_library(${PROJECT_NAME} ${ALL_FILES})
@@ -106,7 +103,6 @@ target_include_directories(${PROJECT_NAME}
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
 target_link_libraries(${PROJECT_NAME}
-    glfw
     Vulkan::Vulkan
     common
     VulkanMemoryAllocator
