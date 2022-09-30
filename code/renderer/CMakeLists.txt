@@ -77,8 +77,6 @@ set(ALL_FILES
 
     "Application.cpp"
     "Application.h"
-    "BufferWithMemory.h"
-    "BufferWithMemory.cpp"
     "Utils.cpp"
     "Utils.h"
     "PhysicalDeviceSurfaceContainer.cpp"

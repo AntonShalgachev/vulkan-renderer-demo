@@ -1,7 +1,5 @@
 #include "ResourceManager.h"
 
-#include "BufferWithMemory.h"
-
 #include "wrapper/CommandBuffers.h"
 #include "wrapper/CommandPool.h"
 #include "wrapper/Queue.h"
@@ -51,6 +49,36 @@ namespace
         vko::Queue const& m_queue;
 
         vko::CommandBuffers m_buffers;
+    };
+
+    // TODO get rid of it
+    class BufferWithMemory
+    {
+    public:
+        BufferWithMemory(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
+            : m_buffer(vko::Buffer{ device, size, usage })
+            , m_memory(vko::DeviceMemory{ device, physicalDevice, m_buffer->getMemoryRequirements(), properties })
+        {
+            m_buffer->bindMemory(*m_memory);
+        }
+
+        ~BufferWithMemory()
+        {
+            // TODO remove this nasty hack
+            m_buffer.reset();
+            m_memory.reset();
+        }
+
+        BufferWithMemory(BufferWithMemory&& rhs) = default;
+        BufferWithMemory& operator=(BufferWithMemory&& rhs) = default;
+
+        vko::Buffer const& buffer() const { return *m_buffer; }
+        vko::DeviceMemory const& memory() const { return *m_memory; }
+
+    private:
+        // TODO remove this nasty hack
+        std::optional<vko::Buffer> m_buffer;
+        std::optional<vko::DeviceMemory> m_memory;
     };
 
     void transitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout)
@@ -554,7 +582,7 @@ void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, void const* data
 
     if (buffer.metadata.location == BufferLocation::DeviceLocal)
     {
-        vkr::BufferWithMemory stagingBuffer{ m_device, m_physicalDevice, dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
+        BufferWithMemory stagingBuffer{ m_device, m_physicalDevice, dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
         stagingBuffer.memory().copyFrom(data, dataSize);
 
         OneTimeCommandBuffer commandBuffer{ m_uploadCommandPool, m_uploadQueue };
@@ -579,7 +607,7 @@ void vkgfx::ResourceManager::uploadImage(Image const& image, void const* data, s
     auto width = static_cast<uint32_t>(image.metadata.width);
     auto height = static_cast<uint32_t>(image.metadata.height);
 
-    vkr::BufferWithMemory stagingBuffer{ m_device, m_physicalDevice, dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
+    BufferWithMemory stagingBuffer{ m_device, m_physicalDevice, dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
     stagingBuffer.memory().copyFrom(data, dataSize);
 
     OneTimeCommandBuffer commandBuffer{ m_uploadCommandPool, m_uploadQueue };
