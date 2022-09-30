@@ -722,6 +722,8 @@ void vkgfx::Renderer::createSwapchain()
     m_swapchain = std::make_unique<vko::Swapchain>(device, m_application->getSurface(), indices.getGraphicsQueueFamily(), indices.getPresentQueueFamily(), std::move(config));
     instance.setDebugName(device.getHandle(), m_swapchain->getHandle(), "Main");
 
+    // TODO move swapchain images to the ResourceManager?
+
     auto const& images = m_swapchain->getImages();
     m_swapchainImageViews.reserve(images.size());
 
@@ -734,9 +736,12 @@ void vkgfx::Renderer::createSwapchain()
         instance.setDebugName(device.getHandle(), m_swapchainImageViews.back()->getHandle(), std::format("Swapchain #{}", i));
     }
 
-    // TODO move depth resources to the swapchain?
     VkExtent2D swapchainExtent = m_swapchain->getExtent();
-    vkr::utils::createImage(*m_application, swapchainExtent.width, swapchainExtent.height, m_data->m_depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
+
+    m_depthImage = std::make_unique<vko::Image>(m_application->getDevice(), swapchainExtent.width, swapchainExtent.height, m_data->m_depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    m_depthImageMemory = std::make_unique<vko::DeviceMemory>(m_application->getDevice(), m_application->getPhysicalDevice(), m_depthImage->getMemoryRequirements(), VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    m_depthImage->bindMemory(*m_depthImageMemory);
+
     m_depthImageView = std::make_unique<vko::ImageView>(device, *m_depthImage, VK_IMAGE_ASPECT_DEPTH_BIT);
 
     instance.setDebugName(device.getHandle(), m_depthImage->getHandle(), "Main depth");
