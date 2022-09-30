@@ -344,6 +344,16 @@ void vkgfx::Renderer::addOneFrameTestObject(TestObject object)
     m_oneFrameTestObjects.push_back(std::move(object));
 }
 
+void vkgfx::Renderer::clearObjects()
+{
+    m_testObjects.clear();
+}
+
+void vkgfx::Renderer::waitIdle()
+{
+    m_application->getDevice().waitIdle();
+}
+
 void vkgfx::Renderer::draw()
 {
     RendererFrameResources& frameResources = m_frameResources[m_nextFrameResourcesIndex];

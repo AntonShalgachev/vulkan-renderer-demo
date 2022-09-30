@@ -89,6 +89,8 @@ struct GltfResources
     std::vector<std::vector<DemoMesh>> meshes;
 
     std::unordered_map<std::string, vkgfx::ShaderModuleHandle> shaderModules;
+
+    std::vector<vkgfx::BufferHandle> additionalBuffers; // TODO think how to store all created resources better
 };
 
 struct DemoScene
@@ -110,6 +112,8 @@ public:
 private:
     void createServices();
     void destroyServices();
+
+    void createResources();
 
     void loadImgui();
     void unloadImgui();

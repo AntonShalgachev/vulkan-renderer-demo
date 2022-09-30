@@ -365,7 +365,24 @@ DemoApplication::DemoApplication()
     m_commands["scene.reload"] = [this]() { loadScene(m_currentScenePath); };
     m_commands["scene.unload"] = coil::bind(&DemoApplication::clearScene, this);
 
-    loadScene("");
+    m_cameraTransform = {
+        .position = CAMERA_POS,
+        .rotation = createRotation(CAMERA_ANGLES),
+    };
+
+    m_cameraParameters = {
+        .fov = 45.0f,
+        .nearZ = 0.1f,
+        .farZ = 10000.0f,
+    };
+
+    m_lightParameters = {
+        .position = LIGHT_POS,
+        .color = LIGHT_COLOR,
+        .intensity = LIGHT_INTENSITY,
+    };
+
+    createResources();
 }
 
 DemoApplication::~DemoApplication()
@@ -446,6 +463,24 @@ void DemoApplication::destroyServices()
     m_services.setCommandLine(nullptr);
     m_services.setDebugConsole(nullptr);
     m_services.setDebugDraw(nullptr);
+}
+
+void DemoApplication::createResources()
+{
+    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
+
+    m_defaultVertexShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.vert");
+    m_defaultFragmentShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.frag");
+
+    m_defaultSampler = resourceManager.createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
+
+    m_defaultAlbedoImage = resourceManager.createImage(vkgfx::ImageMetadata{ 1, 1, vkgfx::ImageFormat::R8G8B8A8 });
+    resourceManager.uploadImage(m_defaultAlbedoImage, std::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
+    m_defaultAlbedoTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultAlbedoImage, m_defaultSampler });
+
+    m_defaultNormalMapImage = resourceManager.createImage(vkgfx::ImageMetadata{ 1, 1, vkgfx::ImageFormat::R8G8B8A8 });
+    resourceManager.uploadImage(m_defaultNormalMapImage, std::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff });
+    m_defaultNormalMapTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultNormalMapImage, m_defaultSampler });
 }
 
 void DemoApplication::loadImgui()
@@ -597,6 +632,7 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
                 .isMutable = false, // TODO change when mutable buffers are implemented
             };
             vkgfx::BufferHandle uniformBuffer = resourceManager.createBuffer(sizeof(DemoObjectUniformBuffer), std::move(uniformBufferMetadata));
+            m_gltfResources->additionalBuffers.push_back(uniformBuffer);
 
             DemoObjectUniformBuffer uniformValues;
             uniformValues.color = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
@@ -623,8 +659,32 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
 
 void DemoApplication::clearScene()
 {
-    m_defaultVertexShader = nullptr;
-    m_defaultFragmentShader = nullptr;
+    m_renderer->clearObjects();
+    m_renderer->waitIdle(); // TODO remove
+
+    if (m_gltfResources)
+    {
+        GltfResources const& resources = *m_gltfResources;
+        vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
+
+        for (auto const& handle : resources.buffers)
+            resourceManager.removeBuffer(handle);
+        for (auto const& handle : resources.additionalBuffers)
+            resourceManager.removeBuffer(handle);
+        for (auto const& handle : resources.images)
+            resourceManager.removeImage(handle);
+        for (auto const& material : resources.materials)
+            resourceManager.removeMaterial(material.handle);
+        for (auto const& meshList : resources.meshes)
+            for (auto const& mesh : meshList)
+                resourceManager.removeMesh(mesh.handle);
+        for (auto const& handle : resources.samplers)
+            resourceManager.removeSampler(handle);
+        for (auto const& [name, handle] : resources.shaderModules)
+            resourceManager.removeShaderModule(handle);
+        for (auto const& handle : resources.textures)
+            resourceManager.removeTexture(handle);
+    }
 }
 
 bool DemoApplication::loadScene(std::string const& gltfPath)
@@ -632,24 +692,9 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
     clearScene();
 
     if (gltfPath.empty())
-        return true;
+        return false;
 
     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
-
-    m_defaultVertexShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.vert");
-    m_defaultFragmentShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.frag");
-
-    {
-        m_defaultSampler = resourceManager.createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
-
-        m_defaultAlbedoImage = resourceManager.createImage(vkgfx::ImageMetadata{ 1, 1, vkgfx::ImageFormat::R8G8B8A8 });
-        resourceManager.uploadImage(m_defaultAlbedoImage, std::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
-        m_defaultAlbedoTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultAlbedoImage, m_defaultSampler });
-
-        m_defaultNormalMapImage = resourceManager.createImage(vkgfx::ImageMetadata{ 1, 1, vkgfx::ImageFormat::R8G8B8A8 });
-        resourceManager.uploadImage(m_defaultNormalMapImage, std::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff });
-        m_defaultNormalMapTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultNormalMapImage, m_defaultSampler });
-    }
 
     std::optional<tinygltf::Model> gltfModel = loadModel(gltfPath);
 
@@ -800,6 +845,7 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
         };
         auto buffer = resourceManager.createBuffer(sizeof(MaterialUniformBuffer), std::move(metadata));
         resourceManager.uploadBuffer(buffer, &values, sizeof(MaterialUniformBuffer));
+        m_gltfResources->additionalBuffers.push_back(buffer);
 
         material.uniformBuffer = buffer;
 
@@ -907,23 +953,6 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
     }
 
     m_currentScenePath = gltfPath;
-
-    m_cameraTransform = {
-        .position = CAMERA_POS,
-        .rotation = createRotation(CAMERA_ANGLES),
-    };
-
-    m_cameraParameters = {
-        .fov = 45.0f,
-        .nearZ = 0.1f,
-        .farZ = 10000.0f,
-    };
-
-    m_lightParameters = {
-        .position = LIGHT_POS,
-        .color = LIGHT_COLOR,
-        .intensity = LIGHT_INTENSITY,
-    };
 
     return true;
 }

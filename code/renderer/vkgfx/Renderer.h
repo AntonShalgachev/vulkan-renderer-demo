@@ -48,6 +48,9 @@ namespace vkgfx
 
         void addOneFrameTestObject(TestObject object);
 
+        void clearObjects();
+        void waitIdle(); // TODO remove
+
         void draw();
 
     private:
