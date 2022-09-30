@@ -1,7 +1,6 @@
 #include "Buffer.h"
 
 #include "DeviceMemory.h"
-#include "ScopedOneTimeCommandBuffer.h"
 #include "Device.h"
 #include <cassert>
 

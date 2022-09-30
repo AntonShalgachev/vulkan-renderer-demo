@@ -4,7 +4,6 @@
 #include "PipelineLayout.h"
 #include "RenderPass.h"
 #include "Device.h"
-#include "VertexLayout.h"
 
 #include <stdexcept>
 #include <iterator>

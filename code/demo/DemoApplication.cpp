@@ -23,6 +23,7 @@
 
 #include "wrapper/Sampler.h" // TODO remove
 #include "wrapper/DebugMessage.h"
+#include "wrapper/ShaderModule.h" // TODO remove, used only for enum
 #include "ImGuiDrawer.h"
 
 #include "ShaderPackage.h"

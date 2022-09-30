@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ServiceContainer.h"
-#include "Renderer.h"
 
 #include "vkgfx/Handles.h"
 #include "vkgfx/TestObject.h"
@@ -39,12 +38,9 @@ public:
     void sphere(glm::vec3 const& center, glm::vec3 const& scale, glm::vec3 const& color, float duration);
     void box(glm::vec3 const& center, glm::quat const& rotation, glm::vec3 const& scale, glm::vec3 const& color, float duration);
 
-    void draw(vkr::Renderer& renderer);
     void draw(vkgfx::Renderer& renderer);
 
 private:
-    std::vector<vkr::OneFrameBoxInstance> m_instances;
-
     vkgfx::BufferHandle m_buffer;
     vkgfx::MeshHandle m_mesh;
     vkgfx::PipelineHandle m_pipeline;

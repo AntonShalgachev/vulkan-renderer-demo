@@ -2,7 +2,6 @@
 
 #include <memory>
 
-#include "Shader.h"
 #include "Timer.h"
 #include "GlfwWindow.h"
 

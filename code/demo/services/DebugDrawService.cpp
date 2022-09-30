@@ -8,6 +8,8 @@
 
 #include "ShaderPackage.h"
 
+#include "wrapper/ShaderModule.h" // TODO remove, used only for enum
+
 #include <vector>
 #include <fstream>
 
@@ -206,22 +208,14 @@ void DebugDrawService::box(glm::vec3 const& center, glm::quat const& rotation, g
     matrix = matrix * glm::mat4_cast(rotation);
     matrix = glm::scale(matrix, scale);
 
-    m_instances.push_back(vkr::OneFrameBoxInstance{ matrix, color });
-
     std::vector<unsigned char> pushConstants;
     pushConstants.resize(sizeof(matrix));
-    memcpy(pushConstants.data(), &matrix, sizeof(matrix)); // TODO matrix should include view and projection
+    memcpy(pushConstants.data(), &matrix, sizeof(matrix));
 
     vkgfx::TestObject& object = m_objects.emplace_back();
     object.pipeline = m_pipeline;
     object.mesh = m_mesh;
     object.pushConstants = std::move(pushConstants);
-}
-
-void DebugDrawService::draw(vkr::Renderer& renderer)
-{
-    renderer.setOneFrameBoxes(m_instances);
-    m_instances.clear();
 }
 
 void DebugDrawService::draw(vkgfx::Renderer& renderer)
