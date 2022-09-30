@@ -4,7 +4,7 @@
 #include <cassert>
 
 #include "PhysicalDevice.h"
-#include "Utils.h"
+#include "common/Utils.h"
 #include "DebugMessage.h"
 
 namespace
@@ -91,10 +91,10 @@ void vko::Instance::createInstance(std::string const& appName, std::vector<char 
     if (enableApiDump)
         requestedLayers.push_back("VK_LAYER_LUNARG_api_dump");
 
-    if (!vkr::utils::hasEveryOption(m_availableLayerNames, requestedLayers))
+    if (!vkc::utils::hasEveryOption(m_availableLayerNames, requestedLayers))
         throw std::runtime_error("Some of the required validation layers aren't supported");
 
-    if (!vkr::utils::hasEveryOption(m_availableExtensionNames, extensions))
+    if (!vkc::utils::hasEveryOption(m_availableExtensionNames, extensions))
         throw std::runtime_error("Some of the required extensions aren't supported");
 
     VkApplicationInfo appInfo{};

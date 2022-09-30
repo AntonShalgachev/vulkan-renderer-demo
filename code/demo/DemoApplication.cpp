@@ -470,8 +470,8 @@ void DemoApplication::createResources()
 {
     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
 
-    m_defaultVertexShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.vert");
-    m_defaultFragmentShader = std::make_unique<vkr::ShaderPackage>("data/shaders/packaged/shader.frag");
+    m_defaultVertexShader = std::make_unique<ShaderPackage>("data/shaders/packaged/shader.vert");
+    m_defaultFragmentShader = std::make_unique<ShaderPackage>("data/shaders/packaged/shader.frag");
 
     m_defaultSampler = resourceManager.createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
 
@@ -606,7 +606,7 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
             pipelineKey.pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DemoObjectPushConstants), } };
 
             // TODO reimplement
-            vkr::ShaderConfiguration shaderConfiguration;
+            ShaderConfiguration shaderConfiguration;
             shaderConfiguration.hasTexture = material.metadata.uniformConfig.hasAlbedoTexture;
             shaderConfiguration.hasNormalMap = material.metadata.uniformConfig.hasNormalMap;
             shaderConfiguration.hasColor = mesh.metadata.attributeSemanticsConfig.hasColor;

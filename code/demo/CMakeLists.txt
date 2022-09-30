@@ -15,6 +15,8 @@ set(ALL_FILES
     "ScopedDebugCommands.cpp"
     "CommandProxy.h"
     "CommandMetadata.h"
+    "ShaderPackage.h"
+    "ShaderPackage.cpp"
     
     "services/DebugConsoleService.h"
     "services/DebugConsoleService.cpp"
@@ -48,7 +50,7 @@ target_link_libraries(${PROJECT_NAME}
     renderer
     imguibackend
     imgui
-    glm::glm
+    common
     tinygltf
     magic_enum
     coil::coil

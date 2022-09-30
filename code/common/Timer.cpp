@@ -2,23 +2,23 @@
 
 namespace
 {
-    inline float getDeltaTime(vkr::Timer::TimePointT startTime, vkr::Timer::TimePointT stopTime)
+    inline float getDeltaTime(vkc::Timer::TimePointT startTime, vkc::Timer::TimePointT stopTime)
     {
         return std::chrono::duration<float, std::chrono::seconds::period>(stopTime - startTime).count();
     }
 }
 
-vkr::Timer::Timer()
+vkc::Timer::Timer()
 {
     start();
 }
 
-void vkr::Timer::start()
+void vkc::Timer::start()
 {
     m_startTime = ClockT::now();
 }
 
-float vkr::Timer::loop()
+float vkc::Timer::loop()
 {
     TimePointT loopTime = ClockT::now();
     float dt = getDeltaTime(m_startTime, loopTime);
@@ -26,7 +26,7 @@ float vkr::Timer::loop()
     return dt;
 }
 
-float vkr::Timer::getTime() const
+float vkc::Timer::getTime() const
 {
     TimePointT currentTime = ClockT::now();
     return getDeltaTime(m_startTime, currentTime);

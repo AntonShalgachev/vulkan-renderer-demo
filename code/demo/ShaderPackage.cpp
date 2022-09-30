@@ -4,7 +4,7 @@
 
 #include <fstream>
 
-vkr::ShaderPackage::ShaderPackage(std::filesystem::path path)
+ShaderPackage::ShaderPackage(std::filesystem::path path)
 {
     auto packageMetadataPath = path / "package.json";
 
@@ -44,7 +44,7 @@ vkr::ShaderPackage::ShaderPackage(std::filesystem::path path)
     }
 }
 
-std::string const* vkr::ShaderPackage::get(ShaderConfiguration const& config) const
+std::string const* ShaderPackage::get(ShaderConfiguration const& config) const
 {
     auto it = m_shaders.find(config);
     if (it == m_shaders.end())

@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <functional>
 
-namespace vkr
+namespace vkc
 {
 	namespace hash
 	{

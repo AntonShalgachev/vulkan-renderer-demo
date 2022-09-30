@@ -1,5 +1,5 @@
 #include "PhysicalDevice.h"
-#include "Utils.h"
+#include "common/Utils.h"
 
 vko::PhysicalDevice::PhysicalDevice(VkPhysicalDevice handle) : m_handle(handle)
 {
@@ -8,7 +8,7 @@ vko::PhysicalDevice::PhysicalDevice(VkPhysicalDevice handle) : m_handle(handle)
 
 bool vko::PhysicalDevice::areExtensionsSupported(std::vector<char const*> const& requestedExtensions) const
 {
-    return vkr::utils::hasEveryOption(m_availableExtensionNames, requestedExtensions);
+    return vkc::utils::hasEveryOption(m_availableExtensionNames, requestedExtensions);
 }
 
 void vko::PhysicalDevice::init()

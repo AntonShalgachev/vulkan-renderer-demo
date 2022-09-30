@@ -1,8 +1,6 @@
 set(PROJECT_NAME renderer)
 
 set(ALL_FILES
-    "glm.h"
-
     "wrapper/Buffer.h"
     "wrapper/Buffer.cpp"
     "wrapper/CommandBuffers.h"
@@ -81,20 +79,14 @@ set(ALL_FILES
     "Application.h"
     "BufferWithMemory.h"
     "BufferWithMemory.cpp"
-    "Hash.cpp"
-    "Hash.h"
+    "Utils.cpp"
+    "Utils.h"
     "PhysicalDeviceSurfaceContainer.cpp"
     "PhysicalDeviceSurfaceContainer.h"
     "PhysicalDeviceSurfaceParameters.cpp"
     "PhysicalDeviceSurfaceParameters.h"
     "QueueFamilyIndices.cpp"
     "QueueFamilyIndices.h"
-    "ShaderPackage.h"
-    "ShaderPackage.cpp"
-    "Timer.cpp"
-    "Timer.h"
-    "Utils.cpp"
-    "Utils.h"
     
     "GlfwWindow.cpp"
     "GlfwWindow.h"
@@ -108,15 +100,14 @@ target_include_directories(${PROJECT_NAME}
 
     PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/.."
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
 target_link_libraries(${PROJECT_NAME}
-    imgui
     glfw
     Vulkan::Vulkan
-    glm::glm
-    nlohmann_json::nlohmann_json
+    common
     VulkanMemoryAllocator
 )

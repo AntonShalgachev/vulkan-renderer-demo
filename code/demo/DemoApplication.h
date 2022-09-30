@@ -18,6 +18,7 @@
 
 class CommandLineService;
 class ImGuiDrawer;
+class ShaderPackage;
 
 namespace vkgfx
 {
@@ -32,11 +33,6 @@ namespace vkgfx
     struct MeshHandle;
 
     struct TestObject;
-}
-
-namespace vkr
-{
-    class ShaderPackage;
 }
 
 namespace tinygltf
@@ -145,8 +141,8 @@ private:
     std::unique_ptr<GltfResources> m_gltfResources;
 
     // Resources
-    std::unique_ptr<vkr::ShaderPackage> m_defaultVertexShader;
-    std::unique_ptr<vkr::ShaderPackage> m_defaultFragmentShader;
+    std::unique_ptr<ShaderPackage> m_defaultVertexShader;
+    std::unique_ptr<ShaderPackage> m_defaultFragmentShader;
 
     vkgfx::SamplerHandle m_defaultSampler;
     vkgfx::ImageHandle m_defaultAlbedoImage;
@@ -154,8 +150,8 @@ private:
     vkgfx::ImageHandle m_defaultNormalMapImage;
     vkgfx::TextureHandle m_defaultNormalMapTexture;
 
-    vkr::Timer m_frameTimer;
-    vkr::Timer m_appTime;
+    vkc::Timer m_frameTimer;
+    vkc::Timer m_appTime;
     std::uint32_t m_fpsDrawnFrames = 0;
     float m_lastFrameTime = 0.0f;
 

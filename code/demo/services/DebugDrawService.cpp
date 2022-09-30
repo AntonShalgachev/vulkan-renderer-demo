@@ -120,7 +120,7 @@ void DebugDrawService::init(vkgfx::Renderer& renderer)
     
     // TODO remove duplication in DemoApplication::createUIResources
     {
-        vkr::ShaderPackage package{ "data/shaders/packaged/debugdraw.vert" };
+        ShaderPackage package{ "data/shaders/packaged/debugdraw.vert" };
         std::string const* path = package.get({});
         assert(path);
         if (path)
@@ -128,7 +128,7 @@ void DebugDrawService::init(vkgfx::Renderer& renderer)
     }
 
     {
-        vkr::ShaderPackage package{ "data/shaders/packaged/debugdraw.frag" };
+        ShaderPackage package{ "data/shaders/packaged/debugdraw.frag" };
         std::string const* path = package.get({});
         assert(path);
         if (path)

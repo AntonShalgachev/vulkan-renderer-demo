@@ -203,7 +203,7 @@ void ImGuiDrawer::createShaders()
     vkgfx::ResourceManager& resourceManager = m_renderer.getResourceManager();
 
     {
-        vkr::ShaderPackage package{ "data/shaders/packaged/imgui.vert" };
+        ShaderPackage package{ "data/shaders/packaged/imgui.vert" };
         std::string const* path = package.get({});
         assert(path);
         if (path)
@@ -211,7 +211,7 @@ void ImGuiDrawer::createShaders()
     }
 
     {
-        vkr::ShaderPackage package{ "data/shaders/packaged/imgui.frag" };
+        ShaderPackage package{ "data/shaders/packaged/imgui.frag" };
         std::string const* path = package.get({});
         assert(path);
         if (path)
