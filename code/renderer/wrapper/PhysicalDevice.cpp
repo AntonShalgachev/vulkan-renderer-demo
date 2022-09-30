@@ -1,4 +1,6 @@
 #include "PhysicalDevice.h"
+
+#include "Assert.h"
 #include "common/Utils.h"
 
 vko::PhysicalDevice::PhysicalDevice(VkPhysicalDevice handle) : m_handle(handle)
@@ -22,9 +24,9 @@ void vko::PhysicalDevice::init()
 void vko::PhysicalDevice::queryAvailableExtensions()
 {
     uint32_t count;
-    VKR_ASSERT(vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, nullptr));
+    VKO_ASSERT(vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, nullptr));
     m_availableExtensions.resize(count);
-    VKR_ASSERT(vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, m_availableExtensions.data()));
+    VKO_ASSERT(vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, m_availableExtensions.data()));
 
     for (const auto& extension : m_availableExtensions)
         m_availableExtensionNames.push_back(extension.extensionName);

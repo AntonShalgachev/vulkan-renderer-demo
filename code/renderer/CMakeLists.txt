@@ -1,6 +1,8 @@
 set(PROJECT_NAME renderer)
 
 set(ALL_FILES
+    "wrapper/Assert.h"
+    "wrapper/Assert.cpp"
     "wrapper/Buffer.h"
     "wrapper/Buffer.cpp"
     "wrapper/CommandBuffers.h"
@@ -77,8 +79,6 @@ set(ALL_FILES
 
     "Application.cpp"
     "Application.h"
-    "Utils.cpp"
-    "Utils.h"
     "PhysicalDeviceSurfaceContainer.cpp"
     "PhysicalDeviceSurfaceContainer.h"
     "PhysicalDeviceSurfaceParameters.cpp"

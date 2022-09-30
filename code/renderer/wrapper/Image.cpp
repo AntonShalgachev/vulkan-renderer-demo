@@ -1,8 +1,9 @@
 #include "Image.h"
 
+#include "Assert.h"
 #include "DeviceMemory.h"
-#include "ImageView.h"
 #include "Device.h"
+
 #include <stdexcept>
 
 namespace vko
@@ -27,8 +28,7 @@ namespace vko
         imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 
-        if (vkCreateImage(m_device, &imageCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
-            throw std::runtime_error("failed to create image!");
+        VKO_ASSERT(vkCreateImage(m_device, &imageCreateInfo, nullptr, &m_handle.get()));
     }
 
     Image::Image(Device const& device, VkImage image, VkFormat format) : m_device(device.getHandle())
@@ -54,11 +54,6 @@ namespace vko
 
     void Image::bindMemory(DeviceMemory const& memory) const
     {
-        VKR_ASSERT(vkBindImageMemory(m_device, m_handle, memory.getHandle(), 0));
+        VKO_ASSERT(vkBindImageMemory(m_device, m_handle, memory.getHandle(), 0));
     }
-
-//     ImageView Image::createImageView(VkImageAspectFlags aspectFlags) const
-//     {
-//         return ImageView{ m_device, *this, aspectFlags };
-//     }
 }

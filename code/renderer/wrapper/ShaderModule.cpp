@@ -1,5 +1,6 @@
 #include "ShaderModule.h"
 
+#include "Assert.h"
 #include "Device.h"
 
 #include <cassert>
@@ -18,7 +19,8 @@ namespace
             return VK_SHADER_STAGE_FRAGMENT_BIT;
         }
 
-        throw std::domain_error("getStageFlags: type has unsupported value");
+        assert(false);
+        return VK_SHADER_STAGE_VERTEX_BIT;
     }
 }
 
@@ -39,8 +41,7 @@ vko::ShaderModule::ShaderModule(Device const& device, std::span<unsigned char co
     createInfo.codeSize = bytes.size();
     createInfo.pCode = code.data();
 
-    if (vkCreateShaderModule(m_device, &createInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
-        throw std::runtime_error("failed to create shader module!");
+    VKO_ASSERT(vkCreateShaderModule(m_device, &createInfo, nullptr, &m_handle.get()));
 }
 
 vko::ShaderModule::~ShaderModule()

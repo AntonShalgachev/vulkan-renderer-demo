@@ -1,8 +1,9 @@
 #include "DeviceMemory.h"
 
+#include "Assert.h"
 #include "PhysicalDevice.h"
 #include "Device.h"
-#include <stdexcept>
+
 #include <cassert>
 
 namespace
@@ -23,7 +24,8 @@ namespace
             return i;
         }
 
-        throw std::runtime_error("failed to find suitable memory type!");
+        assert(false);
+        return 0;
     }
 }
 
@@ -37,11 +39,10 @@ vko::DeviceMemory::DeviceMemory(Device const& device, PhysicalDevice const& phys
     allocInfo.allocationSize = memoryRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, memoryProperties);
 
-    if (vkAllocateMemory(m_device, &allocInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
-        throw std::runtime_error("failed to allocate image memory!");
+    VKO_ASSERT(vkAllocateMemory(m_device, &allocInfo, nullptr, &m_handle.get()));
 
     if ((memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
-        VKR_ASSERT(vkMapMemory(m_device, m_handle, 0, memoryRequirements.size, 0, &m_data));
+        VKO_ASSERT(vkMapMemory(m_device, m_handle, 0, memoryRequirements.size, 0, &m_data));
 }
 
 vko::DeviceMemory::~DeviceMemory()

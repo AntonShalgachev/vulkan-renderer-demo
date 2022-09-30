@@ -1,9 +1,11 @@
 #include "Swapchain.h"
 
+#include "Assert.h"
 #include "Image.h"
 #include "Device.h"
 #include "Surface.h"
 #include "QueueFamily.h"
+
 #include <stdexcept>
 
 vko::Swapchain::Swapchain(Device const& device, Surface const& surface, QueueFamily const& graphics, QueueFamily const& presentation, Config config)
@@ -75,11 +77,11 @@ std::vector<vko::Image> const& vko::Swapchain::getImages() const
 void vko::Swapchain::retrieveImages()
 {
     uint32_t finalImageCount = 0;
-    VKR_ASSERT(vkGetSwapchainImagesKHR(m_device.getHandle(), m_handle, &finalImageCount, nullptr));
+    VKO_ASSERT(vkGetSwapchainImagesKHR(m_device.getHandle(), m_handle, &finalImageCount, nullptr));
 
     std::vector<VkImage> imageHandles;
     imageHandles.resize(finalImageCount);
-    VKR_ASSERT(vkGetSwapchainImagesKHR(m_device.getHandle(), m_handle, &finalImageCount, imageHandles.data()));
+    VKO_ASSERT(vkGetSwapchainImagesKHR(m_device.getHandle(), m_handle, &finalImageCount, imageHandles.data()));
 
     m_images.reserve(finalImageCount);
     for (VkImage const& handle : imageHandles)

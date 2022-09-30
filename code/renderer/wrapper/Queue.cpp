@@ -1,6 +1,6 @@
 #include "Queue.h"
 
-#include "Utils.h"
+#include "Assert.h"
 
 vko::Queue::Queue(VkQueue handle, QueueFamily const& queueFamily)
     : m_handle(handle)
@@ -11,5 +11,5 @@ vko::Queue::Queue(VkQueue handle, QueueFamily const& queueFamily)
 
 void vko::Queue::waitIdle() const
 {
-    VKR_ASSERT(vkQueueWaitIdle(m_handle));
+    VKO_ASSERT(vkQueueWaitIdle(m_handle));
 }

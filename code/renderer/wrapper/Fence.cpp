@@ -1,5 +1,8 @@
 #include "Fence.h"
+
+#include "Assert.h"
 #include "Device.h"
+
 #include <stdexcept>
 
 vko::Fence::Fence(Device const& device) : m_device(device)
@@ -19,12 +22,12 @@ vko::Fence::~Fence()
 
 void vko::Fence::wait() const
 {
-    VKR_ASSERT(vkWaitForFences(m_device.getHandle(), 1, &m_handle.get(), VK_TRUE, UINT64_MAX));
+    VKO_ASSERT(vkWaitForFences(m_device.getHandle(), 1, &m_handle.get(), VK_TRUE, UINT64_MAX));
 }
 
 void vko::Fence::reset() const
 {
-    VKR_ASSERT(vkResetFences(m_device.getHandle(), 1, &m_handle.get()));
+    VKO_ASSERT(vkResetFences(m_device.getHandle(), 1, &m_handle.get()));
 }
 
 bool vko::Fence::isSignaled() const

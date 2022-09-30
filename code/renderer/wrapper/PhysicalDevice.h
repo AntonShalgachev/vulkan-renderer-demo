@@ -1,9 +1,12 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
 #include "QueueFamily.h"
-#include <vector>
 #include "UniqueHandle.h"
+
+#include <vulkan/vulkan.h>
+
+#include <vector>
+#include <string>
 
 namespace vko
 {

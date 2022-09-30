@@ -1,7 +1,10 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
 #include "UniqueHandle.h"
+
+#include <vulkan/vulkan.h>
+
+#include <compare>
 
 namespace vko
 {

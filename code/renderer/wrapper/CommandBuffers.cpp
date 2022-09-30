@@ -1,5 +1,6 @@
 #include "CommandBuffers.h"
 
+#include "Assert.h"
 #include "Semaphore.h"
 #include "Fence.h"
 #include "Device.h"
@@ -19,7 +20,7 @@ vko::CommandBuffers::CommandBuffers(Device const& device, CommandPool const& com
 
     std::vector<VkCommandBuffer> rawHandles;
     rawHandles.resize(size);
-    VKR_ASSERT(vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, rawHandles.data()));
+    VKO_ASSERT(vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, rawHandles.data()));
 
     m_handles.reserve(size);
     for (VkCommandBuffer handle : rawHandles)
@@ -41,7 +42,7 @@ vko::CommandBuffers::~CommandBuffers()
 
 void vko::CommandBuffers::reset(std::size_t index) const
 {
-    VKR_ASSERT(vkResetCommandBuffer(m_handles[index], 0));
+    VKO_ASSERT(vkResetCommandBuffer(m_handles[index], 0));
 }
 
 void vko::CommandBuffers::begin(std::size_t index, bool oneTime /*= true*/) const
@@ -55,14 +56,12 @@ void vko::CommandBuffers::begin(std::size_t index, bool oneTime /*= true*/) cons
     commandBufferBeginInfo.flags = flags;
     commandBufferBeginInfo.pInheritanceInfo = nullptr;
 
-    if (vkBeginCommandBuffer(m_handles[index], &commandBufferBeginInfo) != VK_SUCCESS)
-        throw std::runtime_error("failed to begin recording command buffer!");
+    VKO_ASSERT(vkBeginCommandBuffer(m_handles[index], &commandBufferBeginInfo));
 }
 
 void vko::CommandBuffers::end(std::size_t index) const
 {
-    if (vkEndCommandBuffer(m_handles[index]) != VK_SUCCESS)
-        throw std::runtime_error("failed to record command buffer!");
+    VKO_ASSERT(vkEndCommandBuffer(m_handles[index]));
 }
 
 void vko::CommandBuffers::submit(std::size_t index, Queue const& queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence) const
@@ -91,6 +90,5 @@ void vko::CommandBuffers::submit(std::size_t index, Queue const& queue, Semaphor
 
     VkFence signalFenceHandle = signalFence ? signalFence->getHandle() : VK_NULL_HANDLE;
 
-    if (auto res = vkQueueSubmit(queue.getHandle(), 1, &submitInfo, signalFenceHandle); res != VK_SUCCESS)
-        throw std::runtime_error("failed to submit draw command buffer: " + std::to_string(res));
+    VKO_ASSERT(vkQueueSubmit(queue.getHandle(), 1, &submitInfo, signalFenceHandle));
 }

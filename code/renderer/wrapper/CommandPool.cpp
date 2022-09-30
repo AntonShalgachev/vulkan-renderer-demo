@@ -1,8 +1,9 @@
 #include "CommandPool.h"
+
+#include "Assert.h"
 #include "Device.h"
 #include "QueueFamily.h"
 #include "CommandBuffers.h"
-#include <stdexcept>
 
 vko::CommandPool::CommandPool(Device const& device, QueueFamily const& queueFamily)
     : m_device(device)
@@ -12,14 +13,13 @@ vko::CommandPool::CommandPool(Device const& device, QueueFamily const& queueFami
     poolCreateInfo.queueFamilyIndex = queueFamily.getIndex();
     poolCreateInfo.flags = 0; // TODO make use of it
 
-    if (vkCreateCommandPool(m_device.getHandle(), &poolCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
-        throw std::runtime_error("failed to create command pool!");
+    VKO_ASSERT(vkCreateCommandPool(m_device.getHandle(), &poolCreateInfo, nullptr, &m_handle.get()));
 }
 
 void vko::CommandPool::reset() const
 {
     VkCommandPoolResetFlags flags = 0;
-    VKR_ASSERT(vkResetCommandPool(m_device.getHandle(), m_handle, flags));
+    VKO_ASSERT(vkResetCommandPool(m_device.getHandle(), m_handle, flags));
 }
 
 vko::CommandPool::~CommandPool()

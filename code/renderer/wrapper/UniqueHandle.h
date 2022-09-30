@@ -2,8 +2,6 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Utils.h" // TODO remove
-
 namespace vko
 {
     // Its main purpose is to make it easier to implement move constructors of vulkan objects

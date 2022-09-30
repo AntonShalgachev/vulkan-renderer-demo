@@ -1,7 +1,9 @@
 #include "DescriptorPool.h"
+
+#include "Assert.h"
 #include "Device.h"
+
 #include <array>
-#include <stdexcept>
 #include <cassert>
 
 vko::DescriptorPool::DescriptorPool(Device const& device)
@@ -20,8 +22,7 @@ vko::DescriptorPool::DescriptorPool(Device const& device)
     poolCreateInfo.pPoolSizes = poolSizes.data();
     poolCreateInfo.maxSets = N;
 
-    if (vkCreateDescriptorPool(m_device.getHandle(), &poolCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
-        throw std::runtime_error("failed to create descriptor pool");
+    VKO_ASSERT(vkCreateDescriptorPool(m_device.getHandle(), &poolCreateInfo, nullptr, &m_handle.get()));
 }
 
 vko::DescriptorPool::~DescriptorPool()
@@ -62,5 +63,5 @@ std::vector<VkDescriptorSet> vko::DescriptorPool::allocateRaw(std::span<VkDescri
 
 void vko::DescriptorPool::reset()
 {
-    VKR_ASSERT(vkResetDescriptorPool(m_device.getHandle(), m_handle, 0));
+    VKO_ASSERT(vkResetDescriptorPool(m_device.getHandle(), m_handle, 0));
 }

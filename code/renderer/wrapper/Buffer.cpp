@@ -1,7 +1,9 @@
 #include "Buffer.h"
 
+#include "Assert.h"
 #include "DeviceMemory.h"
 #include "Device.h"
+
 #include <cassert>
 
 vko::Buffer::Buffer(Device const& device, VkDeviceSize size, VkBufferUsageFlags usage)
@@ -14,8 +16,7 @@ vko::Buffer::Buffer(Device const& device, VkDeviceSize size, VkBufferUsageFlags 
     bufferCreateInfo.usage = usage;
     bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    if (vkCreateBuffer(m_device, &bufferCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
-        throw std::runtime_error("failed to create buffer!");
+    VKO_ASSERT(vkCreateBuffer(m_device, &bufferCreateInfo, nullptr, &m_handle.get()));
 }
 
 vko::Buffer::~Buffer()
@@ -34,7 +35,7 @@ VkMemoryRequirements vko::Buffer::getMemoryRequirements() const
 
 void vko::Buffer::bindMemory(DeviceMemory const& memory) const
 {
-    VKR_ASSERT(vkBindBufferMemory(m_device, m_handle, memory.getHandle(), 0));
+    VKO_ASSERT(vkBindBufferMemory(m_device, m_handle, memory.getHandle(), 0));
 }
 
 void vko::Buffer::copy(VkCommandBuffer commandBuffer, Buffer const& source, std::size_t sourceOffset, Buffer const& destination, std::size_t destinationOffset, std::size_t size)

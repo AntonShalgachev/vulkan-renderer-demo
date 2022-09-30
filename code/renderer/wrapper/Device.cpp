@@ -1,10 +1,12 @@
 #include "Device.h"
+
+#include "Assert.h"
 #include "PhysicalDevice.h"
 #include "PhysicalDeviceSurfaceContainer.h"
 #include "QueueFamilyIndices.h"
 #include "Queue.h"
+
 #include <set>
-#include <stdexcept>
 
 vko::Device::Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily const& graphics, vko::QueueFamily const& present, std::vector<const char*> const& extensions)
 {
@@ -44,9 +46,8 @@ vko::Device::Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily 
     deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
     deviceCreateInfo.ppEnabledExtensionNames = extensions.data();
 
-    if (vkCreateDevice(physicalDevice.getHandle(), &deviceCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
-        throw std::runtime_error("failed to create logical device!");
-
+    VKO_ASSERT(vkCreateDevice(physicalDevice.getHandle(), &deviceCreateInfo, nullptr, &m_handle.get()));
+    
     for(QueueFamily const* queueFamily : uniqueQueueFamilies)
     {
         VkQueue handle = VK_NULL_HANDLE;
@@ -59,13 +60,12 @@ vko::Device::Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily 
             m_presentQueue = &queue;
     }
 
-    if (m_graphicsQueue == nullptr || m_presentQueue == nullptr)
-        throw std::runtime_error("failed to get device queues!");
+    assert(m_graphicsQueue && m_presentQueue);
 }
 
 void vko::Device::waitIdle() const
 {
-    VKR_ASSERT(vkDeviceWaitIdle(m_handle));
+    VKO_ASSERT(vkDeviceWaitIdle(m_handle));
 }
 
 vko::Device::~Device()

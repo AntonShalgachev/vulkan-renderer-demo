@@ -119,7 +119,7 @@ namespace
         }
         else
         {
-            throw std::invalid_argument("unsupported layout transition!");
+            assert(false);
         }
 
         vkCmdPipelineBarrier(
@@ -175,7 +175,8 @@ namespace
             return VK_FORMAT_R8G8B8A8_UNORM;
         }
 
-        throw std::invalid_argument("type");
+        assert(false);
+        return VK_FORMAT_R32G32B32A32_SFLOAT;
     }
 
     std::size_t alignSize(std::size_t originalSize, std::size_t alignment)
@@ -213,7 +214,7 @@ vkgfx::ImageHandle vkgfx::ResourceManager::createImage(ImageMetadata metadata)
         }
 
         assert(false);
-        throw std::invalid_argument("format");
+        return VK_FORMAT_R8G8B8A8_UNORM;
     }(metadata.format);
 
     std::size_t bytesPerPixel = [](ImageFormat format)
@@ -227,7 +228,7 @@ vkgfx::ImageHandle vkgfx::ResourceManager::createImage(ImageMetadata metadata)
         }
 
         assert(false);
-        throw std::invalid_argument("format");
+        return 0;
     }(metadata.format);
 
     auto width = static_cast<uint32_t>(metadata.width);

@@ -1,4 +1,6 @@
 #include "PhysicalDeviceSurfaceParameters.h"
+
+#include "wrapper/Assert.h"
 #include "wrapper/PhysicalDevice.h"
 #include "wrapper/Surface.h"
 #include "QueueFamilyIndices.h"
@@ -34,30 +36,30 @@ void vkr::PhysicalDeviceSurfaceParameters::onSurfaceChanged()
 
 void vkr::PhysicalDeviceSurfaceParameters::queryCapabilities()
 {
-    VKR_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_physicalDevice.getHandle(), m_surface.getHandle(), &m_capabilities));
+    VKO_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_physicalDevice.getHandle(), m_surface.getHandle(), &m_capabilities));
 }
 
 void vkr::PhysicalDeviceSurfaceParameters::queryFormats()
 {
     uint32_t count;
-    VKR_ASSERT(vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice.getHandle(), m_surface.getHandle(), &count, nullptr));
+    VKO_ASSERT(vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice.getHandle(), m_surface.getHandle(), &count, nullptr));
 
     if (count > 0)
     {
         m_formats.resize(count);
-        VKR_ASSERT(vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice.getHandle(), m_surface.getHandle(), &count, m_formats.data()));
+        VKO_ASSERT(vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice.getHandle(), m_surface.getHandle(), &count, m_formats.data()));
     }
 }
 
 void vkr::PhysicalDeviceSurfaceParameters::queryPresentModes()
 {
     uint32_t count;
-    VKR_ASSERT(vkGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice.getHandle(), m_surface.getHandle(), &count, nullptr));
+    VKO_ASSERT(vkGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice.getHandle(), m_surface.getHandle(), &count, nullptr));
 
     if (count > 0)
     {
         m_presentModes.resize(count);
-        VKR_ASSERT(vkGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice.getHandle(), m_surface.getHandle(), &count, m_presentModes.data()));
+        VKO_ASSERT(vkGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice.getHandle(), m_surface.getHandle(), &count, m_presentModes.data()));
     }
 }
 
@@ -72,7 +74,7 @@ void vkr::PhysicalDeviceSurfaceParameters::queryPresentationSupport()
         uint32_t index = queueFamily.getIndex();
 
         VkBool32 presentSupport = false;
-        VKR_ASSERT(vkGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice.getHandle(), index, m_surface.getHandle(), &presentSupport));
+        VKO_ASSERT(vkGetPhysicalDeviceSurfaceSupportKHR(m_physicalDevice.getHandle(), index, m_surface.getHandle(), &presentSupport));
 
         if (index >= m_queuePresentationSupport.size())
             m_queuePresentationSupport.resize(index + 1);
