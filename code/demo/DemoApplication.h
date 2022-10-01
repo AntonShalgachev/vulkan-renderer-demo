@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <future>
 
 #include "Timer.h"
 #include "GlfwWindow.h"
@@ -138,10 +139,8 @@ private:
 
     std::unique_ptr<ImGuiDrawer> m_imGuiDrawer;
 
-    std::mutex m_gltfModelMutex;
-    std::optional<std::thread> m_gltfModelThread;
+    std::future<std::optional<tinygltf::Model>> m_gltfModelFuture;
     std::optional<tinygltf::Model> m_gltfModel;
-    bool m_finalizeLoadingGltfModel = false;
 
     std::unique_ptr<GltfResources> m_gltfResources;
 
