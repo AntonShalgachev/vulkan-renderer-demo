@@ -25,7 +25,7 @@ include(FetchContent)
 
 FetchContent_Declare(
     glfw
-    URL https://github.com/glfw/glfw/archive/refs/tags/3.3.7.tar.gz # 3.3.6
+    URL https://github.com/glfw/glfw/archive/refs/tags/3.3.8.tar.gz # 3.3.8
 )
 
 FetchContent_Declare(
