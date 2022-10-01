@@ -651,6 +651,10 @@ void DemoApplication::clearScene()
         thread.join();
     m_imageLoadingThreads.clear();
 
+    if (m_gltfModelThread)
+        m_gltfModelThread->join();
+    m_gltfModelThread = {};
+
     m_renderer->clearObjects();
     m_renderer->waitIdle(); // TODO remove
 
@@ -686,12 +690,30 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
     if (gltfPath.empty())
         return false;
 
+    {
+        std::unique_lock<std::mutex> lock{ m_gltfModelMutex };
+        m_gltfModel = {};
+        m_finalizeLoadingGltfModel = false;
+    }
+
+    m_currentScenePath = gltfPath;
+
+    m_gltfModelThread = std::thread{[this]() {
+        auto model = loadModel(m_currentScenePath);
+
+        std::unique_lock<std::mutex> lock{ m_gltfModelMutex };
+        m_gltfModel = std::move(model);
+        m_finalizeLoadingGltfModel = true;
+    }};
+
+    return true;
+}
+
+bool DemoApplication::loadCurrentGltfModel()
+{
+    assert(m_gltfModel);
+
     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
-
-    m_gltfModel = loadModel(gltfPath);
-
-    if (!m_gltfModel)
-        return false;
 
     m_gltfResources = std::make_unique<GltfResources>();
 
@@ -778,7 +800,7 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
             assert(m_gltfModel);
             loadImage(m_gltfModel->images[i]);
             assert(m_gltfModel);
-            std::lock_guard<std::mutex> guard{ m_imageReadyFlagsMutex };
+            std::unique_lock<std::mutex> lock{ m_imageReadyFlagsMutex };
             m_imageReadyFlags[i] = true;
             m_imageReadyFlagsChanged = true;
         });
@@ -917,8 +939,6 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
         }
     }
 
-    m_currentScenePath = gltfPath;
-
     return true;
 }
 
@@ -1013,7 +1033,20 @@ void DemoApplication::update()
 
     m_notifications->update(dt);
 
-    updateMaterials();
+    {
+        std::unique_lock<std::mutex> lock{ m_gltfModelMutex };
+
+        if (m_finalizeLoadingGltfModel)
+            loadCurrentGltfModel();
+        m_finalizeLoadingGltfModel = false;
+    }
+
+    {
+        std::unique_lock<std::mutex> lock{ m_gltfModelMutex };
+        if (m_gltfModel)
+            updateMaterials();
+    }
+
     updateUI(m_lastFrameTime);
     updateScene(dt);
     updateCamera(dt);
@@ -1063,9 +1096,11 @@ void DemoApplication::updateCamera(float dt)
 
 void DemoApplication::updateMaterials()
 {
+    assert(m_gltfModel);
+
     std::vector<bool> imageReadyFlags;
     {
-        std::lock_guard<std::mutex> guard{ m_imageReadyFlagsMutex };
+        std::unique_lock<std::mutex> lock{ m_imageReadyFlagsMutex };
         if (!m_imageReadyFlagsChanged)
             return;
         imageReadyFlags = m_imageReadyFlags;
@@ -1161,5 +1196,8 @@ void DemoApplication::updateMaterials()
     }
 
     if (!isAnyImageLoading)
+    {
         m_gltfModel = {};
+        m_finalizeLoadingGltfModel = false;
+    }
 }

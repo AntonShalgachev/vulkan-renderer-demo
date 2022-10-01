@@ -118,6 +118,7 @@ private:
 
     void clearScene();
     bool loadScene(std::string const& gltfPath);
+    bool loadCurrentGltfModel();
 
     void updateUI(float frameTime);
     void drawFrame();
@@ -137,10 +138,14 @@ private:
 
     std::unique_ptr<ImGuiDrawer> m_imGuiDrawer;
 
+    std::mutex m_gltfModelMutex;
+    std::optional<std::thread> m_gltfModelThread;
     std::optional<tinygltf::Model> m_gltfModel;
-    std::unique_ptr<GltfResources> m_gltfResources;
-    std::vector<std::thread> m_imageLoadingThreads;
+    bool m_finalizeLoadingGltfModel = false;
 
+    std::unique_ptr<GltfResources> m_gltfResources;
+
+    std::vector<std::thread> m_imageLoadingThreads;
     std::mutex m_imageReadyFlagsMutex;
     bool m_imageReadyFlagsChanged = false;
     std::vector<bool> m_imageReadyFlags;
