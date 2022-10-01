@@ -40,7 +40,7 @@ FetchContent_Declare(
 
 FetchContent_Declare(
     tinygltf
-    URL https://github.com/syoyo/tinygltf/archive/3d4150419e8ad40dab89d6f4079382377b492310.zip # Merge pull request #362 from hschwane/master
+    URL https://github.com/syoyo/tinygltf/archive/3d4150419e8ad40dab89d6f4079382377b492310.tar.gz # Merge pull request #362 from hschwane/master
 )
 
 FetchContent_Declare(
@@ -50,7 +50,7 @@ FetchContent_Declare(
 
 FetchContent_Declare(
     coil
-    URL https://github.com/AntonShalgachev/coil/archive/refs/tags/v0.5.0.tar.gz # 0.5.0
+    URL https://github.com/AntonShalgachev/coil/archive/ab148e01a386f4ddc0c8253829df0dba327156d9.tar.gz # Merge pull request #28 from AntonShalgachev/fix-new-vs-2022
 )
 
 FetchContent_Declare(
