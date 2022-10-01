@@ -16,6 +16,8 @@
 
 #include "ScopedDebugCommands.h"
 
+#include "tiny_gltf.h"
+
 class CommandLineService;
 class ImGuiDrawer;
 class ShaderPackage;
@@ -33,12 +35,6 @@ namespace vkgfx
     struct MeshHandle;
 
     struct TestObject;
-}
-
-namespace tinygltf
-{
-    class Model;
-    class Scene;
 }
 
 struct DemoAttributeSemanticsConfiguration
@@ -125,9 +121,12 @@ private:
 
     void updateUI(float frameTime);
     void drawFrame();
+
     void update();
     void updateScene(float);
     void updateCamera(float dt);
+
+    void updateMaterials();
 
 private:
     Services m_services;
@@ -138,7 +137,13 @@ private:
 
     std::unique_ptr<ImGuiDrawer> m_imGuiDrawer;
 
+    std::optional<tinygltf::Model> m_gltfModel;
     std::unique_ptr<GltfResources> m_gltfResources;
+    std::vector<std::thread> m_imageLoadingThreads;
+
+    std::mutex m_imageReadyFlagsMutex;
+    bool m_imageReadyFlagsChanged = false;
+    std::vector<bool> m_imageReadyFlags;
 
     // Resources
     std::unique_ptr<ShaderPackage> m_defaultVertexShader;
