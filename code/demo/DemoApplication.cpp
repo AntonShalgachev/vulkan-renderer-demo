@@ -693,11 +693,6 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
     if (!m_gltfModel)
         return false;
 
-//     for (tinygltf::Image& image : m_gltfModel->images)
-//     {
-//         
-//     }
-
     m_gltfResources = std::make_unique<GltfResources>();
 
     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
@@ -780,7 +775,9 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
     {
         m_imageLoadingThreads.emplace_back([this, i]()
         {
+            assert(m_gltfModel);
             loadImage(m_gltfModel->images[i]);
+            assert(m_gltfModel);
             std::lock_guard<std::mutex> guard{ m_imageReadyFlagsMutex };
             m_imageReadyFlags[i] = true;
             m_imageReadyFlagsChanged = true;
@@ -1077,12 +1074,17 @@ void DemoApplication::updateMaterials()
 
     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
 
+    bool isAnyImageLoading = false;
+
     for (std::size_t i = 0; i < m_gltfModel->images.size(); i++)
     {
         tinygltf::Image const& gltfImage = m_gltfModel->images[i];
 
         if (!imageReadyFlags[i])
+        {
+            isAnyImageLoading = true;
             continue;
+        }
 
         assert(!gltfImage.as_is);
 
@@ -1157,4 +1159,7 @@ void DemoApplication::updateMaterials()
                 material->normalMap = textureHandle;
         }
     }
+
+    if (!isAnyImageLoading)
+        m_gltfModel = {};
 }
