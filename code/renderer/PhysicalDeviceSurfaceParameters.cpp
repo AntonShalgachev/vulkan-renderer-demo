@@ -41,7 +41,7 @@ void vkr::PhysicalDeviceSurfaceParameters::queryCapabilities()
 
 void vkr::PhysicalDeviceSurfaceParameters::queryFormats()
 {
-    uint32_t count;
+    uint32_t count = 0;
     VKO_ASSERT(vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice.getHandle(), m_surface.getHandle(), &count, nullptr));
 
     if (count > 0)
@@ -53,7 +53,7 @@ void vkr::PhysicalDeviceSurfaceParameters::queryFormats()
 
 void vkr::PhysicalDeviceSurfaceParameters::queryPresentModes()
 {
-    uint32_t count;
+    uint32_t count = 0;
     VKO_ASSERT(vkGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice.getHandle(), m_surface.getHandle(), &count, nullptr));
 
     if (count > 0)

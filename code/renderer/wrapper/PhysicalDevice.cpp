@@ -23,7 +23,7 @@ void vko::PhysicalDevice::init()
 
 void vko::PhysicalDevice::queryAvailableExtensions()
 {
-    uint32_t count;
+    uint32_t count = 0;
     VKO_ASSERT(vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, nullptr));
     m_availableExtensions.resize(count);
     VKO_ASSERT(vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, m_availableExtensions.data()));
