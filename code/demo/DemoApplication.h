@@ -71,6 +71,12 @@ struct DemoMesh
     DemoMeshMetadata metadata;
 };
 
+struct DemoCamera
+{
+    vkgfx::TestCameraTransform transform;
+    std::size_t parametersIndex = 0;
+};
+
 struct GltfResources
 {
     std::vector<vkgfx::BufferHandle> buffers;
@@ -82,12 +88,15 @@ struct GltfResources
 
     std::unordered_map<std::string, vkgfx::ShaderModuleHandle> shaderModules;
 
+    std::vector<vkgfx::TestCameraParameters> cameraParameters;
+
     std::vector<vkgfx::BufferHandle> additionalBuffers; // TODO think how to store all created resources better
 };
 
 struct DemoScene
 {
     std::vector<vkgfx::TestObject> objects;
+    std::vector<DemoCamera> cameras;
 };
 
 class DemoApplication
@@ -114,7 +123,7 @@ private:
     void onMouseMove(glm::vec2 const& delta);
 
     DemoScene createDemoScene(tinygltf::Model const& gltfModel, tinygltf::Scene const& gltfScene) const;
-    void createDemoObjectRecursive(tinygltf::Model const& gltfModel, std::size_t nodeIndex, DemoScene& scene) const;
+    void createDemoObjectRecursive(tinygltf::Model const& gltfModel, std::size_t nodeIndex, glm::mat4 parentTransform, DemoScene& scene) const;
 
     void clearScene();
     bool loadScene(std::string const& gltfPath);

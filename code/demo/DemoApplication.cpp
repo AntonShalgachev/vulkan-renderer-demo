@@ -532,12 +532,12 @@ DemoScene DemoApplication::createDemoScene(tinygltf::Model const& gltfModel, tin
     DemoScene scene;
 
     for (std::size_t nodeIndex : gltfScene.nodes)
-        createDemoObjectRecursive(gltfModel, nodeIndex, scene);
+        createDemoObjectRecursive(gltfModel, nodeIndex, glm::identity<glm::mat4>(), scene);
 
     return scene;
 }
 
-void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel, std::size_t nodeIndex, DemoScene& scene) const
+void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel, std::size_t nodeIndex, glm::mat4 parentTransform, DemoScene& scene) const
 {
     struct DemoObjectPushConstants
     {
@@ -552,6 +552,8 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
 
     tinygltf::Node const& gltfNode = gltfModel.nodes[nodeIndex];
+
+    glm::mat4 nodeTransform = parentTransform * createMatrix(gltfNode);
 
     if (gltfNode.mesh >= 0)
     {
@@ -619,7 +621,7 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
             resourceManager.uploadBuffer(uniformBuffer, &uniformValues, sizeof(uniformValues));
 
             DemoObjectPushConstants pushConstants;
-            pushConstants.model = createMatrix(gltfNode); // TODO take hierarchy into account
+            pushConstants.model = nodeTransform;
 
             vkgfx::TestObject& object = scene.objects.emplace_back();
             object.mesh = mesh.handle;
@@ -631,9 +633,27 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
         }
     }
 
+    if (gltfNode.camera >= 0)
+    {
+        glm::vec3 position;
+        glm::vec3 scale;
+        glm::quat rotation;
+        glm::vec3 skew;
+        glm::vec4 perspective;
+        glm::decompose(nodeTransform, scale, rotation, position, skew, perspective);
+
+        scene.cameras.push_back(DemoCamera{
+            .transform = {
+                .position = position,
+                .rotation = rotation,
+            },
+            .parametersIndex = static_cast<std::size_t>(gltfNode.camera),
+        });
+    }
+
     for (auto childNodeIndex : gltfNode.children)
     {
-        createDemoObjectRecursive(gltfModel, static_cast<std::size_t>(childNodeIndex), scene);
+        createDemoObjectRecursive(gltfModel, static_cast<std::size_t>(childNodeIndex), nodeTransform, scene);
     }
 }
 
@@ -899,6 +919,22 @@ bool DemoApplication::loadCurrentGltfModel()
         }
     }
 
+    for (tinygltf::Camera const& gltfCamera : m_gltfModel->cameras)
+    {
+        if (gltfCamera.type == "perspective")
+        {
+            m_gltfResources->cameraParameters.push_back(vkgfx::TestCameraParameters{
+                .fov = glm::degrees(static_cast<float>(gltfCamera.perspective.yfov)),
+                .nearZ = static_cast<float>(gltfCamera.perspective.znear),
+                .farZ = static_cast<float>(gltfCamera.perspective.zfar),
+            });
+        }
+        else
+        {
+            assert(false);
+        }
+    }
+
     {
         std::size_t const sceneIndex = static_cast<std::size_t>(m_gltfModel->defaultScene);
         tinygltf::Scene const& gltfScene = m_gltfModel->scenes[sceneIndex];
@@ -916,6 +952,13 @@ bool DemoApplication::loadCurrentGltfModel()
         {
             for (auto const& demoObject : demoScene.objects)
                 m_renderer->addTestObject(demoObject);
+        }
+
+        if (!demoScene.cameras.empty())
+        {
+            DemoCamera const& camera = demoScene.cameras[0];
+            m_cameraTransform = camera.transform;
+            m_cameraParameters = m_gltfResources->cameraParameters[camera.parametersIndex];
         }
     }
 
