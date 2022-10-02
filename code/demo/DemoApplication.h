@@ -110,7 +110,6 @@ private:
     void loadImgui();
     void unloadImgui();
 
-    void onFramebufferResized();
     void onKey(vkr::GlfwWindow::Action action, vkr::GlfwWindow::Key key, char c, vkr::GlfwWindow::Modifiers mods);
     void onMouseMove(glm::vec2 const& delta);
 

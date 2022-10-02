@@ -201,8 +201,7 @@ namespace
         return vkgfx::IndexType::UnsignedShort;
     }
 
-    // TODO rename
-    vkgfx::AttributeType findAttributeType2(int gltfAttributeType, int gltfComponentType)
+    vkgfx::AttributeType findAttributeType(int gltfAttributeType, int gltfComponentType)
     {
         if (gltfAttributeType == TINYGLTF_TYPE_VEC2 && gltfComponentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
             return vkgfx::AttributeType::Vec2f;
@@ -317,7 +316,6 @@ DemoApplication::DemoApplication()
     m_keyState.resize(1 << 8 * sizeof(char), false);
 
     m_window = std::make_unique<vkr::GlfwWindow>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
-    m_window->addResizeCallback([this](int, int) { onFramebufferResized(); });
     m_window->addKeyCallback([this](vkr::GlfwWindow::Action action, vkr::GlfwWindow::Key key, char c, vkr::GlfwWindow::Modifiers modifiers) { onKey(action, key, c, modifiers); });
     m_window->addMouseMoveCallback([this](glm::vec2 const& delta) { onMouseMove(delta); });
 
@@ -440,7 +438,6 @@ void DemoApplication::run()
 
 void DemoApplication::createServices()
 {
-    // TODO don't pass vkr::Application like this. Either remove it completely or add to services
     m_services.setDebugConsole(std::make_unique<DebugConsoleService>(m_services));
     m_services.setCommandLine(std::make_unique<CommandLineService>(m_services));
     m_services.setDebugDraw(std::make_unique<DebugDrawService>(m_services));
@@ -496,11 +493,6 @@ void DemoApplication::unloadImgui()
 
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
-}
-
-void DemoApplication::onFramebufferResized()
-{
-    // TODO remove
 }
 
 void DemoApplication::onKey(vkr::GlfwWindow::Action action, vkr::GlfwWindow::Key key, char c, vkr::GlfwWindow::Modifiers mods)
@@ -574,7 +566,7 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
 
             // TODO think how to handle multiple descriptor set layouts properly
             pipelineKey.uniformConfigs = {
-                // WTF get shared frame uniform config from the Renderer
+                // TODO get shared frame uniform config from the Renderer
                 vkgfx::UniformConfiguration{
                     .hasBuffer = true,
                     .hasAlbedoTexture = false,
@@ -617,7 +609,7 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
             vkgfx::BufferMetadata uniformBufferMetadata{
                 .usage = vkgfx::BufferUsage::UniformBuffer,
                 .location = vkgfx::BufferLocation::HostVisible,
-                .isMutable = false, // TODO change when mutable buffers are implemented
+                .isMutable = false,
             };
             vkgfx::BufferHandle uniformBuffer = resourceManager.createBuffer(sizeof(DemoObjectUniformBuffer), std::move(uniformBufferMetadata));
             m_gltfResources->additionalBuffers.push_back(uniformBuffer);
@@ -879,7 +871,7 @@ bool DemoApplication::loadCurrentGltfModel()
                 if (name == "TANGENT")
                     demoMesh.metadata.attributeSemanticsConfig.hasTangent = true;
 
-                vkgfx::AttributeType attributeType = findAttributeType2(gltfAccessor.type, gltfAccessor.componentType);
+                vkgfx::AttributeType attributeType = findAttributeType(gltfAccessor.type, gltfAccessor.componentType);
 
                 std::size_t stride = gltfBufferView.byteStride;
                 if (stride == 0)
