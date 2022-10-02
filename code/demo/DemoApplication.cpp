@@ -713,6 +713,9 @@ bool DemoApplication::loadCurrentGltfModel()
 {
     assert(m_gltfModel);
 
+    for (auto const& name : m_gltfModel->extensionsRequired)
+        spdlog::warn("GLTF requires extension '{}'", name);
+
     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
 
     m_gltfResources = std::make_unique<GltfResources>();
