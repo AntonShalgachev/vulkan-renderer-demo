@@ -236,7 +236,7 @@ namespace
         throw std::invalid_argument("type");
     }
 
-    std::size_t findAttributeLocation(std::string const& name)
+    std::optional<std::size_t> findAttributeLocation(std::string const& name)
     {
         static std::vector<std::string> const attributeNames = { "POSITION", "COLOR_0", "TEXCOORD_0", "NORMAL", "TANGENT" }; // TODO move to the shader metadata
 
@@ -245,7 +245,7 @@ namespace
         if (it != attributeNames.end())
             return static_cast<std::size_t>(std::distance(attributeNames.begin(), it));
 
-        throw std::runtime_error("Unkown attribute name: " + name);
+        return {};
     }
 
     std::vector<unsigned char> readFile(const std::string& filename)
@@ -878,6 +878,14 @@ bool DemoApplication::loadCurrentGltfModel()
             std::size_t attributeIndex = 0;
             for (auto const& [name, accessorIndex] : gltfPrimitive.attributes)
             {
+                std::optional<std::size_t> location = findAttributeLocation(name);
+
+                if (!location)
+                {
+                    spdlog::warn("Skipping attribute '{}'", name);
+                    continue;
+                }
+
                 tinygltf::Accessor const& gltfAccessor = m_gltfModel->accessors[static_cast<std::size_t>(accessorIndex)];
                 tinygltf::BufferView const& gltfBufferView = m_gltfModel->bufferViews[static_cast<std::size_t>(gltfAccessor.bufferView)];
 
@@ -905,7 +913,7 @@ bool DemoApplication::loadCurrentGltfModel()
 
                 vkgfx::VertexConfiguration::Attribute& attributeConfig = demoMesh.metadata.vertexConfig.attributes.emplace_back();
                 attributeConfig.binding = attributeIndex;
-                attributeConfig.location = findAttributeLocation(name);
+                attributeConfig.location = *location;
                 attributeConfig.offset = 0; // TODO can be improved
                 attributeConfig.type = attributeType;
 
