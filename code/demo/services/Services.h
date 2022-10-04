@@ -11,6 +11,8 @@ class Services
 public:
     ~Services();
 
+    Services& operator=(Services&& rhs) = default;
+
     CommandLineService& commandLine() { assert(m_commandLine); return *m_commandLine; }
     void setCommandLine(std::unique_ptr<CommandLineService> service);
 

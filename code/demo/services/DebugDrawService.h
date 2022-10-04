@@ -14,7 +14,7 @@ namespace vkgfx
     class Renderer;
 }
 
-class DebugDrawService : public ServiceContainer
+class DebugDrawService
 {
 public:
     enum class Mode
@@ -30,10 +30,8 @@ public:
     };
 
 public:
-    DebugDrawService(Services& services);
+    DebugDrawService(vkgfx::Renderer& renderer);
     ~DebugDrawService();
-
-    void init(vkgfx::Renderer& renderer); // TODO move to the constructor
 
     void sphere(glm::vec3 const& center, glm::vec3 const& scale, glm::vec3 const& color, float duration);
     void box(glm::vec3 const& center, glm::quat const& rotation, glm::vec3 const& scale, glm::vec3 const& color, float duration);

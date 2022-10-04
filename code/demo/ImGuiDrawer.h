@@ -10,6 +10,7 @@
 namespace vkgfx
 {
     class Renderer;
+    class ResourceManager;
 }
 
 struct ImDrawData;
@@ -20,23 +21,21 @@ class ImGuiDrawer
 public:
     ImGuiDrawer(vkgfx::Renderer& renderer);
 
-    void draw();
+    void draw(vkgfx::Renderer& renderer);
 
 private:
-    void createBuffers();
-    void createImages();
-    void createShaders();
-    void createPipeline();
+    void createBuffers(vkgfx::ResourceManager& resourceManager);
+    void createImages(vkgfx::ResourceManager& resourceManager);
+    void createShaders(vkgfx::ResourceManager& resourceManager);
+    void createPipeline(vkgfx::ResourceManager& resourceManager);
 
-    void uploadBuffers(ImDrawData const* drawData);
+    void uploadBuffers(vkgfx::ResourceManager& resourceManager, ImDrawData const* drawData);
     std::vector<unsigned char> createPushConstants(ImDrawData const* drawData);
     std::tuple<glm::ivec2, glm::ivec2> calculateClip(ImDrawData const* drawData, ImDrawCmd const* drawCommand);
-    void updateMesh(std::size_t index, std::size_t indexCount, std::size_t indexOffset, std::size_t vertexOffset);
-    void updateMaterial(std::size_t index, vkgfx::ImageHandle image);
+    void updateMesh(vkgfx::ResourceManager& resourceManager, std::size_t index, std::size_t indexCount, std::size_t indexOffset, std::size_t vertexOffset);
+    void updateMaterial(vkgfx::ResourceManager& resourceManager, std::size_t index, vkgfx::ImageHandle image);
 
 private:
-    vkgfx::Renderer& m_renderer;
-
     vkgfx::BufferHandle m_vertexBuffer;
     vkgfx::BufferHandle m_indexBuffer;
     vkgfx::ImageHandle m_fontImage;

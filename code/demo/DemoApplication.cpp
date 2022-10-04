@@ -287,7 +287,8 @@ namespace
 
 DemoApplication::DemoApplication()
 {
-    createServices();
+    m_services.setDebugConsole(std::make_unique<DebugConsoleService>(m_services));
+    m_services.setCommandLine(std::make_unique<CommandLineService>(m_services));
 
     m_commands["imgui.demo"] = ::toggle(&m_drawImguiDemo);
     m_commands["imgui.debugger"] = ::toggle(&m_drawImguiDebugger);
@@ -334,7 +335,7 @@ DemoApplication::DemoApplication()
 
     m_renderer = std::make_unique<vkgfx::Renderer>("Vulkan demo with new API", VALIDATION_ENABLED, *m_window, messageCallback);
 
-    m_services.debugDraw().init(*m_renderer);
+    m_services.setDebugDraw(std::make_unique<DebugDrawService>(*m_renderer));
 
     loadImgui();
 
@@ -380,7 +381,7 @@ DemoApplication::~DemoApplication()
     m_notifications = {};
     m_commands.clear();
 
-    destroyServices();
+    m_services = Services{};
 }
 
 void DemoApplication::registerCommandLineOptions(CommandLineService& commandLine)
@@ -434,20 +435,6 @@ void DemoApplication::run()
 
     m_frameTimer.start();
     m_window->startEventLoop([this]() { drawFrame(); });
-}
-
-void DemoApplication::createServices()
-{
-    m_services.setDebugConsole(std::make_unique<DebugConsoleService>(m_services));
-    m_services.setCommandLine(std::make_unique<CommandLineService>(m_services));
-    m_services.setDebugDraw(std::make_unique<DebugDrawService>(m_services));
-}
-
-void DemoApplication::destroyServices()
-{
-    m_services.setCommandLine(nullptr);
-    m_services.setDebugConsole(nullptr);
-    m_services.setDebugDraw(nullptr);
 }
 
 void DemoApplication::createResources()
@@ -959,11 +946,8 @@ bool DemoApplication::loadCurrentGltfModel()
             return lhs.material < rhs.material;
         });
 
-        if (m_renderer)
-        {
-            for (auto const& demoObject : demoScene.objects)
-                m_renderer->addTestObject(demoObject);
-        }
+        for (auto const& demoObject : demoScene.objects)
+            m_renderer->addTestObject(demoObject);
 
         if (!demoScene.cameras.empty())
         {
@@ -1046,11 +1030,14 @@ void DemoApplication::drawFrame()
 {
     update();
 
-    if (m_renderer)
-    {
-        m_services.debugDraw().draw(*m_renderer);
-        m_renderer->draw();
-    }
+    m_renderer->setCameraTransform(m_cameraTransform);
+    m_renderer->setCameraParameters(m_cameraParameters);
+    m_renderer->setLightParameters(m_lightParameters);
+
+    m_services.debugDraw().draw(*m_renderer);
+    m_imGuiDrawer->draw(*m_renderer);
+
+    m_renderer->draw();
 
     m_fpsDrawnFrames++;
 }
@@ -1080,12 +1067,6 @@ void DemoApplication::update()
     updateUI(m_lastFrameTime);
     updateScene(dt);
     updateCamera(dt);
-
-    m_renderer->setCameraTransform(m_cameraTransform);
-    m_renderer->setCameraParameters(m_cameraParameters);
-    m_renderer->setLightParameters(m_lightParameters);
-
-    m_imGuiDrawer->draw();
 }
 
 void DemoApplication::updateScene(float)

@@ -65,7 +65,7 @@ namespace
     };
 }
 
-ImGuiDrawer::ImGuiDrawer(vkgfx::Renderer& renderer) : m_renderer(renderer)
+ImGuiDrawer::ImGuiDrawer(vkgfx::Renderer& renderer)
 {
     ImGuiIO& io = ImGui::GetIO();
 
@@ -73,13 +73,15 @@ ImGuiDrawer::ImGuiDrawer(vkgfx::Renderer& renderer) : m_renderer(renderer)
     io.BackendRendererName = "vulkan_renderer_demo";
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
 
-    createBuffers();
-    createImages();
-    createShaders();
-    createPipeline();
+    vkgfx::ResourceManager& resourceManager = renderer.getResourceManager();
+
+    createBuffers(resourceManager);
+    createImages(resourceManager);
+    createShaders(resourceManager);
+    createPipeline(resourceManager);
 }
 
-void ImGuiDrawer::draw()
+void ImGuiDrawer::draw(vkgfx::Renderer& renderer)
 {
     if (!ImGui::GetCurrentContext())
         return;
@@ -92,9 +94,9 @@ void ImGuiDrawer::draw()
 
     assert(drawData->Valid);
 
-    vkgfx::ResourceManager& resourceManager = m_renderer.getResourceManager();
+    vkgfx::ResourceManager& resourceManager = renderer.getResourceManager();
 
-    uploadBuffers(drawData);
+    uploadBuffers(resourceManager, drawData);
 
     std::vector<unsigned char> pushConstantsBytes = createPushConstants(drawData);
 
@@ -119,8 +121,8 @@ void ImGuiDrawer::draw()
                 if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
                     continue;
 
-                updateMesh(nextResourceIndex, drawCommand->ElemCount, drawCommand->IdxOffset + indexOffset, drawCommand->VtxOffset + vertexOffset);
-                updateMaterial(nextResourceIndex, textureIdToImage(drawCommand->GetTexID()));
+                updateMesh(resourceManager, nextResourceIndex, drawCommand->ElemCount, drawCommand->IdxOffset + indexOffset, drawCommand->VtxOffset + vertexOffset);
+                updateMaterial(resourceManager, nextResourceIndex, textureIdToImage(drawCommand->GetTexID()));
 
                 vkgfx::TestObject object;
                 object.pipeline = m_pipeline;
@@ -132,7 +134,7 @@ void ImGuiDrawer::draw()
                 object.scissorOffset = clipMin;
                 object.scissorSize = clipMax - clipMin;
 
-                m_renderer.addOneFrameTestObject(std::move(object));
+                renderer.addOneFrameTestObject(std::move(object));
 
                 nextResourceIndex++;
             }
@@ -143,10 +145,8 @@ void ImGuiDrawer::draw()
     }
 }
 
-void ImGuiDrawer::createBuffers()
+void ImGuiDrawer::createBuffers(vkgfx::ResourceManager& resourceManager)
 {
-    vkgfx::ResourceManager& resourceManager = m_renderer.getResourceManager();
-
     {
         std::size_t size = 64 * 1024 * sizeof(ImDrawVert);
         vkgfx::BufferMetadata metadata{
@@ -168,10 +168,8 @@ void ImGuiDrawer::createBuffers()
     }
 }
 
-void ImGuiDrawer::createImages()
+void ImGuiDrawer::createImages(vkgfx::ResourceManager& resourceManager)
 {
-    vkgfx::ResourceManager& resourceManager = m_renderer.getResourceManager();
-
     ImGuiIO& io = ImGui::GetIO();
 
     unsigned char* pixels = nullptr;
@@ -198,10 +196,8 @@ void ImGuiDrawer::createImages()
     m_imageSampler = resourceManager.createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
 }
 
-void ImGuiDrawer::createShaders()
+void ImGuiDrawer::createShaders(vkgfx::ResourceManager& resourceManager)
 {
-    vkgfx::ResourceManager& resourceManager = m_renderer.getResourceManager();
-
     {
         ShaderPackage package{ "data/shaders/packaged/imgui.vert" };
         std::string const* path = package.get({});
@@ -219,10 +215,8 @@ void ImGuiDrawer::createShaders()
     }
 }
 
-void ImGuiDrawer::createPipeline()
+void ImGuiDrawer::createPipeline(vkgfx::ResourceManager& resourceManager)
 {
-    vkgfx::ResourceManager& resourceManager = m_renderer.getResourceManager();
-
     vkgfx::PipelineKey key;
     key.shaderHandles = { m_vertexShaderModule, m_fragmentShaderModule };
     key.uniformConfigs = {
@@ -287,12 +281,10 @@ void ImGuiDrawer::createPipeline()
     m_pipeline = resourceManager.getOrCreatePipeline(key);
 }
 
-void ImGuiDrawer::uploadBuffers(ImDrawData const* drawData)
+void ImGuiDrawer::uploadBuffers(vkgfx::ResourceManager& resourceManager, ImDrawData const* drawData)
 {
     if (drawData->TotalVtxCount <= 0)
         return;
-
-    vkgfx::ResourceManager& resourceManager = m_renderer.getResourceManager();
 
     std::size_t vertexBufferSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
     std::size_t indexBufferSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
@@ -366,11 +358,9 @@ std::tuple<glm::ivec2, glm::ivec2> ImGuiDrawer::calculateClip(ImDrawData const* 
     return { clipMin, clipMax };
 }
 
-void ImGuiDrawer::updateMesh(std::size_t index, std::size_t indexCount, std::size_t indexOffset, std::size_t vertexOffset)
+void ImGuiDrawer::updateMesh(vkgfx::ResourceManager& resourceManager, std::size_t index, std::size_t indexCount, std::size_t indexOffset, std::size_t vertexOffset)
 {
     static_assert(sizeof(ImDrawIdx) == 2);
-
-    vkgfx::ResourceManager& resourceManager = m_renderer.getResourceManager();
 
     vkgfx::Mesh mesh = {
         .vertexBuffers = { {m_vertexBuffer, 0} },
@@ -391,10 +381,8 @@ void ImGuiDrawer::updateMesh(std::size_t index, std::size_t indexCount, std::siz
     }
 }
 
-void ImGuiDrawer::updateMaterial(std::size_t index, vkgfx::ImageHandle image)
+void ImGuiDrawer::updateMaterial(vkgfx::ResourceManager& resourceManager, std::size_t index, vkgfx::ImageHandle image)
 {
-    vkgfx::ResourceManager& resourceManager = m_renderer.getResourceManager();
-
     vkgfx::Texture texture = {
         .image = image,
         .sampler = m_imageSampler,

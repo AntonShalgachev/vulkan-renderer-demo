@@ -111,9 +111,6 @@ public:
     void run();
 
 private:
-    void createServices();
-    void destroyServices();
-
     void createResources();
 
     void loadImgui();

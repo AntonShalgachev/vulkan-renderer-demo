@@ -81,14 +81,7 @@ namespace
     }
 }
 
-DebugDrawService::DebugDrawService(Services& services) : ServiceContainer(services)
-{
-    
-}
-
-DebugDrawService::~DebugDrawService() = default;
-
-void DebugDrawService::init(vkgfx::Renderer& renderer)
+DebugDrawService::DebugDrawService(vkgfx::Renderer& renderer)
 {
     vkgfx::ResourceManager& resources = renderer.getResourceManager();
 
@@ -117,7 +110,7 @@ void DebugDrawService::init(vkgfx::Renderer& renderer)
 
     vkgfx::ShaderModuleHandle vertexShaderModule;
     vkgfx::ShaderModuleHandle fragmentShaderModule;
-    
+
     // TODO remove duplication in DemoApplication::createUIResources
     {
         ShaderPackage package{ "data/shaders/packaged/debugdraw.vert" };
@@ -194,6 +187,8 @@ void DebugDrawService::init(vkgfx::Renderer& renderer)
         m_pipeline = resources.getOrCreatePipeline(std::move(key));
     }
 }
+
+DebugDrawService::~DebugDrawService() = default;
 
 void DebugDrawService::sphere(glm::vec3 const& center, glm::vec3 const& scale, glm::vec3 const& color, float duration)
 {
