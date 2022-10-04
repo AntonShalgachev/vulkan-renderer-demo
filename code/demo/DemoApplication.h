@@ -149,6 +149,8 @@ private:
 
     std::unique_ptr<GltfResources> m_gltfResources;
 
+    DemoScene m_demoScene;
+
     std::vector<std::thread> m_imageLoadingThreads;
     std::mutex m_imageReadyFlagsMutex;
     bool m_imageReadyFlagsChanged = false;

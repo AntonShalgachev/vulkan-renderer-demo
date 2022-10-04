@@ -319,11 +319,6 @@ vkgfx::Renderer::~Renderer()
     destroySwapchain();
 }
 
-void vkgfx::Renderer::addTestObject(TestObject object)
-{
-    m_testObjects.push_back(std::move(object));
-}
-
 void vkgfx::Renderer::setCameraTransform(TestCameraTransform transform)
 {
     m_cameraTransform = std::move(transform);
@@ -342,11 +337,6 @@ void vkgfx::Renderer::setLightParameters(TestLightParameters parameters)
 void vkgfx::Renderer::addOneFrameTestObject(TestObject object)
 {
     m_oneFrameTestObjects.push_back(std::move(object));
-}
-
-void vkgfx::Renderer::clearObjects()
-{
-    m_testObjects.clear();
 }
 
 void vkgfx::Renderer::waitIdle()
@@ -669,8 +659,6 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh->indexCount), 1, static_cast<uint32_t>(mesh->indexOffset), static_cast<uint32_t>(mesh->vertexOffset), 0);
     };
 
-    for (TestObject const& object : m_testObjects)
-        drawTestObject(object);
     for (TestObject const& object : m_oneFrameTestObjects)
         drawTestObject(object);
 

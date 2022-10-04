@@ -81,7 +81,7 @@ ImGuiDrawer::ImGuiDrawer(vkgfx::Renderer& renderer)
     createPipeline(resourceManager);
 }
 
-void ImGuiDrawer::draw(vkgfx::Renderer& renderer)
+void ImGuiDrawer::queueGeometry(vkgfx::Renderer& renderer)
 {
     if (!ImGui::GetCurrentContext())
         return;

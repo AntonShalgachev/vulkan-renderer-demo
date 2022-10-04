@@ -213,7 +213,7 @@ void DebugDrawService::box(glm::vec3 const& center, glm::quat const& rotation, g
     object.pushConstants = std::move(pushConstants);
 }
 
-void DebugDrawService::draw(vkgfx::Renderer& renderer)
+void DebugDrawService::queueGeometry(vkgfx::Renderer& renderer)
 {
     for (auto&& object : m_objects)
         renderer.addOneFrameTestObject(std::move(object));

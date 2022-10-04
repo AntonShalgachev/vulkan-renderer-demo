@@ -655,11 +655,12 @@ void DemoApplication::clearScene()
 
     m_gltfModel = {};
 
-    m_renderer->clearObjects();
-    m_renderer->waitIdle(); // TODO remove
+    m_demoScene = {};
 
     if (m_gltfResources)
     {
+        m_renderer->waitIdle(); // TODO remove
+
         GltfResources const& resources = *m_gltfResources;
         vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
 
@@ -936,9 +937,9 @@ bool DemoApplication::loadCurrentGltfModel()
     {
         std::size_t const sceneIndex = static_cast<std::size_t>(m_gltfModel->defaultScene);
         tinygltf::Scene const& gltfScene = m_gltfModel->scenes[sceneIndex];
-        auto demoScene = createDemoScene(*m_gltfModel, gltfScene);
+        m_demoScene = createDemoScene(*m_gltfModel, gltfScene);
 
-        std::sort(demoScene.objects.begin(), demoScene.objects.end(), [](vkgfx::TestObject const& lhs, vkgfx::TestObject const& rhs)
+        std::sort(m_demoScene.objects.begin(), m_demoScene.objects.end(), [](vkgfx::TestObject const& lhs, vkgfx::TestObject const& rhs)
         {
             if (lhs.pipeline != rhs.pipeline)
                 return lhs.pipeline < rhs.pipeline;
@@ -946,12 +947,9 @@ bool DemoApplication::loadCurrentGltfModel()
             return lhs.material < rhs.material;
         });
 
-        for (auto const& demoObject : demoScene.objects)
-            m_renderer->addTestObject(demoObject);
-
-        if (!demoScene.cameras.empty())
+        if (!m_demoScene.cameras.empty())
         {
-            DemoCamera const& camera = demoScene.cameras[0];
+            DemoCamera const& camera = m_demoScene.cameras[0];
             m_cameraTransform = camera.transform;
             m_cameraParameters = m_gltfResources->cameraParameters[camera.parametersIndex];
         }
@@ -1034,8 +1032,10 @@ void DemoApplication::drawFrame()
     m_renderer->setCameraParameters(m_cameraParameters);
     m_renderer->setLightParameters(m_lightParameters);
 
-    m_services.debugDraw().draw(*m_renderer);
-    m_imGuiDrawer->draw(*m_renderer);
+    for (auto const& demoObject : m_demoScene.objects)
+        m_renderer->addOneFrameTestObject(demoObject);
+    m_services.debugDraw().queueGeometry(*m_renderer);
+    m_imGuiDrawer->queueGeometry(*m_renderer);
 
     m_renderer->draw();
 

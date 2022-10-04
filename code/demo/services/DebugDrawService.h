@@ -36,7 +36,7 @@ public:
     void sphere(glm::vec3 const& center, glm::vec3 const& scale, glm::vec3 const& color, float duration);
     void box(glm::vec3 const& center, glm::quat const& rotation, glm::vec3 const& scale, glm::vec3 const& color, float duration);
 
-    void draw(vkgfx::Renderer& renderer);
+    void queueGeometry(vkgfx::Renderer& renderer);
 
 private:
     vkgfx::BufferHandle m_buffer;

@@ -21,7 +21,7 @@ class ImGuiDrawer
 public:
     ImGuiDrawer(vkgfx::Renderer& renderer);
 
-    void draw(vkgfx::Renderer& renderer);
+    void queueGeometry(vkgfx::Renderer& renderer);
 
 private:
     void createBuffers(vkgfx::ResourceManager& resourceManager);

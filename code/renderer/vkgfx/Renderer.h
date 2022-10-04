@@ -41,14 +41,12 @@ namespace vkgfx
 
         ResourceManager& getResourceManager() const { return *m_resourceManager; }
 
-        void addTestObject(TestObject object);
         void setCameraTransform(TestCameraTransform transform);
         void setCameraParameters(TestCameraParameters parameters);
         void setLightParameters(TestLightParameters parameters);
 
         void addOneFrameTestObject(TestObject object);
 
-        void clearObjects();
         void waitIdle(); // TODO remove
 
         void draw();
@@ -96,7 +94,6 @@ namespace vkgfx
         UniformConfiguration m_frameUniformConfiguration;
         DescriptorSetLayoutHandle m_frameDescriptorSetLayout;
 
-        std::vector<TestObject> m_testObjects;
         std::vector<TestObject> m_oneFrameTestObjects;
     };
 }
