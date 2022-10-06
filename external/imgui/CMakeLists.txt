@@ -1,6 +1,11 @@
-set(PROJECT_NAME imgui)
+FetchContent_Declare(
+    imgui
+    URL https://github.com/ocornut/imgui/archive/refs/tags/v1.88.tar.gz # 1.88
+)
 
-set(ALL_FILES
+FetchDependency(imgui)
+
+add_library(imgui
     ${imgui_SOURCE_DIR}/imconfig.h
     ${imgui_SOURCE_DIR}/imgui.h
     ${imgui_SOURCE_DIR}/imgui.cpp
@@ -12,10 +17,15 @@ set(ALL_FILES
     ${imgui_SOURCE_DIR}/imstb_rectpack.h
     ${imgui_SOURCE_DIR}/imstb_textedit.h
     ${imgui_SOURCE_DIR}/imstb_truetype.h
+
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.h
 )
 
-add_library(${PROJECT_NAME} ${ALL_FILES})
-
-target_include_directories(${PROJECT_NAME} PUBLIC
+target_include_directories(imgui PUBLIC
     "${imgui_SOURCE_DIR}"
+)
+
+target_link_libraries(imgui
+    glfw
 )
