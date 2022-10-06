@@ -203,6 +203,10 @@ vkgfx::ResourceManager::~ResourceManager() = default;
 
 vkgfx::ImageHandle vkgfx::ResourceManager::createImage(ImageMetadata metadata)
 {
+    assert(metadata.width > 0);
+    assert(metadata.height > 0);
+    assert(metadata.bitsPerPixel > 0);
+
     // TODO use SRGB for textures data and UNORM for normal maps
     VkFormat vkFormat = [](ImageFormat format) {
         switch (format)
@@ -211,24 +215,16 @@ vkgfx::ImageHandle vkgfx::ResourceManager::createImage(ImageMetadata metadata)
             return VK_FORMAT_R8G8B8A8_UNORM;
         case ImageFormat::R8G8B8:
             return VK_FORMAT_R8G8B8_UNORM;
+        case ImageFormat::BC1_UNORM:
+            return VK_FORMAT_BC1_RGB_UNORM_BLOCK;
+        case ImageFormat::BC3_UNORM:
+            return VK_FORMAT_BC3_UNORM_BLOCK;
+        case ImageFormat::BC5_UNORM:
+            return VK_FORMAT_BC5_UNORM_BLOCK;
         }
 
         assert(false);
         return VK_FORMAT_R8G8B8A8_UNORM;
-    }(metadata.format);
-
-    std::size_t bytesPerPixel = [](ImageFormat format)
-    {
-        switch (format)
-        {
-        case ImageFormat::R8G8B8A8:
-            return 4;
-        case ImageFormat::R8G8B8:
-            return 3;
-        }
-
-        assert(false);
-        return 0;
     }(metadata.format);
 
     auto width = static_cast<uint32_t>(metadata.width);
@@ -245,7 +241,7 @@ vkgfx::ImageHandle vkgfx::ResourceManager::createImage(ImageMetadata metadata)
         .image = std::move(vkImage),
         .imageView = std::move(vkImageView),
         .metadata = std::move(metadata),
-        .byteSize = metadata.width * metadata.height * bytesPerPixel,
+        .byteSize = metadata.width * metadata.height * metadata.bitsPerPixel / 8,
     };
 
     return { m_images.add(std::move(imageResource)) };

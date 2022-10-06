@@ -10,6 +10,7 @@ set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
 set(BUILD_STATIC_LIBS ON CACHE INTERNAL "")
 
 add_subdirectory(imgui)
+add_subdirectory(dds-ktx)
 
 FetchContent_Declare(
     glfw

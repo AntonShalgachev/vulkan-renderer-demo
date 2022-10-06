@@ -61,4 +61,5 @@ target_link_libraries(${PROJECT_NAME}
     argparse::argparse
     spdlog::spdlog
     nlohmann_json::nlohmann_json
+    dds-ktx::dds-ktx
 )

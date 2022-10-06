@@ -14,6 +14,7 @@
 #include "magic_enum.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
+#include "dds-ktx.h"
 
 #pragma warning(push, 0)
 #include "imgui.h"
@@ -113,7 +114,7 @@ namespace
         throw std::runtime_error("unexpected flat color size");
     }
 
-    bool loadImage(tinygltf::Image& image)
+    bool loadWithStbImage(tinygltf::Image& image)
     {
         auto const* bytes = image.image.data();
         auto size = image.image.size();
@@ -149,6 +150,58 @@ namespace
         stbi_image_free(data);
 
         return true;
+    }
+
+    // TODO remove this hack
+    constexpr int PIXEL_TYPE_BC1_UNORM = 100001;
+    constexpr int PIXEL_TYPE_BC3_UNORM = 100003;
+    constexpr int PIXEL_TYPE_BC5_UNORM = 100005;
+
+    bool loadWithDdspp(tinygltf::Image& image)
+    {
+        auto* bytes = image.image.data();
+        auto size = image.image.size();
+
+        ddsktx_texture_info info{};
+        if (!ddsktx_parse(&info, bytes, size, nullptr))
+            return false;
+
+        image.width = info.width;
+        image.height = info.height;
+
+        assert(info.bpp > 0);
+        assert(info.bpp % 4 == 0);
+        image.component = 4; // TODO
+        image.bits = info.bpp / 4; // TODO
+
+        image.pixel_type = [](ddsktx_format format)
+        {
+            switch (format)
+            {
+            case DDSKTX_FORMAT_BC1:
+                return PIXEL_TYPE_BC1_UNORM;
+            case DDSKTX_FORMAT_BC3:
+                return PIXEL_TYPE_BC3_UNORM;
+            case DDSKTX_FORMAT_BC5:
+                return PIXEL_TYPE_BC5_UNORM;
+            }
+            assert(false);
+            return 0;
+        }(info.format);
+        image.as_is = false;
+
+        return true;
+    }
+
+    bool loadImage(tinygltf::Image& image)
+    {
+        if (loadWithDdspp(image))
+            return true;
+
+        if (loadWithStbImage(image))
+            return true;
+
+        return false;
     }
 
     std::optional<tinygltf::Model> loadModel(std::string const& path)
@@ -446,11 +499,11 @@ void DemoApplication::createResources()
 
     m_defaultSampler = resourceManager.createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
 
-    m_defaultAlbedoImage = resourceManager.createImage(vkgfx::ImageMetadata{ 1, 1, vkgfx::ImageFormat::R8G8B8A8 });
+    m_defaultAlbedoImage = resourceManager.createImage(vkgfx::ImageMetadata{ 1, 1, 4 * 8, vkgfx::ImageFormat::R8G8B8A8 });
     resourceManager.uploadImage(m_defaultAlbedoImage, std::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
     m_defaultAlbedoTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultAlbedoImage, m_defaultSampler });
 
-    m_defaultNormalMapImage = resourceManager.createImage(vkgfx::ImageMetadata{ 1, 1, vkgfx::ImageFormat::R8G8B8A8 });
+    m_defaultNormalMapImage = resourceManager.createImage(vkgfx::ImageMetadata{ 1, 1, 4 * 8, vkgfx::ImageFormat::R8G8B8A8 });
     resourceManager.uploadImage(m_defaultNormalMapImage, std::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff });
     m_defaultNormalMapTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultNormalMapImage, m_defaultSampler });
 }
@@ -1137,21 +1190,57 @@ void DemoApplication::updateMaterials()
         if (m_gltfResources->images[i])
             continue;
 
-        uint32_t width = static_cast<uint32_t>(gltfImage.width);
-        uint32_t height = static_cast<uint32_t>(gltfImage.height);
-        std::size_t bitsPerComponent = static_cast<std::size_t>(gltfImage.bits);
-        std::size_t components = static_cast<std::size_t>(gltfImage.component);
-
         vkgfx::ImageMetadata metadata;
-        metadata.width = width;
-        metadata.height = height;
-        if (bitsPerComponent == 8 && components == 4)
-            metadata.format = vkgfx::ImageFormat::R8G8B8A8;
-        else
-            assert(false);
+        metadata.width = static_cast<std::size_t>(gltfImage.width);
+        metadata.height = static_cast<std::size_t>(gltfImage.height);
+
+        std::span<unsigned char const> bytes = gltfImage.image;
+
+        // TODO remove this hack
+        {
+            ddsktx_texture_info info{};
+            if (ddsktx_parse(&info, bytes.data(), bytes.size(), nullptr))
+            {
+                // TODO support all mips
+                ddsktx_sub_data mipInfo;
+                ddsktx_get_sub(&info, &mipInfo, bytes.data(), bytes.size(), 0, 0, 0);
+
+                assert(mipInfo.buff > bytes.data());
+                std::size_t offset = static_cast<unsigned char const*>(mipInfo.buff) - bytes.data();
+
+                bytes = bytes.subspan(offset, mipInfo.size_bytes);
+            }
+        }
+
+        // TODO remove this hack
+        metadata.bitsPerPixel = bytes.size() * 8 / metadata.width / metadata.height;
+
+        // TODO refactor this branch mess
+        if (gltfImage.pixel_type == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
+        {
+            std::size_t bitsPerComponent = static_cast<std::size_t>(gltfImage.bits);
+            std::size_t components = static_cast<std::size_t>(gltfImage.component);
+
+            if (bitsPerComponent == 8 && components == 4)
+                metadata.format = vkgfx::ImageFormat::R8G8B8A8;
+            else
+                assert(false);
+        }
+        else if (gltfImage.pixel_type == PIXEL_TYPE_BC1_UNORM)
+        {
+            metadata.format = vkgfx::ImageFormat::BC1_UNORM;
+        }
+        else if (gltfImage.pixel_type == PIXEL_TYPE_BC3_UNORM)
+        {
+            metadata.format = vkgfx::ImageFormat::BC3_UNORM;
+        }
+        else if (gltfImage.pixel_type == PIXEL_TYPE_BC5_UNORM)
+        {
+            metadata.format = vkgfx::ImageFormat::BC5_UNORM;
+        }
 
         auto handle = resourceManager.createImage(metadata);
-        resourceManager.uploadImage(handle, gltfImage.image);
+        resourceManager.uploadImage(handle, bytes);
         m_gltfResources->images[i] = handle;
     }
     

@@ -7,6 +7,14 @@
       "projectTarget": "demo.exe (code\\demo\\demo.exe)",
       "name": "demo.exe (code\\demo\\demo.exe)",
       "currentDir": "${workspaceRoot}"
+    },
+    {
+      "project": "CMakeLists.txt",
+      "projectTarget": "dds-ktx-demo.exe (external\\dds-ktx\\dds-ktx-demo.exe)",
+      "name": "dds-ktx-demo.exe (external\\dds-ktx\\dds-ktx-demo.exe)",
+      "currentDir": "${workspaceRoot}",
+      "args": [
+      ]
     }
   ]
 }
