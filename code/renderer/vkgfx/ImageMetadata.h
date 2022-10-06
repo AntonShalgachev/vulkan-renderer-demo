@@ -17,5 +17,6 @@ namespace vkgfx
         std::size_t height = 0;
         std::size_t bitsPerPixel = 0;
         ImageFormat format = ImageFormat::R8G8B8A8;
+        bool srgb = false;
     };
 }

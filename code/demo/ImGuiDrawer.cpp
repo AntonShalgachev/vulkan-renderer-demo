@@ -187,6 +187,7 @@ void ImGuiDrawer::createImages(vkgfx::ResourceManager& resourceManager)
         .height = static_cast<std::size_t>(height),
         .bitsPerPixel = static_cast<std::size_t>(bytesPerPixel) * 8,
         .format = vkgfx::ImageFormat::R8G8B8A8,
+        .srgb = false,
     };
     m_fontImage = resourceManager.createImage(std::move(metadata));
 

@@ -208,24 +208,25 @@ vkgfx::ImageHandle vkgfx::ResourceManager::createImage(ImageMetadata metadata)
     assert(metadata.bitsPerPixel > 0);
 
     // TODO use SRGB for textures data and UNORM for normal maps
-    VkFormat vkFormat = [](ImageFormat format) {
+    VkFormat vkFormat = [](ImageFormat format, bool srgb) {
         switch (format)
         {
         case ImageFormat::R8G8B8A8:
-            return VK_FORMAT_R8G8B8A8_UNORM;
+            return srgb ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
         case ImageFormat::R8G8B8:
-            return VK_FORMAT_R8G8B8_UNORM;
+            return srgb ? VK_FORMAT_R8G8B8_SRGB : VK_FORMAT_R8G8B8_UNORM;
         case ImageFormat::BC1_UNORM:
-            return VK_FORMAT_BC1_RGB_UNORM_BLOCK;
+            return srgb ? VK_FORMAT_BC1_RGBA_SRGB_BLOCK : VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
         case ImageFormat::BC3_UNORM:
-            return VK_FORMAT_BC3_UNORM_BLOCK;
+            return srgb ? VK_FORMAT_BC3_SRGB_BLOCK : VK_FORMAT_BC3_UNORM_BLOCK;
         case ImageFormat::BC5_UNORM:
+            assert(!srgb);
             return VK_FORMAT_BC5_UNORM_BLOCK;
         }
 
         assert(false);
         return VK_FORMAT_R8G8B8A8_UNORM;
-    }(metadata.format);
+    }(metadata.format, metadata.srgb);
 
     auto width = static_cast<uint32_t>(metadata.width);
     auto height = static_cast<uint32_t>(metadata.height);
