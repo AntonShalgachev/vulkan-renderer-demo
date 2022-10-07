@@ -36,7 +36,7 @@ namespace vkgfx
     class Renderer
     {
     public:
-        Renderer(std::string const& name, bool enableValidationLayers, vko::Window& window, std::function<void(vko::DebugMessage)> onDebugMessage = {});
+        Renderer(char const* name, bool enableValidationLayers, vko::Window& window, std::function<void(vko::DebugMessage)> onDebugMessage = {});
         ~Renderer();
 
         ResourceManager& getResourceManager() const { return *m_resourceManager; }

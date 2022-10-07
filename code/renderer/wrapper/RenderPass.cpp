@@ -2,7 +2,6 @@
 
 #include "Device.h"
 #include <array>
-#include <stdexcept>
 
 vko::RenderPass::RenderPass(Device const& device, VkFormat colorFormat, VkFormat depthFormat) : m_device(device)
 {
@@ -59,8 +58,7 @@ vko::RenderPass::RenderPass(Device const& device, VkFormat colorFormat, VkFormat
     renderPassCreateInfo.dependencyCount = 1;
     renderPassCreateInfo.pDependencies = &dependency;
 
-    if (vkCreateRenderPass(m_device.getHandle(), &renderPassCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
-        throw std::runtime_error("failed to create render pass!");
+    VKO_ASSERT(vkCreateRenderPass(m_device.getHandle(), &renderPassCreateInfo, nullptr, &m_handle.get()));
 }
 
 vko::RenderPass::~RenderPass()

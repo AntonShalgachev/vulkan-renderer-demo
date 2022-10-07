@@ -3,8 +3,6 @@
 #include "Assert.h"
 #include "Device.h"
 
-#include <cassert>
-
 namespace
 {
     VkShaderStageFlagBits getStageFlags(vko::ShaderModuleType type)

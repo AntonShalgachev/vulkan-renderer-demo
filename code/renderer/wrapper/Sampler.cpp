@@ -1,6 +1,5 @@
 #include "Sampler.h"
 #include "Device.h"
-#include <stdexcept>
 
 namespace
 {
@@ -14,7 +13,8 @@ namespace
             return VK_FILTER_LINEAR;
         }
 
-        throw std::invalid_argument("mode");
+        assert(false);
+        return VK_FILTER_LINEAR;
     }
 
     VkSamplerAddressMode vulkanizeWrapMode(vko::SamplerWrapMode mode)
@@ -29,7 +29,8 @@ namespace
             return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
         }
 
-        throw std::invalid_argument("mode");
+        assert(false);
+        return VK_SAMPLER_ADDRESS_MODE_REPEAT;
     }
 }
 
@@ -56,8 +57,7 @@ vko::Sampler::Sampler(Device const& device, SamplerFilterMode magFilter, Sampler
     samplerCreateInfo.minLod = 0.0f;
     samplerCreateInfo.maxLod = 0.0f;
 
-    if (vkCreateSampler(m_device, &samplerCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
-        throw std::runtime_error("failed to create texture sampler!");
+    VKO_ASSERT(vkCreateSampler(m_device, &samplerCreateInfo, nullptr, &m_handle.get()));
 }
 
 vko::Sampler::~Sampler()

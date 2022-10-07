@@ -6,7 +6,6 @@
 #include "Swapchain.h"
 #include "ImageView.h"
 #include "Device.h"
-#include <stdexcept>
 
 vko::Framebuffer::Framebuffer(Device const& device, vko::ImageView const& colorImageView, vko::ImageView const& depthImageView, vko::RenderPass const& renderPass, VkExtent2D extent)
     : m_device(device)
@@ -22,8 +21,7 @@ vko::Framebuffer::Framebuffer(Device const& device, vko::ImageView const& colorI
     framebufferCreateInfo.height = extent.height;
     framebufferCreateInfo.layers = 1;
 
-    if (vkCreateFramebuffer(m_device.getHandle(), &framebufferCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
-        throw std::runtime_error("failed to create framebuffer!");
+    VKO_ASSERT(vkCreateFramebuffer(m_device.getHandle(), &framebufferCreateInfo, nullptr, &m_handle.get()));
 }
 
 vko::Framebuffer::~Framebuffer()

@@ -1,7 +1,6 @@
 #include "DescriptorSetLayout.h"
 #include "Device.h"
 #include <array>
-#include <stdexcept>
 
 vko::DescriptorSetLayout::DescriptorSetLayout(Device const& device, DescriptorSetConfiguration config)
     : m_device(device)
@@ -46,8 +45,7 @@ vko::DescriptorSetLayout::DescriptorSetLayout(Device const& device, DescriptorSe
     descriptorSetLayoutCreateInfo.bindingCount = static_cast<uint32_t>(bindings.size());
     descriptorSetLayoutCreateInfo.pBindings = bindings.data();
 
-    if (vkCreateDescriptorSetLayout(m_device.getHandle(), &descriptorSetLayoutCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
-        throw std::runtime_error("failed to create descriptor set layout!");
+    VKO_ASSERT(vkCreateDescriptorSetLayout(m_device.getHandle(), &descriptorSetLayoutCreateInfo, nullptr, &m_handle.get()));
 }
 
 vko::DescriptorSetLayout::~DescriptorSetLayout()

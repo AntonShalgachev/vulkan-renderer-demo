@@ -1,6 +1,8 @@
 set(PROJECT_NAME renderer)
 
 set(ALL_FILES
+    "pch.h"
+
     "wrapper/Assert.h"
     "wrapper/Assert.cpp"
     "wrapper/Buffer.h"
@@ -99,6 +101,8 @@ target_include_directories(${PROJECT_NAME}
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE "pch.h")
 
 target_link_libraries(${PROJECT_NAME}
     Vulkan::Vulkan

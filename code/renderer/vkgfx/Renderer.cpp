@@ -228,7 +228,7 @@ namespace vkgfx
     };
 }
 
-vkgfx::Renderer::Renderer(std::string const& name, bool enableValidationLayers, vko::Window& window, std::function<void(vko::DebugMessage)> onDebugMessage) : m_window(window)
+vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Window& window, std::function<void(vko::DebugMessage)> onDebugMessage) : m_window(window)
 {
     m_window.addResizeCallback([this](int, int) { onWindowResized(); });
 

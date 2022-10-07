@@ -1,7 +1,7 @@
 #include "PipelineLayout.h"
 
+#include "Assert.h"
 #include "Device.h"
-#include <stdexcept>
 
 vko::PipelineLayout::PipelineLayout(Device const& device, std::span<VkDescriptorSetLayout const> setLayouts, std::span<VkPushConstantRange const> pushConstantRanges)
     : m_device(device)
@@ -13,8 +13,7 @@ vko::PipelineLayout::PipelineLayout(Device const& device, std::span<VkDescriptor
     pipelineLayoutCreateInfo.pushConstantRangeCount = static_cast<uint32_t>(pushConstantRanges.size());
     pipelineLayoutCreateInfo.pPushConstantRanges = pushConstantRanges.data();
 
-    if (vkCreatePipelineLayout(m_device.getHandle(), &pipelineLayoutCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
-        throw std::runtime_error("failed to create pipeline layout!");
+    VKO_ASSERT(vkCreatePipelineLayout(m_device.getHandle(), &pipelineLayoutCreateInfo, nullptr, &m_handle.get()));
 
     m_descriptorSetLayouts.assign(setLayouts.begin(), setLayouts.end());
 }

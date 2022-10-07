@@ -2,7 +2,6 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
-#include <string>
 #include <functional>
 
 #include "UniqueHandle.h"
@@ -15,7 +14,7 @@ namespace vko
     class Instance
     {
     public:
-    	Instance(std::string const& appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump, std::function<void(DebugMessage)> onDebugMessage);
+    	Instance(char const* appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump, std::function<void(DebugMessage)> onDebugMessage);
     	~Instance();
 
         Instance(Instance const&) = default;
@@ -48,7 +47,7 @@ namespace vko
         void dispatchDebugMessage(DebugMessage message);
 
     private:
-        void createInstance(std::string const& appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump);
+        void createInstance(char const* appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump);
         void findFunctions();
         void createDebugMessenger();
 

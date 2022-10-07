@@ -24,8 +24,6 @@ namespace vko
         VkMemoryRequirements getMemoryRequirements() const;
         void bindMemory(DeviceMemory const& memory) const;
 
-//         ImageView createImageView(VkImageAspectFlags aspectFlags) const;
-
         VkImage getHandle() const { return m_handle; }
         VkFormat getFormat() const { return m_format; }
 

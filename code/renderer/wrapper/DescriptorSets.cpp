@@ -1,7 +1,5 @@
 #include "DescriptorSets.h"
 #include "Device.h"
-#include <stdexcept>
-#include <cassert>
 
 vko::DescriptorSets::DescriptorSets(Device const& device, std::vector<VkDescriptorSet> handles)
     : m_device(&device)

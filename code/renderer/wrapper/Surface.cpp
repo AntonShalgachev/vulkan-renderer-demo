@@ -1,7 +1,5 @@
 #include "Surface.h"
 
-#include <stdexcept>
-
 #include "Instance.h"
 #include "Window.h"
 

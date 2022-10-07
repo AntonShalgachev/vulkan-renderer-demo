@@ -6,8 +6,6 @@
 #include "Surface.h"
 #include "QueueFamily.h"
 
-#include <stdexcept>
-
 vko::Swapchain::Swapchain(Device const& device, Surface const& surface, QueueFamily const& graphics, QueueFamily const& presentation, Config config)
     : m_device(device)
     , m_config(std::move(config))
@@ -43,8 +41,7 @@ vko::Swapchain::Swapchain(Device const& device, Surface const& surface, QueueFam
     swapchainCreateInfo.clipped = VK_TRUE;
     swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    if (vkCreateSwapchainKHR(m_device.getHandle(), &swapchainCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
-        throw std::runtime_error("failed to create swap chain!");
+    VKO_ASSERT(vkCreateSwapchainKHR(m_device.getHandle(), &swapchainCreateInfo, nullptr, &m_handle.get()));
 
     retrieveImages();
 }

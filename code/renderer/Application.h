@@ -1,7 +1,6 @@
 #pragma once
 
 #include <functional>
-#include <string>
 #include <memory>
 
 #include <vulkan/vulkan.h> // TODO remove
@@ -26,7 +25,7 @@ namespace vkr
     class Application
     {
     public:
-        Application(std::string const& name, bool enableValidation, bool enableApiDump, vko::Window const& window, std::function<void(vko::DebugMessage)> onDebugMessage = {});
+        Application(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, std::function<void(vko::DebugMessage)> onDebugMessage = {});
         ~Application();
 
         vko::Instance const& getInstance() const;

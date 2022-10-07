@@ -1,7 +1,5 @@
 #include "Instance.h"
 
-#include <cassert>
-
 #include "Assert.h"
 #include "PhysicalDevice.h"
 #include "common/Utils.h"
@@ -58,7 +56,7 @@ namespace
     }
 }
 
-vko::Instance::Instance(std::string const& appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump, std::function<void(DebugMessage)> onDebugMessage) : m_onDebugMessage(std::move(onDebugMessage))
+vko::Instance::Instance(char const* appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump, std::function<void(DebugMessage)> onDebugMessage) : m_onDebugMessage(std::move(onDebugMessage))
 {
     m_availableLayers = getAvailableLayers();
     m_availableLayerNames.reserve(m_availableLayers.size());
@@ -83,7 +81,7 @@ vko::Instance::~Instance()
     vkDestroyInstance(m_handle, nullptr);
 }
 
-void vko::Instance::createInstance(std::string const& appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump)
+void vko::Instance::createInstance(char const* appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump)
 {
     std::vector<char const*> requestedLayers;
     if (enableValidation)
@@ -96,7 +94,7 @@ void vko::Instance::createInstance(std::string const& appName, std::vector<char 
 
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = appName.c_str();
+    appInfo.pApplicationName = appName;
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "No Engine"; // TODO change
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);

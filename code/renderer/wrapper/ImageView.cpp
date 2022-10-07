@@ -2,7 +2,6 @@
 
 #include "Image.h"
 #include "Device.h"
-#include <stdexcept>
 
 namespace vko
 {
@@ -19,8 +18,7 @@ namespace vko
 		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		imageViewCreateInfo.subresourceRange.layerCount = 1;
 
-		if (vkCreateImageView(m_device, &imageViewCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
-			throw std::runtime_error("failed to create texture image view!");
+		VKO_ASSERT(vkCreateImageView(m_device, &imageViewCreateInfo, nullptr, &m_handle.get()));
 	}
 
 	ImageView::~ImageView()

@@ -5,7 +5,6 @@
 #include "RenderPass.h"
 #include "Device.h"
 
-#include <stdexcept>
 #include <iterator>
 #include <algorithm>
 
@@ -191,8 +190,7 @@ vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, Rend
     pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
     pipelineCreateInfo.basePipelineIndex = -1;
 
-    if (vkCreateGraphicsPipelines(m_device.getHandle(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
-        throw std::runtime_error("failed to create graphics pipeline!");
+	VKO_ASSERT(vkCreateGraphicsPipelines(m_device.getHandle(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &m_handle.get()));
 
 	auto layoutsSpan = layout.getDescriptorSetLayouts();
 	m_descriptorSetLayouts.assign(layoutsSpan.begin(), layoutsSpan.end());

@@ -3,16 +3,13 @@
 #include "Assert.h"
 #include "Device.h"
 
-#include <stdexcept>
-
 vko::Fence::Fence(Device const& device) : m_device(device)
 {
     VkFenceCreateInfo fenceCreateInfo{};
     fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    if (vkCreateFence(m_device.getHandle(), &fenceCreateInfo, nullptr, &m_handle.get()) != VK_SUCCESS)
-        throw std::runtime_error("failed to create fence!");
+    VKO_ASSERT(vkCreateFence(m_device.getHandle(), &fenceCreateInfo, nullptr, &m_handle.get()));
 }
 
 vko::Fence::~Fence()
@@ -33,9 +30,7 @@ void vko::Fence::reset() const
 bool vko::Fence::isSignaled() const
 {
     VkResult result = vkGetFenceStatus(m_device.getHandle(), m_handle);
-
-    if (result != VK_SUCCESS && result != VK_NOT_READY)
-        throw std::runtime_error("unexpected fence status result");
+    assert(result == VK_SUCCESS || result == VK_NOT_READY);
 
     return result == VK_SUCCESS;
 }

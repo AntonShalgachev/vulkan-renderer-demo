@@ -4,8 +4,6 @@
 #include "DeviceMemory.h"
 #include "Device.h"
 
-#include <stdexcept>
-
 namespace vko
 {
     Image::Image(Device const& device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage) : m_device(device.getHandle())
