@@ -19,3 +19,9 @@ add_executable(dds-ktx-demo
     ${dds-ktx_SOURCE_DIR}/ctexview/ctexview.c
 )
 add_executable(dds-ktx::demo ALIAS dds-ktx-demo)
+
+target_compile_options(dds-ktx-demo PRIVATE
+     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+          -W0>
+     $<$<CXX_COMPILER_ID:MSVC>:
+          /W0>)

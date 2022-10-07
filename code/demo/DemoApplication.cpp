@@ -185,8 +185,9 @@ namespace
                 return PIXEL_TYPE_BC3_UNORM;
             case DDSKTX_FORMAT_BC5:
                 return PIXEL_TYPE_BC5_UNORM;
+            default:
+                assert(false);
             }
-            assert(false);
             return 0;
         }(info.format);
         image.as_is = false;
@@ -279,6 +280,8 @@ namespace
             return 3 * gltfFloatSize;
         case vkgfx::AttributeType::Vec4f:
             return 4 * gltfFloatSize;
+        case vkgfx::AttributeType::UInt32:
+            return 4;
         case vkgfx::AttributeType::Mat2f:
             return 4 * gltfFloatSize;
         case vkgfx::AttributeType::Mat3f:

@@ -263,13 +263,16 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
 
     for (auto i = 0; i < FRAME_RESOURCE_COUNT; i++)
     {
+        vko::CommandPool commandPool{ device, graphicsQueueFamily };
+        vko::CommandBuffers commandBuffers{ commandPool.allocate(1) };
+
         RendererFrameResources resources
         {
             .imageAvailableSemaphore{device},
             .renderFinishedSemaphore{device},
             .inFlightFence{device},
-            .commandPool{device, graphicsQueueFamily},
-            .commandBuffers{resources.commandPool.allocate(1)},
+            .commandPool{std::move(commandPool)},
+            .commandBuffers{std::move(commandBuffers)},
         };
 
         instance.setDebugName(device.getHandle(), resources.imageAvailableSemaphore.getHandle(), std::format("Image available #{}", i));

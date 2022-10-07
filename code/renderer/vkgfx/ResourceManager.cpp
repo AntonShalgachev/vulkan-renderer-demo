@@ -173,9 +173,10 @@ namespace
             return VK_FORMAT_R32G32B32A32_SFLOAT;
         case vkgfx::AttributeType::UInt32:
             return VK_FORMAT_R8G8B8A8_UNORM;
+        default:
+            assert(false);
         }
 
-        assert(false);
         return VK_FORMAT_R32G32B32A32_SFLOAT;
     }
 

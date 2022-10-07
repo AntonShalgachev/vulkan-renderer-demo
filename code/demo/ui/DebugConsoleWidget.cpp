@@ -85,7 +85,7 @@ void ui::DebugConsoleWidget::drawOutput()
     for (DebugConsoleService::Line const& line : services().debugConsole().lines())
     {
         ImGui::PushStyleColor(ImGuiCol_Text, getLineColor(line.type));
-        ImGui::Text(line.text.c_str());
+        ImGui::Text("%s", line.text.c_str());
         ImGui::PopStyleColor();
     }
 
@@ -177,12 +177,12 @@ void ui::DebugConsoleWidget::drawSuggestions()
         {
             std::string_view command = m_suggestions[i].suggestion.command;
             std::string_view description = m_suggestions[i].description;
-            ImGui::Text("  %.*s", command.size(), command.data());
+            ImGui::Text("  %.*s", static_cast<int>(command.size()), command.data());
             if (!description.empty())
             {
                 ImGui::PushStyleColor(ImGuiCol_Text, suggestionDescriptionColor);
                 ImGui::SameLine();
-                ImGui::Text(" // %.*s", description.size(), description.data());
+                ImGui::Text(" // %.*s", static_cast<int>(description.size()), description.data());
                 ImGui::PopStyleColor();
             }
         }
