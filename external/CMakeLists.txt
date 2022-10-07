@@ -62,7 +62,7 @@ FetchDependency(rapidfuzz)
 
 FetchContent_Declare(
     argparse
-    URL https://github.com/p-ranav/argparse/archive/refs/tags/v2.6.tar.gz # 2.6
+    URL https://github.com/p-ranav/argparse/archive/refs/tags/v2.9.tar.gz # 2.9
 )
 FetchDependency(argparse)
 
