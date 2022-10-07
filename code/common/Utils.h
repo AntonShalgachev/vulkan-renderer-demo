@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string_view>
+#include <vector>
+#include <string>
 
 namespace vkc
 {
@@ -22,5 +24,8 @@ namespace vkc
 
             return true;
         }
+
+        // TODO implement asset manager instead
+        std::vector<unsigned char> readFile(const std::string& filename);
     }
 }

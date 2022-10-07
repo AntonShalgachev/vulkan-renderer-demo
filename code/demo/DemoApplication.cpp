@@ -6,7 +6,6 @@
 #include <sstream>
 #include <iostream>
 #include <filesystem>
-#include <fstream>
 #include <thread>
 
 #include "stb_image.h"
@@ -41,6 +40,8 @@
 #include "services/DebugConsoleService.h"
 #include "services/CommandLineService.h"
 #include "services/DebugDrawService.h"
+
+#include "common/Utils.h"
 
 namespace
 {
@@ -299,23 +300,6 @@ namespace
             return static_cast<std::size_t>(std::distance(attributeNames.begin(), it));
 
         return {};
-    }
-
-    std::vector<unsigned char> readFile(const std::string& filename)
-    {
-        std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-        if (!file.is_open())
-            throw std::runtime_error("failed to open file!");
-
-        std::streamsize fileSize = file.tellg();
-        std::vector<unsigned char> buffer(static_cast<std::size_t>(fileSize));
-
-        file.seekg(0);
-        file.read(reinterpret_cast<char*>(buffer.data()), fileSize); // safe, since char and unsigned char have the same alignment and representation
-        file.close();
-
-        return buffer;
     }
 
     // TODO move somewhere
@@ -775,12 +759,12 @@ bool DemoApplication::loadCurrentGltfModel()
 
     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
     {
-        auto handle = resourceManager.createShaderModule(readFile(modulePath), vko::ShaderModuleType::Vertex, "main");
+        auto handle = resourceManager.createShaderModule(vkc::utils::readFile(modulePath), vko::ShaderModuleType::Vertex, "main");
         m_gltfResources->shaderModules[modulePath] = handle;
     }
     for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
     {
-        auto handle = resourceManager.createShaderModule(readFile(modulePath), vko::ShaderModuleType::Fragment, "main");
+        auto handle = resourceManager.createShaderModule(vkc::utils::readFile(modulePath), vko::ShaderModuleType::Fragment, "main");
         m_gltfResources->shaderModules[modulePath] = handle;
     }
 

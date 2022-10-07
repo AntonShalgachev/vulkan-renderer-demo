@@ -10,8 +10,9 @@
 
 #include "wrapper/ShaderModule.h" // TODO remove, used only for enum
 
+#include "common/Utils.h"
+
 #include <vector>
-#include <fstream>
 
 namespace
 {
@@ -61,24 +62,6 @@ namespace
         0x10, 0x00, 0x11, 0x00, 0x12, 0x00, 0x13, 0x00, 0x12, 0x00, 0x11, 0x00, 0x14, 0x00, 0x15, 0x00,
         0x16, 0x00, 0x17, 0x00, 0x16, 0x00, 0x15, 0x00
     };
-
-    // TODO remove duplication with DemoApplication
-    std::vector<unsigned char> readFile(const std::string& filename)
-    {
-        std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-        if (!file.is_open())
-            throw std::runtime_error("failed to open file!");
-
-        std::streamsize fileSize = file.tellg();
-        std::vector<unsigned char> buffer(static_cast<std::size_t>(fileSize));
-
-        file.seekg(0);
-        file.read(reinterpret_cast<char*>(buffer.data()), fileSize); // safe, since char and unsigned char have the same alignment and representation
-        file.close();
-
-        return buffer;
-    }
 }
 
 DebugDrawService::DebugDrawService(vkgfx::Renderer& renderer)
@@ -117,7 +100,7 @@ DebugDrawService::DebugDrawService(vkgfx::Renderer& renderer)
         std::string const* path = package.get({});
         assert(path);
         if (path)
-            vertexShaderModule = resources.createShaderModule(readFile(*path), vko::ShaderModuleType::Vertex, "main");
+            vertexShaderModule = resources.createShaderModule(vkc::utils::readFile(*path), vko::ShaderModuleType::Vertex, "main");
     }
 
     {
@@ -125,7 +108,7 @@ DebugDrawService::DebugDrawService(vkgfx::Renderer& renderer)
         std::string const* path = package.get({});
         assert(path);
         if (path)
-            fragmentShaderModule = resources.createShaderModule(readFile(*path), vko::ShaderModuleType::Fragment, "main");
+            fragmentShaderModule = resources.createShaderModule(vkc::utils::readFile(*path), vko::ShaderModuleType::Fragment, "main");
     }
 
     {
