@@ -1,6 +1,42 @@
 #pragma once
 
+#include "glm.h"
+#include "vkgfx/Renderer.h"
+#include "vkgfx/ResourceManager.h"
+#include "vkgfx/Handles.h"
+#include "vkgfx/PipelineKey.h"
+#include "vkgfx/ImageMetadata.h"
+#include "vkgfx/Texture.h"
+#include "vkgfx/Mesh.h"
+#include "vkgfx/Material.h"
+#include "vkgfx/BufferMetadata.h"
+#include "common/Utils.h"
+#include "services/Services.h"
+#include "services/DebugConsoleService.h"
+#include "services/CommandLineService.h"
+#include "services/DebugDrawService.h"
+#include "ScopedDebugCommands.h"
+
 #include "argparse/argparse.hpp"
 #include "spdlog/spdlog.h"
+#include "spdlog/fmt/ostr.h"
 #include "coil/Coil.h"
 #include "magic_enum.hpp"
+
+#include <functional>
+#include <optional>
+#include <memory>
+#include <array>
+#include <vector>
+#include <sstream>
+#include <string>
+#include <string_view>
+#include <iomanip>
+#include <unordered_set>
+#include <unordered_map>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <cassert>
+#include <span>
