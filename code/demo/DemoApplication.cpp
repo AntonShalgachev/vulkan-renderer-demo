@@ -488,7 +488,6 @@ void DemoApplication::createResources()
         .height = 1,
         .bitsPerPixel = 4 * 8,
         .format = vkgfx::ImageFormat::R8G8B8A8,
-        .srgb = false,
     });
     resourceManager.uploadImage(m_defaultAlbedoImage, std::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
     m_defaultAlbedoTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultAlbedoImage, m_defaultSampler });
@@ -498,7 +497,6 @@ void DemoApplication::createResources()
         .height = 1,
         .bitsPerPixel = 4 * 8,
         .format = vkgfx::ImageFormat::R8G8B8A8,
-        .srgb = false,
     });
     resourceManager.uploadImage(m_defaultNormalMapImage, std::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff });
     m_defaultNormalMapTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultNormalMapImage, m_defaultSampler });
@@ -1211,8 +1209,6 @@ void DemoApplication::updateMaterials()
         // TODO remove this hack
         metadata.bitsPerPixel = bytes.size() * 8 / metadata.width / metadata.height;
 
-        metadata.srgb = false;
-
         // TODO refactor this branch mess
         if (gltfImage.pixel_type == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
         {
@@ -1223,13 +1219,10 @@ void DemoApplication::updateMaterials()
                 metadata.format = vkgfx::ImageFormat::R8G8B8A8;
             else
                 assert(false);
-
-            metadata.srgb = true; // TODO implement properly
         }
         else if (gltfImage.pixel_type == PIXEL_TYPE_BC1_UNORM)
         {
             metadata.format = vkgfx::ImageFormat::BC1_UNORM;
-            metadata.srgb = true; // TODO implement properly
         }
         else if (gltfImage.pixel_type == PIXEL_TYPE_BC3_UNORM)
         {

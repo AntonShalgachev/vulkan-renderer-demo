@@ -45,12 +45,14 @@ layout(location = 8) in vec3 fragBitangent;
 
 layout(location = 0) out vec4 outColor;
 
+float gamma = 2.2;
+
 vec3 getBaseColor()
 {
 	vec3 result = objectColor.rgb;
 
 #if defined(HAS_TEX_COORD) && defined(HAS_TEXTURE)
-	result *= texture(texSampler, fragTexCoord).rgb;
+	result *= pow(texture(texSampler, fragTexCoord).rgb, vec3(gamma));
 #endif
 
 #ifdef HAS_VERTEX_COLOR
@@ -125,7 +127,7 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 	return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
-vec3 calculateColor(vec3 albedo)
+vec3 applyLighting(vec3 albedo)
 {
 	vec3 N = getNormalVector();
 	vec3 V = normalize(viewVec);
@@ -167,20 +169,19 @@ vec3 calculateColor(vec3 albedo)
 	vec3 ambient = vec3(0.03) * albedo * ao;
 	vec3 color = ambient + L0;
 
-	color = color / (color + vec3(1.0));
-	color = pow(color, vec3(1.0/2.2));
-
 	return color;
 }
 #endif
 
 void main()
 {
-	vec3 baseColor = getBaseColor();
+	vec3 color = getBaseColor();
 
 #ifdef HAS_LIGHT
-	outColor = vec4(calculateColor(baseColor), 1.0);
-#else
-	outColor = vec4(baseColor, 1.0);
+	color = applyLighting(color);
 #endif
+
+	color = color / (color + vec3(1.0));
+
+	outColor = vec4(color, 1.0);
 }
