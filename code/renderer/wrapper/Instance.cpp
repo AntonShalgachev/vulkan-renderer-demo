@@ -47,8 +47,10 @@ namespace
 
         vko::DebugMessage message;
         message.level = convertLevel(severity);
-        message.id = callbackData->pMessageIdName;
-        message.text = callbackData->pMessage;
+        if (callbackData->pMessageIdName)
+            message.id = callbackData->pMessageIdName;
+        if (callbackData->pMessage)
+            message.text = callbackData->pMessage;
 
         self->dispatchDebugMessage(std::move(message));
 
