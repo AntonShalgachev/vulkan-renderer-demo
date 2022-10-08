@@ -2,7 +2,7 @@
 
 #include "Hash.h"
 
-#include <filesystem>
+#include <string_view>
 #include <unordered_map>
 
 // TODO store Mesh::Metadata and DescriptorSetConfiguration instead
@@ -40,7 +40,7 @@ namespace std
 class ShaderPackage
 {
 public:
-    ShaderPackage(std::filesystem::path path);
+    ShaderPackage(std::string_view path);
 
     std::string const* get(ShaderConfiguration const& config) const;
 

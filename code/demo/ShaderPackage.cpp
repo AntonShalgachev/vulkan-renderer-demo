@@ -4,12 +4,9 @@
 
 #include <fstream>
 
-ShaderPackage::ShaderPackage(std::filesystem::path path)
+ShaderPackage::ShaderPackage(std::string_view path)
 {
-    auto packageMetadataPath = path / "package.json";
-
-    if (!std::filesystem::exists(packageMetadataPath))
-        throw std::runtime_error("Invalid package path");
+    auto packageMetadataPath = std::string{ path } + "/package.json";
 
     nlohmann::json j;
 
@@ -39,8 +36,7 @@ ShaderPackage::ShaderPackage(std::filesystem::path path)
                 configuration.hasNormalMap = (value == "");
         }
 
-        std::filesystem::path fullPath = path / variant["path"];
-        m_shaders[configuration] = fullPath.generic_string();
+        m_shaders[configuration] = std::string{ path } + "/" + variant["path"].get<std::string>();
     }
 }
 
