@@ -381,9 +381,8 @@ DemoApplication::DemoApplication()
     m_commands["window.height"] = coil::bindProperty(&vkr::GlfwWindow::getHeight, m_window.get());
 
     m_commands["scene.load"].description("Load scene from a GLTF model").arguments("path") = [this](coil::Context context, std::string_view path) {
-        std::string pathStr{ path };
-        if (!loadScene(pathStr))
-            context.reportError("Failed to load the scene '" + pathStr + "'");
+        if (!loadScene(std::string{ path }))
+            context.reportError("Failed to load the scene '" + utils::stdToCoilStringView(path) + "'");
     };
     m_commands["scene.reload"] = [this]() { loadScene(m_currentScenePath); };
     m_commands["scene.unload"] = coil::bind(&DemoApplication::clearScene, this);

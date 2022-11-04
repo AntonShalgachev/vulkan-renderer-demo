@@ -26,6 +26,26 @@ namespace utils
 
         return ss.str();
     }
+
+    inline std::string coilToStdString(coil::StringView str)
+    {
+        return { str.data(), str.length() };
+    }
+
+    inline std::string_view coilToStdStringView(coil::StringView str)
+    {
+        return { str.data(), str.length() };
+    }
+
+    inline coil::String stdToCoilString(std::string_view str)
+    {
+        return { str.data(), str.length() };
+    }
+
+    inline coil::StringView stdToCoilStringView(std::string_view str)
+    {
+        return { str.data(), str.length() };
+    }
 }
 
 // TODO move to some other file
@@ -59,16 +79,16 @@ namespace coil
 	};
 
     // TODO make it templated
-	template<>
-	struct TypeSerializer<glm::vec3>
-	{
+    template<>
+    struct TypeSerializer<glm::vec3>
+    {
         static std::size_t const N = 3;
         using ElementType = float;
 
-		static Expected<glm::vec3, std::string> fromString(Value const& input)
-		{
-			if (input.subvalues.size() != N)
-				return errors::createMismatchedSubvaluesError<glm::vec3>(input, N);
+        static Expected<glm::vec3, coil::String> fromString(Value const& input)
+        {
+            if (input.subvalues.size() != N)
+                return errors::createMismatchedSubvaluesError<glm::vec3>(input, N);
 
             std::array<ElementType, N> values;
             for (std::size_t i = 0; i < N; i++)
@@ -81,31 +101,64 @@ namespace coil
             }
 
             return glm::make_vec3(values.data());
-		}
+        }
 
-		static std::string toString(glm::vec3 const& value)
-		{
-            std::stringstream ss;
-
-            ss << "(";
-            std::string_view separator = "";
+        static coil::String toString(glm::vec3 const& value)
+        {
+            coil::String result = "(";
+            coil::StringView separator = "";
 
             for (std::size_t i = 0; i < N; i++)
             {
-                ss << separator << value[i];
+                result += separator;
+                result += coil::toString(value[i]);
                 separator = ", ";
             }
 
-            ss << ")";
+            result += ")";
+            return result;
+        }
+    };
 
-            return ss.str();
-		}
-	};
+    // TODO move to cpp
+    template<>
+    struct TypeSerializer<std::string>
+    {
+        static Expected<std::string, coil::String> fromString(Value const& input)
+        {
+            if (input.subvalues.size() != 1)
+                return errors::createMismatchedSubvaluesError<String>(input, 1);
+
+            return utils::coilToStdString(input.subvalues[0]);
+        }
+
+        static coil::String toString(std::string const& value)
+        {
+            return utils::stdToCoilString(value);
+        }
+    };
+
+    template<>
+    struct TypeSerializer<std::string_view>
+    {
+        static Expected<std::string_view, coil::String> fromString(Value const& input)
+        {
+            if (input.subvalues.size() != 1)
+                return errors::createMismatchedSubvaluesError<String>(input, 1);
+
+            return utils::coilToStdStringView(input.subvalues[0]);
+        }
+
+        static coil::String toString(std::string_view const& value)
+        {
+            return utils::stdToCoilString(value);
+        }
+    };
 
     template<typename T, typename>
     struct TypeName
     {
-        static std::string_view name()
+        static coil::StringView name()
         {
             return typeid(T).name();
         }
@@ -114,29 +167,18 @@ namespace coil
     template<typename E>
     struct TypeName<E, std::enable_if_t<std::is_enum_v<E>>>
     {
-        static std::string_view name()
+        static coil::StringView name()
         {
             std::string_view typeName = magic_enum::enum_type_name<E>();
             auto it = typeName.rfind("::");
             if (it != std::string_view::npos)
                 typeName = typeName.substr(it + 2);
-            return typeName;
+            return coil::StringView{ typeName.data(), typeName.size() };
         }
     };
 
-	COIL_CREATE_TYPE_NAME_DECLARATION(void);
-	COIL_CREATE_TYPE_NAME_DECLARATION(std::int8_t);
-	COIL_CREATE_TYPE_NAME_DECLARATION(std::uint8_t);
-	COIL_CREATE_TYPE_NAME_DECLARATION(std::int16_t);
-	COIL_CREATE_TYPE_NAME_DECLARATION(std::uint16_t);
-	COIL_CREATE_TYPE_NAME_DECLARATION(std::int32_t);
-	COIL_CREATE_TYPE_NAME_DECLARATION(std::uint32_t);
-	COIL_CREATE_TYPE_NAME_DECLARATION(std::int64_t);
-	COIL_CREATE_TYPE_NAME_DECLARATION(std::uint64_t);
-	COIL_CREATE_TYPE_NAME_DECLARATION(float);
 	COIL_CREATE_TYPE_NAME_DECLARATION(std::string);
 	COIL_CREATE_TYPE_NAME_DECLARATION(std::string_view);
-
 	COIL_CREATE_TYPE_NAME_DECLARATION(glm::vec3);
 }
 
@@ -179,10 +221,13 @@ public:
     template<typename Functor>
     void add(std::string_view name, CommandMetadata metadata, Functor&& functor)
     {
-        coil::Bindings::Command const& command = m_bindings.add(name, std::forward<Functor>(functor));
-        auto it = m_metadata.insert_or_assign(name, std::move(metadata)).first;
+        coil::StringView coilName = utils::stdToCoilStringView(name);
+        coil::Bindings::Command const& command = m_bindings.add(coilName, std::forward<Functor>(functor));
+        auto it = m_metadata.insertOrAssign(coilName, std::move(metadata));
 
-        fillCommandMetadata(it->second, command.functors);
+        fillCommandMetadata(it->value(), command.functors);
+
+        m_commands.pushBack(coilName);
     }
 
     void remove(std::string_view name);
@@ -192,12 +237,13 @@ public:
     CommandMetadata const* getMetadata(std::string_view name) const;
 
 private:
-    void fillCommandMetadata(CommandMetadata& metadata, std::vector<coil::AnyFunctor> const& functors);
+    void fillCommandMetadata(CommandMetadata& metadata, coil::Vector<coil::AnyFunctor> const& functors);
     void addLine(std::string text, Line::Type type);
 
 private:
     coil::Bindings m_bindings;
-    std::unordered_map<coil::BasicStringWrapper<std::string>, CommandMetadata> m_metadata;
+    coil::UnorderedMap<coil::String, CommandMetadata> m_metadata;
+    coil::Vector<coil::String> m_commands;
 
     std::vector<Line> m_lines;
     std::vector<std::string> m_inputHistory;

@@ -50,7 +50,7 @@ CommandLineService::CommandLineService(Services& services) : ServiceContainer(se
     m_commands["cmdline.list"] = [this](coil::Context context)
     {
         for (auto const& arg : m_arguments)
-            context.log() << arg << std::endl;
+            context.loglinef("%s", arg.c_str());
     };
 }
 
