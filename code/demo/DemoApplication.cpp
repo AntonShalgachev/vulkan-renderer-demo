@@ -5,7 +5,7 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
-#include <filesystem>
+// #include <filesystem>
 #include <thread>
 
 #include "stb_image.h"
@@ -436,10 +436,10 @@ bool DemoApplication::init(int argc, char** argv)
     auto& commandLine = m_services.commandLine();
     DemoApplication::registerCommandLineOptions(commandLine); // TODO move somewhere to allow others to register custom options
 
-    spdlog::info("Current directory: {}", std::filesystem::current_path());
+//     spdlog::info("Current directory: {}", std::filesystem::current_path());
 
-    if (!std::filesystem::exists("data"))
-        spdlog::warn("Current directory doesn't contain 'data', probably wrong directory");
+//     if (!std::filesystem::exists("data"))
+//         spdlog::warn("Current directory doesn't contain 'data', probably wrong directory");
 
     if (!commandLine.parse(argc, argv))
     {
