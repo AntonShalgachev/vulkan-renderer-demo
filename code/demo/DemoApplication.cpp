@@ -43,6 +43,23 @@
 
 #include "common/Utils.h"
 
+// TODO find a better solution
+template <>
+struct magic_enum::customize::enum_range<vkr::GlfwWindow::Key> {
+    static constexpr int min = 0;
+    static constexpr int max = 10;
+};
+template <>
+struct magic_enum::customize::enum_range<vkr::GlfwWindow::Modifiers> {
+    static constexpr int min = 0;
+    static constexpr int max = 10;
+};
+template <>
+struct magic_enum::customize::enum_range<vkr::GlfwWindow::Action> {
+    static constexpr int min = 0;
+    static constexpr int max = 10;
+};
+
 namespace
 {
     const uint32_t TARGET_WINDOW_WIDTH = 1900;
