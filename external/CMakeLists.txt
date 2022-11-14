@@ -49,7 +49,7 @@ FetchDependency(magic_enum)
 
 FetchContent_Declare(
     coil
-    URL https://github.com/AntonShalgachev/coil/archive/2c628391fdf8619aa0391a4c90127d616e74dc74.tar.gz # Merge branch 'master' into stl-fuck-you
+    URL https://github.com/AntonShalgachev/coil/archive/458bda33b9fa93d687d4342175d3859f0e2359a8.tar.gz # enable asserts in GitHub Actions
 )
 set(COIL_BASIC_TYPENAME OFF CACHE INTERNAL "")
 FetchDependency(coil)
