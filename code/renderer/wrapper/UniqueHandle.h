@@ -44,10 +44,7 @@ namespace vko
             return m_handle;
         }
 
-        ~UniqueHandle()
-        {
-            // Nothing to do; handle destruction is very custom and handled in the object itself
-        }
+        ~UniqueHandle() = default;
 
     private:
         T m_handle = VK_NULL_HANDLE;

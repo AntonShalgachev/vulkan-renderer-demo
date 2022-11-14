@@ -4,8 +4,6 @@
 #include "DeviceMemory.h"
 #include "Device.h"
 
-#include <cassert>
-
 vko::Buffer::Buffer(Device const& device, VkDeviceSize size, VkBufferUsageFlags usage)
     : m_device(device.getHandle())
     , m_size(size)

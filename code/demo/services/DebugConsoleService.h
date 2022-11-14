@@ -27,6 +27,7 @@ namespace utils
         return ss.str();
     }
 
+    // TODO remove and use coil functions
     inline std::string coilToStdString(coil::StringView str)
     {
         return { str.data(), str.length() };
