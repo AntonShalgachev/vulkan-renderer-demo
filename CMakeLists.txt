@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
 project(vulkan-renderer-demo LANGUAGES C CXX VERSION 1.0)
 
