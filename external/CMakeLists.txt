@@ -83,15 +83,3 @@ FetchContent_Declare(
     URL https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/refs/tags/v3.0.1.tar.gz # 3.0.1
 )
 FetchDependency(vma)
-
-#Set(FETCHCONTENT_QUIET FALSE)
-FetchContent_Declare(
-    eastl
-    GIT_REPOSITORY https://github.com/electronicarts/EASTL
-    GIT_TAG e8bdd5531ed79c30ccef2fd71e070f5ab9f1222a # 3.18.00
-    
-    GIT_SUBMODULES "test/packages/EABase"
-    GIT_SUBMODULES_RECURSE FALSE
-    #GIT_PROGRESS TRUE
-)
-FetchDependency(eastl)

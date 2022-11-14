@@ -10,7 +10,6 @@ set(ALL_FILES
     "Timer.h"
     "Utils.cpp"
     "Utils.h"
-    "NewDelete.cpp"
 )
 
 add_library(${PROJECT_NAME} ${ALL_FILES})
@@ -30,5 +29,4 @@ target_compile_options(${PROJECT_NAME} PRIVATE ${BASE_COMPILE_OPTIONS})
 
 target_link_libraries(${PROJECT_NAME}
     glm::glm
-    EASTL
 )
