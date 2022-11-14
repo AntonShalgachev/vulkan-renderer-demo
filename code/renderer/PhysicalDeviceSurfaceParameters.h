@@ -28,7 +28,7 @@ namespace vkr
 
         VkSurfaceCapabilitiesKHR const& getCapabilities() const { return m_capabilities; }
         std::vector<VkSurfaceFormatKHR> const& getFormats() const { return m_formats; }
-        std::vector<VkPresentModeKHR> getPresentModes() const { return m_presentModes; }
+        std::vector<VkPresentModeKHR> const& getPresentModes() const { return m_presentModes; }
         bool isPresentationSupported(vko::QueueFamily const& queueFamily) const;
 
         void onSurfaceChanged();
