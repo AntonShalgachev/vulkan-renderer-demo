@@ -83,7 +83,7 @@ DebugConsoleService::DebugConsoleService(Services& services) : ServiceContainer(
 
         std::size_t maxNameLength = 0;
         for (coil::String const& command : m_commands)
-            maxNameLength = std::max(maxNameLength, command.size());
+            maxNameLength = std::max(maxNameLength, command.length());
 
         maxNameLength = std::min(maxNameLength, maxAllowedNameLength);
 

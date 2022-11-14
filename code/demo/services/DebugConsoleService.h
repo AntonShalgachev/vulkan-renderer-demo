@@ -70,7 +70,7 @@ namespace coil
 
             std::string names = ::utils::flatten(magic_enum::enum_names<E>(), "'");
 
-            return errors::createGenericError<E>(input, formatString("Possible values are [%s]", names.c_str()));
+            return errors::createGenericError<E>(input, coil::sprintf("Possible values are [%s]", names.c_str()));
         }
 
         static std::string toString(E const& value)
