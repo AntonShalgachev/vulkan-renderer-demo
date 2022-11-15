@@ -15,6 +15,11 @@
           "name": "CMAKE_UNITY_BUILD",
           "value": "True",
           "type": "BOOL"
+        },
+        {
+          "name": "NSTL_ENABLE_ASSERTS",
+          "value": "True",
+          "type": "BOOL"
         }
       ]
     },
@@ -27,7 +32,14 @@
       "cmakeCommandArgs": "",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
-      "inheritEnvironments": [ "msvc_x64_x64" ]
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": [
+        {
+          "name": "NSTL_ENABLE_ASSERTS",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
     },
     {
       "name": "x64-Release",
@@ -60,6 +72,11 @@
       "variables": [
         {
           "name": "DEMO_CLANG_TRACE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "NSTL_ENABLE_ASSERTS",
           "value": "True",
           "type": "BOOL"
         }
