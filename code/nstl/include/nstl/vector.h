@@ -33,6 +33,9 @@ namespace nstl
         void push_back(T item);
         void pop_back();
 
+        template<typename... Args>
+        T& emplace_back(Args&&... args);
+
         void clear();
 
         T* data();
@@ -157,6 +160,14 @@ void nstl::vector<T>::pop_back()
     NSTL_ASSERT(!empty());
 
     m_buffer.destructLast<T>();
+}
+
+template<typename T>
+template<typename... Args>
+T& nstl::vector<T>::emplace_back(Args&&... args)
+{
+    push_back(T{ nstl::forward<Args>(args)... });
+    return back();
 }
 
 template<typename T>
