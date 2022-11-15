@@ -1,7 +1,7 @@
-#include "nstl/String.h"
+#include "nstl/string.h"
 
-#include "nstl/Assert.h"
-#include "nstl/StringView.h"
+#include "nstl/assert.h"
+#include "nstl/string_view.h"
 
 #include <string.h>
 

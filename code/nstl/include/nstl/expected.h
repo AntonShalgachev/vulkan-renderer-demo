@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Assert.h"
-#include "Unexpected.h"
-#include "New.h"
-#include "TypeTraits.h"
-#include "Utility.h"
+#include "assert.h"
+#include "unexpected.h"
+#include "new.h"
+#include "type_traits.h"
+#include "utility.h"
 
 namespace nstl
 {

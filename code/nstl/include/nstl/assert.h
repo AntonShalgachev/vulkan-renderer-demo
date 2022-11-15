@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Config.h"
+#include "config.h"
 
 #if NSTL_CONFIG_ENABLE_ASSERTS
 

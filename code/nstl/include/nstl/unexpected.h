@@ -1,7 +1,7 @@
 #pragma once
 
-#include "TypeTraits.h"
-#include "Utility.h"
+#include "type_traits.h"
+#include "utility.h"
 
 namespace nstl
 {

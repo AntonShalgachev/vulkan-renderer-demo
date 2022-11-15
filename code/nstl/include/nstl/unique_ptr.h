@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Assert.h"
-#include "Utility.h"
+#include "assert.h"
+#include "utility.h"
 
 namespace nstl
 {

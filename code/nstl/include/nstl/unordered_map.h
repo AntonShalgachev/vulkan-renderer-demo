@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Assert.h"
-#include "Hash.h"
-#include "Vector.h"
-#include "Utility.h"
+#include "assert.h"
+#include "hash.h"
+#include "vector.h"
+#include "utility.h"
 
 namespace nstl
 {

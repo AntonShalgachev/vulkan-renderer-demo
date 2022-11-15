@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Buffer.h"
+#include "buffer.h"
 
-#include "Hash.h"
+#include "hash.h"
 
 #include <stddef.h>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Hash.h"
+#include "hash.h"
 
 #include <stddef.h>
 
