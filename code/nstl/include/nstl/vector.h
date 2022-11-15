@@ -8,6 +8,7 @@
 #include <stddef.h>
 
 #include <initializer_list> // TODO avoid include this header?
+#include <compare> // TODO avoid include this header?
 
 namespace nstl
 {
@@ -15,8 +16,11 @@ namespace nstl
     class vector
     {
     public:
-        vector(size_t capacity = 0);
+        vector() = default;
+        vector(size_t size);
         vector(T const* begin, T const* end);
+        template<typename Iterator>
+        vector(Iterator begin, Iterator end); // TODO remove?
         vector(std::initializer_list<T> list);
 
         vector(vector const& rhs);
@@ -57,30 +61,42 @@ namespace nstl
         T const& operator[](size_t index) const;
         T& operator[](size_t index);
 
-        bool operator==(vector const& rhs) const;
+        auto operator<=>(vector const& rhs) const;
 
     private:
         void grow(size_t newCapacity);
 
     private:
-        Buffer m_buffer;
+        Buffer m_buffer{ 0, sizeof(T) };
     };
 }
 
 //////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-nstl::vector<T>::vector(size_t capacity) : m_buffer(capacity, sizeof(T))
+nstl::vector<T>::vector(size_t size) : m_buffer(size, sizeof(T))
 {
+    resize(size);
 }
 
 template<typename T>
-nstl::vector<T>::vector(T const* begin, T const* end) : vector(end - begin)
+nstl::vector<T>::vector(T const* begin, T const* end) : m_buffer(end - begin, sizeof(T))
 {
     NSTL_ASSERT(capacity() >= static_cast<size_t>((end - begin)));
     NSTL_ASSERT(empty());
 
     for (T const* it = begin; it != end; it++)
+        m_buffer.constructNext<T>(*it);
+}
+
+template<typename T>
+template<typename Iterator>
+nstl::vector<T>::vector(Iterator begin, Iterator end) : m_buffer(end - begin, sizeof(T))
+{
+    NSTL_ASSERT(capacity() >= static_cast<size_t>((end - begin)));
+    NSTL_ASSERT(empty());
+
+    for (Iterator it = begin; it != end; it++)
         m_buffer.constructNext<T>(*it);
 }
 
@@ -264,18 +280,28 @@ T& nstl::vector<T>::operator[](size_t index)
 }
 
 template<typename T>
-bool nstl::vector<T>::operator==(vector const& rhs) const
+auto nstl::vector<T>::operator<=>(vector const& rhs) const
 {
     vector const& lhs = *this;
-    if (lhs.size() != rhs.size())
-        return false;
 
-    size_t size = lhs.size();
-    for (size_t i = 0; i < size; i++)
-        if (lhs[i] != rhs[i])
-            return false;
+    T const* lhsBegin = lhs.begin();
+    T const* lhsEnd = lhs.end();
+    T const* rhsBegin = rhs.begin();
+    T const* rhsEnd = rhs.end();
 
-    return true;
+    T const* lhsIt = lhsBegin;
+    T const* rhsIt = rhsBegin;
+
+    while (lhsIt != lhsEnd)
+    {
+        if (rhsIt == rhsEnd)
+            return std::strong_ordering::greater; // TODO replace with something else?
+        if (auto result = (*lhsIt <=> *rhsIt); result != 0)
+            return result;
+        ++lhsIt;
+        ++rhsIt;
+    }
+    return (rhsIt == rhsEnd) <=> true;
 }
 
 template<typename T>
