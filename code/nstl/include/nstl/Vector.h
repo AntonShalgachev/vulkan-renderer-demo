@@ -8,28 +8,31 @@
 
 #include <stddef.h>
 
+#include <initializer_list> // TODO avoid include this header?
+
 namespace nstl
 {
     template<typename T>
-    class Vector
+    class vector
     {
     public:
-        Vector(size_t capacity = 0);
-        Vector(T const* begin, T const* end);
+        vector(size_t capacity = 0);
+        vector(T const* begin, T const* end);
+        vector(std::initializer_list<T> list);
 
-        Vector(Vector const& rhs);
-        Vector(Vector&& rhs);
+        vector(vector const& rhs);
+        vector(vector&& rhs);
 
-        ~Vector();
+        ~vector();
 
-        Vector& operator=(Vector const& rhs);
-        Vector& operator=(Vector&& rhs) noexcept;
+        vector& operator=(vector const& rhs);
+        vector& operator=(vector&& rhs) noexcept;
 
         void reserve(size_t newCapacity);
         void resize(size_t newSize);
 
-        void pushBack(T item);
-        void popBack();
+        void push_back(T item);
+        void pop_back();
 
         void clear();
 
@@ -52,7 +55,7 @@ namespace nstl
         T const& operator[](size_t index) const;
         T& operator[](size_t index);
 
-        bool operator==(Vector const& rhs) const;
+        bool operator==(vector const& rhs) const;
 
     private:
         void grow(size_t newCapacity);
@@ -65,7 +68,12 @@ namespace nstl
 //////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-nstl::Vector<T>::Vector(T const* begin, T const* end) : Vector(end - begin)
+nstl::vector<T>::vector(size_t capacity) : m_buffer(capacity, sizeof(T))
+{
+}
+
+template<typename T>
+nstl::vector<T>::vector(T const* begin, T const* end) : vector(end - begin)
 {
     NSTL_ASSERT(capacity() >= static_cast<size_t>((end - begin)));
     NSTL_ASSERT(empty());
@@ -75,43 +83,44 @@ nstl::Vector<T>::Vector(T const* begin, T const* end) : Vector(end - begin)
 }
 
 template<typename T>
-nstl::Vector<T>::Vector(size_t capacity) : m_buffer(capacity, sizeof(T))
+nstl::vector<T>::vector(std::initializer_list<T> list) : vector(list.begin(), list.end())
+{
+
+}
+
+template<typename T>
+nstl::vector<T>::vector(vector const& rhs) : vector(rhs.begin(), rhs.end())
 {
 }
 
 template<typename T>
-nstl::Vector<T>::Vector(Vector const& rhs) : Vector(rhs.begin(), rhs.end())
-{
-}
+nstl::vector<T>::vector(vector&& rhs) = default;
 
 template<typename T>
-nstl::Vector<T>::Vector(Vector&& rhs) = default;
-
-template<typename T>
-nstl::Vector<T>::~Vector()
+nstl::vector<T>::~vector()
 {
     clear();
 }
 
 template<typename T>
-nstl::Vector<T>& nstl::Vector<T>::operator=(Vector const& rhs)
+nstl::vector<T>& nstl::vector<T>::operator=(vector const& rhs)
 {
-    Vector temp{ rhs };
+    vector temp{ rhs };
     return (*this = nstl::move(temp));
 }
 
 template<typename T>
-nstl::Vector<T>& nstl::Vector<T>::operator=(Vector && rhs) noexcept = default;
+nstl::vector<T>& nstl::vector<T>::operator=(vector && rhs) noexcept = default;
 
 template<typename T>
-void nstl::Vector<T>::reserve(size_t newCapacity)
+void nstl::vector<T>::reserve(size_t newCapacity)
 {
     if (newCapacity > capacity())
         grow(newCapacity);
 }
 
 template<typename T>
-void nstl::Vector<T>::resize(size_t newSize)
+void nstl::vector<T>::resize(size_t newSize)
 {
     if (newSize > capacity())
         grow(newSize);
@@ -127,7 +136,7 @@ void nstl::Vector<T>::resize(size_t newSize)
 }
 
 template<typename T>
-void nstl::Vector<T>::pushBack(T item)
+void nstl::vector<T>::push_back(T item)
 {
     size_t nextSize = size() + 1;
     if (nextSize > capacity())
@@ -144,7 +153,7 @@ void nstl::Vector<T>::pushBack(T item)
 }
 
 template<typename T>
-void nstl::Vector<T>::popBack()
+void nstl::vector<T>::pop_back()
 {
     NSTL_ASSERT(!empty());
 
@@ -152,102 +161,102 @@ void nstl::Vector<T>::popBack()
 }
 
 template<typename T>
-void nstl::Vector<T>::clear()
+void nstl::vector<T>::clear()
 {
     while (m_buffer.size() > 0)
         m_buffer.destructLast<T>();
 }
 
 template<typename T>
-T* nstl::Vector<T>::data()
+T* nstl::vector<T>::data()
 {
     return begin();
 }
 template<typename T>
-T const* nstl::Vector<T>::data() const
+T const* nstl::vector<T>::data() const
 {
     return begin();
 }
 template<typename T>
-size_t nstl::Vector<T>::size() const
+size_t nstl::vector<T>::size() const
 {
     return m_buffer.size();
 }
 template<typename T>
-size_t nstl::Vector<T>::capacity() const
+size_t nstl::vector<T>::capacity() const
 {
     return m_buffer.capacity();
 }
 template<typename T>
-bool nstl::Vector<T>::empty() const
+bool nstl::vector<T>::empty() const
 {
     return size() == 0;
 }
 
 template<typename T>
-T* nstl::Vector<T>::begin()
+T* nstl::vector<T>::begin()
 {
     return m_buffer.get<T>(0);
 }
 template<typename T>
-T const* nstl::Vector<T>::begin() const
+T const* nstl::vector<T>::begin() const
 {
     return m_buffer.get<T>(0);
 }
 template<typename T>
-T* nstl::Vector<T>::end()
+T* nstl::vector<T>::end()
 {
     return m_buffer.get<T>(size());
 }
 template<typename T>
-T const* nstl::Vector<T>::end() const
+T const* nstl::vector<T>::end() const
 {
     return m_buffer.get<T>(size());
 }
 
 template<typename T>
-T& nstl::Vector<T>::front()
+T& nstl::vector<T>::front()
 {
     NSTL_ASSERT(!empty());
     return (*this)[0];
 }
 template<typename T>
-T const& nstl::Vector<T>::front() const
+T const& nstl::vector<T>::front() const
 {
     NSTL_ASSERT(!empty());
     return (*this)[0];
 }
 template<typename T>
-T& nstl::Vector<T>::back()
+T& nstl::vector<T>::back()
 {
     NSTL_ASSERT(!empty());
     return (*this)[size() - 1];
 }
 template<typename T>
-T const& nstl::Vector<T>::back() const
+T const& nstl::vector<T>::back() const
 {
     NSTL_ASSERT(!empty());
     return (*this)[size() - 1];
 }
 
 template<typename T>
-T const& nstl::Vector<T>::operator[](size_t index) const
+T const& nstl::vector<T>::operator[](size_t index) const
 {
     NSTL_ASSERT(index < m_buffer.size());
     return *m_buffer.get<T>(index);
 }
 
 template<typename T>
-T& nstl::Vector<T>::operator[](size_t index)
+T& nstl::vector<T>::operator[](size_t index)
 {
     NSTL_ASSERT(index < m_buffer.size());
     return *m_buffer.get<T>(index);
 }
 
 template<typename T>
-bool nstl::Vector<T>::operator==(Vector const& rhs) const
+bool nstl::vector<T>::operator==(vector const& rhs) const
 {
-    Vector const& lhs = *this;
+    vector const& lhs = *this;
     if (lhs.size() != rhs.size())
         return false;
 
@@ -260,7 +269,7 @@ bool nstl::Vector<T>::operator==(Vector const& rhs) const
 }
 
 template<typename T>
-void nstl::Vector<T>::grow(size_t newCapacity)
+void nstl::vector<T>::grow(size_t newCapacity)
 {
     Buffer buffer{ newCapacity, sizeof(T) };
 
