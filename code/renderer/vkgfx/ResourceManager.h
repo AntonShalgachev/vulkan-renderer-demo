@@ -1,9 +1,10 @@
 #pragma once
 
 #include <span>
-#include <vector>
 #include <string>
 #include <map>
+
+#include "nstl/vector.h"
 
 #include "ResourceContainer.h"
 
@@ -145,13 +146,13 @@ namespace vkgfx
         ResourceContainer<Material> m_materials;
         ResourceContainer<Mesh> m_meshes;
 
-        std::vector<vko::DescriptorSetLayout> m_descriptorSetLayouts;
+        nstl::vector<vko::DescriptorSetLayout> m_descriptorSetLayouts;
         std::map<DescriptorSetLayoutKey, DescriptorSetLayoutHandle> m_descriptorSetLayoutHandles;
 
-        std::vector<vko::PipelineLayout> m_pipelineLayouts;
+        nstl::vector<vko::PipelineLayout> m_pipelineLayouts;
         std::map<PipelineLayoutKey, PipelineLayoutHandle> m_pipelineLayoutHandles;
 
-        std::vector<vko::Pipeline> m_pipelines;
+        nstl::vector<vko::Pipeline> m_pipelines;
         std::map<PipelineKey, PipelineHandle> m_pipelineHandles;
     };
 }

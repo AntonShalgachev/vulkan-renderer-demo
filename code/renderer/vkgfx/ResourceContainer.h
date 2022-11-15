@@ -1,11 +1,14 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
 #include <cassert>
 #include <optional>
 
+#include "nstl/vector.h"
+
 // #define VALIDATE_RESOURCE_CONTAINER
+
+// TODO rename this container and move to NSTL
 
 namespace vkgfx
 {
@@ -21,7 +24,6 @@ namespace vkgfx
         operator bool() const { return *this != ResourceHandle{}; }
     };
 
-    // TODO move to common?
     template<typename T>
     class ResourceContainer
     {
@@ -118,22 +120,6 @@ namespace vkgfx
 #endif
         }
 
-        std::optional<std::size_t> getIndex(ResourceHandle handle) const
-        {
-            if (!handle)
-                return {};
-
-            assert(handle.index < m_headers.size());
-            Header const& header = m_headers[handle.index];
-            if (handle.reincarnation != header.reincarnation)
-                return {};
-
-            if (header.objectIndex >= m_objects.size())
-                return {};
-
-            return header.objectIndex;
-        }
-
         T* get(ResourceHandle handle)
         {
             if (auto index = getIndex(handle))
@@ -150,24 +136,28 @@ namespace vkgfx
             return nullptr;
         }
 
-#ifdef VALIDATE_RESOURCE_CONTAINER
-        void shuffle()
-        {
-            for (std::size_t i = 0; i < m_objects.size(); i++)
-            {
-                std::size_t index0 = m_objects.size() - i - 1;
-                std::size_t index1 = std::rand() % (index0 + 1);
-                swap(index0, index1);
-            }
-        }
-#endif
-
         auto begin() { return m_objects.begin(); }
         auto end() { return m_objects.end(); }
         auto cbegin() const { return m_objects.cbegin(); }
         auto cend() const { return m_objects.cend(); }
 
     private:
+        std::optional<std::size_t> getIndex(ResourceHandle handle) const
+        {
+            if (!handle)
+                return {};
+
+            assert(handle.index < m_headers.size());
+            Header const& header = m_headers[handle.index];
+            if (handle.reincarnation != header.reincarnation)
+                return {};
+
+            if (header.objectIndex >= m_objects.size())
+                return {};
+
+            return header.objectIndex;
+        }
+
         void swap(std::size_t i1, std::size_t i2)
         {
 #ifdef VALIDATE_RESOURCE_CONTAINER
@@ -197,6 +187,18 @@ namespace vkgfx
             validateInvariants();
 #endif
         }
+
+#ifdef VALIDATE_RESOURCE_CONTAINER
+        void shuffle()
+        {
+            for (std::size_t i = 0; i < m_objects.size(); i++)
+            {
+                std::size_t index0 = m_objects.size() - i - 1;
+                std::size_t index1 = std::rand() % (index0 + 1);
+                swap(index0, index1);
+            }
+        }
+#endif
 
 #ifdef VALIDATE_RESOURCE_CONTAINER
         void validateInvariants() const
@@ -243,16 +245,16 @@ namespace vkgfx
             std::uint32_t reincarnation = static_cast<std::uint32_t>(-1);
         };
 
-        std::vector<Header> m_headers;
+        nstl::vector<Header> m_headers;
 
-        std::vector<T> m_objects;
-        std::vector<std::size_t> m_headerIndexMap;
+        nstl::vector<T> m_objects;
+        nstl::vector<std::size_t> m_headerIndexMap;
 
 #ifdef VALIDATE_RESOURCE_CONTAINER
-        std::vector<ResourceHandle> m_objectHandles;
-        std::vector<ResourceHandle> m_allHandles;
-        std::vector<ResourceHandle> m_aliveHandles;
-        std::vector<ResourceHandle> m_deadHandles;
+        nstl::vector<ResourceHandle> m_objectHandles;
+        nstl::vector<ResourceHandle> m_allHandles;
+        nstl::vector<ResourceHandle> m_aliveHandles;
+        nstl::vector<ResourceHandle> m_deadHandles;
 #endif
     };
 }
