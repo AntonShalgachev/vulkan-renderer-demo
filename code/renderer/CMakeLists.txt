@@ -106,8 +106,6 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(${PROJECT_NAME} PUBLIC -Wno-defaulted-function-deleted)
 endif()
 
-target_compile_options(${PROJECT_NAME} PRIVATE ${BASE_COMPILE_OPTIONS})
-
 target_precompile_headers(${PROJECT_NAME} PRIVATE "pch.h")
 
 target_link_libraries(${PROJECT_NAME}

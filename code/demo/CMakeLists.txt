@@ -45,8 +45,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
-target_compile_options(${PROJECT_NAME} PRIVATE ${BASE_COMPILE_OPTIONS})
-
 target_precompile_headers(${PROJECT_NAME} PRIVATE "pch.h")
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")

@@ -18,12 +18,10 @@ if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
     message(STATUS "CMAKE_CXX_FLAGS changed from '${OLD_FLAGS}' to '${CMAKE_CXX_FLAGS}'")
 endif()
 
-set(BASE_COMPILE_OPTIONS)
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    list(APPEND BASE_COMPILE_OPTIONS -Wno-unused-command-line-argument)
-
+    add_compile_options(-Wno-unused-command-line-argument)
     if (DEMO_CLANG_TRACE)
-        list(APPEND BASE_COMPILE_OPTIONS -ftime-trace -ftime-trace-granularity=0)
+        add_compile_options(-ftime-trace -ftime-trace-granularity=0)
     endif()
 endif()
 
