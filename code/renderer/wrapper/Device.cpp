@@ -8,15 +8,15 @@
 
 #include <set>
 
-vko::Device::Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily const& graphics, vko::QueueFamily const& present, std::vector<const char*> const& extensions)
+vko::Device::Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily const& graphics, vko::QueueFamily const& present, nstl::vector<const char*> const& extensions)
 {
     std::set<QueueFamily const*> uniqueQueueFamilies = {&graphics, &present};
 
     // The device is created with 1 queue of each family
 
-    std::vector<float> queuePriorities = { 1.0f };
+    nstl::vector<float> queuePriorities = { 1.0f };
 
-    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    nstl::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     queueCreateInfos.reserve(uniqueQueueFamilies.size());
     for (QueueFamily const* queueFamily : uniqueQueueFamilies)
     {

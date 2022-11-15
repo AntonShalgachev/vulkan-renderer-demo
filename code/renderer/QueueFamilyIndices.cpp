@@ -1,7 +1,6 @@
 #include "QueueFamilyIndices.h"
 
 #include <optional>
-#include <vector>
 
 #include "wrapper/PhysicalDevice.h"
 #include "PhysicalDeviceSurfaceParameters.h"

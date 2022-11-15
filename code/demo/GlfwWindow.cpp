@@ -117,7 +117,7 @@ void vkr::GlfwWindow::queryRequiredInstanceExtensions()
     const char** glfwExtensions;
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
-    m_requiredInstanceExtensions.assign(glfwExtensions, glfwExtensions + glfwExtensionCount);
+    m_requiredInstanceExtensions = nstl::vector<char const*>(glfwExtensions, glfwExtensions + glfwExtensionCount); // TODO use std::span?
 }
 
 void vkr::GlfwWindow::framebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept

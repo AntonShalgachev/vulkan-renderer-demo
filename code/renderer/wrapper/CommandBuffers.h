@@ -1,9 +1,12 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-#include <cstddef>
-#include <vector>
 #include "UniqueHandle.h"
+
+#include "nstl/vector.h"
+
+#include <vulkan/vulkan.h>
+
+#include <cstddef>
 
 namespace vko
 {
@@ -38,6 +41,6 @@ namespace vko
         VkDevice m_device;
         VkCommandPool m_commandPool;
 
-        std::vector<UniqueHandle<VkCommandBuffer>> m_handles; // TODO fix this ugliness
+        nstl::vector<UniqueHandle<VkCommandBuffer>> m_handles; // TODO fix this ugliness
     };
 }

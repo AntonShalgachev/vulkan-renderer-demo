@@ -1,13 +1,14 @@
 #pragma once
 
-#include <vector>
-#include <memory>
-#include <string>
-#include <functional>
-
 #include "Handles.h"
 #include "TestObject.h"
 #include "PipelineKey.h"
+
+#include "nstl/vector.h"
+
+#include <memory>
+#include <string>
+#include <functional>
 
 namespace vko
 {
@@ -75,8 +76,8 @@ namespace vkgfx
         std::unique_ptr<RendererData> m_data;
 
         std::unique_ptr<vko::Swapchain> m_swapchain;
-        std::vector<std::unique_ptr<vko::Framebuffer>> m_swapchainFramebuffers;
-        std::vector<std::unique_ptr<vko::ImageView>> m_swapchainImageViews;
+        nstl::vector<std::unique_ptr<vko::Framebuffer>> m_swapchainFramebuffers;
+        nstl::vector<std::unique_ptr<vko::ImageView>> m_swapchainImageViews;
         std::unique_ptr<vko::RenderPass> m_renderPass;
         std::unique_ptr<vko::Image> m_depthImage;
         std::unique_ptr<vko::DeviceMemory> m_depthImageMemory;
@@ -84,7 +85,7 @@ namespace vkgfx
         std::size_t m_width = 0;
         std::size_t m_height = 0;
 
-        std::vector<RendererFrameResources> m_frameResources;
+        nstl::vector<RendererFrameResources> m_frameResources;
         std::size_t m_nextFrameResourcesIndex = 0;
 
         BufferHandle m_cameraBuffer;
@@ -94,6 +95,6 @@ namespace vkgfx
         UniformConfiguration m_frameUniformConfiguration;
         DescriptorSetLayoutHandle m_frameDescriptorSetLayout;
 
-        std::vector<TestObject> m_oneFrameTestObjects;
+        nstl::vector<TestObject> m_oneFrameTestObjects;
     };
 }

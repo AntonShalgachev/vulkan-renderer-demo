@@ -10,16 +10,16 @@
 
 namespace
 {
-	std::vector<VkPipelineShaderStageCreateInfo> createStageDescriptions(std::span<vko::ShaderModule const*> shaderModules)
+	nstl::vector<VkPipelineShaderStageCreateInfo> createStageDescriptions(std::span<vko::ShaderModule const*> shaderModules)
 	{
-        std::vector<VkPipelineShaderStageCreateInfo> stageDescriptions;
+        nstl::vector<VkPipelineShaderStageCreateInfo> stageDescriptions;
 		stageDescriptions.reserve(shaderModules.size());
-        std::transform(shaderModules.begin(), shaderModules.end(), std::back_inserter(stageDescriptions),
-            [](vko::ShaderModule const* shaderModule) { return shaderModule->createStageCreateInfo(); });
+		for (vko::ShaderModule const* shaderModule : shaderModules)
+			stageDescriptions.push_back(shaderModule->createStageCreateInfo());
         return stageDescriptions;
 	}
 
-	VkPipelineVertexInputStateCreateInfo initVertexInputCreateInfo(std::vector<VkVertexInputBindingDescription> const& bindingDescriptions, std::vector<VkVertexInputAttributeDescription> const& attributeDescriptions)
+	VkPipelineVertexInputStateCreateInfo initVertexInputCreateInfo(nstl::vector<VkVertexInputBindingDescription> const& bindingDescriptions, nstl::vector<VkVertexInputAttributeDescription> const& attributeDescriptions)
 	{
 		VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo{};
 		vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -143,7 +143,7 @@ vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, Rend
 	: m_device(device)
 	, m_pipelineLayout(layout.getHandle())
 {
-	std::vector<VkPipelineShaderStageCreateInfo> shaderStages = createStageDescriptions(shaderModules);
+	nstl::vector<VkPipelineShaderStageCreateInfo> shaderStages = createStageDescriptions(shaderModules);
 
 	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = initVertexInputCreateInfo(config.bindingDescriptions, config.attributeDescriptions);
 
@@ -162,7 +162,7 @@ vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, Rend
 	VkPipelineColorBlendAttachmentState colorBlendAttachment = initColorBlendAttachment(config.alphaBlending);
     VkPipelineColorBlendStateCreateInfo colorBlendingCreateInfo = initColorBlendingCreateInfo(colorBlendAttachment);
 
-	std::vector<VkDynamicState> dynamicStates = {
+	nstl::vector<VkDynamicState> dynamicStates = {
 		VK_DYNAMIC_STATE_SCISSOR,
 		VK_DYNAMIC_STATE_VIEWPORT,
 	};
@@ -193,7 +193,7 @@ vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, Rend
 	VKO_ASSERT(vkCreateGraphicsPipelines(m_device.getHandle(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &m_handle.get()));
 
 	auto layoutsSpan = layout.getDescriptorSetLayouts();
-	m_descriptorSetLayouts.assign(layoutsSpan.begin(), layoutsSpan.end());
+	m_descriptorSetLayouts = nstl::vector<VkDescriptorSetLayout>{ layoutsSpan.begin(), layoutsSpan.end() };
 }
 
 vko::Pipeline::~Pipeline()

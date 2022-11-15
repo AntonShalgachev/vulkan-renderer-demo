@@ -10,17 +10,19 @@
 #include "wrapper/Queue.h"
 #include "wrapper/Window.h"
 
+#include "nstl/vector.h"
+
 #include <cassert>
 
 namespace
 {
-    const std::vector<const char*> DEVICE_EXTENSIONS = {
+    const nstl::vector<const char*> DEVICE_EXTENSIONS = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
 
-    std::vector<vkr::PhysicalDeviceSurfaceContainer> createPhysicalDeviceSurfaceContainer(std::vector<vko::PhysicalDevice> devices, vko::Surface const& surface)
+    nstl::vector<vkr::PhysicalDeviceSurfaceContainer> createPhysicalDeviceSurfaceContainer(nstl::vector<vko::PhysicalDevice> devices, vko::Surface const& surface)
     {
-        std::vector<vkr::PhysicalDeviceSurfaceContainer> result;
+        nstl::vector<vkr::PhysicalDeviceSurfaceContainer> result;
         result.reserve(devices.size());
 
         for (vko::PhysicalDevice& device : devices)
@@ -45,7 +47,7 @@ namespace
         return parameters.getQueueFamilyIndices().isValid() && areExtensionsSupported && swapchainSupported && physicalDevice.getFeatures().samplerAnisotropy;
     }
 
-    std::size_t findSuitablePhysicalDeviceIndex(std::vector<vkr::PhysicalDeviceSurfaceContainer> const& physicalDevices)
+    std::size_t findSuitablePhysicalDeviceIndex(nstl::vector<vkr::PhysicalDeviceSurfaceContainer> const& physicalDevices) // TODO use std::span
     {
         for (std::size_t index = 0; index < physicalDevices.size(); index++)
         {
@@ -59,9 +61,9 @@ namespace
         return static_cast<std::size_t>(-1);
     }
 
-    std::vector<const char*> createInstanceExtensions(bool enableValidation, vko::Window const& window)
+    nstl::vector<const char*> createInstanceExtensions(bool enableValidation, vko::Window const& window)
     {
-        std::vector<const char*> extensions = window.getRequiredInstanceExtensions();
+        nstl::vector<const char*> extensions = window.getRequiredInstanceExtensions();
         
         if (enableValidation)
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -98,7 +100,7 @@ namespace vkr
     private:
         vko::Instance m_instance;
         vko::Surface m_surface;
-        std::vector<vkr::PhysicalDeviceSurfaceContainer> m_physicalDevices;
+        nstl::vector<vkr::PhysicalDeviceSurfaceContainer> m_physicalDevices;
         std::size_t m_currentPhysicalDeviceIndex;
         vko::Device m_device;
     };

@@ -55,7 +55,7 @@ namespace
 
     int const FRAME_RESOURCE_COUNT = 3;
 
-    VkFormat findSupportedFormat(vko::PhysicalDevice const& physicalDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
+    VkFormat findSupportedFormat(vko::PhysicalDevice const& physicalDevice, const nstl::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
     {
         for (VkFormat format : candidates)
         {
@@ -73,12 +73,12 @@ namespace
 
     VkFormat findDepthFormat(vko::PhysicalDevice const& physicalDevice)
     {
-        static const std::vector<VkFormat> candidates = { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT };
+        static const nstl::vector<VkFormat> candidates = { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT };
 
         return findSupportedFormat(physicalDevice, candidates, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
     }
 
-    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const nstl::vector<VkSurfaceFormatKHR>& availableFormats)
     {
         if (availableFormats.empty())
             return { VK_FORMAT_UNDEFINED , VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
@@ -90,7 +90,7 @@ namespace
         return availableFormats[0];
     }
 
-    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+    VkPresentModeKHR chooseSwapPresentMode(const nstl::vector<VkPresentModeKHR>& availablePresentModes)
     {
         for (const auto& availablePresentMode : availablePresentModes)
             if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
@@ -145,19 +145,19 @@ namespace
             std::size_t size = 0;
         };
 
-        std::vector<SampledImage> images;
-        std::vector<Buffer> buffers;
+        nstl::vector<SampledImage> images;
+        nstl::vector<Buffer> buffers;
     };
 
     void updateDescriptorSet(VkDevice device, VkDescriptorSet set, DescriptorSetUpdateConfig const& config)
     {
-        std::vector<VkDescriptorBufferInfo> bufferInfos;
+        nstl::vector<VkDescriptorBufferInfo> bufferInfos;
         bufferInfos.reserve(config.buffers.size());
 
-        std::vector<VkDescriptorImageInfo> imageInfos;
+        nstl::vector<VkDescriptorImageInfo> imageInfos;
         imageInfos.reserve(config.images.size());
 
-        std::vector<VkWriteDescriptorSet> descriptorWrites;
+        nstl::vector<VkWriteDescriptorSet> descriptorWrites;
         descriptorWrites.reserve(bufferInfos.capacity() + imageInfos.capacity());
 
         for (DescriptorSetUpdateConfig::Buffer const& buffer : config.buffers)
@@ -224,7 +224,7 @@ namespace vkgfx
         vko::CommandPool commandPool;
         vko::CommandBuffers commandBuffers;
 
-        std::vector<vko::DescriptorPool> descriptorPools;
+        nstl::vector<vko::DescriptorPool> descriptorPools;
     };
 }
 
@@ -528,9 +528,9 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
             assert(descriptorSetLayouts[0] == m_data->frameDescriptorSetLayout);
             descriptorSetLayouts = descriptorSetLayouts.subspan(1);
 
-            std::vector<vko::DescriptorPool>& descriptorPools = frameResources.descriptorPools;
+            nstl::vector<vko::DescriptorPool>& descriptorPools = frameResources.descriptorPools;
 
-            std::vector<VkDescriptorSet> descriptorSets;
+            nstl::vector<VkDescriptorSet> descriptorSets;
             do
             {
                 if (!descriptorPools.empty())
@@ -548,7 +548,7 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
             config1.images.reserve(2);
             DescriptorSetUpdateConfig config2;
             config2.buffers.reserve(1);
-            std::vector<uint32_t> dynamicBufferOffsets12;
+            nstl::vector<uint32_t> dynamicBufferOffsets12;
 
             if (material->uniformBuffer)
             {
@@ -623,8 +623,8 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
         Mesh const* mesh = m_resourceManager->getMesh(object.mesh);
         assert(mesh);
 
-        std::vector<VkBuffer> vertexBuffers;
-        std::vector<VkDeviceSize> vertexBuffersOffsets;
+        nstl::vector<VkBuffer> vertexBuffers;
+        nstl::vector<VkDeviceSize> vertexBuffersOffsets;
         vertexBuffers.reserve(mesh->vertexBuffers.size());
         vertexBuffersOffsets.reserve(mesh->vertexBuffers.size());
         for (BufferWithOffset const& bufferWithOffset : mesh->vertexBuffers)

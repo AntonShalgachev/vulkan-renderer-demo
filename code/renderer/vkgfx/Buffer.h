@@ -4,6 +4,8 @@
 #include "wrapper/Buffer.h"
 #include "vkgfx/BufferMetadata.h"
 
+#include "nstl/vector.h"
+
 namespace vkgfx
 {
     struct Buffer
@@ -16,7 +18,7 @@ namespace vkgfx
         std::size_t realSize = 0;
 
         // Only for mutable buffers
-        std::vector<unsigned char> stagingBuffer;
+        nstl::vector<unsigned char> stagingBuffer;
         std::size_t stagingDirtyStart = 0;
         std::size_t stagingDirtyEnd = 0;
         std::size_t alignedSize = 0;

@@ -1,7 +1,9 @@
 #pragma once
 
+#include "nstl/vector.h"
+
 #include <vulkan/vulkan.h>
-#include <vector>
+
 #include <cstddef>
 
 namespace vko
@@ -33,12 +35,12 @@ namespace vko
                 std::size_t size = 0;
             };
 
-            std::vector<SampledImage> images;
-            std::vector<Buffer> buffers;
+            nstl::vector<SampledImage> images;
+            nstl::vector<Buffer> buffers;
         };
 
     public:
-    	DescriptorSets(Device const& device, std::vector<VkDescriptorSet> handles);
+    	DescriptorSets(Device const& device, nstl::vector<VkDescriptorSet> handles);
 
         void update(UpdateConfig const& updateConfig);
 
@@ -48,6 +50,6 @@ namespace vko
     private:
         Device const* m_device;
 
-        std::vector<VkDescriptorSet> m_handles;
+        nstl::vector<VkDescriptorSet> m_handles;
     };
 }

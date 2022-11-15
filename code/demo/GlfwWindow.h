@@ -1,11 +1,13 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <functional>
+#include "wrapper/Window.h"
+
+#include "nstl/vector.h"
 
 #include "glm.h"
-#include "wrapper/Window.h"
+
+#include <string>
+#include <functional>
 
 struct GLFWwindow;
 
@@ -51,7 +53,7 @@ namespace vkr
         vko::Surface createSurface(vko::Instance const& instance) const override;
         std::size_t getWidth() const override { return m_width; }
         std::size_t getHeight() const override { return m_height; }
-        std::vector<char const*> const& getRequiredInstanceExtensions() const override { return m_requiredInstanceExtensions; }
+        nstl::vector<char const*> const& getRequiredInstanceExtensions() const override { return m_requiredInstanceExtensions; }
 
         bool getCanCaptureCursor() const { return m_canCaptureCursor; }
         void setCanCaptureCursor(bool canCaptureCursor) { m_canCaptureCursor = canCaptureCursor; }
@@ -101,11 +103,11 @@ namespace vkr
         bool m_cursorCaptured = false;
         glm::vec2 m_lastCursorPosition;
 
-        std::vector<char const*> m_requiredInstanceExtensions;
+        nstl::vector<char const*> m_requiredInstanceExtensions;
 
-        std::vector<std::function<void(int, int)>> m_resizeCallbacks;
-        std::vector<std::function<void(Action, Key, char, Modifiers)>> m_keyCallbacks;
-        std::vector<std::function<void(glm::vec2)>> m_mouseMoveCallbacks;
+        nstl::vector<std::function<void(int, int)>> m_resizeCallbacks;
+        nstl::vector<std::function<void(Action, Key, char, Modifiers)>> m_keyCallbacks;
+        nstl::vector<std::function<void(glm::vec2)>> m_mouseMoveCallbacks;
     };
 }
 

@@ -1,8 +1,9 @@
 #pragma once
+#include "UniqueHandle.h"
+
+#include "nstl/vector.h"
 
 #include <vulkan/vulkan.h>
-#include <vector>
-#include "UniqueHandle.h"
 
 namespace vko
 {
@@ -24,7 +25,7 @@ namespace vko
         void copyFrom(void const* sourcePointer, std::size_t sourceSize, std::size_t offset = 0) const;
 
         template<typename T>
-        void copyFrom(std::vector<T> const& source, std::size_t offset = 0) const
+        void copyFrom(nstl::vector<T> const& source, std::size_t offset = 0) const
         {
             copyFrom(source.data(), sizeof(T) * source.size(), offset);
         }

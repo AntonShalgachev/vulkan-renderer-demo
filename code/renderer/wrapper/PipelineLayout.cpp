@@ -15,7 +15,7 @@ vko::PipelineLayout::PipelineLayout(Device const& device, std::span<VkDescriptor
 
     VKO_ASSERT(vkCreatePipelineLayout(m_device.getHandle(), &pipelineLayoutCreateInfo, nullptr, &m_handle.get()));
 
-    m_descriptorSetLayouts.assign(setLayouts.begin(), setLayouts.end());
+    m_descriptorSetLayouts = nstl::vector<VkDescriptorSetLayout>(setLayouts.begin(), setLayouts.end());
 }
 
 vko::PipelineLayout::~PipelineLayout()

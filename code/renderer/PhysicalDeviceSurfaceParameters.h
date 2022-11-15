@@ -1,7 +1,9 @@
 #pragma once
 
+#include "nstl/vector.h"
+
 #include <vulkan/vulkan.h>
-#include <vector>
+
 #include <memory>
 
 namespace vko
@@ -27,8 +29,8 @@ namespace vkr
         PhysicalDeviceSurfaceParameters& operator=(PhysicalDeviceSurfaceParameters&&) = delete;
 
         VkSurfaceCapabilitiesKHR const& getCapabilities() const { return m_capabilities; }
-        std::vector<VkSurfaceFormatKHR> const& getFormats() const { return m_formats; }
-        std::vector<VkPresentModeKHR> const& getPresentModes() const { return m_presentModes; }
+        nstl::vector<VkSurfaceFormatKHR> const& getFormats() const { return m_formats; }
+        nstl::vector<VkPresentModeKHR> const& getPresentModes() const { return m_presentModes; }
         bool isPresentationSupported(vko::QueueFamily const& queueFamily) const;
 
         void onSurfaceChanged();
@@ -43,9 +45,9 @@ namespace vkr
 
     private:
         VkSurfaceCapabilitiesKHR m_capabilities;
-        std::vector<VkSurfaceFormatKHR> m_formats;
-        std::vector<VkPresentModeKHR> m_presentModes;
-        std::vector<bool> m_queuePresentationSupport;
+        nstl::vector<VkSurfaceFormatKHR> m_formats;
+        nstl::vector<VkPresentModeKHR> m_presentModes;
+        nstl::vector<bool> m_queuePresentationSupport;
 
         std::unique_ptr<QueueFamilyIndices> m_queueFamilyIndices;
 

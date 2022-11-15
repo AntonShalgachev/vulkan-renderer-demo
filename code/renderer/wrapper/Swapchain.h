@@ -1,8 +1,10 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-#include <vector>
 #include "UniqueHandle.h"
+
+#include "nstl/vector.h"
+
+#include <vulkan/vulkan.h>
 
 namespace vko
 {
@@ -38,7 +40,7 @@ namespace vko
         VkSurfaceFormatKHR getSurfaceFormat() const;
 
         std::size_t getImageCount() const;
-        std::vector<vko::Image> const& getImages() const;
+        nstl::vector<vko::Image> const& getImages() const; // TODO use std::span
 
     private:
         void retrieveImages();
@@ -50,6 +52,6 @@ namespace vko
 
         Config m_config;
 
-        std::vector<Image> m_images;
+        nstl::vector<Image> m_images;
     };
 }

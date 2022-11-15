@@ -1,5 +1,7 @@
 #pragma once
 
+#include "nstl/vector.h"
+
 // TODO split into several files?
 namespace vkgfx
 {
@@ -49,8 +51,8 @@ namespace vkgfx
             auto operator<=>(Attribute const&) const = default;
         };
 
-        std::vector<Binding> bindings;
-        std::vector<Attribute> attributes;
+        nstl::vector<Binding> bindings;
+        nstl::vector<Attribute> attributes;
         VertexTopology topology;
 
         auto operator<=>(VertexConfiguration const&) const = default;
@@ -84,19 +86,19 @@ namespace vkgfx
 
     struct PipelineLayoutKey
     {
-        std::vector<UniformConfiguration> uniformConfigs;
-        std::vector<PushConstantRange> pushConstantRanges;
+        nstl::vector<UniformConfiguration> uniformConfigs;
+        nstl::vector<PushConstantRange> pushConstantRanges;
 
         auto operator<=>(PipelineLayoutKey const&) const = default;
     };
 
     struct PipelineKey
     {
-        std::vector<ShaderModuleHandle> shaderHandles; // TODO rename to shaderModules
-        std::vector<UniformConfiguration> uniformConfigs;
+        nstl::vector<ShaderModuleHandle> shaderHandles; // TODO rename to shaderModules
+        nstl::vector<UniformConfiguration> uniformConfigs;
         VertexConfiguration vertexConfig;
         RenderConfiguration renderConfig;
-        std::vector<PushConstantRange> pushConstantRanges;
+        nstl::vector<PushConstantRange> pushConstantRanges;
 
         auto operator<=>(PipelineKey const&) const = default;
     };

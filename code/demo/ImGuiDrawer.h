@@ -4,8 +4,9 @@
 
 #include "glm.h"
 
-#include <vector>
 #include <tuple>
+
+#include "nstl/vector.h"
 
 namespace vkgfx
 {
@@ -30,7 +31,7 @@ private:
     void createPipeline(vkgfx::ResourceManager& resourceManager);
 
     void uploadBuffers(vkgfx::ResourceManager& resourceManager, ImDrawData const* drawData);
-    std::vector<unsigned char> createPushConstants(ImDrawData const* drawData);
+    nstl::vector<unsigned char> createPushConstants(ImDrawData const* drawData);
     std::tuple<glm::ivec2, glm::ivec2> calculateClip(ImDrawData const* drawData, ImDrawCmd const* drawCommand);
     void updateMesh(vkgfx::ResourceManager& resourceManager, std::size_t index, std::size_t indexCount, std::size_t indexOffset, std::size_t vertexOffset);
     void updateMaterial(vkgfx::ResourceManager& resourceManager, std::size_t index, vkgfx::ImageHandle image);

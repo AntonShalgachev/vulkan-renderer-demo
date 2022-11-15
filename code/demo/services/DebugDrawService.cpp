@@ -186,7 +186,7 @@ void DebugDrawService::box(glm::vec3 const& center, glm::quat const& rotation, g
     matrix = matrix * glm::mat4_cast(rotation);
     matrix = glm::scale(matrix, scale);
 
-    std::vector<unsigned char> pushConstants;
+    nstl::vector<unsigned char> pushConstants;
     pushConstants.resize(sizeof(matrix));
     memcpy(pushConstants.data(), &matrix, sizeof(matrix));
 

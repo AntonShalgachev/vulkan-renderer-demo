@@ -1,10 +1,12 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
 #include "UniqueHandle.h"
 
+#include "nstl/vector.h"
+
+#include <vulkan/vulkan.h>
+
 #include <span>
-#include <vector>
 
 namespace vko
 {
@@ -28,6 +30,6 @@ namespace vko
         Device const& m_device;
     	UniqueHandle<VkPipelineLayout> m_handle;
 
-        std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
+        nstl::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
     };
 }

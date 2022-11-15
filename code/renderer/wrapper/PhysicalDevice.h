@@ -3,9 +3,10 @@
 #include "QueueFamily.h"
 #include "UniqueHandle.h"
 
+#include "nstl/vector.h"
+
 #include <vulkan/vulkan.h>
 
-#include <vector>
 #include <string>
 
 namespace vko
@@ -19,9 +20,9 @@ namespace vko
 
         VkPhysicalDeviceProperties const& getProperties() const { return m_properties; }
         VkPhysicalDeviceFeatures const& getFeatures() const { return m_features; }
-        std::vector<QueueFamily> const& getQueueFamilies() const { return m_queueFamilies; }
+        nstl::vector<QueueFamily> const& getQueueFamilies() const { return m_queueFamilies; } // TODO use std::span
 
-        bool areExtensionsSupported(std::vector<char const*> const& requestedExtensions) const;
+        bool areExtensionsSupported(nstl::vector<char const*> const& requestedExtensions) const; // TODO use std::span
 
     private:
         void init();
@@ -34,11 +35,11 @@ namespace vko
     private:
         UniqueHandle<VkPhysicalDevice> m_handle;
 
-        std::vector<VkExtensionProperties> m_availableExtensions;
-        std::vector<std::string> m_availableExtensionNames;
+        nstl::vector<VkExtensionProperties> m_availableExtensions;
+        nstl::vector<std::string> m_availableExtensionNames;
 
         VkPhysicalDeviceProperties m_properties;
         VkPhysicalDeviceFeatures m_features;
-        std::vector<QueueFamily> m_queueFamilies;
+        nstl::vector<QueueFamily> m_queueFamilies;
     };
 }

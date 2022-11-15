@@ -11,7 +11,6 @@
 
 #include <cassert>
 #include <cstddef>
-#include <vector>
 #include <string>
 #include <string_view>
 #include <compare>

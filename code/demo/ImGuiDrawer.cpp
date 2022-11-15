@@ -19,6 +19,8 @@
 
 #include "common/Utils.h"
 
+#include "nstl/vector.h"
+
 #pragma warning(push, 0)
 #include "imgui.h"
 #pragma warning(pop)
@@ -80,7 +82,7 @@ void ImGuiDrawer::queueGeometry(vkgfx::Renderer& renderer)
 
     uploadBuffers(resourceManager, drawData);
 
-    std::vector<unsigned char> pushConstantsBytes = createPushConstants(drawData);
+    nstl::vector<unsigned char> pushConstantsBytes = createPushConstants(drawData);
 
     std::size_t nextResourceIndex = 0;
     std::size_t vertexOffset = 0;
@@ -293,7 +295,7 @@ void ImGuiDrawer::uploadBuffers(vkgfx::ResourceManager& resourceManager, ImDrawD
     }
 }
 
-std::vector<unsigned char> ImGuiDrawer::createPushConstants(ImDrawData const* drawData)
+nstl::vector<unsigned char> ImGuiDrawer::createPushConstants(ImDrawData const* drawData)
 {
     struct PushConstants
     {
@@ -312,7 +314,7 @@ std::vector<unsigned char> ImGuiDrawer::createPushConstants(ImDrawData const* dr
         -1.0f - drawData->DisplayPos.y * pushConstants.scale.y,
     };
 
-    std::vector<unsigned char> bytes;
+    nstl::vector<unsigned char> bytes;
     bytes.resize(sizeof(PushConstants));
     memcpy(bytes.data(), &pushConstants, sizeof(pushConstants));
 

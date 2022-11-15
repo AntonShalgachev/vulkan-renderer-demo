@@ -7,21 +7,21 @@
 
 namespace
 {
-    std::vector<VkLayerProperties> getAvailableLayers()
+    nstl::vector<VkLayerProperties> getAvailableLayers()
     {
         uint32_t count = 0;
         VKO_ASSERT(vkEnumerateInstanceLayerProperties(&count, nullptr));
-        std::vector<VkLayerProperties> availableLayers(count);
+        nstl::vector<VkLayerProperties> availableLayers(count);
         VKO_ASSERT(vkEnumerateInstanceLayerProperties(&count, availableLayers.data()));
 
         return availableLayers;
     }
 
-    std::vector<VkExtensionProperties> getAvailableExtensions()
+    nstl::vector<VkExtensionProperties> getAvailableExtensions()
     {
         uint32_t count = 0;
         VKO_ASSERT(vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr));
-        std::vector<VkExtensionProperties> availableExtensions(count);
+        nstl::vector<VkExtensionProperties> availableExtensions(count);
         VKO_ASSERT(vkEnumerateInstanceExtensionProperties(nullptr, &count, availableExtensions.data()));
 
         return availableExtensions;
@@ -58,7 +58,7 @@ namespace
     }
 }
 
-vko::Instance::Instance(char const* appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump, std::function<void(DebugMessage)> onDebugMessage) : m_onDebugMessage(std::move(onDebugMessage))
+vko::Instance::Instance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump, std::function<void(DebugMessage)> onDebugMessage) : m_onDebugMessage(std::move(onDebugMessage))
 {
     m_availableLayers = getAvailableLayers();
     m_availableLayerNames.reserve(m_availableLayers.size());
@@ -83,9 +83,9 @@ vko::Instance::~Instance()
     vkDestroyInstance(m_handle, nullptr);
 }
 
-void vko::Instance::createInstance(char const* appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump)
+void vko::Instance::createInstance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump)
 {
-    std::vector<char const*> requestedLayers;
+    nstl::vector<char const*> requestedLayers;
     if (enableValidation)
         requestedLayers.push_back("VK_LAYER_KHRONOS_validation");
     if (enableApiDump)
@@ -155,16 +155,16 @@ void vko::Instance::setDebugName(VkDevice device, uint64_t handle, VkObjectType 
     VKO_ASSERT(m_vkSetDebugUtilsObjectNameEXT(device, &nameInfo));
 }
 
-std::vector<vko::PhysicalDevice> vko::Instance::findPhysicalDevices()
+nstl::vector<vko::PhysicalDevice> vko::Instance::findPhysicalDevices()
 {
     uint32_t count = 0;
     VKO_ASSERT(vkEnumeratePhysicalDevices(m_handle, &count, nullptr));
     assert(count > 0);
 
-    std::vector<VkPhysicalDevice> physicalDeviceHandles(count);
+    nstl::vector<VkPhysicalDevice> physicalDeviceHandles(count);
     VKO_ASSERT(vkEnumeratePhysicalDevices(m_handle, &count, physicalDeviceHandles.data()));
 
-    std::vector<vko::PhysicalDevice> physicalDevices;
+    nstl::vector<vko::PhysicalDevice> physicalDevices;
     physicalDevices.reserve(count);
     for (auto const& handle : physicalDeviceHandles)
         physicalDevices.emplace_back(handle);

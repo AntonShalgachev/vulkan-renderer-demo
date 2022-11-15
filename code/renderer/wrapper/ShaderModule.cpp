@@ -3,6 +3,8 @@
 #include "Assert.h"
 #include "Device.h"
 
+#include "nstl/vector.h"
+
 namespace
 {
     VkShaderStageFlagBits getStageFlags(vko::ShaderModuleType type)
@@ -30,7 +32,7 @@ vko::ShaderModule::ShaderModule(Device const& device, std::span<unsigned char co
     assert(bytes.size() % 4 == 0);
     static_assert(sizeof(uint32_t) == 4 * sizeof(unsigned char));
 
-    std::vector<uint32_t> code;
+    nstl::vector<uint32_t> code;
     code.resize(bytes.size() / 4);
     memcpy(code.data(), bytes.data(), bytes.size());
 

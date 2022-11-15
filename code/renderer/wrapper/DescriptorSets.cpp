@@ -1,7 +1,7 @@
 #include "DescriptorSets.h"
 #include "Device.h"
 
-vko::DescriptorSets::DescriptorSets(Device const& device, std::vector<VkDescriptorSet> handles)
+vko::DescriptorSets::DescriptorSets(Device const& device, nstl::vector<VkDescriptorSet> handles)
     : m_device(&device)
     , m_handles(std::move(handles))
 {
@@ -10,13 +10,13 @@ vko::DescriptorSets::DescriptorSets(Device const& device, std::vector<VkDescript
 
 void vko::DescriptorSets::update(UpdateConfig const& updateConfig)
 {
-    std::vector<VkDescriptorBufferInfo> bufferInfos;
+    nstl::vector<VkDescriptorBufferInfo> bufferInfos;
     bufferInfos.reserve(updateConfig.buffers.size());
 
-    std::vector<VkDescriptorImageInfo> imageInfos;
+    nstl::vector<VkDescriptorImageInfo> imageInfos;
     imageInfos.reserve(updateConfig.images.size());
 
-    std::vector<VkWriteDescriptorSet> descriptorWrites;
+    nstl::vector<VkWriteDescriptorSet> descriptorWrites;
     descriptorWrites.reserve(bufferInfos.capacity() + imageInfos.capacity());
 
     for (UpdateConfig::Buffer const& buffer : updateConfig.buffers)

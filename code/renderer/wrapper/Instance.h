@@ -1,10 +1,12 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-#include <vector>
-#include <functional>
-
 #include "UniqueHandle.h"
+
+#include "nstl/vector.h"
+
+#include <vulkan/vulkan.h>
+
+#include <functional>
 
 namespace vko
 {
@@ -14,7 +16,7 @@ namespace vko
     class Instance
     {
     public:
-    	Instance(char const* appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump, std::function<void(DebugMessage)> onDebugMessage);
+    	Instance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump, std::function<void(DebugMessage)> onDebugMessage);
     	~Instance();
 
         Instance(Instance const&) = default;
@@ -24,7 +26,7 @@ namespace vko
 
         VkInstance getHandle() const { return m_handle; }
 
-        std::vector<vko::PhysicalDevice> findPhysicalDevices();
+        nstl::vector<vko::PhysicalDevice> findPhysicalDevices();
 
 #define SET_DEBUG_NAME_FUNC(T, ObjectType) \
     void setDebugName(VkDevice device, T handle, char const* name) const { return setDebugName(device, reinterpret_cast<uint64_t>(handle), ObjectType, name); } \
@@ -47,7 +49,7 @@ namespace vko
         void dispatchDebugMessage(DebugMessage message);
 
     private:
-        void createInstance(char const* appName, std::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump);
+        void createInstance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump);
         void findFunctions();
         void createDebugMessenger();
 
@@ -59,11 +61,11 @@ namespace vko
         UniqueHandle<VkDebugUtilsMessengerEXT> m_debugMessenger;
         std::function<void(DebugMessage)> m_onDebugMessage;
 
-        std::vector<VkLayerProperties> m_availableLayers;
-        std::vector<char const*> m_availableLayerNames;
+        nstl::vector<VkLayerProperties> m_availableLayers;
+        nstl::vector<char const*> m_availableLayerNames;
 
-        std::vector<VkExtensionProperties> m_availableExtensions;
-        std::vector<char const*> m_availableExtensionNames;
+        nstl::vector<VkExtensionProperties> m_availableExtensions;
+        nstl::vector<char const*> m_availableExtensionNames;
 
         PFN_vkCreateDebugUtilsMessengerEXT m_vkCreateDebugUtilsMessengerEXT = nullptr;
         PFN_vkDestroyDebugUtilsMessengerEXT m_vkDestroyDebugUtilsMessengerEXT = nullptr;

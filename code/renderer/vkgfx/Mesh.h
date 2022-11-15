@@ -2,6 +2,8 @@
 
 #include "Handles.h"
 
+#include "nstl/vector.h"
+
 namespace vkgfx
 {
     enum class IndexType
@@ -20,7 +22,7 @@ namespace vkgfx
     // TODO store Vulkan objects directly
     struct Mesh
     {
-        std::vector<BufferWithOffset> vertexBuffers;
+        nstl::vector<BufferWithOffset> vertexBuffers;
         BufferWithOffset indexBuffer;
         std::size_t indexCount = 0;
         IndexType indexType = IndexType::UnsignedShort;

@@ -65,7 +65,7 @@ void vkr::PhysicalDeviceSurfaceParameters::queryPresentModes()
 
 void vkr::PhysicalDeviceSurfaceParameters::queryPresentationSupport()
 {
-    std::vector<vko::QueueFamily> const& queueFamilies = m_physicalDevice.getQueueFamilies();
+    nstl::vector<vko::QueueFamily> const& queueFamilies = m_physicalDevice.getQueueFamilies();
 
     m_queuePresentationSupport.resize(queueFamilies.size());
 

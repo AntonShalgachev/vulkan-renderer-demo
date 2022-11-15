@@ -4,7 +4,7 @@
 
 #include "glm.h"
 
-#include <vector>
+#include "nstl/vector.h"
 
 namespace vkgfx
 {
@@ -17,7 +17,7 @@ namespace vkgfx
         vkgfx::MaterialHandle material;
 
         vkgfx::BufferHandle uniformBuffer;
-        std::vector<unsigned char> pushConstants; // TODO have a reference to the buffer instead
+        nstl::vector<unsigned char> pushConstants; // TODO have a reference to the buffer instead
 
         bool hasScissors = false;
         glm::uvec2 scissorOffset = { 0, 0 };

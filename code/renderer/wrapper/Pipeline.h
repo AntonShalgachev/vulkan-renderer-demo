@@ -2,9 +2,10 @@
 
 #include "UniqueHandle.h"
 
+#include "nstl/vector.h"
+
 #include <vulkan/vulkan.h>
 
-#include <vector>
 #include <span>
 
 namespace vko
@@ -20,8 +21,8 @@ namespace vko
         struct Config
         {
             // TODO replace with the simplier vertex layout struct
-            std::vector<VkVertexInputBindingDescription> bindingDescriptions;
-            std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+            nstl::vector<VkVertexInputBindingDescription> bindingDescriptions;
+            nstl::vector<VkVertexInputAttributeDescription> attributeDescriptions;
 
             bool cullBackFaces = true;
             bool wireframe = false;
@@ -49,6 +50,6 @@ namespace vko
     	UniqueHandle<VkPipeline> m_handle;
 
         VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
-        std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
+        nstl::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
     };
 }

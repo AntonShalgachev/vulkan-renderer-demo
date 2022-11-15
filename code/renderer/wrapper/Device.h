@@ -1,8 +1,10 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-#include <vector>
 #include "UniqueHandle.h"
+
+#include "nstl/vector.h"
+
+#include <vulkan/vulkan.h>
 
 namespace vko
 {
@@ -13,7 +15,8 @@ namespace vko
     class Device
     {
     public:
-        explicit Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily const& graphics, vko::QueueFamily const& present, std::vector<const char*> const& extensions);
+        // TODO use std::span for extensions
+        explicit Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily const& graphics, vko::QueueFamily const& present, nstl::vector<const char*> const& extensions);
     	~Device();
 
         Device(Device const&) = default;
@@ -25,14 +28,14 @@ namespace vko
 
         VkDevice getHandle() const { return m_handle; }
 
-		std::vector<Queue> const& getQueues() const { return m_queues; }
+		nstl::vector<Queue> const& getQueues() const { return m_queues; }
         Queue const& getGraphicsQueue() const { return *m_graphicsQueue; }
         Queue const& getPresentQueue() const { return *m_presentQueue; }
 
     private:
     	UniqueHandle<VkDevice> m_handle;
 
-        std::vector<Queue> m_queues;
+        nstl::vector<Queue> m_queues;
 
         Queue const* m_graphicsQueue = nullptr;
         Queue const* m_presentQueue = nullptr;

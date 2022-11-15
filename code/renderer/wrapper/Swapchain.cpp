@@ -66,7 +66,7 @@ std::size_t vko::Swapchain::getImageCount() const
     return m_images.size();
 }
 
-std::vector<vko::Image> const& vko::Swapchain::getImages() const
+nstl::vector<vko::Image> const& vko::Swapchain::getImages() const
 {
     return m_images;
 }
@@ -76,7 +76,7 @@ void vko::Swapchain::retrieveImages()
     uint32_t finalImageCount = 0;
     VKO_ASSERT(vkGetSwapchainImagesKHR(m_device.getHandle(), m_handle, &finalImageCount, nullptr));
 
-    std::vector<VkImage> imageHandles;
+    nstl::vector<VkImage> imageHandles;
     imageHandles.resize(finalImageCount);
     VKO_ASSERT(vkGetSwapchainImagesKHR(m_device.getHandle(), m_handle, &finalImageCount, imageHandles.data()));
 

@@ -8,7 +8,7 @@ vko::PhysicalDevice::PhysicalDevice(VkPhysicalDevice handle) : m_handle(handle)
     init();
 }
 
-bool vko::PhysicalDevice::areExtensionsSupported(std::vector<char const*> const& requestedExtensions) const
+bool vko::PhysicalDevice::areExtensionsSupported(nstl::vector<char const*> const& requestedExtensions) const
 {
     return vkc::utils::hasEveryOption(m_availableExtensionNames, requestedExtensions);
 }
@@ -44,7 +44,7 @@ void vko::PhysicalDevice::queryFeatures()
 
 void vko::PhysicalDevice::queryQueueFamilyProperties()
 {
-    std::vector<VkQueueFamilyProperties> properties;
+    nstl::vector<VkQueueFamilyProperties> properties;
 
     uint32_t count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, nullptr);
