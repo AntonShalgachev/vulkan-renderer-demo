@@ -32,6 +32,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 find_package(Vulkan REQUIRED)
 
 add_subdirectory(external)
+add_subdirectory(code/nstl)
 add_subdirectory(code/renderer)
 add_subdirectory(code/demo)
 add_subdirectory(code/common)

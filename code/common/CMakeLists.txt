@@ -29,4 +29,5 @@ target_compile_options(${PROJECT_NAME} PRIVATE ${BASE_COMPILE_OPTIONS})
 
 target_link_libraries(${PROJECT_NAME}
     glm::glm
+    nstl
 )
