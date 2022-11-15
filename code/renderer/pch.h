@@ -7,6 +7,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include "nstl/vector.h"
+
 #include <cassert>
 #include <cstddef>
 #include <vector>
