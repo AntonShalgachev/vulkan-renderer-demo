@@ -4,6 +4,7 @@
 #include "new.h"
 #include "utility.h"
 #include "buffer.h"
+#include "span.h"
 
 #include <stddef.h>
 
@@ -61,7 +62,11 @@ namespace nstl
         T const& operator[](size_t index) const;
         T& operator[](size_t index);
 
+        bool operator==(vector const& rhs) const;
         auto operator<=>(vector const& rhs) const;
+
+        operator span<T>();
+        operator span<T const>() const;
 
     private:
         void grow(size_t newCapacity);
@@ -295,13 +300,25 @@ auto nstl::vector<T>::operator<=>(vector const& rhs) const
     while (lhsIt != lhsEnd)
     {
         if (rhsIt == rhsEnd)
-            return std::strong_ordering::greater; // TODO replace with something else?
+            return std::strong_ordering::greater;
         if (auto result = (*lhsIt <=> *rhsIt); result != 0)
             return result;
         ++lhsIt;
         ++rhsIt;
     }
     return (rhsIt == rhsEnd) <=> true;
+}
+
+template<typename T>
+nstl::vector<T>::operator span<T>()
+{
+    return span<T>{ data(), size() };
+}
+
+template<typename T>
+nstl::vector<T>::operator span<T const>() const
+{
+    return span<T const>{ data(), size() };
 }
 
 template<typename T>

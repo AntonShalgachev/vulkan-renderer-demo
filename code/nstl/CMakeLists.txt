@@ -18,6 +18,7 @@ add_library(nstl # custom template library
     "include/nstl/unordered_map.h"
     "include/nstl/utility.h"
     "include/nstl/vector.h"
+    "include/nstl/span.h"
 
     "src/string.cpp"
     "src/string_view.cpp"
