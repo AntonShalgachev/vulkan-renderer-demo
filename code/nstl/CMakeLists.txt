@@ -24,6 +24,8 @@ add_library(nstl # custom template library
     "src/string_view.cpp"
     "src/new.cpp"
     "src/buffer.cpp"
+
+    "nstl.natvis"
 )
 
 target_include_directories(nstl
