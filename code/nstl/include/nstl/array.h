@@ -15,8 +15,8 @@ namespace nstl
 
         T* begin() { return m_values; }
         T const* begin() const { return m_values; }
-        T* end() { return m_values + N }
-        T const* end() const { return m_values + N }
+        T* end() { return m_values + N; }
+        T const* end() const { return m_values + N; }
 
         operator span<T>() { return { m_values, N }; }
         operator span<T const>() const { return { m_values, N }; }

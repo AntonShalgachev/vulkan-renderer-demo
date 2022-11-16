@@ -7,22 +7,22 @@
 namespace nstl
 {
     template<typename T>
-    class Optional
+    class optional
     {
     public:
-        Optional();
-        Optional(T const& value);
-        Optional(T&& value);
+        optional();
+        optional(T const& value);
+        optional(T&& value);
 
-        Optional(Optional const& rhs);
-        Optional(Optional&& rhs);
+        optional(optional const& rhs);
+        optional(optional&& rhs);
 
-        ~Optional();
+        ~optional();
 
-        Optional& operator=(Optional const& rhs);
-        Optional& operator=(Optional&& rhs);
+        optional& operator=(optional const& rhs);
+        optional& operator=(optional&& rhs);
 
-        bool hasValue() const;
+        bool has_value() const;
         operator bool() const;
 
         T const& operator*() const;
@@ -31,8 +31,8 @@ namespace nstl
         T const* operator->() const;
         T* operator->();
 
-        bool operator==(Optional const& rhs) const;
-        bool operator!=(Optional const& rhs) const;
+        bool operator==(optional const& rhs) const;
+        bool operator!=(optional const& rhs) const;
 
         template<typename T2>
         bool operator==(T2 const& rhs) const;
@@ -65,7 +65,7 @@ namespace nstl
 #pragma warning(disable : 4702) // unreachable code
 #endif
 template<typename T>
-nstl::Optional<T>::Optional() : m_hasValue(false), m_empty({})
+nstl::optional<T>::optional() : m_hasValue(false), m_empty({})
 {
 }
 #ifdef _MSC_VER
@@ -73,39 +73,39 @@ nstl::Optional<T>::Optional() : m_hasValue(false), m_empty({})
 #endif
 
 template<typename T>
-nstl::Optional<T>::Optional(T const& value) : Optional()
+nstl::optional<T>::optional(T const& value) : optional()
 {
     construct(value);
 }
 
 template<typename T>
-nstl::Optional<T>::Optional(T&& value) : Optional()
+nstl::optional<T>::optional(T&& value) : optional()
 {
     construct(nstl::move(value));
 }
 
 template<typename T>
-nstl::Optional<T>::Optional(Optional const& rhs) : Optional()
+nstl::optional<T>::optional(optional const& rhs) : optional()
 {
     if (rhs.m_hasValue)
         construct(rhs.m_value);
 }
 
 template<typename T>
-nstl::Optional<T>::Optional(Optional&& rhs) : Optional()
+nstl::optional<T>::optional(optional&& rhs) : optional()
 {
     if (rhs.m_hasValue)
         construct(nstl::move(rhs.m_value));
 }
 
 template<typename T>
-nstl::Optional<T>::~Optional()
+nstl::optional<T>::~optional()
 {
     destroy();
 }
 
 template<typename T>
-nstl::Optional<T>& nstl::Optional<T>::operator=(Optional const& rhs)
+nstl::optional<T>& nstl::optional<T>::operator=(optional const& rhs)
 {
     if (m_hasValue && rhs.m_hasValue)
         m_value = rhs.m_value;
@@ -118,7 +118,7 @@ nstl::Optional<T>& nstl::Optional<T>::operator=(Optional const& rhs)
 }
 
 template<typename T>
-nstl::Optional<T>& nstl::Optional<T>::operator=(Optional&& rhs)
+nstl::optional<T>& nstl::optional<T>::operator=(optional&& rhs)
 {
     if (m_hasValue && rhs.m_hasValue)
         m_value = nstl::move(rhs.m_value);
@@ -131,45 +131,45 @@ nstl::Optional<T>& nstl::Optional<T>::operator=(Optional&& rhs)
 }
 
 template<typename T>
-bool nstl::Optional<T>::hasValue() const
+bool nstl::optional<T>::has_value() const
 {
     return m_hasValue;
 }
 
 template<typename T>
-nstl::Optional<T>::operator bool() const
+nstl::optional<T>::operator bool() const
 {
     return m_hasValue;
 }
 
 template<typename T>
-T const& nstl::Optional<T>::operator*() const
+T const& nstl::optional<T>::operator*() const
 {
     NSTL_ASSERT(m_hasValue);
     return m_value;
 }
 
 template<typename T>
-T& nstl::Optional<T>::operator*()
+T& nstl::optional<T>::operator*()
 {
     NSTL_ASSERT(m_hasValue);
     return m_value;
 }
 
 template<typename T>
-T const* nstl::Optional<T>::operator->() const
+T const* nstl::optional<T>::operator->() const
 {
     return &m_value;
 }
 
 template<typename T>
-T* nstl::Optional<T>::operator->()
+T* nstl::optional<T>::operator->()
 {
     return &m_value;
 }
 
 template<typename T>
-bool nstl::Optional<T>::operator==(Optional const& rhs) const
+bool nstl::optional<T>::operator==(optional const& rhs) const
 {
     if (m_hasValue != rhs.m_hasValue)
         return false;
@@ -181,41 +181,41 @@ bool nstl::Optional<T>::operator==(Optional const& rhs) const
 }
 
 template<typename T>
-bool nstl::Optional<T>::operator!=(Optional const& rhs) const
+bool nstl::optional<T>::operator!=(optional const& rhs) const
 {
     return !(*this == rhs);
 }
 
 template<typename T>
 template<typename T2>
-bool nstl::Optional<T>::operator==(T2 const& rhs) const
+bool nstl::optional<T>::operator==(T2 const& rhs) const
 {
     return m_hasValue && m_value == rhs;
 }
 
 template<typename T>
 template<typename T2>
-bool nstl::Optional<T>::operator!=(T2 const& rhs) const
+bool nstl::optional<T>::operator!=(T2 const& rhs) const
 {
     return !(*this == rhs);
 }
 
 template<typename T>
-void nstl::Optional<T>::construct(T const& value)
+void nstl::optional<T>::construct(T const& value)
 {
     new (nstl::NewTag{}, &m_value) T(value);
     m_hasValue = true;
 }
 
 template<typename T>
-void nstl::Optional<T>::construct(T&& value)
+void nstl::optional<T>::construct(T&& value)
 {
     new (nstl::NewTag{}, &m_value) T(nstl::move(value));
     m_hasValue = true;
 }
 
 template<typename T>
-void nstl::Optional<T>::destroy()
+void nstl::optional<T>::destroy()
 {
     if (m_hasValue)
         m_value.~T();

@@ -33,7 +33,7 @@ namespace nstl
         void copy(void const* ptr, size_t size);
 
         template<typename T, typename... Args>
-        T* constructNext(Args&&... args)
+        T& constructNext(Args&&... args)
         {
             NSTL_ASSERT(m_ptr);
             NSTL_ASSERT(m_size < m_capacity);
@@ -45,8 +45,8 @@ namespace nstl
 #if NSTL_CONFIG_ENABLE_ASSERTS
             m_constructedObjectsCount++;
 #endif
-
-            return obj;
+            NSTL_ASSERT(obj);
+            return *obj;
         }
 
         template<typename T>

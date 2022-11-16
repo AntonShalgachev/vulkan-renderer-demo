@@ -11,6 +11,8 @@
 #include <initializer_list> // TODO avoid include this header?
 #include <compare> // TODO avoid include this header?
 
+// TODO distinguish between internal asserts and validations (e.g. index-out-of-bounds check should probably be active)
+
 namespace nstl
 {
     template<typename T>
@@ -162,14 +164,7 @@ template<typename T>
 void nstl::vector<T>::push_back(T item)
 {
     size_t nextSize = size() + 1;
-    if (nextSize > capacity())
-    {
-        size_t nextCapacity = size() * 3 / 2;
-        if (nextSize > nextCapacity)
-            nextCapacity = nextSize;
-        grow(nextCapacity);
-    }
-
+    reserve(nextSize);
     NSTL_ASSERT(capacity() >= nextSize);
 
     m_buffer.constructNext<T>(nstl::move(item));
@@ -187,8 +182,11 @@ template<typename T>
 template<typename... Args>
 T& nstl::vector<T>::emplace_back(Args&&... args)
 {
-    push_back(T{ nstl::forward<Args>(args)... });
-    return back();
+    size_t nextSize = size() + 1;
+    reserve(nextSize);
+    NSTL_ASSERT(capacity() >= nextSize);
+
+    return m_buffer.constructNext<T>(nstl::forward<Args>(args)...);
 }
 
 template<typename T>
@@ -201,12 +199,12 @@ void nstl::vector<T>::clear()
 template<typename T>
 T* nstl::vector<T>::data()
 {
-    return begin();
+    return m_buffer.get<T>(0);
 }
 template<typename T>
 T const* nstl::vector<T>::data() const
 {
-    return begin();
+    return m_buffer.get<T>(0);
 }
 template<typename T>
 size_t nstl::vector<T>::size() const
@@ -221,7 +219,7 @@ size_t nstl::vector<T>::capacity() const
 template<typename T>
 bool nstl::vector<T>::empty() const
 {
-    return size() == 0;
+    return m_buffer.size() == 0;
 }
 
 template<typename T>
@@ -249,25 +247,25 @@ template<typename T>
 T& nstl::vector<T>::front()
 {
     NSTL_ASSERT(!empty());
-    return (*this)[0];
+    return *m_buffer.get<T>(0);
 }
 template<typename T>
 T const& nstl::vector<T>::front() const
 {
     NSTL_ASSERT(!empty());
-    return (*this)[0];
+    return *m_buffer.get<T>(0);
 }
 template<typename T>
 T& nstl::vector<T>::back()
 {
     NSTL_ASSERT(!empty());
-    return (*this)[size() - 1];
+    return *m_buffer.get<T>(size() - 1);
 }
 template<typename T>
 T const& nstl::vector<T>::back() const
 {
     NSTL_ASSERT(!empty());
-    return (*this)[size() - 1];
+    return *m_buffer.get<T>(size() - 1);
 }
 
 template<typename T>
@@ -310,13 +308,13 @@ auto nstl::vector<T>::operator<=>(vector const& rhs) const
 }
 
 template<typename T>
-nstl::vector<T>::operator span<T>()
+nstl::vector<T>::operator nstl::span<T>()
 {
     return span<T>{ data(), size() };
 }
 
 template<typename T>
-nstl::vector<T>::operator span<T const>() const
+nstl::vector<T>::operator nstl::span<T const>() const
 {
     return span<T const>{ data(), size() };
 }
