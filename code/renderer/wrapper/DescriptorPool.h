@@ -4,11 +4,11 @@
 #include "DescriptorSets.h" // TODO remove if possible
 
 #include "nstl/span.h"
+#include "nstl/optional.h"
 
 #include <vulkan/vulkan.h>
 
 #include <cstddef>
-#include <optional>
 
 namespace vko
 {
@@ -25,7 +25,7 @@ namespace vko
         DescriptorPool& operator=(DescriptorPool const&) = default;
         DescriptorPool& operator=(DescriptorPool&&) = default;
 
-        std::optional<DescriptorSets> allocate(nstl::span<VkDescriptorSetLayout const> layouts);
+        nstl::optional<DescriptorSets> allocate(nstl::span<VkDescriptorSetLayout const> layouts);
         nstl::vector<VkDescriptorSet> allocateRaw(nstl::span<VkDescriptorSetLayout const> layouts);
         void reset();
 

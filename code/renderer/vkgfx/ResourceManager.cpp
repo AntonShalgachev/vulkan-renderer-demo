@@ -18,7 +18,9 @@
 #include "Mesh.h"
 #include "PipelineKey.h"
 
-#include <cassert>
+#include "nstl/optional.h"
+
+#include <assert.h>
 
 namespace
 {
@@ -65,8 +67,8 @@ namespace
         ~BufferWithMemory()
         {
             // TODO remove this nasty hack
-            m_buffer.reset();
-            m_memory.reset();
+            m_buffer = {};
+            m_memory = {};
         }
 
         BufferWithMemory(BufferWithMemory&& rhs) = default;
@@ -77,8 +79,8 @@ namespace
 
     private:
         // TODO remove this nasty hack
-        std::optional<vko::Buffer> m_buffer;
-        std::optional<vko::DeviceMemory> m_memory;
+        nstl::optional<vko::Buffer> m_buffer;
+        nstl::optional<vko::DeviceMemory> m_memory;
     };
 
     void transitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout)

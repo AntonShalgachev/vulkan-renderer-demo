@@ -1,10 +1,10 @@
 #pragma once
 
-#include <cstdint>
-#include <cassert>
-#include <optional>
-
 #include "nstl/vector.h"
+#include "nstl/optional.h"
+
+#include <cstdint>
+#include <assert.h>
 
 // #define VALIDATE_RESOURCE_CONTAINER
 
@@ -13,6 +13,15 @@
 namespace vkgfx
 {
     void testResourceContainer(); // TODO remove
+
+    namespace detail
+    {
+        struct ResourceHeader
+        {
+            std::size_t objectIndex = static_cast<std::size_t>(-1);
+            std::uint32_t reincarnation = static_cast<std::uint32_t>(-1);
+        };
+    }
 
     struct ResourceHandle
     {
@@ -41,7 +50,7 @@ namespace vkgfx
             {
                 std::size_t newHeaderIndex = m_headers.size();
                 m_headerIndexMap.push_back(newHeaderIndex);
-                m_headers.push_back(Header{
+                m_headers.push_back(detail::ResourceHeader{
                     .objectIndex = objectIndex,
                     .reincarnation = static_cast<std::uint32_t>(-1),
                 });
@@ -55,7 +64,7 @@ namespace vkgfx
 
             std::size_t headerIndex = m_headerIndexMap[objectIndex];
 
-            Header& header = m_headers[headerIndex];
+            detail::ResourceHeader& header = m_headers[headerIndex];
 
             header.reincarnation++;
 
@@ -90,7 +99,7 @@ namespace vkgfx
                 return;
 
             assert(handle.index < m_headers.size());
-            Header const& header = m_headers[handle.index];
+            detail::ResourceHeader const& header = m_headers[handle.index];
             if (handle.reincarnation != header.reincarnation)
                 return;
 
@@ -142,13 +151,13 @@ namespace vkgfx
         auto cend() const { return m_objects.cend(); }
 
     private:
-        std::optional<std::size_t> getIndex(ResourceHandle handle) const
+        nstl::optional<std::size_t> getIndex(ResourceHandle handle) const
         {
             if (!handle)
                 return {};
 
             assert(handle.index < m_headers.size());
-            Header const& header = m_headers[handle.index];
+            detail::ResourceHeader const& header = m_headers[handle.index];
             if (handle.reincarnation != header.reincarnation)
                 return {};
 
@@ -239,13 +248,7 @@ namespace vkgfx
 #endif
 
     private:
-        struct Header
-        {
-            std::size_t objectIndex = static_cast<std::size_t>(-1);
-            std::uint32_t reincarnation = static_cast<std::uint32_t>(-1);
-        };
-
-        nstl::vector<Header> m_headers;
+        nstl::vector<detail::ResourceHeader> m_headers;
 
         nstl::vector<T> m_objects;
         nstl::vector<std::size_t> m_headerIndexMap;

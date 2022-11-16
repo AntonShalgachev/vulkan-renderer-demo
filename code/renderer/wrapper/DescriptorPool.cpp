@@ -41,7 +41,7 @@ vko::DescriptorPool::~DescriptorPool()
     vkDestroyDescriptorPool(m_device.getHandle(), m_handle, nullptr);
 }
 
-std::optional<vko::DescriptorSets> vko::DescriptorPool::allocate(nstl::span<VkDescriptorSetLayout const> layouts)
+nstl::optional<vko::DescriptorSets> vko::DescriptorPool::allocate(nstl::span<VkDescriptorSetLayout const> layouts)
 {
     nstl::vector<VkDescriptorSet> descriptorSetHandles = allocateRaw(layouts);
 

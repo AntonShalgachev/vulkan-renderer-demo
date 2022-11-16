@@ -10,6 +10,7 @@
 #include "nstl/vector.h"
 #include "nstl/array.h"
 #include "nstl/span.h"
+#include "nstl/optional.h"
 
 #include <cassert>
 #include <cstddef>
