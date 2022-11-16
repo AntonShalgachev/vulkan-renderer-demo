@@ -1,10 +1,10 @@
 #pragma once
 
+#include "QueueFamilyIndices.h"
+
 #include "nstl/vector.h"
 
 #include <vulkan/vulkan.h>
-
-#include <memory>
 
 namespace vko
 {
@@ -35,7 +35,7 @@ namespace vkr
 
         void onSurfaceChanged();
 
-        QueueFamilyIndices const& getQueueFamilyIndices() const { return *m_queueFamilyIndices; };
+        QueueFamilyIndices const& getQueueFamilyIndices() const { return m_queueFamilyIndices; };
 
     private:
         void queryCapabilities();
@@ -44,14 +44,13 @@ namespace vkr
         void queryPresentationSupport();
 
     private:
+        vko::PhysicalDevice const& m_physicalDevice;
+        vko::Surface const& m_surface;
+        QueueFamilyIndices m_queueFamilyIndices;
+
         VkSurfaceCapabilitiesKHR m_capabilities;
         nstl::vector<VkSurfaceFormatKHR> m_formats;
         nstl::vector<VkPresentModeKHR> m_presentModes;
         nstl::vector<bool> m_queuePresentationSupport;
-
-        std::unique_ptr<QueueFamilyIndices> m_queueFamilyIndices;
-
-        vko::PhysicalDevice const& m_physicalDevice;
-        vko::Surface const& m_surface;
     };
 }

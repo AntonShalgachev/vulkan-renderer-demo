@@ -5,14 +5,15 @@
 #include "wrapper/Surface.h"
 #include "QueueFamilyIndices.h"
 
-vkr::PhysicalDeviceSurfaceParameters::PhysicalDeviceSurfaceParameters(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface) : m_physicalDevice(physicalDevice), m_surface(surface)
+vkr::PhysicalDeviceSurfaceParameters::PhysicalDeviceSurfaceParameters(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
+    : m_physicalDevice(physicalDevice)
+    , m_surface(surface)
+    , m_queueFamilyIndices(physicalDevice, *this)
 {
     queryCapabilities();
     queryFormats();
     queryPresentModes();
     queryPresentationSupport();
-
-    m_queueFamilyIndices = std::make_unique<QueueFamilyIndices>(physicalDevice, *this);
 }
 
 vkr::PhysicalDeviceSurfaceParameters::~PhysicalDeviceSurfaceParameters() = default;
