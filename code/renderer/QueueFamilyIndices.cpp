@@ -1,7 +1,5 @@
 #include "QueueFamilyIndices.h"
 
-#include <optional>
-
 #include "wrapper/PhysicalDevice.h"
 #include "PhysicalDeviceSurfaceParameters.h"
 #include "wrapper/QueueFamily.h"
