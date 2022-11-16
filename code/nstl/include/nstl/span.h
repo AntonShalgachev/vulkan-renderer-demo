@@ -21,7 +21,9 @@ namespace nstl
 
         T& operator[](size_t index) const;
 
-        span subspan(size_t offset, size_t length) const;
+        span subspan(size_t offset, size_t count = static_cast<size_t>(-1)) const;
+
+        operator span<T const>() const;
 
     private:
         T* m_data = nullptr;
@@ -75,10 +77,20 @@ T& nstl::span<T>::operator[](size_t index) const
 }
 
 template<typename T>
-nstl::span<T> nstl::span<T>::subspan(size_t offset, size_t length) const
+nstl::span<T> nstl::span<T>::subspan(size_t offset, size_t count) const
 {
     NSTL_ASSERT(offset <= m_size);
-    NSTL_ASSERT(length <= m_size);
-    NSTL_ASSERT(offset + length <= m_size);
-    return { m_data + offset, length };
+
+    if (count = static_cast<size_t>(-1))
+        count = m_size - offset;
+
+    NSTL_ASSERT(count <= m_size);
+    NSTL_ASSERT(offset + count <= m_size);
+    return { m_data + offset, count };
+}
+
+template<typename T>
+nstl::span<T>::operator span<T const>() const
+{
+    return { m_data, m_size };
 }
