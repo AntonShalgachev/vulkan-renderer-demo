@@ -25,6 +25,19 @@ ScopedDebugCommands& ScopedDebugCommands::operator=(ScopedDebugCommands&& rhs)
     return *this;
 }
 
+void ScopedDebugCommands::add(std::string_view name, CommandMetadata metadata, coil::AnyFunctor anyFunctor)
+{
+    coil::Vector<coil::AnyFunctor> functors;
+    functors.pushBack(std::move(anyFunctor));
+    return add(name, std::move(metadata), std::move(functors));
+}
+
+void ScopedDebugCommands::add(std::string_view name, CommandMetadata metadata, coil::Vector<coil::AnyFunctor> anyFunctors)
+{
+    services().debugConsole().add(name, std::move(metadata), std::move(anyFunctors));
+    m_names.push_back(name);
+}
+
 void ScopedDebugCommands::remove(std::string_view name)
 {
     services().debugConsole().remove(name);
@@ -43,3 +56,5 @@ void ScopedDebugCommands::clear()
 
     m_names.clear();
 }
+
+template class CommandProxy<ScopedDebugCommands>;

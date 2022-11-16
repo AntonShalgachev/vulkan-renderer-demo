@@ -21,11 +21,15 @@ public:
     ScopedDebugCommands& operator=(ScopedDebugCommands&& rhs);
 
     template<typename Functor>
-    void add(std::string_view name, CommandMetadata metadata, Functor&& functor)
+    void add(std::string_view name, CommandMetadata metadata, Functor functor)
     {
-        services().debugConsole().add(name, std::move(metadata), std::forward<Functor>(functor));
-        m_names.push_back(name);
+        // TODO move it somewhere, preferably coil
+        static_assert(coil::detail::FuncTraits<Functor>::isFunc, "Func should be a functor object");
+        using FunctionWrapper = typename coil::detail::FuncTraits<Functor>::FunctionWrapperType;
+        return add(name, std::move(metadata), coil::AnyFunctor{ FunctionWrapper{coil::move(functor)} });
     }
+    void add(std::string_view name, CommandMetadata metadata, coil::AnyFunctor anyFunctor);
+    void add(std::string_view name, CommandMetadata metadata, coil::Vector<coil::AnyFunctor> anyFunctors);
 
     void remove(std::string_view name);
     void clear();
@@ -35,3 +39,6 @@ public:
 private:
     std::vector<std::string_view> m_names; // TODO should be std::string
 };
+
+// TODO find the right way to do it
+extern template class CommandProxy<ScopedDebugCommands>;

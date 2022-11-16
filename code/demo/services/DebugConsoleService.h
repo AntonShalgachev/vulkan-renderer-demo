@@ -4,6 +4,7 @@
 #include "CommandProxy.h"
 
 #include "coil/Coil.h"
+#include "coil/StdLibCompat.h"
 #include "magic_enum.hpp"
 
 #include "glm.h"
@@ -25,27 +26,6 @@ namespace utils
         }
 
         return ss.str();
-    }
-
-    // TODO remove and use coil functions
-    inline std::string coilToStdString(coil::StringView str)
-    {
-        return { str.data(), str.length() };
-    }
-
-    inline std::string_view coilToStdStringView(coil::StringView str)
-    {
-        return { str.data(), str.length() };
-    }
-
-    inline coil::String stdToCoilString(std::string_view str)
-    {
-        return { str.data(), str.length() };
-    }
-
-    inline coil::StringView stdToCoilStringView(std::string_view str)
-    {
-        return { str.data(), str.length() };
     }
 }
 
@@ -121,41 +101,6 @@ namespace coil
         }
     };
 
-    // TODO move to cpp
-    template<>
-    struct TypeSerializer<std::string>
-    {
-        static Expected<std::string, coil::String> fromString(Value const& input)
-        {
-            if (input.subvalues.size() != 1)
-                return errors::createMismatchedSubvaluesError<String>(input, 1);
-
-            return utils::coilToStdString(input.subvalues[0]);
-        }
-
-        static coil::String toString(std::string const& value)
-        {
-            return utils::stdToCoilString(value);
-        }
-    };
-
-    template<>
-    struct TypeSerializer<std::string_view>
-    {
-        static Expected<std::string_view, coil::String> fromString(Value const& input)
-        {
-            if (input.subvalues.size() != 1)
-                return errors::createMismatchedSubvaluesError<String>(input, 1);
-
-            return utils::coilToStdStringView(input.subvalues[0]);
-        }
-
-        static coil::String toString(std::string_view const& value)
-        {
-            return utils::stdToCoilString(value);
-        }
-    };
-
     template<typename T, typename>
     struct TypeName
     {
@@ -178,8 +123,6 @@ namespace coil
         }
     };
 
-	COIL_CREATE_TYPE_NAME_DECLARATION(std::string);
-	COIL_CREATE_TYPE_NAME_DECLARATION(std::string_view);
 	COIL_CREATE_TYPE_NAME_DECLARATION(glm::vec3);
 }
 
@@ -220,16 +163,15 @@ public:
     std::vector<std::string> const& history() { return m_inputHistory; }
 
     template<typename Functor>
-    void add(std::string_view name, CommandMetadata metadata, Functor&& functor)
+    void add(std::string_view name, CommandMetadata metadata, Functor functor)
     {
-        coil::StringView coilName = utils::stdToCoilStringView(name);
-        coil::Bindings::Command const& command = m_bindings.add(coilName, std::forward<Functor>(functor));
-        auto it = m_metadata.insertOrAssign(coilName, std::move(metadata));
-
-        fillCommandMetadata(it->value(), command.functors);
-
-        m_commands.pushBack(coilName);
+        // TODO move it somewhere, preferably coil
+        static_assert(coil::detail::FuncTraits<Functor>::isFunc, "Func should be a functor object");
+        using FunctionWrapper = typename coil::detail::FuncTraits<Functor>::FunctionWrapperType;
+        return add(name, std::move(metadata), coil::AnyFunctor{ FunctionWrapper{coil::move(functor)} });
     }
+    void add(std::string_view name, CommandMetadata metadata, coil::AnyFunctor anyFunctor);
+    void add(std::string_view name, CommandMetadata metadata, coil::Vector<coil::AnyFunctor> anyFunctors);
 
     void remove(std::string_view name);
 
@@ -249,3 +191,6 @@ private:
     std::vector<Line> m_lines;
     std::vector<std::string> m_inputHistory;
 };
+
+// TODO find the right way to do it
+extern template class CommandProxy<DebugConsoleService>;

@@ -68,8 +68,6 @@ namespace
 
 namespace coil
 {
-	COIL_CREATE_TYPE_NAME_DEFINITION(std::string, "std::string");
-	COIL_CREATE_TYPE_NAME_DEFINITION(std::string_view, "std::string_view");
 	COIL_CREATE_TYPE_NAME_DEFINITION(glm::vec3, "vec3");
 }
 
@@ -93,7 +91,7 @@ DebugConsoleService::DebugConsoleService(Services& services) : ServiceContainer(
         for (coil::String const& command : m_commands)
         {
             context.logf("%-*s", maxNameLength, command.cStr());
-            if (CommandMetadata const* metadata = getMetadata(utils::coilToStdStringView(command)); metadata && !metadata->description.empty())
+            if (CommandMetadata const* metadata = getMetadata(coil::toStdStringView(command)); metadata && !metadata->description.empty())
                 context.logf("\t%s", metadata->description.c_str());
 
             context.log("\n");
@@ -115,7 +113,7 @@ DebugConsoleService::DebugConsoleService(Services& services) : ServiceContainer(
     {
         std::stringstream ss;
         getCommandHelp(ss, command);
-        context.log(utils::stdToCoilString(ss.str()));
+        context.log(coil::fromStdString(ss.str()));
     };
 
     commands["help"].description("Print global/command help").arguments({ {}, {"command_name"} }) = coil::overloaded(std::move(globalHelp), std::move(commandHelp));
@@ -133,23 +131,23 @@ void DebugConsoleService::execute(std::string_view command)
         if (m_inputHistory.empty() || m_inputHistory.back() != subcommand)
             m_inputHistory.push_back(std::string{ subcommand });
 
-        coil::ExecutionResult result = m_bindings.execute(utils::stdToCoilStringView(subcommand));
+        coil::ExecutionResult result = m_bindings.execute(coil::fromStdStringView(subcommand));
         for (coil::String const& error : result.errors)
-            addLine("  " + utils::coilToStdString(error), Line::Type::Error);
+            addLine("  " + coil::toStdString(error), Line::Type::Error);
 
         // TODO not the best way to split the string
-        std::stringstream ss{ utils::coilToStdString(result.output) };
+        std::stringstream ss{ coil::toStdString(result.output) };
         for (std::string line; std::getline(ss, line); )
             addLine("  " + line, Line::Type::Output);
 
         if (result.returnValue)
-            addLine("  -> '" + utils::coilToStdString(*result.returnValue) + "'", Line::Type::ReturnValue);
+            addLine("  -> '" + coil::toStdString(*result.returnValue) + "'", Line::Type::ReturnValue);
 
         if (!result.errors.empty())
         {
             addLine("  See command help:", Line::Type::CommandHelp);
             std::stringstream ss;
-            getCommandHelp(ss, utils::coilToStdStringView(result.input.name));
+            getCommandHelp(ss, coil::toStdStringView(result.input.name));
             for (std::string line; std::getline(ss, line); )
                 addLine("    " + line, Line::Type::CommandHelp);
         }
@@ -166,7 +164,7 @@ std::vector<DebugConsoleService::Suggestion> DebugConsoleService::getSuggestions
     rapidfuzz::fuzz::CachedRatio<char> scorer(input);
     for (coil::String const& coilCommand : m_commands)
     {
-        std::string_view command = utils::coilToStdStringView(coilCommand);
+        std::string_view command = coil::toStdStringView(coilCommand);
 
         float score = 0.0f;
 
@@ -197,7 +195,7 @@ std::optional<std::string_view> DebugConsoleService::autoComplete(std::string_vi
 
     for (coil::String const& coilCommand : m_commands)
     {
-        std::string_view command = utils::coilToStdStringView(coilCommand);
+        std::string_view command = coil::toStdStringView(coilCommand);
 
         if (command.starts_with(input))
             candidates.push_back(command);
@@ -232,7 +230,7 @@ void DebugConsoleService::clear()
 
 void DebugConsoleService::getCommandHelp(std::ostream& os, std::string_view name) const
 {
-	auto const* functors = m_bindings.get(utils::stdToCoilStringView(name));
+	auto const* functors = m_bindings.get(coil::fromStdStringView(name));
 	if (!functors)
 	{
 		os << "Command '" << name << "' doesn't exist" << std::endl;
@@ -255,9 +253,27 @@ void DebugConsoleService::getCommandHelp(std::ostream& os, std::string_view name
 		os << "  " << functor.buildRepresentation(name) << std::endl;
 }
 
+void DebugConsoleService::add(std::string_view name, CommandMetadata metadata, coil::AnyFunctor anyFunctor)
+{
+    coil::Vector<coil::AnyFunctor> functors;
+    functors.pushBack(std::move(anyFunctor));
+    return add(name, std::move(metadata), std::move(functors));
+}
+
+void DebugConsoleService::add(std::string_view name, CommandMetadata metadata, coil::Vector<coil::AnyFunctor> anyFunctors)
+{
+    coil::StringView coilName = coil::fromStdStringView(name);
+    coil::Bindings::Command const& command = m_bindings.add(coilName, std::move(anyFunctors));
+    auto it = m_metadata.insertOrAssign(coilName, std::move(metadata));
+
+    fillCommandMetadata(it->value(), command.functors);
+
+    m_commands.pushBack(coilName);
+}
+
 void DebugConsoleService::remove(std::string_view name)
 {
-    coil::StringView coilName = utils::stdToCoilStringView(name);
+    coil::StringView coilName = coil::fromStdStringView(name);
 
     m_bindings.remove(coilName);
     m_metadata.erase(coilName);
@@ -270,7 +286,7 @@ CommandProxy<DebugConsoleService> DebugConsoleService::operator[](std::string_vi
 
 CommandMetadata const* DebugConsoleService::getMetadata(std::string_view name) const
 {
-    coil::StringView coilName = utils::stdToCoilStringView(name);
+    coil::StringView coilName = coil::fromStdStringView(name);
 
     auto it = m_metadata.find(coilName);
     if (it != m_metadata.end())
@@ -296,10 +312,10 @@ void DebugConsoleService::fillCommandMetadata(CommandMetadata& metadata, coil::V
 		for (std::size_t j = 0; j < functorArgTypes.size(); j++)
 		{
 			ArgumentMetadata& argumentMetadata = functorMetadata.arguments[j];
-			argumentMetadata.type = utils::coilToStdStringView(functorArgTypes[j]);
+			argumentMetadata.type = coil::toStdStringView(functorArgTypes[j]);
 		}
 
-		functorMetadata.returnType = utils::coilToStdStringView(functor.returnType());
+		functorMetadata.returnType = coil::toStdStringView(functor.returnType());
 	}
 
 	metadata.type = "Function";
@@ -316,6 +332,7 @@ void DebugConsoleService::fillCommandMetadata(CommandMetadata& metadata, coil::V
         auto const& args0 = functor0->arguments;
         auto const& args1 = functor1->arguments;
 
+        // TODO seems fragile
         if (args0.size() == 0 && args1.size() == 1 && ret0 == args1[0].type && ret1 == args1[0].type)
         {
             metadata.type = "Variable (" + functor1->returnType + ")";
@@ -327,3 +344,5 @@ void DebugConsoleService::addLine(std::string text, Line::Type type)
 {
     m_lines.push_back({ std::move(text), type });
 }
+
+template class CommandProxy<DebugConsoleService>;
