@@ -1,7 +1,8 @@
 #pragma once
 
+#include "nstl/vector.h"
+
 #include <string_view>
-#include <vector>
 #include <string>
 
 namespace vkc
@@ -26,6 +27,6 @@ namespace vkc
         }
 
         // TODO implement asset manager instead
-        std::vector<unsigned char> readFile(const std::string& filename);
+        nstl::vector<unsigned char> readFile(const std::string& filename);
     }
 }

@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-std::vector<unsigned char> vkc::utils::readFile(const std::string& filename)
+nstl::vector<unsigned char> vkc::utils::readFile(const std::string& filename)
 {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
@@ -10,7 +10,7 @@ std::vector<unsigned char> vkc::utils::readFile(const std::string& filename)
         throw std::runtime_error("failed to open file!");
 
     std::streamsize fileSize = file.tellg();
-    std::vector<unsigned char> buffer(static_cast<std::size_t>(fileSize));
+    nstl::vector<unsigned char> buffer(static_cast<std::size_t>(fileSize));
 
     file.seekg(0);
     file.read(reinterpret_cast<char*>(buffer.data()), fileSize); // safe, since char and unsigned char have the same alignment and representation

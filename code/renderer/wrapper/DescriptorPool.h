@@ -1,12 +1,14 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-#include <cstddef>
-#include <optional>
-#include <span>
-
 #include "UniqueHandle.h"
 #include "DescriptorSets.h" // TODO remove if possible
+
+#include "nstl/span.h"
+
+#include <vulkan/vulkan.h>
+
+#include <cstddef>
+#include <optional>
 
 namespace vko
 {
@@ -23,8 +25,8 @@ namespace vko
         DescriptorPool& operator=(DescriptorPool const&) = default;
         DescriptorPool& operator=(DescriptorPool&&) = default;
 
-        std::optional<DescriptorSets> allocate(std::span<VkDescriptorSetLayout const> layouts);
-        nstl::vector<VkDescriptorSet> allocateRaw(std::span<VkDescriptorSetLayout const> layouts);
+        std::optional<DescriptorSets> allocate(nstl::span<VkDescriptorSetLayout const> layouts);
+        nstl::vector<VkDescriptorSet> allocateRaw(nstl::span<VkDescriptorSetLayout const> layouts);
         void reset();
 
         VkDescriptorPool getHandle() const { return m_handle; }

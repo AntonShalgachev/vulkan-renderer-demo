@@ -1,9 +1,12 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-#include <string>
-#include <span>
 #include "UniqueHandle.h"
+
+#include "nstl/span.h"
+
+#include <vulkan/vulkan.h>
+
+#include <string>
 
 namespace vko
 {
@@ -19,7 +22,7 @@ namespace vko
     class ShaderModule
     {
     public:
-        explicit ShaderModule(Device const& device, std::span<unsigned char const> bytes, ShaderModuleType type, std::string entryPoint);
+        explicit ShaderModule(Device const& device, nstl::span<unsigned char const> bytes, ShaderModuleType type, std::string entryPoint);
         ~ShaderModule();
 
         ShaderModule(ShaderModule&&) = default;

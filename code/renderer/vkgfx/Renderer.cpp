@@ -38,9 +38,10 @@
 
 #include "glm.h"
 
+#include "nstl/array.h"
+
 #include <vulkan/vulkan.h>
 
-#include <array>
 #include <format>
 
 namespace
@@ -377,7 +378,7 @@ void vkgfx::Renderer::draw()
     recordCommandBuffer(imageIndex, frameResources);
     frameResources.commandBuffers.submit(0, device.getGraphicsQueue(), &frameResources.renderFinishedSemaphore, &frameResources.imageAvailableSemaphore, &frameResources.inFlightFence);
 
-    std::array waitSemaphores{ frameResources.renderFinishedSemaphore.getHandle() };
+    nstl::array waitSemaphores{ frameResources.renderFinishedSemaphore.getHandle() };
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
@@ -472,7 +473,7 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
     renderPassBeginInfo.renderArea.offset = { 0, 0 };
     renderPassBeginInfo.renderArea.extent = m_swapchain->getExtent();
 
-    std::array<VkClearValue, 2> clearValues{};
+    nstl::array<VkClearValue, 2> clearValues{};
     clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
     clearValues[1].depthStencil = { 1.0f, 0 };
 
@@ -521,7 +522,7 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
 
         if (object.material && boundMaterial != object.material)
         {
-            std::span<VkDescriptorSetLayout const> descriptorSetLayouts = pipeline.getDescriptorSetLayouts();
+            nstl::span<VkDescriptorSetLayout const> descriptorSetLayouts = pipeline.getDescriptorSetLayouts();
 
             // TODO get rid of this hack
             assert(descriptorSetLayouts.size() == 3);

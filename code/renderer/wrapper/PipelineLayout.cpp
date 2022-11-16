@@ -3,7 +3,7 @@
 #include "Assert.h"
 #include "Device.h"
 
-vko::PipelineLayout::PipelineLayout(Device const& device, std::span<VkDescriptorSetLayout const> setLayouts, std::span<VkPushConstantRange const> pushConstantRanges)
+vko::PipelineLayout::PipelineLayout(Device const& device, nstl::span<VkDescriptorSetLayout const> setLayouts, nstl::span<VkPushConstantRange const> pushConstantRanges)
     : m_device(device)
 {
     VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};

@@ -1,6 +1,5 @@
 #include "DescriptorSetLayout.h"
 #include "Device.h"
-#include <array>
 
 vko::DescriptorSetLayout::DescriptorSetLayout(Device const& device, DescriptorSetConfiguration config)
     : m_device(device)
@@ -8,7 +7,7 @@ vko::DescriptorSetLayout::DescriptorSetLayout(Device const& device, DescriptorSe
 {
     // TODO pass configuration externally
 
-    std::vector<VkDescriptorSetLayoutBinding> bindings;
+    nstl::vector<VkDescriptorSetLayoutBinding> bindings;
 
     if (m_configuration.hasBuffer)
     {

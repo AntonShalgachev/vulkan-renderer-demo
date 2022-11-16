@@ -1,16 +1,16 @@
 #include "Framebuffer.h"
 
-#include <array>
-
 #include "RenderPass.h"
 #include "Swapchain.h"
 #include "ImageView.h"
 #include "Device.h"
 
+#include "nstl/array.h"
+
 vko::Framebuffer::Framebuffer(Device const& device, vko::ImageView const& colorImageView, vko::ImageView const& depthImageView, vko::RenderPass const& renderPass, VkExtent2D extent)
     : m_device(device)
 {
-    std::array<VkImageView, 2> attachments = { colorImageView.getHandle(), depthImageView.getHandle() };
+    nstl::array<VkImageView, 2> attachments = { colorImageView.getHandle(), depthImageView.getHandle() };
 
     VkFramebufferCreateInfo framebufferCreateInfo{};
     framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;

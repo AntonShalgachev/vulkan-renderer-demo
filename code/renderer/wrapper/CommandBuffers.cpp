@@ -18,7 +18,7 @@ vko::CommandBuffers::CommandBuffers(Device const& device, CommandPool const& com
     commandBufferAllocateInfo.commandPool = m_commandPool;
     commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(size);
 
-    std::vector<VkCommandBuffer> rawHandles;
+    nstl::vector<VkCommandBuffer> rawHandles;
     rawHandles.resize(size);
     VKO_ASSERT(vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, rawHandles.data()));
 
@@ -33,7 +33,7 @@ vko::CommandBuffers::~CommandBuffers()
         return;
 
     // TODO do we need to free command buffers explicitly?
-    std::vector<VkCommandBuffer> rawHandles;
+    nstl::vector<VkCommandBuffer> rawHandles;
     rawHandles.reserve(m_handles.size());
     for (VkCommandBuffer handle : m_handles)
         rawHandles.push_back(handle);
@@ -71,14 +71,14 @@ void vko::CommandBuffers::submit(std::size_t index, Queue const& queue, Semaphor
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &m_handles[index].get();
 
-    std::vector<VkSemaphore> signalSemaphores;
+    nstl::vector<VkSemaphore> signalSemaphores;
     if (signalSemaphore)
         signalSemaphores.push_back(signalSemaphore->getHandle());
     submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
     submitInfo.pSignalSemaphores = signalSemaphores.data();
 
-    std::vector<VkSemaphore> waitSemaphores;
-    std::vector<VkPipelineStageFlags> waitStages;
+    nstl::vector<VkSemaphore> waitSemaphores;
+    nstl::vector<VkPipelineStageFlags> waitStages;
     if (waitSemaphore)
     {
         waitSemaphores.push_back(waitSemaphore->getHandle());

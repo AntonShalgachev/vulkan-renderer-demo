@@ -256,7 +256,7 @@ void vkgfx::ResourceManager::uploadImage(ImageHandle handle, void const* data, s
     return uploadImage(*image, data, dataSize);
 }
 
-void vkgfx::ResourceManager::uploadImage(ImageHandle handle, std::span<unsigned char const> bytes)
+void vkgfx::ResourceManager::uploadImage(ImageHandle handle, nstl::span<unsigned char const> bytes)
 {
     return uploadImage(handle, bytes.data(), bytes.size());
 }
@@ -341,12 +341,12 @@ void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, void const* data,
     return uploadBuffer(*buffer, data, dataSize, 0);
 }
 
-void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, std::span<std::byte const> bytes)
+void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, nstl::span<std::byte const> bytes)
 {
     return uploadBuffer(handle, bytes.data(), bytes.size());
 }
 
-void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, std::span<unsigned char const> bytes)
+void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, nstl::span<unsigned char const> bytes)
 {
     return uploadBuffer(handle, bytes.data(), bytes.size());
 }
@@ -420,7 +420,7 @@ vkgfx::Buffer const* vkgfx::ResourceManager::getBuffer(BufferHandle handle) cons
     return m_buffers.get(handle);
 }
 
-vkgfx::ShaderModuleHandle vkgfx::ResourceManager::createShaderModule(std::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint)
+vkgfx::ShaderModuleHandle vkgfx::ResourceManager::createShaderModule(nstl::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint)
 {
     return { m_shaderModules.add(vko::ShaderModule{ m_device, bytes, type, std::move(entryPoint) }) };
 }
@@ -592,7 +592,7 @@ void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, void const* data
     }
 }
 
-void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, std::span<unsigned char const> bytes, std::size_t offset)
+void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, nstl::span<unsigned char const> bytes, std::size_t offset)
 {
     return uploadBuffer(buffer, bytes.data(), bytes.size(), offset);
 }
@@ -637,7 +637,7 @@ vkgfx::PipelineLayoutHandle vkgfx::ResourceManager::createPipelineLayout(Pipelin
     PipelineLayoutHandle handle;
     handle.index = m_pipelineLayouts.size();
 
-    std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
+    nstl::vector<VkDescriptorSetLayout> descriptorSetLayouts;
     for (UniformConfiguration const& uniformConfig : key.uniformConfigs)
     {
         DescriptorSetLayoutKey descriptorSetLayoutKey;
@@ -646,7 +646,7 @@ vkgfx::PipelineLayoutHandle vkgfx::ResourceManager::createPipelineLayout(Pipelin
         descriptorSetLayouts.push_back(m_descriptorSetLayouts[descriptorSetLayoutHandle.index].getHandle());
     }
 
-    std::vector<VkPushConstantRange> pushConstantRanges;
+    nstl::vector<VkPushConstantRange> pushConstantRanges;
     for (PushConstantRange const& range : key.pushConstantRanges)
     {
         VkPushConstantRange& vkRange = pushConstantRanges.emplace_back();
@@ -697,7 +697,7 @@ vkgfx::PipelineHandle vkgfx::ResourceManager::createPipeline(PipelineKey const& 
 
     PipelineLayoutHandle pipelineLayoutHandle = getOrCreatePipelineLayout(layoutKey);
 
-    std::vector<vko::ShaderModule const*> shaderModules;
+    nstl::vector<vko::ShaderModule const*> shaderModules;
     for (ShaderModuleHandle const& handle : key.shaderHandles)
     {
         assert(handle);

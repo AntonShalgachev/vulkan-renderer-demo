@@ -1,10 +1,10 @@
 #pragma once
 
-#include <span>
 #include <string>
 #include <map>
 
 #include "nstl/vector.h"
+#include "nstl/span.h"
 
 #include "ResourceContainer.h"
 
@@ -67,15 +67,15 @@ namespace vkgfx
 
         ImageHandle createImage(ImageMetadata metadata);
         void uploadImage(ImageHandle handle, void const* data, std::size_t dataSize);
-        void uploadImage(ImageHandle handle, std::span<unsigned char const> bytes);
+        void uploadImage(ImageHandle handle, nstl::span<unsigned char const> bytes);
         Image* getImage(ImageHandle handle);
         Image const* getImage(ImageHandle handle) const;
         void removeImage(ImageHandle handle);
 
         BufferHandle createBuffer(std::size_t size, BufferMetadata metadata);
         void uploadBuffer(BufferHandle handle, void const* data, std::size_t dataSize);
-        void uploadBuffer(BufferHandle handle, std::span<unsigned char const> bytes);
-        void uploadBuffer(BufferHandle handle, std::span<std::byte const> bytes);
+        void uploadBuffer(BufferHandle handle, nstl::span<unsigned char const> bytes);
+        void uploadBuffer(BufferHandle handle, nstl::span<std::byte const> bytes);
         void uploadDynamicBufferToStaging(BufferHandle handle, void const* data, std::size_t dataSize, std::size_t offset = 0);
         void transferDynamicBuffersFromStaging(std::size_t resourceIndex);
         std::size_t getBufferSize(BufferHandle handle) const;
@@ -83,7 +83,7 @@ namespace vkgfx
         Buffer const* getBuffer(BufferHandle handle) const;
         void removeBuffer(BufferHandle handle);
 
-        ShaderModuleHandle createShaderModule(std::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint = "main");
+        ShaderModuleHandle createShaderModule(nstl::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint = "main");
         void removeShaderModule(ShaderModuleHandle handle);
 
         SamplerHandle createSampler(vko::SamplerFilterMode magFilter, vko::SamplerFilterMode minFilter, vko::SamplerWrapMode wrapU, vko::SamplerWrapMode wrapV);
@@ -120,7 +120,7 @@ namespace vkgfx
 
     private:
         void uploadBuffer(Buffer const& buffer, void const* data, std::size_t dataSize, std::size_t offset);
-        void uploadBuffer(Buffer const& buffer, std::span<unsigned char const> bytes, std::size_t offset);
+        void uploadBuffer(Buffer const& buffer, nstl::span<unsigned char const> bytes, std::size_t offset);
         void uploadImage(Image const& image, void const* data, std::size_t dataSize);
 
         DescriptorSetLayoutHandle createDescriptorSetLayout(DescriptorSetLayoutKey const& key);

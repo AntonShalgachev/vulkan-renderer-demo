@@ -43,6 +43,9 @@
 
 #include "common/Utils.h"
 
+#include "nstl/array.h"
+#include "nstl/span.h"
+
 // TODO find a better solution
 template <>
 struct magic_enum::customize::enum_range<vkr::GlfwWindow::Key> {
@@ -508,7 +511,7 @@ void DemoApplication::createResources()
         .bitsPerPixel = 4 * 8,
         .format = vkgfx::ImageFormat::R8G8B8A8,
     });
-    resourceManager.uploadImage(m_defaultAlbedoImage, std::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
+    resourceManager.uploadImage(m_defaultAlbedoImage, nstl::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
     m_defaultAlbedoTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultAlbedoImage, m_defaultSampler });
 
     m_defaultNormalMapImage = resourceManager.createImage(vkgfx::ImageMetadata{
@@ -517,7 +520,7 @@ void DemoApplication::createResources()
         .bitsPerPixel = 4 * 8,
         .format = vkgfx::ImageFormat::R8G8B8A8,
     });
-    resourceManager.uploadImage(m_defaultNormalMapImage, std::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff });
+    resourceManager.uploadImage(m_defaultNormalMapImage, nstl::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff });
     m_defaultNormalMapTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultNormalMapImage, m_defaultSampler });
 }
 
@@ -787,7 +790,7 @@ bool DemoApplication::loadCurrentGltfModel()
 
     for (tinygltf::Buffer const& buffer : m_gltfModel->buffers)
     {
-        auto const& data = buffer.data;
+        nstl::span<unsigned char const> data{ buffer.data.data(), buffer.data.size() };
         VkDeviceSize bufferSize = sizeof(data[0]) * data.size();
 
         vkgfx::BufferMetadata metadata{
@@ -1207,7 +1210,7 @@ void DemoApplication::updateMaterials()
         metadata.width = static_cast<std::size_t>(gltfImage.width);
         metadata.height = static_cast<std::size_t>(gltfImage.height);
 
-        std::span<unsigned char const> bytes = gltfImage.image;
+        nstl::span<unsigned char const> bytes{ gltfImage.image.data(), gltfImage.image.size() };
 
         // TODO remove this hack
         {

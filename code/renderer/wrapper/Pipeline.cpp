@@ -10,7 +10,7 @@
 
 namespace
 {
-	nstl::vector<VkPipelineShaderStageCreateInfo> createStageDescriptions(std::span<vko::ShaderModule const*> shaderModules)
+	nstl::vector<VkPipelineShaderStageCreateInfo> createStageDescriptions(nstl::span<vko::ShaderModule const*> shaderModules)
 	{
         nstl::vector<VkPipelineShaderStageCreateInfo> stageDescriptions;
 		stageDescriptions.reserve(shaderModules.size());
@@ -139,7 +139,7 @@ namespace
 	}
 }
 
-vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, RenderPass const& renderPass, std::span<ShaderModule const*> shaderModules, Config const& config)
+vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, RenderPass const& renderPass, nstl::span<ShaderModule const*> shaderModules, Config const& config)
 	: m_device(device)
 	, m_pipelineLayout(layout.getHandle())
 {

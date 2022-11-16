@@ -3,10 +3,9 @@
 #include "UniqueHandle.h"
 
 #include "nstl/vector.h"
+#include "nstl/span.h"
 
 #include <vulkan/vulkan.h>
-
-#include <span>
 
 namespace vko
 {
@@ -15,7 +14,7 @@ namespace vko
     class PipelineLayout
     {
     public:
-    	explicit PipelineLayout(Device const& device, std::span<VkDescriptorSetLayout const> setLayouts, std::span<VkPushConstantRange const> pushConstantRanges);
+    	explicit PipelineLayout(Device const& device, nstl::span<VkDescriptorSetLayout const> setLayouts, nstl::span<VkPushConstantRange const> pushConstantRanges);
     	~PipelineLayout();
 
         PipelineLayout(PipelineLayout const&) = default;
@@ -24,7 +23,7 @@ namespace vko
         PipelineLayout& operator=(PipelineLayout&&) = default;
 
         VkPipelineLayout getHandle() const { return m_handle; }
-        std::span<VkDescriptorSetLayout const> getDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
+        nstl::span<VkDescriptorSetLayout const> getDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
 
     private:
         Device const& m_device;

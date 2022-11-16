@@ -3,10 +3,9 @@
 #include "UniqueHandle.h"
 
 #include "nstl/vector.h"
+#include "nstl/span.h"
 
 #include <vulkan/vulkan.h>
-
-#include <span>
 
 namespace vko
 {
@@ -30,7 +29,7 @@ namespace vko
             bool alphaBlending = false;
         };
 
-    	explicit Pipeline(Device const& device, PipelineLayout const& layout, RenderPass const& renderPass, std::span<ShaderModule const*> shaderModules, Config const& config);
+    	explicit Pipeline(Device const& device, PipelineLayout const& layout, RenderPass const& renderPass, nstl::span<ShaderModule const*> shaderModules, Config const& config);
     	~Pipeline();
 
         void bind(VkCommandBuffer commandBuffer) const;
@@ -43,7 +42,7 @@ namespace vko
         VkPipeline getHandle() const { return m_handle; }
 
         VkPipelineLayout getPipelineLayoutHandle() const { return m_pipelineLayout; }
-        std::span<VkDescriptorSetLayout const> getDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
+        nstl::span<VkDescriptorSetLayout const> getDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
 
     private:
         Device const& m_device;

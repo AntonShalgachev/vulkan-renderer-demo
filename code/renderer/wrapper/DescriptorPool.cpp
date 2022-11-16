@@ -3,7 +3,8 @@
 #include "Assert.h"
 #include "Device.h"
 
-#include <array>
+#include "nstl/array.h"
+
 #include <cassert>
 
 vko::DescriptorPool::DescriptorPool(Device const& device)
@@ -12,7 +13,7 @@ vko::DescriptorPool::DescriptorPool(Device const& device)
     uint32_t const N = 1024;
 
     // TODO remove unnecessary pool allocations
-    std::array poolSizes = {
+    nstl::array poolSizes = {
         VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_SAMPLER, 4 * N},
         VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4 * N},
         VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 4 * N},
@@ -40,7 +41,7 @@ vko::DescriptorPool::~DescriptorPool()
     vkDestroyDescriptorPool(m_device.getHandle(), m_handle, nullptr);
 }
 
-std::optional<vko::DescriptorSets> vko::DescriptorPool::allocate(std::span<VkDescriptorSetLayout const> layouts)
+std::optional<vko::DescriptorSets> vko::DescriptorPool::allocate(nstl::span<VkDescriptorSetLayout const> layouts)
 {
     nstl::vector<VkDescriptorSet> descriptorSetHandles = allocateRaw(layouts);
 
@@ -50,7 +51,7 @@ std::optional<vko::DescriptorSets> vko::DescriptorPool::allocate(std::span<VkDes
     return vko::DescriptorSets{ m_device, nstl::move(descriptorSetHandles) };
 }
 
-nstl::vector<VkDescriptorSet> vko::DescriptorPool::allocateRaw(std::span<VkDescriptorSetLayout const> layouts)
+nstl::vector<VkDescriptorSet> vko::DescriptorPool::allocateRaw(nstl::span<VkDescriptorSetLayout const> layouts)
 {
     VkDescriptorSetAllocateInfo descriptorSetAllocInfo{};
     descriptorSetAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;

@@ -8,12 +8,12 @@
 #include <vulkan/vulkan.h>
 
 #include "nstl/vector.h"
+#include "nstl/array.h"
+#include "nstl/span.h"
 
 #include <cassert>
 #include <cstddef>
 #include <string>
 #include <string_view>
 #include <compare>
-#include <span>
-#include <array>
 #include <functional>

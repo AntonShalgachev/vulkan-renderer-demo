@@ -1,7 +1,8 @@
 #include "RenderPass.h"
 
 #include "Device.h"
-#include <array>
+
+#include "nstl/array.h"
 
 vko::RenderPass::RenderPass(Device const& device, VkFormat colorFormat, VkFormat depthFormat) : m_device(device)
 {
@@ -47,7 +48,7 @@ vko::RenderPass::RenderPass(Device const& device, VkFormat colorFormat, VkFormat
     dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-    std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
+    nstl::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
 
     VkRenderPassCreateInfo renderPassCreateInfo{};
     renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
