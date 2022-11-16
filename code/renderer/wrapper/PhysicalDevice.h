@@ -4,10 +4,9 @@
 #include "UniqueHandle.h"
 
 #include "nstl/vector.h"
+#include "nstl/string.h"
 
 #include <vulkan/vulkan.h>
-
-#include <string>
 
 namespace vko
 {
@@ -36,7 +35,7 @@ namespace vko
         UniqueHandle<VkPhysicalDevice> m_handle;
 
         nstl::vector<VkExtensionProperties> m_availableExtensions;
-        nstl::vector<std::string> m_availableExtensionNames;
+        nstl::vector<nstl::string> m_availableExtensionNames;
 
         VkPhysicalDeviceProperties m_properties;
         VkPhysicalDeviceFeatures m_features;

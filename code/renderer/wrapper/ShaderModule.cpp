@@ -25,7 +25,7 @@ namespace
     }
 }
 
-vko::ShaderModule::ShaderModule(Device const& device, nstl::span<unsigned char const> bytes, ShaderModuleType type, std::string entryPoint)
+vko::ShaderModule::ShaderModule(Device const& device, nstl::span<unsigned char const> bytes, ShaderModuleType type, nstl::string entryPoint)
     : m_device(device.getHandle())
     , m_type(type)
     , m_entryPoint(std::move(entryPoint))

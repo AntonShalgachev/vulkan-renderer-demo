@@ -7,7 +7,6 @@
 #include "nstl/vector.h"
 
 #include <memory>
-#include <string>
 #include <functional>
 
 namespace vko

@@ -3,6 +3,7 @@
 #include "UniqueHandle.h"
 
 #include "nstl/vector.h"
+#include "nstl/string.h"
 
 #include <vulkan/vulkan.h>
 
@@ -30,7 +31,7 @@ namespace vko
 
 #define SET_DEBUG_NAME_FUNC(T, ObjectType) \
     void setDebugName(VkDevice device, T handle, char const* name) const { return setDebugName(device, reinterpret_cast<uint64_t>(handle), ObjectType, name); } \
-    void setDebugName(VkDevice device, T handle, std::string const& name) const { return setDebugName(device, reinterpret_cast<uint64_t>(handle), ObjectType, name.c_str()); }
+    void setDebugName(VkDevice device, T handle, nstl::string const& name) const { return setDebugName(device, reinterpret_cast<uint64_t>(handle), ObjectType, name.c_str()); }
 
         SET_DEBUG_NAME_FUNC(VkDevice, VK_OBJECT_TYPE_DEVICE);
         SET_DEBUG_NAME_FUNC(VkQueue, VK_OBJECT_TYPE_QUEUE);

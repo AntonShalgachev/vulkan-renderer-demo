@@ -63,6 +63,40 @@ struct magic_enum::customize::enum_range<vkr::GlfwWindow::Action> {
     static constexpr int max = 10;
 };
 
+// TODO move somewhere
+template<>
+struct fmt::formatter<nstl::string> : fmt::formatter<std::string_view>
+{
+    template<typename ParseContext>
+    constexpr auto parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template<typename FormatContext>
+    auto format(nstl::string const& str, FormatContext& ctx)
+    {
+        std::string_view sv{ str.data(), str.length() };
+        return fmt::formatter<std::string_view>::format(sv, ctx);
+    }
+};
+template<>
+struct fmt::formatter<nstl::string_view> : fmt::formatter<std::string_view>
+{
+    template<typename ParseContext>
+    constexpr auto parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template<typename FormatContext>
+    auto format(nstl::string_view const& str, FormatContext& ctx)
+    {
+        std::string_view sv{ str.data(), str.length() };
+        return fmt::formatter<std::string_view>::format(sv, ctx);
+    }
+};
+
 namespace
 {
     const uint32_t TARGET_WINDOW_WIDTH = 1900;
@@ -383,12 +417,12 @@ DemoApplication::DemoApplication()
     auto messageCallback = [](vko::DebugMessage m)
     {
         // TODO don't log "Info" level to the console
-// 		if (m.level == vko::DebugMessage::Level::Info)
-// 			spdlog::info(m.text);
+		if (m.level == vko::DebugMessage::Level::Info)
+			spdlog::info("{}", m.text);
 		if (m.level == vko::DebugMessage::Level::Warning)
-			spdlog::warn(m.text);
+			spdlog::warn("{}", m.text);
 		if (m.level == vko::DebugMessage::Level::Error)
-			spdlog::error(m.text);
+			spdlog::error("{}", m.text);
 
         assert(m.level != vko::DebugMessage::Level::Error);
     };
@@ -779,12 +813,12 @@ bool DemoApplication::loadCurrentGltfModel()
 
     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
     {
-        auto handle = resourceManager.createShaderModule(vkc::utils::readFile(modulePath), vko::ShaderModuleType::Vertex, "main");
+        auto handle = resourceManager.createShaderModule(vkc::utils::readFile(modulePath.c_str()), vko::ShaderModuleType::Vertex, "main");
         m_gltfResources->shaderModules[modulePath] = handle;
     }
     for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
     {
-        auto handle = resourceManager.createShaderModule(vkc::utils::readFile(modulePath), vko::ShaderModuleType::Fragment, "main");
+        auto handle = resourceManager.createShaderModule(vkc::utils::readFile(modulePath.c_str()), vko::ShaderModuleType::Fragment, "main");
         m_gltfResources->shaderModules[modulePath] = handle;
     }
 

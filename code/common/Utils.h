@@ -1,9 +1,7 @@
 #pragma once
 
 #include "nstl/vector.h"
-
-#include <string_view>
-#include <string>
+#include "nstl/string_view.h"
 
 namespace vkc
 {
@@ -16,7 +14,7 @@ namespace vkc
             {
                 auto it = std::find_if(availableOptions.begin(), availableOptions.end(), [requestedOption](auto const& availableOption)
                 {
-                    return std::string_view{ availableOption } == std::string_view{ requestedOption };
+                    return nstl::string_view{ availableOption } == nstl::string_view{ requestedOption };
                 });
 
                 if (it == availableOptions.end())
@@ -27,6 +25,6 @@ namespace vkc
         }
 
         // TODO implement asset manager instead
-        nstl::vector<unsigned char> readFile(const std::string& filename);
+        nstl::vector<unsigned char> readFile(char const* filename);
     }
 }

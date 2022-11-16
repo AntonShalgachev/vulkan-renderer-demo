@@ -38,19 +38,14 @@ namespace vkr
         QueueFamilyIndices const& getQueueFamilyIndices() const { return m_queueFamilyIndices; };
 
     private:
-        void queryCapabilities();
-        void queryFormats();
-        void queryPresentModes();
-        void queryPresentationSupport();
-
-    private:
         vko::PhysicalDevice const& m_physicalDevice;
         vko::Surface const& m_surface;
-        QueueFamilyIndices m_queueFamilyIndices;
 
         VkSurfaceCapabilitiesKHR m_capabilities;
         nstl::vector<VkSurfaceFormatKHR> m_formats;
         nstl::vector<VkPresentModeKHR> m_presentModes;
         nstl::vector<bool> m_queuePresentationSupport;
+
+        QueueFamilyIndices m_queueFamilyIndices;
     };
 }

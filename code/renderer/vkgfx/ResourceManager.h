@@ -1,10 +1,10 @@
 #pragma once
 
-#include <string>
 #include <map>
 
 #include "nstl/vector.h"
 #include "nstl/span.h"
+#include "nstl/string.h"
 
 #include "ResourceContainer.h"
 
@@ -83,7 +83,7 @@ namespace vkgfx
         Buffer const* getBuffer(BufferHandle handle) const;
         void removeBuffer(BufferHandle handle);
 
-        ShaderModuleHandle createShaderModule(nstl::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint = "main");
+        ShaderModuleHandle createShaderModule(nstl::span<unsigned char const> bytes, vko::ShaderModuleType type, nstl::string entryPoint = "main");
         void removeShaderModule(ShaderModuleHandle handle);
 
         SamplerHandle createSampler(vko::SamplerFilterMode magFilter, vko::SamplerFilterMode minFilter, vko::SamplerWrapMode wrapU, vko::SamplerWrapMode wrapV);

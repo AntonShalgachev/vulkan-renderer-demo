@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-nstl::vector<unsigned char> vkc::utils::readFile(const std::string& filename)
+nstl::vector<unsigned char> vkc::utils::readFile(char const* filename)
 {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
 

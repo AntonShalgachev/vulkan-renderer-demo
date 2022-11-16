@@ -188,7 +188,7 @@ void ImGuiDrawer::createShaders(vkgfx::ResourceManager& resourceManager)
         std::string const* path = package.get({});
         assert(path);
         if (path)
-            m_vertexShaderModule = resourceManager.createShaderModule(vkc::utils::readFile(*path), vko::ShaderModuleType::Vertex, "main");
+            m_vertexShaderModule = resourceManager.createShaderModule(vkc::utils::readFile(path->c_str()), vko::ShaderModuleType::Vertex, "main");
     }
 
     {
@@ -196,7 +196,7 @@ void ImGuiDrawer::createShaders(vkgfx::ResourceManager& resourceManager)
         std::string const* path = package.get({});
         assert(path);
         if (path)
-            m_fragmentShaderModule = resourceManager.createShaderModule(vkc::utils::readFile(*path), vko::ShaderModuleType::Fragment, "main");
+            m_fragmentShaderModule = resourceManager.createShaderModule(vkc::utils::readFile(path->c_str()), vko::ShaderModuleType::Fragment, "main");
     }
 }
 

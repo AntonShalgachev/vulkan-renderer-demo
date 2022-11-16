@@ -3,10 +3,9 @@
 #include "UniqueHandle.h"
 
 #include "nstl/span.h"
+#include "nstl/string.h"
 
 #include <vulkan/vulkan.h>
-
-#include <string>
 
 namespace vko
 {
@@ -22,7 +21,7 @@ namespace vko
     class ShaderModule
     {
     public:
-        explicit ShaderModule(Device const& device, nstl::span<unsigned char const> bytes, ShaderModuleType type, std::string entryPoint);
+        explicit ShaderModule(Device const& device, nstl::span<unsigned char const> bytes, ShaderModuleType type, nstl::string entryPoint);
         ~ShaderModule();
 
         ShaderModule(ShaderModule&&) = default;
@@ -35,7 +34,7 @@ namespace vko
     private:
         VkDevice m_device;
         ShaderModuleType m_type;
-        std::string m_entryPoint;
+        nstl::string m_entryPoint;
 
         UniqueHandle<VkShaderModule> m_handle;
     };

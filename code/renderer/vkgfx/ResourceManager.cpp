@@ -422,7 +422,7 @@ vkgfx::Buffer const* vkgfx::ResourceManager::getBuffer(BufferHandle handle) cons
     return m_buffers.get(handle);
 }
 
-vkgfx::ShaderModuleHandle vkgfx::ResourceManager::createShaderModule(nstl::span<unsigned char const> bytes, vko::ShaderModuleType type, std::string entryPoint)
+vkgfx::ShaderModuleHandle vkgfx::ResourceManager::createShaderModule(nstl::span<unsigned char const> bytes, vko::ShaderModuleType type, nstl::string entryPoint)
 {
     return { m_shaderModules.add(vko::ShaderModule{ m_device, bytes, type, std::move(entryPoint) }) };
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include "nstl/string.h"
 
 namespace vko
 {
@@ -14,7 +14,7 @@ namespace vko
         };
 
         Level level;
-        std::string id;
-        std::string text;
+        nstl::string id;
+        nstl::string text;
     };
 }
