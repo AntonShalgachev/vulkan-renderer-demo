@@ -24,7 +24,7 @@
     </Expand>
   </Type>
 
-  <Type Name="nstl::String">
+  <Type Name="nstl::string">
     <DisplayString>{(char*)m_buffer.m_ptr,[m_buffer.m_size > 0 ? (m_buffer.m_size-1) : 0]na}</DisplayString>
     <StringView>(char*)m_buffer.m_ptr,[m_buffer.m_size > 0 ? (m_buffer.m_size-1) : 0]na</StringView>
     <Expand>
@@ -37,7 +37,7 @@
     </Expand>
   </Type>
 
-  <Type Name="nstl::StringView">
+  <Type Name="nstl::string_view">
     <DisplayString>{m_str,[m_length]na}</DisplayString>
     <StringView>m_str,[m_length]na</StringView>
     <Expand>

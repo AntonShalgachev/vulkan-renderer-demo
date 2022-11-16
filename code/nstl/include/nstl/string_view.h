@@ -6,18 +6,19 @@
 
 namespace nstl
 {
-    class StringView
+    class string_view
     {
     public:
-        StringView(char const* str = "");
-        StringView(char const* str, size_t length);
+        string_view(char const* str = "");
+        string_view(char const* str, size_t length);
 
         size_t length() const;
+        size_t size() const;
         int slength() const;
         bool empty() const;
         char const* data() const;
 
-        StringView substr(size_t offset, size_t length) const;
+        string_view substr(size_t offset, size_t length) const;
 
         char const* begin() const;
         char const* end() const;
@@ -29,12 +30,12 @@ namespace nstl
         size_t m_length = 0;
     };
 
-    bool operator==(StringView const& lhs, StringView const& rhs);
-    bool operator!=(StringView const& lhs, StringView const& rhs);
+    bool operator==(string_view const& lhs, string_view const& rhs);
+    bool operator!=(string_view const& lhs, string_view const& rhs);
 
     template<>
-    struct Hash<StringView>
+    struct Hash<string_view>
     {
-        size_t operator()(StringView const& value);
+        size_t operator()(string_view const& value);
     };
 }

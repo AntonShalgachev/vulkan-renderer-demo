@@ -8,20 +8,20 @@
 
 namespace nstl
 {
-    class StringView;
+    class string_view;
 
-    class String
+    class string
     {
     public:
-        String(char const* str = "");
-        String(StringView str);
-        String(char const* str, size_t length);
+        string(char const* str = "");
+        string(string_view str);
+        string(char const* str, size_t length);
 
         size_t length() const;
         int slength() const;
         bool empty() const;
         void reserve(size_t capacity);
-        char const* cStr() const;
+        char const* c_str() const;
         char* data();
         char const* data() const;
         char& back();
@@ -33,16 +33,16 @@ namespace nstl
         char const* begin() const;
         char const* end() const;
 
-        String& operator+=(char rhs);
-        String& operator+=(char const* rhs);
-        String& operator+=(String const& rhs);
-        String& operator+=(StringView const& rhs);
+        string& operator+=(char rhs);
+        string& operator+=(char const* rhs);
+        string& operator+=(string const& rhs);
+        string& operator+=(string_view const& rhs);
 
-        bool operator==(String const& rhs) const;
-        bool operator==(StringView const& rhs) const;
+        bool operator==(string const& rhs) const;
+        bool operator==(string_view const& rhs) const;
         bool operator==(char const* rhs) const;
 
-        operator StringView() const;
+        operator string_view() const;
 
     private:
         void validateIsNullTerminated();
@@ -51,14 +51,14 @@ namespace nstl
         Buffer m_buffer;
     };
 
-    String operator+(String lhs, char rhs);
-    String operator+(String lhs, char const* rhs);
-    String operator+(String lhs, String const& rhs);
-    String operator+(String lhs, StringView const& rhs);
+    string operator+(string lhs, char rhs);
+    string operator+(string lhs, char const* rhs);
+    string operator+(string lhs, string const& rhs);
+    string operator+(string lhs, string_view const& rhs);
 
     template<>
-    struct Hash<String>
+    struct Hash<string>
     {
-        size_t operator()(String const& value);
+        size_t operator()(string const& value);
     };
 }

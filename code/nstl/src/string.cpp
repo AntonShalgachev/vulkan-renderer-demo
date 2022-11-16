@@ -5,11 +5,11 @@
 
 #include <string.h>
 
-nstl::String::String(char const* str) : String(str, strlen(str)) {}
+nstl::string::string(char const* str) : string(str, strlen(str)) {}
 
-nstl::String::String(StringView str) : String(str.data(), str.length()) {}
+nstl::string::string(string_view str) : string(str.data(), str.length()) {}
 
-nstl::String::String(char const* str, size_t length)
+nstl::string::string(char const* str, size_t length)
 {
     resize(length);
 
@@ -19,24 +19,24 @@ nstl::String::String(char const* str, size_t length)
     validateIsNullTerminated();
 }
 
-size_t nstl::String::length() const
+size_t nstl::string::length() const
 {
     if (m_buffer.size() > 0)
         return m_buffer.size() - 1;
     return 0;
 }
 
-int nstl::String::slength() const
+int nstl::string::slength() const
 {
     return static_cast<int>(length());
 }
 
-bool nstl::String::empty() const
+bool nstl::string::empty() const
 {
     return length() == 0;
 }
 
-void nstl::String::reserve(size_t capacity)
+void nstl::string::reserve(size_t capacity)
 {
     validateIsNullTerminated();
 
@@ -54,34 +54,34 @@ void nstl::String::reserve(size_t capacity)
     validateIsNullTerminated();
 }
 
-char const* nstl::String::cStr() const
+char const* nstl::string::c_str() const
 {
     return m_buffer.data();
 }
 
-char* nstl::String::data()
+char* nstl::string::data()
 {
     return m_buffer.data();
 }
 
-char const* nstl::String::data() const
+char const* nstl::string::data() const
 {
     return m_buffer.data();
 }
 
-char& nstl::String::back()
+char& nstl::string::back()
 {
     NSTL_ASSERT(!empty());
     return *m_buffer.get(length() - 1);
 }
 
-char const& nstl::String::back() const
+char const& nstl::string::back() const
 {
     NSTL_ASSERT(!empty());
     return *m_buffer.get(length() - 1);
 }
 
-void nstl::String::resize(size_t newSize)
+void nstl::string::resize(size_t newSize)
 {
     validateIsNullTerminated();
 
@@ -96,7 +96,7 @@ void nstl::String::resize(size_t newSize)
     validateIsNullTerminated();
 }
 
-void nstl::String::append(char const* str, size_t length)
+void nstl::string::append(char const* str, size_t length)
 {
     validateIsNullTerminated();
 
@@ -107,62 +107,62 @@ void nstl::String::append(char const* str, size_t length)
     validateIsNullTerminated();
 }
 
-char const* nstl::String::begin() const
+char const* nstl::string::begin() const
 {
     NSTL_ASSERT(m_buffer.size() != 0);
     return m_buffer.data();
 }
 
-char const* nstl::String::end() const
+char const* nstl::string::end() const
 {
     return begin() + length();
 }
 
-nstl::String& nstl::String::operator+=(char rhs)
+nstl::string& nstl::string::operator+=(char rhs)
 {
     append(&rhs, 1);
     return *this;
 }
 
-nstl::String& nstl::String::operator+=(char const* rhs)
+nstl::string& nstl::string::operator+=(char const* rhs)
 {
     append(rhs, strlen(rhs));
     return *this;
 }
 
-nstl::String& nstl::String::operator+=(String const& rhs)
+nstl::string& nstl::string::operator+=(string const& rhs)
 {
-    append(rhs.cStr(), rhs.length());
+    append(rhs.c_str(), rhs.length());
     return *this;
 }
 
-nstl::String& nstl::String::operator+=(StringView const& rhs)
+nstl::string& nstl::string::operator+=(string_view const& rhs)
 {
     append(rhs.data(), rhs.length());
     return *this;
 }
 
-bool nstl::String::operator==(String const& rhs) const
+bool nstl::string::operator==(string const& rhs) const
 {
-    return StringView{ *this } == StringView{ rhs };
+    return string_view{ *this } == string_view{ rhs };
 }
 
-bool nstl::String::operator==(StringView const& rhs) const
+bool nstl::string::operator==(string_view const& rhs) const
 {
-    return StringView{ *this } == rhs;
+    return string_view{ *this } == rhs;
 }
 
-bool nstl::String::operator==(char const* rhs) const
+bool nstl::string::operator==(char const* rhs) const
 {
-    return StringView{ *this } == StringView{ rhs };
+    return string_view{ *this } == string_view{ rhs };
 }
 
-nstl::String::operator nstl::StringView() const
+nstl::string::operator nstl::string_view() const
 {
-    return StringView{ cStr(), length() };
+    return string_view{ c_str(), length() };
 }
 
-void nstl::String::validateIsNullTerminated()
+void nstl::string::validateIsNullTerminated()
 {
     if (m_buffer.size() > 0)
     {
@@ -170,27 +170,27 @@ void nstl::String::validateIsNullTerminated()
     }
 }
 
-nstl::String nstl::operator+(String lhs, char rhs)
+nstl::string nstl::operator+(string lhs, char rhs)
 {
     return lhs += rhs;
 }
 
-nstl::String nstl::operator+(String lhs, char const* rhs)
+nstl::string nstl::operator+(string lhs, char const* rhs)
 {
     return lhs += rhs;
 }
 
-nstl::String nstl::operator+(String lhs, String const& rhs)
+nstl::string nstl::operator+(string lhs, string const& rhs)
 {
     return lhs += rhs;
 }
 
-nstl::String nstl::operator+(String lhs, StringView const& rhs)
+nstl::string nstl::operator+(string lhs, string_view const& rhs)
 {
     return lhs += rhs;
 }
 
-size_t nstl::Hash<nstl::String>::operator()(String const& value)
+size_t nstl::Hash<nstl::string>::operator()(string const& value)
 {
-    return Hash<StringView>{}(value);
+    return Hash<string_view>{}(value);
 }

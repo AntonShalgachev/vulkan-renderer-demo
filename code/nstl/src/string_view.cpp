@@ -4,61 +4,66 @@
 
 #include <string.h>
 
-nstl::StringView::StringView(char const* str) : StringView(str, strlen(str)) {}
+nstl::string_view::string_view(char const* str) : string_view(str, strlen(str)) {}
 
-nstl::StringView::StringView(char const* str, size_t length) : m_str(str), m_length(length)
+nstl::string_view::string_view(char const* str, size_t length) : m_str(str), m_length(length)
 {
     NSTL_ASSERT(m_str);
 }
 
-size_t nstl::StringView::length() const
+size_t nstl::string_view::length() const
 {
     return m_length;
 }
 
-int nstl::StringView::slength() const
+size_t nstl::string_view::size() const
+{
+    return m_length;
+}
+
+int nstl::string_view::slength() const
 {
     return static_cast<int>(length());
 }
 
-bool nstl::StringView::empty() const
+bool nstl::string_view::empty() const
 {
     return length() == 0;
 }
 
-char const* nstl::StringView::data() const
+char const* nstl::string_view::data() const
 {
     NSTL_ASSERT(m_str);
     return m_str;
 }
 
-nstl::StringView nstl::StringView::substr(size_t offset, size_t length) const
+nstl::string_view nstl::string_view::substr(size_t offset, size_t length) const
 {
     NSTL_ASSERT(offset <= m_length);
     NSTL_ASSERT(length <= m_length);
     NSTL_ASSERT(offset + length <= m_length);
-    return StringView{ m_str + offset, length };
+    return string_view{ m_str + offset, length };
 }
 
-char const* nstl::StringView::begin() const
+char const* nstl::string_view::begin() const
 {
     NSTL_ASSERT(m_str);
     return m_str;
 }
 
-char const* nstl::StringView::end() const
+char const* nstl::string_view::end() const
 {
     NSTL_ASSERT(m_str);
     return m_str + m_length;
 }
 
-char const& nstl::StringView::operator[](size_t index) const
+char const& nstl::string_view::operator[](size_t index) const
 {
     NSTL_ASSERT(index < m_length);
     return m_str[index];
 }
 
-bool nstl::operator==(StringView const& lhs, StringView const& rhs)
+bool nstl::operator==(string_view const& lhs, string_view const& rhs)
 {
     if (lhs.length() != rhs.length())
         return false;
@@ -68,12 +73,12 @@ bool nstl::operator==(StringView const& lhs, StringView const& rhs)
     return memcmp(lhs.data(), rhs.data(), size) == 0;
 }
 
-bool nstl::operator!=(StringView const& lhs, StringView const& rhs)
+bool nstl::operator!=(string_view const& lhs, string_view const& rhs)
 {
     return !(lhs == rhs);
 }
 
-size_t nstl::Hash<nstl::StringView>::operator()(StringView const& value)
+size_t nstl::Hash<nstl::string_view>::operator()(string_view const& value)
 {
     // djb2 from http://www.cse.yorku.ca/~oz/hash.html
 
