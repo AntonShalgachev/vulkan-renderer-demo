@@ -185,7 +185,7 @@ void ImGuiDrawer::createShaders(vkgfx::ResourceManager& resourceManager)
 {
     {
         ShaderPackage package{ "data/shaders/packaged/imgui.vert" };
-        std::string const* path = package.get({});
+        nstl::string const* path = package.get({});
         assert(path);
         if (path)
             m_vertexShaderModule = resourceManager.createShaderModule(vkc::utils::readFile(path->c_str()), vko::ShaderModuleType::Vertex, "main");
@@ -193,7 +193,7 @@ void ImGuiDrawer::createShaders(vkgfx::ResourceManager& resourceManager)
 
     {
         ShaderPackage package{ "data/shaders/packaged/imgui.frag" };
-        std::string const* path = package.get({});
+        nstl::string const* path = package.get({});
         assert(path);
         if (path)
             m_fragmentShaderModule = resourceManager.createShaderModule(vkc::utils::readFile(path->c_str()), vko::ShaderModuleType::Fragment, "main");

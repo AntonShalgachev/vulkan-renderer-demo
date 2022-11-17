@@ -99,7 +99,7 @@ DebugDrawService::DebugDrawService(vkgfx::Renderer& renderer)
     // TODO remove duplication in DemoApplication::createUIResources
     {
         ShaderPackage package{ "data/shaders/packaged/debugdraw.vert" };
-        std::string const* path = package.get({});
+        nstl::string const* path = package.get({});
         assert(path);
         if (path)
             vertexShaderModule = resources.createShaderModule(vkc::utils::readFile(path->c_str()), vko::ShaderModuleType::Vertex, "main");
@@ -107,7 +107,7 @@ DebugDrawService::DebugDrawService(vkgfx::Renderer& renderer)
 
     {
         ShaderPackage package{ "data/shaders/packaged/debugdraw.frag" };
-        std::string const* path = package.get({});
+        nstl::string const* path = package.get({});
         assert(path);
         if (path)
             fragmentShaderModule = resources.createShaderModule(vkc::utils::readFile(path->c_str()), vko::ShaderModuleType::Fragment, "main");

@@ -2,8 +2,9 @@
 
 #include "Hash.h"
 
-#include <string_view>
-#include <unordered_map>
+#include "nstl/unordered_map.h"
+#include "nstl/string.h"
+#include "nstl/string_view.h"
 
 // TODO store Mesh::Metadata and DescriptorSetConfiguration instead
 struct ShaderConfiguration
@@ -18,7 +19,7 @@ struct ShaderConfiguration
     bool operator==(ShaderConfiguration const&) const = default;
 };
 
-namespace std
+namespace nstl
 {
     template<>
     struct hash<ShaderConfiguration>
@@ -40,12 +41,12 @@ namespace std
 class ShaderPackage
 {
 public:
-    ShaderPackage(std::string_view path);
+    ShaderPackage(nstl::string_view path);
 
-    std::string const* get(ShaderConfiguration const& config) const;
+    nstl::string const* get(ShaderConfiguration const& config) const;
 
-    std::unordered_map<ShaderConfiguration, std::string> const& getAll() const { return m_shaders; }
+    nstl::unordered_map<ShaderConfiguration, nstl::string> const& getAll() const { return m_shaders; }
 
 private:
-    std::unordered_map<ShaderConfiguration, std::string> m_shaders;
+    nstl::unordered_map<ShaderConfiguration, nstl::string> m_shaders;
 };

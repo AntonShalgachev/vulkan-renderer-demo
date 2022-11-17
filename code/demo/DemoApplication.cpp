@@ -685,14 +685,18 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
             shaderConfiguration.hasNormal = mesh.metadata.attributeSemanticsConfig.hasNormal;
             shaderConfiguration.hasTangent = mesh.metadata.attributeSemanticsConfig.hasTangent;
 
-            std::string const* vertexShaderPath = m_defaultVertexShader->get(shaderConfiguration);
-            std::string const* fragmentShaderPath = m_defaultFragmentShader->get(shaderConfiguration);
+            nstl::string const* vertexShaderPath = m_defaultVertexShader->get(shaderConfiguration);
+            nstl::string const* fragmentShaderPath = m_defaultFragmentShader->get(shaderConfiguration);
 
             if (!vertexShaderPath || !fragmentShaderPath)
                 throw std::runtime_error("Failed to find the shader");
 
-            vkgfx::ShaderModuleHandle vertexShaderModule = m_gltfResources->shaderModules[*vertexShaderPath];
-            vkgfx::ShaderModuleHandle fragmentShaderModule = m_gltfResources->shaderModules[*fragmentShaderPath];
+            // TODO get rid of this dirty hack
+            std::string vpath = vertexShaderPath->c_str();
+            std::string fpath = fragmentShaderPath->c_str();
+
+            vkgfx::ShaderModuleHandle vertexShaderModule = m_gltfResources->shaderModules[vpath];
+            vkgfx::ShaderModuleHandle fragmentShaderModule = m_gltfResources->shaderModules[fpath];
 
             pipelineKey.shaderHandles = { vertexShaderModule, fragmentShaderModule };
 
@@ -811,15 +815,21 @@ bool DemoApplication::loadCurrentGltfModel()
 
     m_gltfResources = std::make_unique<GltfResources>();
 
-    for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
+//     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
+    for (auto const& pair : m_defaultVertexShader->getAll())
     {
+        auto const& configuration = pair.key();
+        auto const& modulePath = pair.value();
         auto handle = resourceManager.createShaderModule(vkc::utils::readFile(modulePath.c_str()), vko::ShaderModuleType::Vertex, "main");
-        m_gltfResources->shaderModules[modulePath] = handle;
+        m_gltfResources->shaderModules[std::string{ modulePath.c_str() }] = handle; // TODO get rid of this hack
     }
-    for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
+//     for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
+    for (auto const& pair : m_defaultFragmentShader->getAll())
     {
+        auto const& configuration = pair.key();
+        auto const& modulePath = pair.value();
         auto handle = resourceManager.createShaderModule(vkc::utils::readFile(modulePath.c_str()), vko::ShaderModuleType::Fragment, "main");
-        m_gltfResources->shaderModules[modulePath] = handle;
+        m_gltfResources->shaderModules[std::string{ modulePath.c_str() }] = handle; // TODO get rid of this hack
     }
 
     for (tinygltf::Buffer const& buffer : m_gltfModel->buffers)

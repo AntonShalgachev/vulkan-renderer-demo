@@ -4,9 +4,9 @@
 
 #include "yyjson.h"
 
-ShaderPackage::ShaderPackage(std::string_view path)
+ShaderPackage::ShaderPackage(nstl::string_view path)
 {
-    auto packageMetadataPath = std::string{ path } + "/package.json";
+    auto packageMetadataPath = nstl::string{ path } + "/package.json";
 
     {
         // TODO make a nice wrapper around yyjson
@@ -42,8 +42,8 @@ ShaderPackage::ShaderPackage(std::string_view path)
             {
                 jValue = yyjson_obj_iter_get_val(jKey);
 
-                std::string_view key = yyjson_get_str(jKey);
-                std::string_view value = yyjson_get_str(jValue);
+                nstl::string_view key = yyjson_get_str(jKey);
+                nstl::string_view value = yyjson_get_str(jValue);
 
                 if (key == "HAS_VERTEX_COLOR")
                     configuration.hasColor = (value == "");
@@ -61,18 +61,18 @@ ShaderPackage::ShaderPackage(std::string_view path)
 
             yyjson_val* jPath = yyjson_obj_get(jVariant, "path");
 
-            m_shaders[configuration] = std::string{ path } + "/" + std::string{ yyjson_get_str(jPath) };
+            m_shaders.insert_or_assign(configuration, nstl::string{ path } + "/" + nstl::string{ yyjson_get_str(jPath) });
         }
 
         yyjson_doc_free(doc);
     }
 }
 
-std::string const* ShaderPackage::get(ShaderConfiguration const& config) const
+nstl::string const* ShaderPackage::get(ShaderConfiguration const& config) const
 {
     auto it = m_shaders.find(config);
     if (it == m_shaders.end())
         return nullptr;
 
-    return &it->second;
+    return &it->value();
 }
