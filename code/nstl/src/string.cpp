@@ -26,6 +26,13 @@ size_t nstl::string::length() const
     return 0;
 }
 
+size_t nstl::string::size() const
+{
+    if (m_buffer.size() > 0)
+        return m_buffer.size() - 1;
+    return 0;
+}
+
 int nstl::string::slength() const
 {
     return static_cast<int>(length());

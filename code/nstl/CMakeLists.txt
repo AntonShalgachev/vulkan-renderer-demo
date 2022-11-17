@@ -20,6 +20,7 @@ add_library(nstl # custom template library
     "include/nstl/vector.h"
     "include/nstl/span.h"
     "include/nstl/array.h"
+    "include/nstl/lexicographical_compare.h"
 
     "src/string.cpp"
     "src/string_view.cpp"

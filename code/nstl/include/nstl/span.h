@@ -81,7 +81,7 @@ nstl::span<T> nstl::span<T>::subspan(size_t offset, size_t count) const
 {
     NSTL_ASSERT(offset <= m_size);
 
-    if (count = static_cast<size_t>(-1))
+    if (count > m_size - offset)
         count = m_size - offset;
 
     NSTL_ASSERT(count <= m_size);

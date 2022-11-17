@@ -18,6 +18,7 @@ namespace nstl
         string(char const* str, size_t length);
 
         size_t length() const;
+        size_t size() const;
         int slength() const;
         bool empty() const;
         void reserve(size_t capacity);

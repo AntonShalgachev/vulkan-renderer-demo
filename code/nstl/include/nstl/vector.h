@@ -8,8 +8,8 @@
 
 #include <stddef.h>
 
-#include <initializer_list> // TODO avoid include this header?
-#include <compare> // TODO avoid include this header?
+#include <initializer_list> // TODO avoid including this header?
+#include <compare> // TODO avoid including this header?
 
 // TODO distinguish between internal asserts and validations (e.g. index-out-of-bounds check should probably be active)
 
@@ -40,8 +40,13 @@ namespace nstl
         void push_back(T item);
         void pop_back();
 
+        T* find(T const& value);
+
         template<typename... Args>
         T& emplace_back(Args&&... args);
+
+        void erase_unsorted(T const& value);
+        void erase_unsorted(T* it);
 
         void clear();
 
@@ -179,6 +184,18 @@ void nstl::vector<T>::pop_back()
 }
 
 template<typename T>
+T* nstl::vector<T>::find(T const& value)
+{
+    for (auto it = begin(); it != end(); it++)
+    {
+        if (*it == value)
+            return it;
+    }
+
+    return end();
+}
+
+template<typename T>
 template<typename... Args>
 T& nstl::vector<T>::emplace_back(Args&&... args)
 {
@@ -187,6 +204,23 @@ T& nstl::vector<T>::emplace_back(Args&&... args)
     NSTL_ASSERT(capacity() >= nextSize);
 
     return m_buffer.constructNext<T>(nstl::forward<Args>(args)...);
+}
+
+template<typename T>
+void nstl::vector<T>::erase_unsorted(T const& value)
+{
+    auto it = find(value);
+    return erase_unsorted(it);
+}
+
+template<typename T>
+void nstl::vector<T>::erase_unsorted(T* it)
+{
+    if (it == end())
+        return;
+
+    nstl::exchange(*it, back());
+    pop_back();
 }
 
 template<typename T>
@@ -285,6 +319,8 @@ T& nstl::vector<T>::operator[](size_t index)
 template<typename T>
 auto nstl::vector<T>::operator<=>(vector const& rhs) const
 {
+    // TODO use lexicographical_compare_three_way
+
     vector const& lhs = *this;
 
     T const* lhsBegin = lhs.begin();
