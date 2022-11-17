@@ -3,6 +3,8 @@
 #include "nstl/vector.h"
 #include "nstl/string_view.h"
 
+#include <algorithm>
+
 namespace vkc
 {
     namespace utils
