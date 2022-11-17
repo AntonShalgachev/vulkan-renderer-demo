@@ -815,6 +815,7 @@ bool DemoApplication::loadCurrentGltfModel()
 
     m_gltfResources = std::make_unique<GltfResources>();
 
+    // TODO implement
 //     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
     for (auto const& pair : m_defaultVertexShader->getAll())
     {
@@ -823,6 +824,7 @@ bool DemoApplication::loadCurrentGltfModel()
         auto handle = resourceManager.createShaderModule(vkc::utils::readFile(modulePath.c_str()), vko::ShaderModuleType::Vertex, "main");
         m_gltfResources->shaderModules[std::string{ modulePath.c_str() }] = handle; // TODO get rid of this hack
     }
+    // TODO implement
 //     for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
     for (auto const& pair : m_defaultFragmentShader->getAll())
     {
