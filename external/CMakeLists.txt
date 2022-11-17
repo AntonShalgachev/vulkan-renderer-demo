@@ -73,13 +73,13 @@ FetchContent_Declare(
 FetchDependency(spdlog)
 
 FetchContent_Declare(
-    json
-    URL https://github.com/nlohmann/json/archive/refs/tags/v3.10.5.tar.gz # 3.10.5
-)
-FetchDependency(json)
-
-FetchContent_Declare(
     vma
     URL https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/refs/tags/v3.0.1.tar.gz # 3.0.1
 )
 FetchDependency(vma)
+
+FetchContent_Declare(
+    yyjson
+    URL https://github.com/ibireme/yyjson/archive/refs/tags/0.5.1.tar.gz # 0.5.1
+)
+FetchDependency(yyjson)

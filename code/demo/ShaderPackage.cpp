@@ -1,42 +1,70 @@
 #include "ShaderPackage.h"
 
-#include "nlohmann/json.hpp"
+#include "common/Utils.h"
 
-#include <fstream>
+#include "yyjson.h"
 
 ShaderPackage::ShaderPackage(std::string_view path)
 {
     auto packageMetadataPath = std::string{ path } + "/package.json";
 
-    nlohmann::json j;
-
     {
-        std::ifstream ifs{ packageMetadataPath };
-        if (!ifs.is_open())
-            throw std::runtime_error("Failed to open shader package");
-        ifs >> j;
-    }
+        // TODO make a nice wrapper around yyjson
 
-    for (auto const& variant : j["variants"])
-    {
-        ShaderConfiguration configuration;
-        for (auto const& [key, value] : variant["configuration"].items())
+        yyjson_doc* doc = nullptr;
+
         {
-            if (key == "HAS_VERTEX_COLOR")
-                configuration.hasColor = (value == "");
-            if (key == "HAS_TEX_COORD")
-                configuration.hasTexCoord = (value == "");
-            if (key == "HAS_NORMAL")
-                configuration.hasNormal = (value == "");
-            if (key == "HAS_TANGENT")
-                configuration.hasTangent = (value == "");
-            if (key == "HAS_TEXTURE")
-                configuration.hasTexture = (value == "");
-            if (key == "HAS_NORMAL_MAP")
-                configuration.hasNormalMap = (value == "");
+            auto data = vkc::utils::readFile(packageMetadataPath.c_str());
+            // TODO looks ugly
+            char* begin = reinterpret_cast<char*>(data.begin());
+            char* end = reinterpret_cast<char*>(data.end());
+
+            yyjson_read_err error{};
+            doc = yyjson_read_opts(begin, end - begin, 0, nullptr, &error);
         }
 
-        m_shaders[configuration] = std::string{ path } + "/" + variant["path"].get<std::string>();
+        yyjson_val* jRoot = yyjson_doc_get_root(doc);
+
+        yyjson_val* jVariants = yyjson_obj_get(jRoot, "variants");
+        size_t idx, max;
+        yyjson_val* jVariant;
+        yyjson_arr_foreach(jVariants, idx, max, jVariant)
+        {
+            ShaderConfiguration configuration;
+
+            yyjson_val* jConfiguration = yyjson_obj_get(jVariant, "configuration");
+
+            yyjson_val* jKey = nullptr;
+            yyjson_val* jValue = nullptr;
+            yyjson_obj_iter iter;
+            yyjson_obj_iter_init(jConfiguration, &iter);
+            while ((jKey = yyjson_obj_iter_next(&iter)))
+            {
+                jValue = yyjson_obj_iter_get_val(jKey);
+
+                std::string_view key = yyjson_get_str(jKey);
+                std::string_view value = yyjson_get_str(jValue);
+
+                if (key == "HAS_VERTEX_COLOR")
+                    configuration.hasColor = (value == "");
+                if (key == "HAS_TEX_COORD")
+                    configuration.hasTexCoord = (value == "");
+                if (key == "HAS_NORMAL")
+                    configuration.hasNormal = (value == "");
+                if (key == "HAS_TANGENT")
+                    configuration.hasTangent = (value == "");
+                if (key == "HAS_TEXTURE")
+                    configuration.hasTexture = (value == "");
+                if (key == "HAS_NORMAL_MAP")
+                    configuration.hasNormalMap = (value == "");
+            }
+
+            yyjson_val* jPath = yyjson_obj_get(jVariant, "path");
+
+            m_shaders[configuration] = std::string{ path } + "/" + std::string{ yyjson_get_str(jPath) };
+        }
+
+        yyjson_doc_free(doc);
     }
 }
 
