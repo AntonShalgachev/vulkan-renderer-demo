@@ -4,7 +4,6 @@
 #include "magic_enum.hpp"
 
 #include <string>
-#include <string_view>
 #include <set>
 #include <algorithm>
 
@@ -104,14 +103,14 @@ void ui::DebugConsoleWidget::drawInput()
         if (!console)
             return 0;
 
-        auto getView = [](ImGuiInputTextCallbackData* data) { return std::string_view{ data->Buf, static_cast<std::size_t>(data->BufTextLen) }; };
+        auto getView = [](ImGuiInputTextCallbackData* data) { return nstl::string_view{ data->Buf, static_cast<std::size_t>(data->BufTextLen) }; };
 
-        std::string_view input = getView(data);
+        nstl::string_view input = getView(data);
 
         if (data->EventFlag == ImGuiInputTextFlags_CallbackEdit)
             console->onInputChanged(input);
 
-        std::optional<std::string_view> replacement;
+        std::optional<nstl::string_view> replacement;
 
         if (data->EventFlag == ImGuiInputTextFlags_CallbackCompletion)
         {
@@ -128,7 +127,7 @@ void ui::DebugConsoleWidget::drawInput()
 
         if (replacement)
         {
-            std::string replacementCopy = std::string{ *replacement };
+            nstl::string replacementCopy = nstl::string{ *replacement };
             data->DeleteChars(0, data->BufTextLen);
             data->InsertChars(0, replacementCopy.data(), replacementCopy.data() + replacementCopy.size());
             console->onInputReplaced(getView(data));
@@ -175,8 +174,8 @@ void ui::DebugConsoleWidget::drawSuggestions()
             ImGui::PushStyleColor(ImGuiCol_Text, selectedSuggestionColor);
 
         {
-            std::string_view command = m_suggestions[i].suggestion.command;
-            std::string_view description = m_suggestions[i].description;
+            nstl::string_view command = m_suggestions[i].suggestion.command;
+            nstl::string_view description = m_suggestions[i].description;
             ImGui::Text("  %.*s", static_cast<int>(command.size()), command.data());
             if (!description.empty())
             {
@@ -195,7 +194,7 @@ void ui::DebugConsoleWidget::drawSuggestions()
         ImGui::Text("  ...");
 }
 
-void ui::DebugConsoleWidget::drawCommandHelp(std::string_view name)
+void ui::DebugConsoleWidget::drawCommandHelp(nstl::string_view name)
 {
     std::stringstream ss;
     services().debugConsole().getCommandHelp(ss, name);
@@ -206,7 +205,7 @@ void ui::DebugConsoleWidget::drawCommandHelp(std::string_view name)
 	ImGui::PopStyleColor();
 }
 
-void ui::DebugConsoleWidget::onInputChanged(std::string_view input)
+void ui::DebugConsoleWidget::onInputChanged(nstl::string_view input)
 {
     m_oldInput = {};
     m_replacementIndex = 0;
@@ -230,12 +229,12 @@ void ui::DebugConsoleWidget::onInputChanged(std::string_view input)
     m_suggestionsWindowEnd = linesCount;
 }
 
-void ui::DebugConsoleWidget::onInputReplaced(std::string_view input)
+void ui::DebugConsoleWidget::onInputReplaced(nstl::string_view input)
 {
     m_inputLength = input.size();
 }
 
-std::optional<std::string_view> ui::DebugConsoleWidget::onInputHistory(std::string_view input, int delta)
+std::optional<nstl::string_view> ui::DebugConsoleWidget::onInputHistory(nstl::string_view input, int delta)
 {
     auto const& inputHistory = services().debugConsole().history();
 
@@ -244,7 +243,7 @@ std::optional<std::string_view> ui::DebugConsoleWidget::onInputHistory(std::stri
     m_replacementIndex = std::min(std::max(m_replacementIndex + delta, minIndex), maxIndex);
 
     if (m_replacementIndex != 0 && !m_oldInput)
-        m_oldInput = std::string{ input };
+        m_oldInput = nstl::string{ input };
 
     if (auto index = getSuggestionIndex())
         updateSuggestionsWindow(*index);
@@ -260,12 +259,12 @@ std::optional<std::string_view> ui::DebugConsoleWidget::onInputHistory(std::stri
     return {};
 }
 
-std::optional<std::string_view> ui::DebugConsoleWidget::onInputCompletion(std::string_view input)
+std::optional<nstl::string_view> ui::DebugConsoleWidget::onInputCompletion(nstl::string_view input)
 {
     return services().debugConsole().autoComplete(input);
 }
 
-void ui::DebugConsoleWidget::onInputSubmitted(std::string_view input)
+void ui::DebugConsoleWidget::onInputSubmitted(nstl::string_view input)
 {
     if (input.empty())
         return;
@@ -306,14 +305,14 @@ void ui::DebugConsoleWidget::updateSuggestionsWindow(std::size_t selectedIndex)
     }
 }
 
-std::string_view ui::DebugConsoleWidget::getInputCommandName() const
+nstl::string_view ui::DebugConsoleWidget::getInputCommandName() const
 {
-	std::string_view input{ m_inputBuffer.data(), m_inputLength };
-	auto spacePos = input.find(' ');
-    if (spacePos == std::string_view::npos)
-        return {};
+	nstl::string_view input{ m_inputBuffer.data(), m_inputLength };
 
-    return input.substr(0, spacePos);
+    if (auto pos = input.find(' '); pos != nstl::string_view::npos)
+        return input.substr(0, pos);
+
+	return {};
 }
 
 void ui::DebugConsoleWidget::clearInput()

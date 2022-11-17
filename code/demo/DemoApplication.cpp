@@ -524,7 +524,7 @@ void DemoApplication::run()
 {
     auto lines = m_services.commandLine().get<std::vector<std::string>>("--execute");
     for (auto const& line : lines)
-        m_services.debugConsole().execute(line);
+        m_services.debugConsole().execute(nstl::string_view{ line.data(), line.size() }); // TODO fix
 
     m_frameTimer.start();
     m_window->startEventLoop([this]() { drawFrame(); });

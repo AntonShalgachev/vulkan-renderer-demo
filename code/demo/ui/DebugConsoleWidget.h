@@ -1,13 +1,15 @@
 #pragma once
 
-#include <array>
-#include <vector>
-#include <string>
-#include <optional>
-
 #include "services/ServiceContainer.h"
 
 #include "ScopedDebugCommands.h"
+
+#include "nstl/string_view.h"
+#include "nstl/string.h"
+
+#include <array>
+#include <vector>
+#include <optional>
 
 namespace ui
 {
@@ -24,20 +26,20 @@ namespace ui
         void drawOutput();
         void drawInput();
         void drawSuggestions();
-        void drawCommandHelp(std::string_view name);
+        void drawCommandHelp(nstl::string_view name);
 
-        void onInputChanged(std::string_view input);
-        void onInputReplaced(std::string_view input);
-        std::optional<std::string_view> onInputHistory(std::string_view input, int delta);
-        std::optional<std::string_view> onInputCompletion(std::string_view input);
-        void onInputSubmitted(std::string_view input);
+        void onInputChanged(nstl::string_view input);
+        void onInputReplaced(nstl::string_view input);
+        std::optional<nstl::string_view> onInputHistory(nstl::string_view input, int delta);
+        std::optional<nstl::string_view> onInputCompletion(nstl::string_view input);
+        void onInputSubmitted(nstl::string_view input);
 
         std::optional<std::size_t> getHistoryIndex(std::size_t historySize) const;
         std::optional<std::size_t> getSuggestionIndex() const;
 
         void updateSuggestionsWindow(std::size_t selectedIndex);
 
-        std::string_view getInputCommandName() const;
+        nstl::string_view getInputCommandName() const;
 
         void clearInput();
 
@@ -45,7 +47,7 @@ namespace ui
         struct Suggestion
         {
             DebugConsoleService::Suggestion suggestion;
-            std::string_view description;
+            nstl::string_view description;
         };
 
         ScopedDebugCommands m_commands{ services() };
@@ -57,7 +59,7 @@ namespace ui
 
         bool m_scrollToLast = false;
 
-        std::optional<std::string> m_oldInput;
+        std::optional<nstl::string> m_oldInput;
         int m_replacementIndex = 0;
 
         std::vector<Suggestion> m_suggestions;

@@ -2,13 +2,17 @@
 
 #include "CommandMetadata.h"
 #include "CommandProxy.h"
+#include "ServiceContainer.h"
+
+#include "nstl/string_view.h"
+#include "nstl/string.h"
 
 #include "coil/Coil.h"
 #include "coil/StdLibCompat.h"
+
 #include "magic_enum.hpp"
 
 #include "glm.h"
-#include "ServiceContainer.h"
 
 // TODO move to other file
 namespace utils
@@ -26,6 +30,27 @@ namespace utils
         }
 
         return ss.str();
+    }
+
+    // TODO move?
+    inline nstl::string coilToNstlString(coil::StringView str)
+    {
+        return { str.data(), str.length() };
+    }
+
+    inline nstl::string_view coilToNstlStringView(coil::StringView str)
+    {
+        return { str.data(), str.length() };
+    }
+
+    inline coil::String nstlToCoilString(nstl::string_view str)
+    {
+        return { str.data(), str.length() };
+    }
+
+    inline coil::StringView nstlToCoilStringView(nstl::string_view str)
+    {
+        return { str.data(), str.length() };
     }
 }
 
@@ -140,48 +165,48 @@ public:
             CommandHelp,
         };
 
-        std::string text;
+        nstl::string text;
         Type type;
     };
 
     struct Suggestion
     {
-        std::string_view command;
+        nstl::string_view command;
         float score;
     };
 
     DebugConsoleService(Services& services);
 
-    void execute(std::string_view command);
-    std::vector<Suggestion> getSuggestions(std::string_view input) const;
-    std::optional<std::string_view> autoComplete(std::string_view input) const;
+    void execute(nstl::string_view command);
+    std::vector<Suggestion> getSuggestions(nstl::string_view input) const;
+    std::optional<nstl::string_view> autoComplete(nstl::string_view input) const;
     void clear();
 
-	void getCommandHelp(std::ostream& os, std::string_view name) const;
+	void getCommandHelp(std::ostream& os, nstl::string_view name) const;
 
     std::vector<Line> const& lines() { return m_lines; }
-    std::vector<std::string> const& history() { return m_inputHistory; }
+    std::vector<nstl::string> const& history() { return m_inputHistory; }
 
     template<typename Functor>
-    void add(std::string_view name, CommandMetadata metadata, Functor functor)
+    void add(nstl::string_view name, CommandMetadata metadata, Functor functor)
     {
         // TODO move it somewhere, preferably coil
         static_assert(coil::detail::FuncTraits<Functor>::isFunc, "Func should be a functor object");
         using FunctionWrapper = typename coil::detail::FuncTraits<Functor>::FunctionWrapperType;
         return add(name, std::move(metadata), coil::AnyFunctor{ FunctionWrapper{coil::move(functor)} });
     }
-    void add(std::string_view name, CommandMetadata metadata, coil::AnyFunctor anyFunctor);
-    void add(std::string_view name, CommandMetadata metadata, coil::Vector<coil::AnyFunctor> anyFunctors);
+    void add(nstl::string_view name, CommandMetadata metadata, coil::AnyFunctor anyFunctor);
+    void add(nstl::string_view name, CommandMetadata metadata, coil::Vector<coil::AnyFunctor> anyFunctors);
 
-    void remove(std::string_view name);
+    void remove(nstl::string_view name);
 
-    CommandProxy<DebugConsoleService> operator[](std::string_view name);
+    CommandProxy<DebugConsoleService> operator[](nstl::string_view name);
 
-    CommandMetadata const* getMetadata(std::string_view name) const;
+    CommandMetadata const* getMetadata(nstl::string_view name) const;
 
 private:
     void fillCommandMetadata(CommandMetadata& metadata, coil::Vector<coil::AnyFunctor> const& functors);
-    void addLine(std::string text, Line::Type type);
+    void addLine(nstl::string text, Line::Type type);
 
 private:
     coil::Bindings m_bindings;
@@ -189,7 +214,7 @@ private:
     coil::Vector<coil::String> m_commands;
 
     std::vector<Line> m_lines;
-    std::vector<std::string> m_inputHistory;
+    std::vector<nstl::string> m_inputHistory;
 };
 
 // TODO find the right way to do it

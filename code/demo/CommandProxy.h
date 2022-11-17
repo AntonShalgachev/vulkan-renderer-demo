@@ -4,14 +4,14 @@
 
 #include "coil/Coil.h"
 
-#include <string_view>
-#include <string>
+#include "nstl/string_view.h"
+#include "nstl/string.h"
 
 template<typename CommandsContainer>
 class CommandProxy
 {
 public:
-    CommandProxy(CommandsContainer& commands, std::string_view name);
+    CommandProxy(CommandsContainer& commands, nstl::string_view name);
 
     template<typename Functor>
     CommandProxy& operator=(Functor functor)&&
@@ -26,8 +26,8 @@ public:
     CommandProxy& operator=(coil::Vector<coil::AnyFunctor> anyFunctors)&&;
     CommandProxy& operator=(std::nullptr_t);
 
-    CommandProxy&& description(std::string value)&&;
-    CommandProxy&& arguments(std::vector<std::vector<std::string>> names)&&;
+    CommandProxy&& description(nstl::string value)&&;
+    CommandProxy&& arguments(std::vector<std::vector<nstl::string>> names)&&;
 
     template<typename... T>
     CommandProxy&& arguments(T... names)&&
@@ -37,12 +37,12 @@ public:
 
 private:
     CommandsContainer& m_commands;
-    std::string_view m_name;
+    nstl::string_view m_name;
     CommandMetadata m_metadata;
 };
 
 template<typename CommandsContainer>
-CommandProxy<CommandsContainer>::CommandProxy(CommandsContainer& commands, std::string_view name) : m_commands(commands), m_name(name)
+CommandProxy<CommandsContainer>::CommandProxy(CommandsContainer& commands, nstl::string_view name) : m_commands(commands), m_name(name)
 {
 
 }
@@ -70,21 +70,21 @@ CommandProxy<CommandsContainer>& CommandProxy<CommandsContainer>::operator=(std:
 }
 
 template<typename CommandsContainer>
-CommandProxy<CommandsContainer>&& CommandProxy<CommandsContainer>::description(std::string value)&&
+CommandProxy<CommandsContainer>&& CommandProxy<CommandsContainer>::description(nstl::string value)&&
 {
     m_metadata.description = std::move(value);
     return std::move(*this);
 }
 
 template<typename CommandsContainer>
-CommandProxy<CommandsContainer>&& CommandProxy<CommandsContainer>::arguments(std::vector<std::vector<std::string>> names)&&
+CommandProxy<CommandsContainer>&& CommandProxy<CommandsContainer>::arguments(std::vector<std::vector<nstl::string>> names)&&
 {
     if (m_metadata.functors.size() < names.size())
         m_metadata.functors.resize(names.size());
 
     for (std::size_t i = 0; i < names.size(); i++)
     {
-        std::vector<std::string> const& functorArgNames = names[i];
+        std::vector<nstl::string> const& functorArgNames = names[i];
         FunctorMetadata& functorMetadata = m_metadata.functors[i];
 
         if (functorMetadata.arguments.size() < functorArgNames.size())

@@ -1,46 +1,54 @@
 #pragma once
 
-#include <string>
+#include "nstl/string.h"
+
 #include <vector>
 #include <sstream>
 
 struct ArgumentMetadata
 {
-	std::string type;
-    std::string name;
+	nstl::string type;
+    nstl::string name;
 };
 
 struct FunctorMetadata
 {
     std::vector<ArgumentMetadata> arguments;
-    std::string returnType;
+    nstl::string returnType;
 
-    std::string buildRepresentation(std::string_view name) const // TODO move to cpp
+    nstl::string buildRepresentation(nstl::string_view name) const // TODO move to cpp
     {
 		std::stringstream ss;
 
-		if (returnType != "void")
-			ss << '[' << returnType << "] ";
+		// TODO fix this hack
+		auto toStdStringView = [](nstl::string_view sv)
+		{
+			return std::string_view{ sv.data(), sv.size() };
+		};
 
-		ss << name;
+		if (returnType != "void")
+			ss << '[' << toStdStringView(returnType) << "] ";
+
+		ss << toStdStringView(name);
 
 		for (ArgumentMetadata const& argument : arguments)
 		{
-			std::string_view arg = argument.type;
+			nstl::string_view arg = argument.type;
 			if (!argument.name.empty())
 				arg = argument.name;
 
-			ss << ' ' << arg;
+			ss << ' ' << toStdStringView(arg);
 		}
 
-		return ss.str();
+		// TODO fix this hack
+		return { ss.str().c_str() };
     }
 };
 
 struct CommandMetadata
 {
-	std::string description;
+	nstl::string description;
 	std::vector<FunctorMetadata> functors;
 
-    std::string type;
+    nstl::string type;
 };

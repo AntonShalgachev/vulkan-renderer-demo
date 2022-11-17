@@ -7,8 +7,8 @@
 #include "services/Services.h"
 #include "services/DebugConsoleService.h"
 
-#include <vector>
-#include <string_view>
+#include "nstl/vector.h"
+#include "nstl/string_view.h"
 
 class ScopedDebugCommands : public ServiceContainer
 {
@@ -21,23 +21,23 @@ public:
     ScopedDebugCommands& operator=(ScopedDebugCommands&& rhs);
 
     template<typename Functor>
-    void add(std::string_view name, CommandMetadata metadata, Functor functor)
+    void add(nstl::string_view name, CommandMetadata metadata, Functor functor)
     {
         // TODO move it somewhere, preferably coil
         static_assert(coil::detail::FuncTraits<Functor>::isFunc, "Func should be a functor object");
         using FunctionWrapper = typename coil::detail::FuncTraits<Functor>::FunctionWrapperType;
-        return add(name, std::move(metadata), coil::AnyFunctor{ FunctionWrapper{coil::move(functor)} });
+        return add(name, nstl::move(metadata), coil::AnyFunctor{ FunctionWrapper{coil::move(functor)} });
     }
-    void add(std::string_view name, CommandMetadata metadata, coil::AnyFunctor anyFunctor);
-    void add(std::string_view name, CommandMetadata metadata, coil::Vector<coil::AnyFunctor> anyFunctors);
+    void add(nstl::string_view name, CommandMetadata metadata, coil::AnyFunctor anyFunctor);
+    void add(nstl::string_view name, CommandMetadata metadata, coil::Vector<coil::AnyFunctor> anyFunctors);
 
-    void remove(std::string_view name);
+    void remove(nstl::string_view name);
     void clear();
 
-    CommandProxy<ScopedDebugCommands> operator[](std::string_view name);
+    CommandProxy<ScopedDebugCommands> operator[](nstl::string_view name);
 
 private:
-    std::vector<std::string_view> m_names; // TODO should be std::string
+    nstl::vector<nstl::string> m_names;
 };
 
 // TODO find the right way to do it
