@@ -34,7 +34,7 @@ namespace nstl
     bool operator!=(string_view const& lhs, string_view const& rhs);
 
     template<>
-    struct Hash<string_view>
+    struct hash<string_view>
     {
         size_t operator()(string_view const& value);
     };

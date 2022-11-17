@@ -250,7 +250,7 @@ namespace nstl
         template<typename T>
         size_t compute_bucket_index(T const& key) const
         {
-            size_t hash = Hash<T>{}(key);
+            size_t hash = nstl::hash<T>{}(key);
             return hash % m_buckets.size();
         }
 

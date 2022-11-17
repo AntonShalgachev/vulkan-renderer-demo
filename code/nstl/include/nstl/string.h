@@ -57,7 +57,7 @@ namespace nstl
     string operator+(string lhs, string_view const& rhs);
 
     template<>
-    struct Hash<string>
+    struct hash<string>
     {
         size_t operator()(string const& value);
     };

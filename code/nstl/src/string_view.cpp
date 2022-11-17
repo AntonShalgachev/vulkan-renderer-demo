@@ -78,7 +78,7 @@ bool nstl::operator!=(string_view const& lhs, string_view const& rhs)
     return !(lhs == rhs);
 }
 
-size_t nstl::Hash<nstl::string_view>::operator()(string_view const& value)
+size_t nstl::hash<nstl::string_view>::operator()(string_view const& value)
 {
     // djb2 from http://www.cse.yorku.ca/~oz/hash.html
 

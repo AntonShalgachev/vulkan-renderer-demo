@@ -190,7 +190,7 @@ nstl::string nstl::operator+(string lhs, string_view const& rhs)
     return lhs += rhs;
 }
 
-size_t nstl::Hash<nstl::string>::operator()(string const& value)
+size_t nstl::hash<nstl::string>::operator()(string const& value)
 {
-    return Hash<string_view>{}(value);
+    return hash<string_view>{}(value);
 }
