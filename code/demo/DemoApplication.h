@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <future>
 
 #include "Timer.h"
 #include "GlfwWindow.h"
@@ -16,8 +15,6 @@
 #include "services/Services.h"
 
 #include "ScopedDebugCommands.h"
-
-#include "tiny_gltf.h"
 
 class CommandLineService;
 class ImGuiDrawer;
@@ -36,6 +33,12 @@ namespace vkgfx
     struct MeshHandle;
 
     struct TestObject;
+}
+
+namespace tinygltf
+{
+    class Model;
+    class Scene;
 }
 
 struct DemoAttributeSemanticsConfiguration
@@ -124,7 +127,7 @@ private:
 
     void clearScene();
     bool loadScene(std::string const& gltfPath);
-    bool loadCurrentGltfModel();
+    bool loadGltfModel(tinygltf::Model& model);
 
     void updateUI(float frameTime);
     void drawFrame();
@@ -132,8 +135,6 @@ private:
     void update();
     void updateScene(float);
     void updateCamera(float dt);
-
-    void updateMaterials();
 
 private:
     Services m_services;
@@ -144,17 +145,9 @@ private:
 
     std::unique_ptr<ImGuiDrawer> m_imGuiDrawer;
 
-    std::future<std::optional<tinygltf::Model>> m_gltfModelFuture;
-    std::optional<tinygltf::Model> m_gltfModel;
-
     std::unique_ptr<GltfResources> m_gltfResources;
 
     DemoScene m_demoScene;
-
-    std::vector<std::thread> m_imageLoadingThreads;
-    std::mutex m_imageReadyFlagsMutex;
-    bool m_imageReadyFlagsChanged = false;
-    std::vector<bool> m_imageReadyFlags;
 
     // Resources
     std::unique_ptr<ShaderPackage> m_defaultVertexShader;
