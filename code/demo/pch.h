@@ -23,20 +23,21 @@
 #include "coil/Coil.h"
 #include "magic_enum.hpp"
 
+#include "nstl/vector.h"
+#include "nstl/optional.h"
+#include "nstl/array.h"
+#include "nstl/string.h"
+#include "nstl/string_view.h"
+#include "nstl/unordered_map.h"
+#include "nstl/span.h"
+
 #include <functional>
-#include <optional>
 #include <memory>
-#include <array>
-#include <vector>
 #include <sstream>
-#include <string>
-#include <string_view>
 #include <iomanip>
 #include <unordered_set>
-#include <unordered_map>
 #include <set>
 #include <map>
 #include <algorithm>
 #include <deque>
 #include <cassert>
-#include <span>
