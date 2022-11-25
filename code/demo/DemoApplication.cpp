@@ -15,6 +15,7 @@
 #include "spdlog/fmt/ostr.h"
 #include "dds-ktx.h"
 #include "tiny_gltf.h"
+#include "cgltf.h"
 
 #pragma warning(push, 0)
 #include "imgui.h"
@@ -160,6 +161,34 @@ namespace
         return matrix;
     }
 
+    glm::mat4 createMatrix(cgltf_node const& node)
+    {
+        if (node.has_matrix)
+            return glm::make_mat4(node.matrix);
+
+        auto matrix = glm::identity<glm::mat4>();
+
+        if (node.has_translation)
+        {
+            glm::vec3 translation = glm::make_vec3(node.translation);
+            matrix = glm::translate(matrix, translation);
+        }
+
+        if (node.has_rotation)
+        {
+            glm::quat rotation = glm::make_quat(node.rotation);
+            matrix = matrix * glm::mat4_cast(rotation);
+        }
+
+        if (node.has_scale)
+        {
+            glm::vec3 scale = glm::make_vec3(node.scale);
+            matrix = glm::scale(matrix, scale);
+        }
+
+        return matrix;
+    }
+
     glm::vec4 createColor(std::vector<double> const& flatColor)
     {
         if (flatColor.empty())
@@ -170,23 +199,43 @@ namespace
         throw std::runtime_error("unexpected flat color size");
     }
 
-    bool loadWithStbImage(tinygltf::Image& image)
+    glm::vec4 createColor(nstl::span<float const> flatColor)
     {
-        auto const* bytes = image.image.data();
-        auto size = image.image.size();
+        assert(flatColor.size() == 4);
+        return glm::make_vec4(flatColor.data());
+    }
 
+    struct ImageData
+    {
+        struct MipData
+        {
+            size_t offset = 0;
+            size_t size = 0;
+        };
+
+        size_t width = 0;
+        size_t height = 0;
+
+        vkgfx::ImageFormat format = vkgfx::ImageFormat::R8G8B8A8;
+
+        nstl::vector<unsigned char> bytes;
+        nstl::vector<MipData> mips;
+    };
+
+    nstl::optional<ImageData> loadWithStbImage(nstl::span<unsigned char const> bytes)
+    {
         int w = 0, h = 0, comp = 0, req_comp = 4;
-        unsigned char* data = stbi_load_from_memory(bytes, size, &w, &h, &comp, req_comp);
+        unsigned char* data = stbi_load_from_memory(bytes.data(), bytes.size(), &w, &h, &comp, req_comp);
         int bits = 8;
         int pixel_type = TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE;
 
         if (!data)
-            return false;
+            return {};
 
         if (w < 1 || h < 1)
         {
             stbi_image_free(data);
-            return false;
+            return {};
         }
 
         if (req_comp != 0)
@@ -195,70 +244,93 @@ namespace
             comp = req_comp;
         }
 
-        image.width = w;
-        image.height = h;
-        image.component = comp;
-        image.bits = bits;
-        image.pixel_type = pixel_type;
-        image.as_is = false;
-        image.image.resize(static_cast<size_t>(w * h * comp) * size_t(bits / 8));
-        std::copy(data, data + w * h * comp * (bits / 8), image.image.begin());
+        ImageData imageData;
+
+        imageData.width = w;
+        imageData.height = h;
+
+        // TODO refactor this mess and support other pixel types
+        imageData.format = [](int pixelType, int bits, int comp) {
+            switch (pixelType)
+            {
+            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
+                if (bits == 8 && comp == 4)
+                    return vkgfx::ImageFormat::R8G8B8A8;
+                break;
+            }
+
+            assert(false);
+            return vkgfx::ImageFormat::R8G8B8A8;
+        }(pixel_type, bits, comp);
+
+        size_t dataSize = static_cast<size_t>(w * h * comp) * size_t(bits / 8);
+        imageData.bytes.resize(dataSize);
+        std::copy(data, data + dataSize, imageData.bytes.begin());
         stbi_image_free(data);
 
-        return true;
+        imageData.mips = { { 0, imageData.bytes.size() } };
+
+        return imageData;
     }
 
-    // TODO remove this hack
-    constexpr int PIXEL_TYPE_BC1_UNORM = 100001;
-    constexpr int PIXEL_TYPE_BC3_UNORM = 100003;
-    constexpr int PIXEL_TYPE_BC5_UNORM = 100005;
-
-    bool loadWithDdspp(tinygltf::Image& image)
+    nstl::optional<ImageData> loadWithDdspp(nstl::span<unsigned char const> bytes)
     {
-        auto* bytes = image.image.data();
-        auto size = image.image.size();
-
         ddsktx_texture_info info{};
-        if (!ddsktx_parse(&info, bytes, size, nullptr))
-            return false;
-
-        image.width = info.width;
-        image.height = info.height;
+        if (!ddsktx_parse(&info, bytes.data(), bytes.size(), nullptr))
+            return {};
 
         assert(info.bpp > 0);
         assert(info.bpp % 4 == 0);
-        image.component = 4; // TODO
-        image.bits = info.bpp / 4; // TODO
 
-        image.pixel_type = [](ddsktx_format format)
+        ImageData imageData;
+
+        imageData.width = info.width;
+        imageData.height = info.height;
+
+        imageData.format = [](ddsktx_format format)
         {
             switch (format)
             {
             case DDSKTX_FORMAT_BC1:
-                return PIXEL_TYPE_BC1_UNORM;
+                return vkgfx::ImageFormat::BC1_UNORM;
             case DDSKTX_FORMAT_BC3:
-                return PIXEL_TYPE_BC3_UNORM;
+                return vkgfx::ImageFormat::BC3_UNORM;
             case DDSKTX_FORMAT_BC5:
-                return PIXEL_TYPE_BC5_UNORM;
-            default:
+                return vkgfx::ImageFormat::BC5_UNORM;
+            default: // TODO implement other formats
                 assert(false);
             }
-            return 0;
-        }(info.format);
-        image.as_is = false;
 
-        return true;
+            assert(false);
+            return vkgfx::ImageFormat::BC1_UNORM;
+        }(info.format);
+
+        imageData.bytes.resize(bytes.size());
+        memcpy(imageData.bytes.data(), bytes.data(), bytes.size());
+
+        for (size_t mip = 0; mip < info.num_mips; mip++)
+        {
+            ddsktx_sub_data mipInfo;
+            ddsktx_get_sub(&info, &mipInfo, bytes.data(), bytes.size(), 0, 0, mip);
+
+            assert(mipInfo.buff > bytes.data());
+            std::size_t offset = static_cast<unsigned char const*>(mipInfo.buff) - bytes.data();
+
+            imageData.mips.push_back({ offset, static_cast<size_t>(mipInfo.size_bytes) });
+        }
+
+        return imageData;
     }
 
-    bool loadImage(tinygltf::Image& image)
+    nstl::optional<ImageData> loadImage(nstl::span<unsigned char const> bytes)
     {
-        if (loadWithDdspp(image))
-            return true;
+        if (auto data = loadWithDdspp(bytes))
+            return data;
 
-        if (loadWithStbImage(image))
-            return true;
+        if (auto data = loadWithStbImage(bytes))
+            return data;
 
-        return false;
+        return {};
     }
 
     // TODO use expected
@@ -324,6 +396,18 @@ namespace
         throw std::invalid_argument("gltfAttributeType and gltfComponentType");
     }
 
+    vkgfx::AttributeType findAttributeType(cgltf_type gltfAttributeType, cgltf_component_type gltfComponentType)
+    {
+        if (gltfAttributeType == cgltf_type_vec2 && gltfComponentType == cgltf_component_type_r_32f)
+            return vkgfx::AttributeType::Vec2f;
+        if (gltfAttributeType == cgltf_type_vec3 && gltfComponentType == cgltf_component_type_r_32f)
+            return vkgfx::AttributeType::Vec3f;
+        if (gltfAttributeType == cgltf_type_vec4 && gltfComponentType == cgltf_component_type_r_32f)
+            return vkgfx::AttributeType::Vec4f;
+
+        throw std::invalid_argument("gltfAttributeType and gltfComponentType");
+    }
+
     std::size_t getAttributeByteSize(vkgfx::AttributeType type)
     {
         std::size_t gltfFloatSize = 4;
@@ -357,6 +441,18 @@ namespace
 
         if (it != attributeNames.end())
             return static_cast<std::size_t>(std::distance(attributeNames.begin(), it));
+
+        return {};
+    }
+
+    std::optional<std::size_t> findAttributeLocation(nstl::string_view name)
+    {
+        static nstl::vector<nstl::string_view> const attributeNames = { "POSITION", "COLOR_0", "TEXCOORD_0", "NORMAL", "TANGENT" }; // TODO move to the shader metadata
+
+        auto it = attributeNames.find(name);
+
+        if (it != attributeNames.end())
+            return it - attributeNames.begin();
 
         return {};
     }
@@ -544,7 +640,7 @@ void DemoApplication::createResources()
     m_defaultAlbedoImage = resourceManager.createImage(vkgfx::ImageMetadata{
         .width = 1,
         .height = 1,
-        .bitsPerPixel = 4 * 8,
+        .byteSize = 4,
         .format = vkgfx::ImageFormat::R8G8B8A8,
     });
     resourceManager.uploadImage(m_defaultAlbedoImage, nstl::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
@@ -553,7 +649,7 @@ void DemoApplication::createResources()
     m_defaultNormalMapImage = resourceManager.createImage(vkgfx::ImageMetadata{
         .width = 1,
         .height = 1,
-        .bitsPerPixel = 4 * 8,
+        .byteSize = 4,
         .format = vkgfx::ImageFormat::R8G8B8A8,
     });
     resourceManager.uploadImage(m_defaultNormalMapImage, nstl::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff });
@@ -753,6 +849,150 @@ void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel
     }
 }
 
+DemoScene DemoApplication::createDemoScene(cgltf_data const& gltfModel, cgltf_scene const& gltfScene) const
+{
+    DemoScene scene;
+
+    for (size_t i = 0; i < gltfScene.nodes_count; i++)
+        createDemoObjectRecursive(gltfModel, i, glm::identity<glm::mat4>(), scene);
+
+    return scene;
+}
+
+void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, std::size_t nodeIndex, glm::mat4 parentTransform, DemoScene& scene) const
+{
+    // TODO is there a better way?
+    auto findIndex = [](auto const* object, auto const* firstObject, size_t count) -> size_t
+    {
+        auto index = object - firstObject;
+        assert(index >= 0);
+        assert(index < count);
+        return static_cast<size_t>(index);
+    };
+
+    struct DemoObjectPushConstants
+    {
+        glm::mat4 model;
+    };
+
+    struct DemoObjectUniformBuffer
+    {
+        glm::vec4 color;
+    };
+
+    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
+
+    cgltf_node const& gltfNode = gltfModel.nodes[nodeIndex];
+
+    glm::mat4 nodeTransform = parentTransform * createMatrix(gltfNode);
+
+    if (gltfNode.mesh)
+    {
+        size_t meshIndex = findIndex(gltfNode.mesh, gltfModel.meshes, gltfModel.meshes_count);
+
+        for (DemoMesh const& mesh : m_gltfResources->meshes[meshIndex])
+        {
+            DemoMaterial const& material = m_gltfResources->materials[mesh.metadata.materialIndex];
+
+            vkgfx::PipelineKey pipelineKey;
+            pipelineKey.renderConfig = material.metadata.renderConfig;
+
+            // TODO think how to handle multiple descriptor set layouts properly
+            pipelineKey.uniformConfigs = {
+                // TODO get shared frame uniform config from the Renderer
+                vkgfx::UniformConfiguration{
+                    .hasBuffer = true,
+                    .hasAlbedoTexture = false,
+                    .hasNormalMap = false,
+                },
+                material.metadata.uniformConfig,
+                vkgfx::UniformConfiguration{
+                    .hasBuffer = true,
+                    .hasAlbedoTexture = false,
+                    .hasNormalMap = false,
+                },
+            };
+
+            pipelineKey.vertexConfig = mesh.metadata.vertexConfig;
+
+            pipelineKey.pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DemoObjectPushConstants), } };
+
+            // TODO reimplement
+            ShaderConfiguration shaderConfiguration;
+            shaderConfiguration.hasTexture = material.metadata.uniformConfig.hasAlbedoTexture;
+            shaderConfiguration.hasNormalMap = material.metadata.uniformConfig.hasNormalMap;
+            shaderConfiguration.hasColor = mesh.metadata.attributeSemanticsConfig.hasColor;
+            shaderConfiguration.hasTexCoord = mesh.metadata.attributeSemanticsConfig.hasUv;
+            shaderConfiguration.hasNormal = mesh.metadata.attributeSemanticsConfig.hasNormal;
+            shaderConfiguration.hasTangent = mesh.metadata.attributeSemanticsConfig.hasTangent;
+
+            nstl::string const* vertexShaderPath = m_defaultVertexShader->get(shaderConfiguration);
+            nstl::string const* fragmentShaderPath = m_defaultFragmentShader->get(shaderConfiguration);
+
+            if (!vertexShaderPath || !fragmentShaderPath)
+                throw std::runtime_error("Failed to find the shader");
+
+            // TODO get rid of this dirty hack
+            std::string vpath = vertexShaderPath->c_str();
+            std::string fpath = fragmentShaderPath->c_str();
+
+            vkgfx::ShaderModuleHandle vertexShaderModule = m_gltfResources->shaderModules[vpath];
+            vkgfx::ShaderModuleHandle fragmentShaderModule = m_gltfResources->shaderModules[fpath];
+
+            pipelineKey.shaderHandles = { vertexShaderModule, fragmentShaderModule };
+
+            vkgfx::PipelineHandle pipeline = resourceManager.getOrCreatePipeline(pipelineKey);
+
+            vkgfx::BufferMetadata uniformBufferMetadata{
+                .usage = vkgfx::BufferUsage::UniformBuffer,
+                .location = vkgfx::BufferLocation::HostVisible,
+                .isMutable = false,
+            };
+            vkgfx::BufferHandle uniformBuffer = resourceManager.createBuffer(sizeof(DemoObjectUniformBuffer), std::move(uniformBufferMetadata));
+            m_gltfResources->additionalBuffers.push_back(uniformBuffer);
+
+            DemoObjectUniformBuffer uniformValues;
+            uniformValues.color = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
+            resourceManager.uploadBuffer(uniformBuffer, &uniformValues, sizeof(uniformValues));
+
+            DemoObjectPushConstants pushConstants;
+            pushConstants.model = nodeTransform;
+
+            vkgfx::TestObject& object = scene.objects.emplace_back();
+            object.mesh = mesh.handle;
+            object.material = material.handle;
+            object.pipeline = pipeline;
+            object.uniformBuffer = uniformBuffer;
+            object.pushConstants.resize(sizeof(pushConstants));
+            memcpy(object.pushConstants.data(), &pushConstants, object.pushConstants.size());
+        }
+    }
+
+    if (gltfNode.camera)
+    {
+        glm::vec3 position;
+        glm::vec3 scale;
+        glm::quat rotation;
+        glm::vec3 skew;
+        glm::vec4 perspective;
+        glm::decompose(nodeTransform, scale, rotation, position, skew, perspective);
+
+        scene.cameras.push_back(DemoCamera{
+            .transform = {
+                .position = position,
+                .rotation = rotation,
+            },
+            .parametersIndex = findIndex(gltfNode.camera, gltfModel.cameras, gltfModel.cameras_count),
+        });
+    }
+
+    for (size_t i = 0; i < gltfNode.children_count; i++)
+    {
+        cgltf_node const* gltfChildNode = gltfNode.children[i];
+        createDemoObjectRecursive(gltfModel, findIndex(gltfChildNode, gltfModel.nodes, gltfModel.nodes_count), nodeTransform, scene);
+    }
+}
+
 void DemoApplication::clearScene()
 {
     m_demoScene = {};
@@ -795,6 +1035,29 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
 
     m_currentScenePath = gltfPath;
 
+    {
+        auto buffer = vkc::utils::readFile(gltfPath.c_str());
+
+        cgltf_options options = {};
+        cgltf_data* data = nullptr;
+        cgltf_result result = cgltf_parse(&options, buffer.data(), buffer.size(), &data);
+        if (result != cgltf_result_success)
+            return false;
+
+        std::string basePath = "";
+        if (auto pos = gltfPath.find_last_of("/\\"); pos != std::string::npos)
+            basePath = gltfPath.substr(0, pos + 1);
+
+        cgltf_load_buffers(&options, data, basePath.c_str());
+
+        assert(data);
+        loadGltfModel(nstl::string_view{ basePath.data(), basePath.size() }, *data); // TODO fix this hack
+
+        cgltf_free(data);
+
+        return true;
+    }
+
     auto model = loadModel(gltfPath);
     if (!model)
         return false;
@@ -804,7 +1067,7 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
     return true;
 }
 
-bool DemoApplication::loadGltfModel(tinygltf::Model& gltfModel)
+bool DemoApplication::loadGltfModel(tinygltf::Model const& gltfModel)
 {
     for (auto const& name : gltfModel.extensionsRequired)
         spdlog::warn("GLTF requires extension '{}'", name);
@@ -894,59 +1157,24 @@ bool DemoApplication::loadGltfModel(tinygltf::Model& gltfModel)
 
     for (std::size_t i = 0; i < gltfModel.images.size(); i++)
     {
-        loadImage(gltfModel.images[i]);
+        nstl::optional<ImageData> imageData = loadImage({ gltfModel.images[i].image.data(), gltfModel.images[i].image.size() });
+        assert(imageData);
 
-        tinygltf::Image const& gltfImage = gltfModel.images[i];
-        assert(!gltfImage.as_is);
+        assert(!imageData->bytes.empty());
+        assert(!imageData->mips.empty());
+        assert(imageData->mips[0].size > 0);
 
         vkgfx::ImageMetadata metadata;
-        metadata.width = static_cast<std::size_t>(gltfImage.width);
-        metadata.height = static_cast<std::size_t>(gltfImage.height);
+        metadata.width = imageData->width;
+        metadata.height = imageData->height;
 
-        nstl::span<unsigned char const> bytes{ gltfImage.image.data(), gltfImage.image.size() };
+        // TODO support all mips
 
-        // TODO remove this hack
-        {
-            ddsktx_texture_info info{};
-            if (ddsktx_parse(&info, bytes.data(), bytes.size(), nullptr))
-            {
-                // TODO support all mips
-                ddsktx_sub_data mipInfo;
-                ddsktx_get_sub(&info, &mipInfo, bytes.data(), bytes.size(), 0, 0, 0);
+        ImageData::MipData const& mipData = imageData->mips[0];
+        auto bytes = nstl::span<unsigned char const>{ imageData->bytes }.subspan(mipData.offset, mipData.size);
 
-                assert(mipInfo.buff > bytes.data());
-                std::size_t offset = static_cast<unsigned char const*>(mipInfo.buff) - bytes.data();
-
-                bytes = bytes.subspan(offset, mipInfo.size_bytes);
-            }
-        }
-
-        // TODO remove this hack
-        metadata.bitsPerPixel = bytes.size() * 8 / metadata.width / metadata.height;
-
-        // TODO refactor this branch mess
-        if (gltfImage.pixel_type == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
-        {
-            std::size_t bitsPerComponent = static_cast<std::size_t>(gltfImage.bits);
-            std::size_t components = static_cast<std::size_t>(gltfImage.component);
-
-            if (bitsPerComponent == 8 && components == 4)
-                metadata.format = vkgfx::ImageFormat::R8G8B8A8;
-            else
-                assert(false);
-        }
-        else if (gltfImage.pixel_type == PIXEL_TYPE_BC1_UNORM)
-        {
-            metadata.format = vkgfx::ImageFormat::BC1_UNORM;
-        }
-        else if (gltfImage.pixel_type == PIXEL_TYPE_BC3_UNORM)
-        {
-            metadata.format = vkgfx::ImageFormat::BC3_UNORM;
-        }
-        else if (gltfImage.pixel_type == PIXEL_TYPE_BC5_UNORM)
-        {
-            metadata.format = vkgfx::ImageFormat::BC5_UNORM;
-        }
+        metadata.byteSize = bytes.size();
+        metadata.format = imageData->format;
 
         auto handle = resourceManager.createImage(metadata);
         resourceManager.uploadImage(handle, bytes);
@@ -1131,6 +1359,382 @@ bool DemoApplication::loadGltfModel(tinygltf::Model& gltfModel)
         std::size_t const sceneIndex = static_cast<std::size_t>(gltfModel.defaultScene);
         tinygltf::Scene const& gltfScene = gltfModel.scenes[sceneIndex];
         m_demoScene = createDemoScene(gltfModel, gltfScene);
+
+        std::sort(m_demoScene.objects.begin(), m_demoScene.objects.end(), [](vkgfx::TestObject const& lhs, vkgfx::TestObject const& rhs)
+        {
+            if (lhs.pipeline != rhs.pipeline)
+                return lhs.pipeline < rhs.pipeline;
+
+            return lhs.material < rhs.material;
+        });
+
+        if (!m_demoScene.cameras.empty())
+        {
+            DemoCamera const& camera = m_demoScene.cameras[0];
+            m_cameraTransform = camera.transform;
+            m_cameraParameters = m_gltfResources->cameraParameters[camera.parametersIndex];
+        }
+    }
+
+    return true;
+}
+
+bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const& model)
+{
+    // TODO is there a better way?
+    auto findIndex = [](auto const* object, auto const* firstObject, size_t count) -> size_t
+    {
+        auto index = object - firstObject;
+        assert(index >= 0);
+        assert(index < count);
+        return static_cast<size_t>(index);
+    };
+
+    for (auto i = 0; i < model.extensions_required_count; i++)
+        spdlog::warn("GLTF requires extension '{}'", model.extensions_required[i]);
+
+    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
+
+    m_gltfResources = std::make_unique<GltfResources>();
+
+    // TODO implement
+//     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
+    for (auto const& pair : m_defaultVertexShader->getAll())
+    {
+        auto const& configuration = pair.key();
+        auto const& modulePath = pair.value();
+        auto handle = resourceManager.createShaderModule(vkc::utils::readFile(modulePath.c_str()), vko::ShaderModuleType::Vertex, "main");
+        m_gltfResources->shaderModules[std::string{ modulePath.c_str() }] = handle; // TODO get rid of this hack
+    }
+    // TODO implement
+//     for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
+    for (auto const& pair : m_defaultFragmentShader->getAll())
+    {
+        auto const& configuration = pair.key();
+        auto const& modulePath = pair.value();
+        auto handle = resourceManager.createShaderModule(vkc::utils::readFile(modulePath.c_str()), vko::ShaderModuleType::Fragment, "main");
+        m_gltfResources->shaderModules[std::string{ modulePath.c_str() }] = handle; // TODO get rid of this hack
+    }
+
+    for (auto i = 0; i < model.buffers_count; i++)
+    {
+        cgltf_buffer const& gltfBuffer = model.buffers[i];
+
+        assert(gltfBuffer.data);
+        assert(gltfBuffer.size > 0);
+
+        nstl::span<unsigned char const> data{ static_cast<unsigned char const*>(gltfBuffer.data), gltfBuffer.size };
+        size_t bufferSize = sizeof(data[0]) * data.size();
+
+        vkgfx::BufferMetadata metadata{
+            .usage = vkgfx::BufferUsage::VertexIndexBuffer,
+            .location = vkgfx::BufferLocation::DeviceLocal,
+            .isMutable = false,
+        };
+        auto handle = resourceManager.createBuffer(bufferSize, std::move(metadata)); // TODO split buffer into several different parts
+        resourceManager.uploadBuffer(handle, data);
+        m_gltfResources->buffers.push_back(handle);
+    }
+
+    for (auto i = 0; i < model.samplers_count; i++)
+    {
+        cgltf_sampler const& gltfSampler = model.samplers[i];
+
+        auto convertFilterMode = [](int gltfMode)
+        {
+            // TODO remove magic numbers
+
+            switch (gltfMode)
+            {
+            case 9728: // NEAREST:
+            case 9984: // NEAREST_MIPMAP_NEAREST:
+            case 9986: // NEAREST_MIPMAP_LINEAR:
+                return vko::SamplerFilterMode::Nearest;
+
+            case 0:
+            case 9729: // LINEAR:
+            case 9985: // LINEAR_MIPMAP_NEAREST:
+            case 9987: // LINEAR_MIPMAP_LINEAR:
+                return vko::SamplerFilterMode::Linear;
+            }
+
+            assert(false);
+            return vko::SamplerFilterMode::Nearest;
+        };
+
+        auto convertWrapMode = [](int gltfMode)
+        {
+            // TODO remove magic numbers
+
+            switch (gltfMode)
+            {
+            case 10497: // REPEAT:
+                return vko::SamplerWrapMode::Repeat;
+            case 33071: // CLAMP_TO_EDGE:
+                return vko::SamplerWrapMode::ClampToEdge;
+            case 33648: // MIRRORED_REPEAT:
+                return vko::SamplerWrapMode::Mirror;
+            }
+
+            assert(false);
+            return vko::SamplerWrapMode::Repeat;
+        };
+
+        auto magFilter = convertFilterMode(gltfSampler.mag_filter);
+        auto minFilter = convertFilterMode(gltfSampler.min_filter);
+        auto wrapU = convertWrapMode(gltfSampler.wrap_s);
+        auto wrapV = convertWrapMode(gltfSampler.wrap_t);
+
+        auto handle = resourceManager.createSampler(magFilter, minFilter, wrapU, wrapV);
+        m_gltfResources->samplers.push_back(handle);
+    }
+
+    for (auto i = 0; i < model.images_count; i++)
+    {
+        cgltf_image const& gltfImage = model.images[i];
+        assert(gltfImage.uri && !gltfImage.buffer_view);
+
+        nstl::string imagePath = basePath + gltfImage.uri;
+
+        // TODO leads to unnecessary data copy; change that
+        nstl::optional<ImageData> imageData = loadImage(vkc::utils::readFile(imagePath.c_str()));
+        assert(imageData);
+
+        assert(!imageData->bytes.empty());
+        assert(!imageData->mips.empty());
+        assert(imageData->mips[0].size > 0);
+
+        vkgfx::ImageMetadata metadata;
+        metadata.width = imageData->width;
+        metadata.height = imageData->height;
+
+        // TODO support all mips
+
+        ImageData::MipData const& mipData = imageData->mips[0];
+        auto bytes = nstl::span<unsigned char const>{ imageData->bytes }.subspan(mipData.offset, mipData.size);
+
+        metadata.byteSize = bytes.size();
+        metadata.format = imageData->format;
+
+        auto handle = resourceManager.createImage(metadata);
+        resourceManager.uploadImage(handle, bytes);
+        m_gltfResources->images.push_back(handle);
+    }
+
+    for (auto i = 0; i < model.textures_count; i++)
+    {
+        cgltf_texture const& gltfTexture = model.textures[i];
+
+        size_t imageIndex = findIndex(gltfTexture.image, model.images, model.images_count);
+
+        vkgfx::ImageHandle imageHandle = m_gltfResources->images[imageIndex];
+        
+        assert(imageHandle);
+
+//         if (!imageHandle)
+//             continue;
+
+        vkgfx::Texture texture;
+        texture.image = imageHandle;
+        texture.sampler = m_defaultSampler;
+        if (gltfTexture.sampler)
+        {
+            size_t samplerIndex = findIndex(gltfTexture.sampler, model.samplers, model.samplers_count);
+            texture.sampler = m_gltfResources->samplers[samplerIndex];
+        }
+
+        vkgfx::TextureHandle handle = resourceManager.createTexture(std::move(texture));
+        m_gltfResources->textures.push_back(handle);
+    }
+
+    for (auto i = 0; i < model.materials_count; i++)
+    {
+        cgltf_material const& gltfMaterial = model.materials[i];
+
+        cgltf_pbr_metallic_roughness const& gltfRoughness = gltfMaterial.pbr_metallic_roughness;
+
+        vkgfx::Material material;
+        material.albedo = m_defaultAlbedoTexture;
+        material.normalMap = m_defaultNormalMapTexture;
+
+        struct MaterialUniformBuffer
+        {
+            glm::vec4 color;
+        };
+
+        MaterialUniformBuffer values;
+        values.color = createColor(gltfRoughness.base_color_factor);
+
+        vkgfx::BufferMetadata metadata{
+            .usage = vkgfx::BufferUsage::UniformBuffer,
+            .location = vkgfx::BufferLocation::HostVisible,
+            .isMutable = false,
+        };
+        auto buffer = resourceManager.createBuffer(sizeof(MaterialUniformBuffer), std::move(metadata));
+        resourceManager.uploadBuffer(buffer, &values, sizeof(MaterialUniformBuffer));
+        m_gltfResources->additionalBuffers.push_back(buffer);
+
+        material.uniformBuffer = buffer;
+
+        if (gltfRoughness.base_color_texture.texture)
+        {
+            size_t textureIndex = findIndex(gltfRoughness.base_color_texture.texture, model.textures, model.textures_count);
+            auto textureHandle = m_gltfResources->textures[textureIndex];
+            if (textureHandle)
+                material.albedo = textureHandle;
+        }
+
+        if (gltfMaterial.normal_texture.texture)
+        {
+            size_t textureIndex = findIndex(gltfMaterial.normal_texture.texture, model.textures, model.textures_count);
+            auto textureHandle = m_gltfResources->textures[textureIndex];
+            if (textureHandle)
+                material.normalMap = textureHandle;
+        }
+
+        DemoMaterial& demoMaterial = m_gltfResources->materials.emplace_back();
+
+        demoMaterial.handle = resourceManager.createMaterial(std::move(material));
+
+        demoMaterial.metadata.renderConfig.wireframe = false;
+        demoMaterial.metadata.renderConfig.cullBackfaces = !gltfMaterial.double_sided;
+        demoMaterial.metadata.uniformConfig.hasBuffer = true;
+        demoMaterial.metadata.uniformConfig.hasAlbedoTexture = true;
+        demoMaterial.metadata.uniformConfig.hasNormalMap = true;
+    }
+
+    for (auto meshIndex = 0; meshIndex < model.meshes_count; meshIndex++)
+    {
+        cgltf_mesh const& gltfMesh = model.meshes[meshIndex];
+
+        std::vector<DemoMesh>& demoMeshes = m_gltfResources->meshes.emplace_back();
+        demoMeshes.reserve(gltfMesh.primitives_count);
+
+        for (auto primitiveIndex = 0; primitiveIndex < gltfMesh.primitives_count; primitiveIndex++)
+        {
+            cgltf_primitive const& gltfPrimitive = gltfMesh.primitives[primitiveIndex];
+
+            DemoMesh& demoMesh = demoMeshes.emplace_back();
+
+            vkgfx::Mesh mesh;
+
+            {
+                auto findIndexType = [](int gltfComponentType)
+                {
+                    switch (gltfComponentType)
+                    {
+                    case cgltf_component_type_r_8u:
+                        return vkgfx::IndexType::UnsignedByte;
+                    case cgltf_component_type_r_16u:
+                        return vkgfx::IndexType::UnsignedShort;
+                    case cgltf_component_type_r_32u:
+                        return vkgfx::IndexType::UnsignedInt;
+                    }
+
+                    assert(false);
+                    return vkgfx::IndexType::UnsignedShort;
+                };
+
+                cgltf_accessor const* gltfAccessor = gltfPrimitive.indices;
+                assert(gltfAccessor);
+                cgltf_buffer_view const* gltfBufferView = gltfAccessor->buffer_view;
+                assert(gltfBufferView);
+
+                mesh.indexBuffer.buffer = m_gltfResources->buffers[findIndex(gltfBufferView->buffer, model.buffers, model.buffers_count)];
+                mesh.indexBuffer.offset = gltfBufferView->offset + gltfAccessor->offset;
+                mesh.indexCount = gltfAccessor->count;
+                mesh.indexType = findIndexType(gltfAccessor->component_type);
+            }
+
+            mesh.vertexBuffers.reserve(gltfPrimitive.attributes_count);
+            demoMesh.metadata.vertexConfig.bindings.reserve(gltfPrimitive.attributes_count);
+            demoMesh.metadata.vertexConfig.attributes.reserve(gltfPrimitive.attributes_count);
+
+            for (size_t attributeIndex = 0; attributeIndex < gltfPrimitive.attributes_count; attributeIndex++)
+            {
+                cgltf_attribute const& gltfAttribute = gltfPrimitive.attributes[attributeIndex];
+
+                nstl::string_view name = gltfAttribute.name;
+
+                std::optional<std::size_t> location = findAttributeLocation(name);
+
+                if (!location)
+                {
+                    spdlog::warn("Skipping attribute '{}'", name);
+                    continue;
+                }
+
+                cgltf_accessor const* gltfAccessor = gltfAttribute.data;
+                assert(gltfAccessor);
+                cgltf_buffer_view const* gltfBufferView = gltfAccessor->buffer_view;
+                assert(gltfBufferView);
+
+                size_t bufferIndex = findIndex(gltfBufferView->buffer, model.buffers, model.buffers_count);
+
+                vkgfx::BufferWithOffset& attributeBuffer = mesh.vertexBuffers.emplace_back();
+                attributeBuffer.buffer = m_gltfResources->buffers[bufferIndex];
+                attributeBuffer.offset = gltfBufferView->offset + gltfAccessor->offset; // TODO can be improved
+
+                if (name == "COLOR_0")
+                    demoMesh.metadata.attributeSemanticsConfig.hasColor = true;
+                if (name == "TEXCOORD_0")
+                    demoMesh.metadata.attributeSemanticsConfig.hasUv = true;
+                if (name == "NORMAL")
+                    demoMesh.metadata.attributeSemanticsConfig.hasNormal = true;
+                if (name == "TANGENT")
+                    demoMesh.metadata.attributeSemanticsConfig.hasTangent = true;
+
+                vkgfx::AttributeType attributeType = findAttributeType(gltfAccessor->type, gltfAccessor->component_type);
+
+                std::size_t stride = gltfBufferView->stride;
+                if (stride == 0)
+                    stride = getAttributeByteSize(attributeType);
+
+                vkgfx::VertexConfiguration::Binding& bindingConfig = demoMesh.metadata.vertexConfig.bindings.emplace_back();
+                bindingConfig.stride = stride;
+
+                vkgfx::VertexConfiguration::Attribute& attributeConfig = demoMesh.metadata.vertexConfig.attributes.emplace_back();
+                attributeConfig.binding = attributeIndex;
+                attributeConfig.location = *location;
+                attributeConfig.offset = 0; // TODO can be improved
+                attributeConfig.type = attributeType;
+
+                // TODO implement
+                assert(gltfPrimitive.type == cgltf_primitive_type_triangles);
+                demoMesh.metadata.vertexConfig.topology = vkgfx::VertexTopology::Triangles;
+
+                demoMesh.metadata.materialIndex = findIndex(gltfPrimitive.material, model.materials, model.materials_count); // TODO check
+            }
+
+            demoMesh.handle = resourceManager.createMesh(std::move(mesh));
+        }
+    }
+
+    for (size_t i = 0; i < model.cameras_count; i++)
+    {
+        cgltf_camera const& gltfCamera = model.cameras[i];
+
+        if (gltfCamera.type == cgltf_camera_type_perspective)
+        {
+            cgltf_camera_perspective const& gltfParams = gltfCamera.data.perspective;
+
+            assert(gltfParams.has_zfar);
+
+            m_gltfResources->cameraParameters.push_back(vkgfx::TestCameraParameters{
+                .fov = glm::degrees(static_cast<float>(gltfParams.yfov)),
+                .nearZ = static_cast<float>(gltfParams.znear),
+                .farZ = static_cast<float>(gltfParams.zfar),
+            });
+        }
+        else
+        {
+            assert(false);
+        }
+    }
+
+    {
+        assert(model.scene);
+        m_demoScene = createDemoScene(model, *model.scene);
 
         std::sort(m_demoScene.objects.begin(), m_demoScene.objects.end(), [](vkgfx::TestObject const& lhs, vkgfx::TestObject const& rhs)
         {

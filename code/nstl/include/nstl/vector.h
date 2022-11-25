@@ -41,6 +41,7 @@ namespace nstl
         void pop_back();
 
         T* find(T const& value);
+        T const* find(T const& value) const;
 
         template<typename... Args>
         T& emplace_back(Args&&... args);
@@ -185,6 +186,18 @@ void nstl::vector<T>::pop_back()
 
 template<typename T>
 T* nstl::vector<T>::find(T const& value)
+{
+    for (auto it = begin(); it != end(); it++)
+    {
+        if (*it == value)
+            return it;
+    }
+
+    return end();
+}
+
+template<typename T>
+T const* nstl::vector<T>::find(T const& value) const
 {
     for (auto it = begin(); it != end(); it++)
     {

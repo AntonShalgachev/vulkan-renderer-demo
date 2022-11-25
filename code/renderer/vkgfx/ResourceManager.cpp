@@ -208,7 +208,7 @@ vkgfx::ImageHandle vkgfx::ResourceManager::createImage(ImageMetadata metadata)
 {
     assert(metadata.width > 0);
     assert(metadata.height > 0);
-    assert(metadata.bitsPerPixel > 0);
+    assert(metadata.byteSize > 0);
 
     VkFormat vkFormat = [](ImageFormat format) {
         switch (format)
@@ -243,7 +243,6 @@ vkgfx::ImageHandle vkgfx::ResourceManager::createImage(ImageMetadata metadata)
         .image = std::move(vkImage),
         .imageView = std::move(vkImageView),
         .metadata = std::move(metadata),
-        .byteSize = metadata.width * metadata.height * metadata.bitsPerPixel / 8,
     };
 
     return { m_images.add(std::move(imageResource)) };
@@ -601,7 +600,7 @@ void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, nstl::span<unsig
 
 void vkgfx::ResourceManager::uploadImage(Image const& image, void const* data, std::size_t dataSize)
 {
-    assert(image.byteSize == dataSize);
+    assert(image.metadata.byteSize == dataSize);
 
     auto width = static_cast<uint32_t>(image.metadata.width);
     auto height = static_cast<uint32_t>(image.metadata.height);

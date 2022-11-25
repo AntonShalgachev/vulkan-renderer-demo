@@ -62,4 +62,5 @@ target_link_libraries(${PROJECT_NAME}
     spdlog::spdlog
     yyjson
     dds-ktx::dds-ktx
+    cgltf
 )

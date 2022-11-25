@@ -41,6 +41,9 @@ namespace tinygltf
     class Scene;
 }
 
+struct cgltf_data;
+struct cgltf_scene;
+
 struct DemoAttributeSemanticsConfiguration
 {
     bool hasColor = false;
@@ -125,9 +128,13 @@ private:
     DemoScene createDemoScene(tinygltf::Model const& gltfModel, tinygltf::Scene const& gltfScene) const;
     void createDemoObjectRecursive(tinygltf::Model const& gltfModel, std::size_t nodeIndex, glm::mat4 parentTransform, DemoScene& scene) const;
 
+    DemoScene createDemoScene(cgltf_data const& gltfModel, cgltf_scene const& gltfScene) const;
+    void createDemoObjectRecursive(cgltf_data const& gltfModel, std::size_t nodeIndex, glm::mat4 parentTransform, DemoScene& scene) const;
+
     void clearScene();
     bool loadScene(std::string const& gltfPath);
-    bool loadGltfModel(tinygltf::Model& model);
+    bool loadGltfModel(tinygltf::Model const& model);
+    bool loadGltfModel(nstl::string_view basePath, cgltf_data const& model);
 
     void updateUI(float frameTime);
     void drawFrame();

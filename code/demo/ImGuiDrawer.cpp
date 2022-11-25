@@ -169,7 +169,7 @@ void ImGuiDrawer::createImages(vkgfx::ResourceManager& resourceManager)
     vkgfx::ImageMetadata metadata{
         .width = static_cast<std::size_t>(width),
         .height = static_cast<std::size_t>(height),
-        .bitsPerPixel = static_cast<std::size_t>(bytesPerPixel) * 8,
+        .byteSize = static_cast<size_t>(width * height * bytesPerPixel),
         .format = vkgfx::ImageFormat::R8G8B8A8,
     };
     m_fontImage = resourceManager.createImage(std::move(metadata));

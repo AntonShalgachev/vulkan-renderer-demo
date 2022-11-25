@@ -14,6 +14,5 @@ namespace vkgfx
         vko::Image image;
         vko::ImageView imageView;
         ImageMetadata metadata;
-        std::size_t byteSize = 0;
     };
 }

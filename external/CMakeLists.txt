@@ -11,6 +11,7 @@ set(BUILD_STATIC_LIBS ON CACHE INTERNAL "")
 
 add_subdirectory(imgui)
 add_subdirectory(dds-ktx)
+add_subdirectory(cgltf)
 
 FetchContent_Declare(
     glfw

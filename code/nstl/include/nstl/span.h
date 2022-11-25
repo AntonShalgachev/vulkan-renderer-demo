@@ -10,7 +10,11 @@ namespace nstl
     class span
     {
     public:
-        span(T* data = nullptr, size_t size = 0);
+        span() = default;
+        span(T* data, size_t size);
+
+        template<size_t N>
+        span(T (&values)[N]);
 
         size_t size() const;
         bool empty() const;
@@ -35,6 +39,13 @@ namespace nstl
 
 template<typename T>
 nstl::span<T>::span(T* data, size_t size) : m_data(data), m_size(size)
+{
+
+}
+
+template<typename T>
+template<size_t N>
+nstl::span<T>::span(T (&values)[N]) : m_data(values), m_size(N)
 {
 
 }
