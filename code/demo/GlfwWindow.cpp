@@ -67,7 +67,7 @@ vko::Surface vkr::GlfwWindow::createSurface(vko::Instance const& instance) const
     VkSurfaceKHR handle;
 
     if (glfwCreateWindowSurface(instance.getHandle(), m_handle, nullptr, &handle) != VK_SUCCESS)
-        throw std::runtime_error("failed to create window surface!");
+        assert(false);
 
     return vko::Surface{ handle, instance, *this };
 }

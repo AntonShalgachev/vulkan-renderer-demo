@@ -1,5 +1,7 @@
 #pragma once
 
+#include <assert.h>
+
 class Services;
 
 class ServiceContainer

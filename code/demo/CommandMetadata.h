@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nstl/string.h"
+#include "nstl/string_view.h"
 
 #include <vector>
 #include <sstream>

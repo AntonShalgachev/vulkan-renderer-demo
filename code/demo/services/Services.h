@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <assert.h>
+
 class CommandLineService;
 class DebugConsoleService;
 class DebugDrawService;
