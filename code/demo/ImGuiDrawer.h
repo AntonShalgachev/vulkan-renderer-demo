@@ -2,10 +2,6 @@
 
 #include "vkgfx/Handles.h"
 
-#include "glm.h"
-
-#include <tuple>
-
 #include "nstl/vector.h"
 
 namespace vkgfx
@@ -31,8 +27,6 @@ private:
     void createPipeline(vkgfx::ResourceManager& resourceManager);
 
     void uploadBuffers(vkgfx::ResourceManager& resourceManager, ImDrawData const* drawData);
-    nstl::vector<unsigned char> createPushConstants(ImDrawData const* drawData);
-    std::tuple<glm::ivec2, glm::ivec2> calculateClip(ImDrawData const* drawData, ImDrawCmd const* drawCommand);
     void updateMesh(vkgfx::ResourceManager& resourceManager, std::size_t index, std::size_t indexCount, std::size_t indexOffset, std::size_t vertexOffset);
     void updateMaterial(vkgfx::ResourceManager& resourceManager, std::size_t index, vkgfx::ImageHandle image);
 
@@ -44,7 +38,7 @@ private:
     vkgfx::ShaderModuleHandle m_vertexShaderModule;
     vkgfx::ShaderModuleHandle m_fragmentShaderModule;
     vkgfx::PipelineHandle m_pipeline;
-    std::vector<vkgfx::MeshHandle> m_meshes;
-    std::vector<vkgfx::TextureHandle> m_textures;
-    std::vector<vkgfx::MaterialHandle> m_materials;
+    nstl::vector<vkgfx::MeshHandle> m_meshes;
+    nstl::vector<vkgfx::TextureHandle> m_textures;
+    nstl::vector<vkgfx::MaterialHandle> m_materials;
 };

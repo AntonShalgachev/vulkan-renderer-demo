@@ -47,6 +47,60 @@ namespace
 
         return image;
     };
+
+    nstl::vector<unsigned char> createPushConstants(ImDrawData const* drawData)
+    {
+        struct PushConstants
+        {
+            ImVec2 scale;
+            ImVec2 translate;
+        };
+
+        PushConstants pushConstants;
+
+        pushConstants.scale = {
+            2.0f / drawData->DisplaySize.x,
+            2.0f / drawData->DisplaySize.y,
+        };
+        pushConstants.translate = {
+            -1.0f - drawData->DisplayPos.x * pushConstants.scale.x,
+            -1.0f - drawData->DisplayPos.y * pushConstants.scale.y,
+        };
+
+        nstl::vector<unsigned char> bytes;
+        bytes.resize(sizeof(PushConstants));
+        memcpy(bytes.data(), &pushConstants, sizeof(pushConstants));
+
+        return bytes;
+    }
+
+    struct ClipData
+    {
+        glm::ivec2 clipMin;
+        glm::ivec2 clipMax;
+    };
+
+    ClipData calculateClip(ImDrawData const* drawData, ImDrawCmd const* drawCommand)
+    {
+        glm::ivec2 framebufferSize = { drawData->DisplaySize.x * drawData->FramebufferScale.x, drawData->DisplaySize.y * drawData->FramebufferScale.y };
+
+        ImVec2 clipOffset = drawData->DisplayPos;
+        ImVec2 clipScale = drawData->FramebufferScale;
+
+        glm::ivec2 clipMin = { (drawCommand->ClipRect.x - clipOffset.x) * clipScale.x, (drawCommand->ClipRect.y - clipOffset.y) * clipScale.y };
+        glm::ivec2 clipMax = { (drawCommand->ClipRect.z - clipOffset.x) * clipScale.x, (drawCommand->ClipRect.w - clipOffset.y) * clipScale.y };
+
+        if (clipMin.x < 0)
+            clipMin.x = 0;
+        if (clipMin.y < 0)
+            clipMin.y = 0;
+        if (clipMax.x > framebufferSize.x)
+            clipMax.x = framebufferSize.x;
+        if (clipMax.y > framebufferSize.y)
+            clipMax.y = framebufferSize.y;
+
+        return { clipMin, clipMax };
+    }
 }
 
 ImGuiDrawer::ImGuiDrawer(vkgfx::Renderer& renderer)
@@ -293,54 +347,6 @@ void ImGuiDrawer::uploadBuffers(vkgfx::ResourceManager& resourceManager, ImDrawD
         nextVertexBufferOffset += vertexChunkSize;
         nextIndexBufferOffset += indexChunkSize;
     }
-}
-
-nstl::vector<unsigned char> ImGuiDrawer::createPushConstants(ImDrawData const* drawData)
-{
-    struct PushConstants
-    {
-        ImVec2 scale;
-        ImVec2 translate;
-    };
-
-    PushConstants pushConstants;
-
-    pushConstants.scale = {
-        2.0f / drawData->DisplaySize.x,
-        2.0f / drawData->DisplaySize.y,
-    };
-    pushConstants.translate = {
-        -1.0f - drawData->DisplayPos.x * pushConstants.scale.x,
-        -1.0f - drawData->DisplayPos.y * pushConstants.scale.y,
-    };
-
-    nstl::vector<unsigned char> bytes;
-    bytes.resize(sizeof(PushConstants));
-    memcpy(bytes.data(), &pushConstants, sizeof(pushConstants));
-
-    return bytes;
-}
-
-std::tuple<glm::ivec2, glm::ivec2> ImGuiDrawer::calculateClip(ImDrawData const* drawData, ImDrawCmd const* drawCommand)
-{
-    glm::ivec2 framebufferSize = { drawData->DisplaySize.x * drawData->FramebufferScale.x, drawData->DisplaySize.y * drawData->FramebufferScale.y };
-
-    ImVec2 clipOffset = drawData->DisplayPos;
-    ImVec2 clipScale = drawData->FramebufferScale;
-
-    glm::ivec2 clipMin = { (drawCommand->ClipRect.x - clipOffset.x) * clipScale.x, (drawCommand->ClipRect.y - clipOffset.y) * clipScale.y };
-    glm::ivec2 clipMax = { (drawCommand->ClipRect.z - clipOffset.x) * clipScale.x, (drawCommand->ClipRect.w - clipOffset.y) * clipScale.y };
-
-    if (clipMin.x < 0)
-        clipMin.x = 0;
-    if (clipMin.y < 0)
-        clipMin.y = 0;
-    if (clipMax.x > framebufferSize.x)
-        clipMax.x = framebufferSize.x;
-    if (clipMax.y > framebufferSize.y)
-        clipMax.y = framebufferSize.y;
-
-    return { clipMin, clipMax };
 }
 
 void ImGuiDrawer::updateMesh(vkgfx::ResourceManager& resourceManager, std::size_t index, std::size_t indexCount, std::size_t indexOffset, std::size_t vertexOffset)
