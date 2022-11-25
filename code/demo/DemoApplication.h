@@ -16,6 +16,8 @@
 
 #include "ScopedDebugCommands.h"
 
+#include "nstl/vector.h"
+
 class CommandLineService;
 class ImGuiDrawer;
 class ShaderPackage;
@@ -79,18 +81,18 @@ struct DemoCamera
 
 struct GltfResources
 {
-    std::vector<vkgfx::BufferHandle> buffers;
-    std::vector<vkgfx::ImageHandle> images;
-    std::vector<vkgfx::SamplerHandle> samplers;
-    std::vector<vkgfx::TextureHandle> textures;
-    std::vector<DemoMaterial> materials;
-    std::vector<std::vector<DemoMesh>> meshes;
+    nstl::vector<vkgfx::BufferHandle> buffers;
+    nstl::vector<vkgfx::ImageHandle> images;
+    nstl::vector<vkgfx::SamplerHandle> samplers;
+    nstl::vector<vkgfx::TextureHandle> textures;
+    nstl::vector<DemoMaterial> materials;
+    nstl::vector<nstl::vector<DemoMesh>> meshes;
 
     std::unordered_map<std::string, vkgfx::ShaderModuleHandle> shaderModules;
 
-    std::vector<vkgfx::TestCameraParameters> cameraParameters;
+    nstl::vector<vkgfx::TestCameraParameters> cameraParameters;
 
-    std::vector<vkgfx::BufferHandle> additionalBuffers; // TODO think how to store all created resources better
+    nstl::vector<vkgfx::BufferHandle> additionalBuffers; // TODO think how to store all created resources better
 };
 
 struct DemoScene

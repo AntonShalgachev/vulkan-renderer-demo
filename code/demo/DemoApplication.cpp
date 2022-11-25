@@ -1038,7 +1038,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     {
         cgltf_mesh const& gltfMesh = model.meshes[meshIndex];
 
-        std::vector<DemoMesh>& demoMeshes = m_gltfResources->meshes.emplace_back();
+        nstl::vector<DemoMesh>& demoMeshes = m_gltfResources->meshes.emplace_back();
         demoMeshes.reserve(gltfMesh.primitives_count);
 
         for (auto primitiveIndex = 0; primitiveIndex < gltfMesh.primitives_count; primitiveIndex++)
