@@ -14,7 +14,6 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
 #include "dds-ktx.h"
-#include "tiny_gltf.h"
 #include "cgltf.h"
 
 #pragma warning(push, 0)
@@ -121,46 +120,6 @@ namespace
         return glm::quat{ glm::radians(eulerDegrees) };
     }
 
-    glm::mat4 createMatrix(tinygltf::Node const& node)
-    {
-        if (!node.matrix.empty() && node.matrix.size() != 16)
-            throw std::runtime_error("unexpected linear matrix size");
-
-        if (!node.scale.empty() && node.scale.size() != 3)
-            throw std::runtime_error("unexpected linear scale size");
-
-        if (!node.translation.empty() && node.translation.size() != 3)
-            throw std::runtime_error("unexpected linear translation size");
-
-        if (!node.rotation.empty() && node.rotation.size() != 4)
-            throw std::runtime_error("unexpected linear rotation size");
-
-        if (!node.matrix.empty())
-            return glm::make_mat4(node.matrix.data());
-
-        auto matrix = glm::identity<glm::mat4>();
-
-        if (!node.translation.empty())
-        {
-            glm::vec3 translation = glm::make_vec3(node.translation.data());
-            matrix = glm::translate(matrix, translation);
-        }
-
-        if (!node.rotation.empty())
-        {
-            glm::quat rotation = glm::make_quat(node.rotation.data());
-            matrix = matrix * glm::mat4_cast(rotation);
-        }
-
-        if (!node.scale.empty())
-        {
-            glm::vec3 scale = glm::make_vec3(node.scale.data());
-            matrix = glm::scale(matrix, scale);
-        }
-
-        return matrix;
-    }
-
     glm::mat4 createMatrix(cgltf_node const& node)
     {
         if (node.has_matrix)
@@ -227,7 +186,6 @@ namespace
         int w = 0, h = 0, comp = 0, req_comp = 4;
         unsigned char* data = stbi_load_from_memory(bytes.data(), bytes.size(), &w, &h, &comp, req_comp);
         int bits = 8;
-        int pixel_type = TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE;
 
         if (!data)
             return {};
@@ -250,18 +208,13 @@ namespace
         imageData.height = h;
 
         // TODO refactor this mess and support other pixel types
-        imageData.format = [](int pixelType, int bits, int comp) {
-            switch (pixelType)
-            {
-            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
-                if (bits == 8 && comp == 4)
-                    return vkgfx::ImageFormat::R8G8B8A8;
-                break;
-            }
+        imageData.format = [](int bits, int comp) {
+            if (bits == 8 && comp == 4)
+                return vkgfx::ImageFormat::R8G8B8A8;
 
             assert(false);
             return vkgfx::ImageFormat::R8G8B8A8;
-        }(pixel_type, bits, comp);
+        }(bits, comp);
 
         size_t dataSize = static_cast<size_t>(w * h * comp) * size_t(bits / 8);
         imageData.bytes.resize(dataSize);
@@ -331,69 +284,6 @@ namespace
             return data;
 
         return {};
-    }
-
-    // TODO use expected
-    std::optional<tinygltf::Model> loadModel(std::string const& path)
-    {
-        tinygltf::Model model;
-
-        tinygltf::TinyGLTF loader;
-        loader.SetImageLoader([](tinygltf::Image* image, const int image_idx, std::string* err,
-                                 std::string*, int req_width, int req_height,
-                                 const unsigned char* bytes, int size, void*)
-        {
-            if (size < 1)
-                return false;
-
-            image->image.resize(size_t(size));
-            memcpy(image->image.data(), bytes, size_t(size));
-            image->as_is = true;
-
-            return true;
-        }, nullptr);
-
-        std::string err;
-        std::string warn;
-        bool success = loader.LoadASCIIFromFile(&model, &err, &warn, path);
-
-        if (!warn.empty())
-            std::cout << warn << std::endl;
-        if (!err.empty())
-            std::cout << err << std::endl;
-
-        if (!success)
-            return {};
-
-        return model;
-    }
-
-    vkgfx::IndexType findIndexType(int gltfComponentType)
-    {
-        switch (gltfComponentType)
-        {
-        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
-            return vkgfx::IndexType::UnsignedByte;
-        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
-            return vkgfx::IndexType::UnsignedShort;
-        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
-            return vkgfx::IndexType::UnsignedInt;
-        }
-
-        assert(false);
-        return vkgfx::IndexType::UnsignedShort;
-    }
-
-    vkgfx::AttributeType findAttributeType(int gltfAttributeType, int gltfComponentType)
-    {
-        if (gltfAttributeType == TINYGLTF_TYPE_VEC2 && gltfComponentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
-            return vkgfx::AttributeType::Vec2f;
-        if (gltfAttributeType == TINYGLTF_TYPE_VEC3 && gltfComponentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
-            return vkgfx::AttributeType::Vec3f;
-        if (gltfAttributeType == TINYGLTF_TYPE_VEC4 && gltfComponentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
-            return vkgfx::AttributeType::Vec4f;
-
-        throw std::invalid_argument("gltfAttributeType and gltfComponentType");
     }
 
     vkgfx::AttributeType findAttributeType(cgltf_type gltfAttributeType, cgltf_component_type gltfComponentType)
@@ -715,140 +605,6 @@ void DemoApplication::onMouseMove(glm::vec2 const& delta)
     m_cameraTransform.rotation *= rotationDelta;
 }
 
-DemoScene DemoApplication::createDemoScene(tinygltf::Model const& gltfModel, tinygltf::Scene const& gltfScene) const
-{
-    DemoScene scene;
-
-    for (std::size_t nodeIndex : gltfScene.nodes)
-        createDemoObjectRecursive(gltfModel, nodeIndex, glm::identity<glm::mat4>(), scene);
-
-    return scene;
-}
-
-void DemoApplication::createDemoObjectRecursive(tinygltf::Model const& gltfModel, std::size_t nodeIndex, glm::mat4 parentTransform, DemoScene& scene) const
-{
-    struct DemoObjectPushConstants
-    {
-        glm::mat4 model;
-    };
-
-    struct DemoObjectUniformBuffer
-    {
-        glm::vec4 color;
-    };
-
-    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
-
-    tinygltf::Node const& gltfNode = gltfModel.nodes[nodeIndex];
-
-    glm::mat4 nodeTransform = parentTransform * createMatrix(gltfNode);
-
-    if (gltfNode.mesh >= 0)
-    {
-        std::size_t meshIndex = static_cast<std::size_t>(gltfNode.mesh);
-
-        for (DemoMesh const& mesh : m_gltfResources->meshes[meshIndex])
-        {
-            DemoMaterial const& material = m_gltfResources->materials[mesh.metadata.materialIndex];
-
-            vkgfx::PipelineKey pipelineKey;
-            pipelineKey.renderConfig = material.metadata.renderConfig;
-
-            // TODO think how to handle multiple descriptor set layouts properly
-            pipelineKey.uniformConfigs = {
-                // TODO get shared frame uniform config from the Renderer
-                vkgfx::UniformConfiguration{
-                    .hasBuffer = true,
-                    .hasAlbedoTexture = false,
-                    .hasNormalMap = false,
-                },
-                material.metadata.uniformConfig,
-                vkgfx::UniformConfiguration{
-                    .hasBuffer = true,
-                    .hasAlbedoTexture = false,
-                    .hasNormalMap = false,
-                },
-            };
-
-            pipelineKey.vertexConfig = mesh.metadata.vertexConfig;
-
-            pipelineKey.pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DemoObjectPushConstants), } };
-
-            // TODO reimplement
-            ShaderConfiguration shaderConfiguration;
-            shaderConfiguration.hasTexture = material.metadata.uniformConfig.hasAlbedoTexture;
-            shaderConfiguration.hasNormalMap = material.metadata.uniformConfig.hasNormalMap;
-            shaderConfiguration.hasColor = mesh.metadata.attributeSemanticsConfig.hasColor;
-            shaderConfiguration.hasTexCoord = mesh.metadata.attributeSemanticsConfig.hasUv;
-            shaderConfiguration.hasNormal = mesh.metadata.attributeSemanticsConfig.hasNormal;
-            shaderConfiguration.hasTangent = mesh.metadata.attributeSemanticsConfig.hasTangent;
-
-            nstl::string const* vertexShaderPath = m_defaultVertexShader->get(shaderConfiguration);
-            nstl::string const* fragmentShaderPath = m_defaultFragmentShader->get(shaderConfiguration);
-
-            if (!vertexShaderPath || !fragmentShaderPath)
-                throw std::runtime_error("Failed to find the shader");
-
-            // TODO get rid of this dirty hack
-            std::string vpath = vertexShaderPath->c_str();
-            std::string fpath = fragmentShaderPath->c_str();
-
-            vkgfx::ShaderModuleHandle vertexShaderModule = m_gltfResources->shaderModules[vpath];
-            vkgfx::ShaderModuleHandle fragmentShaderModule = m_gltfResources->shaderModules[fpath];
-
-            pipelineKey.shaderHandles = { vertexShaderModule, fragmentShaderModule };
-
-            vkgfx::PipelineHandle pipeline = resourceManager.getOrCreatePipeline(pipelineKey);
-
-            vkgfx::BufferMetadata uniformBufferMetadata{
-                .usage = vkgfx::BufferUsage::UniformBuffer,
-                .location = vkgfx::BufferLocation::HostVisible,
-                .isMutable = false,
-            };
-            vkgfx::BufferHandle uniformBuffer = resourceManager.createBuffer(sizeof(DemoObjectUniformBuffer), std::move(uniformBufferMetadata));
-            m_gltfResources->additionalBuffers.push_back(uniformBuffer);
-
-            DemoObjectUniformBuffer uniformValues;
-            uniformValues.color = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
-            resourceManager.uploadBuffer(uniformBuffer, &uniformValues, sizeof(uniformValues));
-
-            DemoObjectPushConstants pushConstants;
-            pushConstants.model = nodeTransform;
-
-            vkgfx::TestObject& object = scene.objects.emplace_back();
-            object.mesh = mesh.handle;
-            object.material = material.handle;
-            object.pipeline = pipeline;
-            object.uniformBuffer = uniformBuffer;
-            object.pushConstants.resize(sizeof(pushConstants));
-            memcpy(object.pushConstants.data(), &pushConstants, object.pushConstants.size());
-        }
-    }
-
-    if (gltfNode.camera >= 0)
-    {
-        glm::vec3 position;
-        glm::vec3 scale;
-        glm::quat rotation;
-        glm::vec3 skew;
-        glm::vec4 perspective;
-        glm::decompose(nodeTransform, scale, rotation, position, skew, perspective);
-
-        scene.cameras.push_back(DemoCamera{
-            .transform = {
-                .position = position,
-                .rotation = rotation,
-            },
-            .parametersIndex = static_cast<std::size_t>(gltfNode.camera),
-        });
-    }
-
-    for (auto childNodeIndex : gltfNode.children)
-    {
-        createDemoObjectRecursive(gltfModel, static_cast<std::size_t>(childNodeIndex), nodeTransform, scene);
-    }
-}
-
 DemoScene DemoApplication::createDemoScene(cgltf_data const& gltfModel, cgltf_scene const& gltfScene) const
 {
     DemoScene scene;
@@ -1035,346 +791,24 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
 
     m_currentScenePath = gltfPath;
 
-    {
-        auto buffer = vkc::utils::readFile(gltfPath.c_str());
+    auto buffer = vkc::utils::readFile(gltfPath.c_str());
 
-        cgltf_options options = {};
-        cgltf_data* data = nullptr;
-        cgltf_result result = cgltf_parse(&options, buffer.data(), buffer.size(), &data);
-        if (result != cgltf_result_success)
-            return false;
-
-        std::string basePath = "";
-        if (auto pos = gltfPath.find_last_of("/\\"); pos != std::string::npos)
-            basePath = gltfPath.substr(0, pos + 1);
-
-        cgltf_load_buffers(&options, data, basePath.c_str());
-
-        assert(data);
-        loadGltfModel(nstl::string_view{ basePath.data(), basePath.size() }, *data); // TODO fix this hack
-
-        cgltf_free(data);
-
-        return true;
-    }
-
-    auto model = loadModel(gltfPath);
-    if (!model)
+    cgltf_options options = {};
+    cgltf_data* data = nullptr;
+    cgltf_result result = cgltf_parse(&options, buffer.data(), buffer.size(), &data);
+    if (result != cgltf_result_success)
         return false;
 
-    loadGltfModel(*model);
+    std::string basePath = "";
+    if (auto pos = gltfPath.find_last_of("/\\"); pos != std::string::npos)
+        basePath = gltfPath.substr(0, pos + 1);
 
-    return true;
-}
+    cgltf_load_buffers(&options, data, basePath.c_str());
 
-bool DemoApplication::loadGltfModel(tinygltf::Model const& gltfModel)
-{
-    for (auto const& name : gltfModel.extensionsRequired)
-        spdlog::warn("GLTF requires extension '{}'", name);
+    assert(data);
+    loadGltfModel(nstl::string_view{ basePath.data(), basePath.size() }, *data); // TODO fix this hack
 
-    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
-
-    m_gltfResources = std::make_unique<GltfResources>();
-
-    // TODO implement
-//     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
-    for (auto const& pair : m_defaultVertexShader->getAll())
-    {
-        auto const& configuration = pair.key();
-        auto const& modulePath = pair.value();
-        auto handle = resourceManager.createShaderModule(vkc::utils::readFile(modulePath.c_str()), vko::ShaderModuleType::Vertex, "main");
-        m_gltfResources->shaderModules[std::string{ modulePath.c_str() }] = handle; // TODO get rid of this hack
-    }
-    // TODO implement
-//     for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
-    for (auto const& pair : m_defaultFragmentShader->getAll())
-    {
-        auto const& configuration = pair.key();
-        auto const& modulePath = pair.value();
-        auto handle = resourceManager.createShaderModule(vkc::utils::readFile(modulePath.c_str()), vko::ShaderModuleType::Fragment, "main");
-        m_gltfResources->shaderModules[std::string{ modulePath.c_str() }] = handle; // TODO get rid of this hack
-    }
-
-    for (tinygltf::Buffer const& buffer : gltfModel.buffers)
-    {
-        nstl::span<unsigned char const> data{ buffer.data.data(), buffer.data.size() };
-        VkDeviceSize bufferSize = sizeof(data[0]) * data.size();
-
-        vkgfx::BufferMetadata metadata{
-            .usage = vkgfx::BufferUsage::VertexIndexBuffer,
-            .location = vkgfx::BufferLocation::DeviceLocal,
-            .isMutable = false,
-        };
-        auto handle = resourceManager.createBuffer(bufferSize, std::move(metadata)); // TODO split buffer into several different parts
-        resourceManager.uploadBuffer(handle, data);
-        m_gltfResources->buffers.push_back(handle);
-    }
-
-    for (tinygltf::Sampler const& gltfSampler : gltfModel.samplers)
-    {
-        auto convertFilterMode = [](int gltfMode)
-        {
-            switch (gltfMode)
-            {
-            case TINYGLTF_TEXTURE_FILTER_NEAREST:
-            case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST:
-            case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR:
-                return vko::SamplerFilterMode::Nearest;
-            case -1:
-            case TINYGLTF_TEXTURE_FILTER_LINEAR:
-            case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
-            case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR:
-                return vko::SamplerFilterMode::Linear;
-            }
-
-            throw std::invalid_argument("gltfMode");
-        };
-
-        auto convertWrapMode = [](int gltfMode)
-        {
-            switch (gltfMode)
-            {
-            case -1:
-            case TINYGLTF_TEXTURE_WRAP_REPEAT:
-                return vko::SamplerWrapMode::Repeat;
-            case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE:
-                return vko::SamplerWrapMode::ClampToEdge;
-            case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT:
-                return vko::SamplerWrapMode::Mirror;
-            }
-
-            throw std::invalid_argument("gltfMode");
-        };
-
-        auto magFilter = convertFilterMode(gltfSampler.magFilter);
-        auto minFilter = convertFilterMode(gltfSampler.minFilter);
-        auto wrapU = convertWrapMode(gltfSampler.wrapS);
-        auto wrapV = convertWrapMode(gltfSampler.wrapT);
-
-        auto handle = resourceManager.createSampler(magFilter, minFilter, wrapU, wrapV);
-        m_gltfResources->samplers.push_back(handle);
-    }
-
-    for (std::size_t i = 0; i < gltfModel.images.size(); i++)
-    {
-        nstl::optional<ImageData> imageData = loadImage({ gltfModel.images[i].image.data(), gltfModel.images[i].image.size() });
-        assert(imageData);
-
-        assert(!imageData->bytes.empty());
-        assert(!imageData->mips.empty());
-        assert(imageData->mips[0].size > 0);
-
-        vkgfx::ImageMetadata metadata;
-        metadata.width = imageData->width;
-        metadata.height = imageData->height;
-
-        // TODO support all mips
-
-        ImageData::MipData const& mipData = imageData->mips[0];
-        auto bytes = nstl::span<unsigned char const>{ imageData->bytes }.subspan(mipData.offset, mipData.size);
-
-        metadata.byteSize = bytes.size();
-        metadata.format = imageData->format;
-
-        auto handle = resourceManager.createImage(metadata);
-        resourceManager.uploadImage(handle, bytes);
-        m_gltfResources->images.push_back(handle);
-    }
-
-    for (std::size_t i = 0; i < gltfModel.textures.size(); i++)
-    {
-        tinygltf::Texture const& gltfTexture = gltfModel.textures[i];
-
-        std::size_t const imageIndex = static_cast<std::size_t>(gltfTexture.source);
-
-        vkgfx::ImageHandle imageHandle = m_gltfResources->images[imageIndex];
-
-        if (!imageHandle)
-            continue;
-
-        vkgfx::Texture texture;
-        texture.image = imageHandle;
-        texture.sampler = m_defaultSampler;
-        if (gltfTexture.sampler >= 0)
-        {
-            std::size_t const samplerIndex = static_cast<std::size_t>(gltfTexture.sampler);
-            texture.sampler = m_gltfResources->samplers[samplerIndex];
-        }
-
-        vkgfx::TextureHandle handle = resourceManager.createTexture(std::move(texture));
-        m_gltfResources->textures.push_back(handle);
-    }
-
-    for (tinygltf::Material const& gltfMaterial : gltfModel.materials)
-    {
-        tinygltf::PbrMetallicRoughness const& gltfRoughness = gltfMaterial.pbrMetallicRoughness;
-
-        vkgfx::Material material;
-        material.albedo = m_defaultAlbedoTexture;
-        material.normalMap = m_defaultNormalMapTexture;
-
-        struct MaterialUniformBuffer
-        {
-            glm::vec4 color;
-        };
-
-        MaterialUniformBuffer values;
-        values.color = createColor(gltfRoughness.baseColorFactor);
-
-        vkgfx::BufferMetadata metadata{
-            .usage = vkgfx::BufferUsage::UniformBuffer,
-            .location = vkgfx::BufferLocation::HostVisible,
-            .isMutable = false,
-        };
-        auto buffer = resourceManager.createBuffer(sizeof(MaterialUniformBuffer), std::move(metadata));
-        resourceManager.uploadBuffer(buffer, &values, sizeof(MaterialUniformBuffer));
-        m_gltfResources->additionalBuffers.push_back(buffer);
-
-        material.uniformBuffer = buffer;
-
-        if (gltfRoughness.baseColorTexture.index >= 0)
-        {
-            std::size_t const textureIndex = static_cast<std::size_t>(gltfRoughness.baseColorTexture.index);
-            auto textureHandle = m_gltfResources->textures[textureIndex];
-            if (textureHandle)
-                material.albedo = textureHandle;
-        }
-
-        if (gltfMaterial.normalTexture.index >= 0)
-        {
-            std::size_t const textureIndex = static_cast<std::size_t>(gltfMaterial.normalTexture.index);
-            auto textureHandle = m_gltfResources->textures[textureIndex];
-            if (textureHandle)
-                material.normalMap = textureHandle;
-        }
-
-        DemoMaterial& demoMaterial = m_gltfResources->materials.emplace_back();
-
-        demoMaterial.handle = resourceManager.createMaterial(std::move(material));
-
-        demoMaterial.metadata.renderConfig.wireframe = false;
-        demoMaterial.metadata.renderConfig.cullBackfaces = !gltfMaterial.doubleSided;
-        demoMaterial.metadata.uniformConfig.hasBuffer = true;
-        demoMaterial.metadata.uniformConfig.hasAlbedoTexture = true;
-        demoMaterial.metadata.uniformConfig.hasNormalMap = true;
-    }
-
-    for (tinygltf::Mesh const& gltfMesh : gltfModel.meshes)
-    {
-        std::vector<DemoMesh>& demoMeshes = m_gltfResources->meshes.emplace_back();
-        demoMeshes.reserve(gltfMesh.primitives.size());
-
-        for (tinygltf::Primitive const& gltfPrimitive : gltfMesh.primitives)
-        {
-            DemoMesh& demoMesh = demoMeshes.emplace_back();
-
-            vkgfx::Mesh mesh;
-
-            {
-                tinygltf::Accessor const& gltfAccessor = gltfModel.accessors[static_cast<std::size_t>(gltfPrimitive.indices)];
-                tinygltf::BufferView const& gltfBufferView = gltfModel.bufferViews[static_cast<std::size_t>(gltfAccessor.bufferView)];
-
-                mesh.indexBuffer.buffer = m_gltfResources->buffers[static_cast<std::size_t>(gltfBufferView.buffer)];
-                mesh.indexBuffer.offset = gltfBufferView.byteOffset + gltfAccessor.byteOffset;
-                mesh.indexCount = gltfAccessor.count;
-                mesh.indexType = findIndexType(gltfAccessor.componentType);
-            }
-
-            mesh.vertexBuffers.reserve(gltfPrimitive.attributes.size());
-            demoMesh.metadata.vertexConfig.bindings.reserve(gltfPrimitive.attributes.size());
-            demoMesh.metadata.vertexConfig.attributes.reserve(gltfPrimitive.attributes.size());
-
-            std::size_t attributeIndex = 0;
-            for (auto const& [name, accessorIndex] : gltfPrimitive.attributes)
-            {
-                std::optional<std::size_t> location = findAttributeLocation(name);
-
-                if (!location)
-                {
-                    spdlog::warn("Skipping attribute '{}'", name);
-                    continue;
-                }
-
-                tinygltf::Accessor const& gltfAccessor = gltfModel.accessors[static_cast<std::size_t>(accessorIndex)];
-                tinygltf::BufferView const& gltfBufferView = gltfModel.bufferViews[static_cast<std::size_t>(gltfAccessor.bufferView)];
-
-                vkgfx::BufferWithOffset& attributeBuffer = mesh.vertexBuffers.emplace_back();
-                attributeBuffer.buffer = m_gltfResources->buffers[static_cast<std::size_t>(gltfBufferView.buffer)];
-                attributeBuffer.offset = gltfBufferView.byteOffset + gltfAccessor.byteOffset; // TODO can be improved
-
-                if (name == "COLOR_0")
-                    demoMesh.metadata.attributeSemanticsConfig.hasColor = true;
-                if (name == "TEXCOORD_0")
-                    demoMesh.metadata.attributeSemanticsConfig.hasUv = true;
-                if (name == "NORMAL")
-                    demoMesh.metadata.attributeSemanticsConfig.hasNormal = true;
-                if (name == "TANGENT")
-                    demoMesh.metadata.attributeSemanticsConfig.hasTangent = true;
-
-                vkgfx::AttributeType attributeType = findAttributeType(gltfAccessor.type, gltfAccessor.componentType);
-
-                std::size_t stride = gltfBufferView.byteStride;
-                if (stride == 0)
-                    stride = getAttributeByteSize(attributeType);
-
-                vkgfx::VertexConfiguration::Binding& bindingConfig = demoMesh.metadata.vertexConfig.bindings.emplace_back();
-                bindingConfig.stride = stride;
-
-                vkgfx::VertexConfiguration::Attribute& attributeConfig = demoMesh.metadata.vertexConfig.attributes.emplace_back();
-                attributeConfig.binding = attributeIndex;
-                attributeConfig.location = *location;
-                attributeConfig.offset = 0; // TODO can be improved
-                attributeConfig.type = attributeType;
-
-                // TODO implement
-                assert(gltfPrimitive.mode == TINYGLTF_MODE_TRIANGLES);
-                demoMesh.metadata.vertexConfig.topology = vkgfx::VertexTopology::Triangles;
-
-                demoMesh.metadata.materialIndex = gltfPrimitive.material; // TODO check
-
-                attributeIndex++;
-            }
-
-            demoMesh.handle = resourceManager.createMesh(std::move(mesh));
-        }
-    }
-
-    for (tinygltf::Camera const& gltfCamera : gltfModel.cameras)
-    {
-        if (gltfCamera.type == "perspective")
-        {
-            m_gltfResources->cameraParameters.push_back(vkgfx::TestCameraParameters{
-                .fov = glm::degrees(static_cast<float>(gltfCamera.perspective.yfov)),
-                .nearZ = static_cast<float>(gltfCamera.perspective.znear),
-                .farZ = static_cast<float>(gltfCamera.perspective.zfar),
-                });
-        }
-        else
-        {
-            assert(false);
-        }
-    }
-
-    {
-        std::size_t const sceneIndex = static_cast<std::size_t>(gltfModel.defaultScene);
-        tinygltf::Scene const& gltfScene = gltfModel.scenes[sceneIndex];
-        m_demoScene = createDemoScene(gltfModel, gltfScene);
-
-        std::sort(m_demoScene.objects.begin(), m_demoScene.objects.end(), [](vkgfx::TestObject const& lhs, vkgfx::TestObject const& rhs)
-        {
-            if (lhs.pipeline != rhs.pipeline)
-                return lhs.pipeline < rhs.pipeline;
-
-            return lhs.material < rhs.material;
-        });
-
-        if (!m_demoScene.cameras.empty())
-        {
-            DemoCamera const& camera = m_demoScene.cameras[0];
-            m_cameraTransform = camera.transform;
-            m_cameraParameters = m_gltfResources->cameraParameters[camera.parametersIndex];
-        }
-    }
+    cgltf_free(data);
 
     return true;
 }
@@ -1530,9 +964,6 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
         vkgfx::ImageHandle imageHandle = m_gltfResources->images[imageIndex];
         
         assert(imageHandle);
-
-//         if (!imageHandle)
-//             continue;
 
         vkgfx::Texture texture;
         texture.image = imageHandle;

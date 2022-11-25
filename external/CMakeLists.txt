@@ -30,6 +30,7 @@ FetchContent_Declare(
 )
 FetchDependency(glm)
 
+# TODO remove this dependency and manually add stb_image
 FetchContent_Declare(
     tinygltf
     URL https://github.com/syoyo/tinygltf/archive/3d4150419e8ad40dab89d6f4079382377b492310.tar.gz # Merge pull request #362 from hschwane/master
