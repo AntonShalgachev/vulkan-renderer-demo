@@ -26,6 +26,7 @@ add_library(nstl # custom template library
     "src/string_view.cpp"
     "src/new.cpp"
     "src/buffer.cpp"
+    "src/hash.cpp"
 
     "nstl.natvis"
 )

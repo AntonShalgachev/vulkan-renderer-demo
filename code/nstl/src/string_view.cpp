@@ -136,12 +136,5 @@ bool nstl::operator!=(string_view const& lhs, string_view const& rhs)
 
 size_t nstl::hash<nstl::string_view>::operator()(string_view const& value)
 {
-    // djb2 from http://www.cse.yorku.ca/~oz/hash.html
-
-    size_t hash = 5381;
-
-    for (char c : value)
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-
-    return hash;
+    return computeStringHash(value.data(), value.length());
 }
