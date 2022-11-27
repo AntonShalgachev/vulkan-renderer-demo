@@ -30,7 +30,7 @@ namespace vkgfx
 
         auto operator<=>(ResourceHandle const&) const = default;
 
-        operator bool() const { return *this != ResourceHandle{}; }
+        explicit operator bool() const { return *this != ResourceHandle{}; }
     };
 
     template<typename T>

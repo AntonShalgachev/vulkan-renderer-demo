@@ -23,7 +23,7 @@ namespace nstl
         optional& operator=(optional&& rhs);
 
         bool has_value() const;
-        operator bool() const;
+        explicit operator bool() const;
 
         T const& operator*() const;
         T& operator*();

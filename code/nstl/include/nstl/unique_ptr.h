@@ -35,7 +35,7 @@ namespace nstl
             return m_ptr;
         }
 
-        operator bool() const
+        explicit operator bool() const
         {
             return m_ptr != nullptr;
         }

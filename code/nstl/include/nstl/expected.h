@@ -27,7 +27,7 @@ namespace nstl
         Expected<T, E>& operator=(Expected<T, E>&& rhs) noexcept;
 
         bool hasValue() const;
-        operator bool() const;
+        explicit operator bool() const;
 
         E const& error() const&;
         E& error() &;

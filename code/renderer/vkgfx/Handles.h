@@ -10,7 +10,7 @@ namespace vkgfx
 
         auto operator<=>(OldResourceHandle const&) const = default;
 
-        operator bool() const
+        explicit operator bool() const
         {
             return *this != OldResourceHandle{};
         }
