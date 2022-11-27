@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include "Timer.h"
 #include "GlfwWindow.h"
 
@@ -17,6 +15,9 @@
 #include "ScopedDebugCommands.h"
 
 #include "nstl/vector.h"
+#include "nstl/unordered_map.h"
+
+#include <memory>
 
 class CommandLineService;
 class ImGuiDrawer;
@@ -88,7 +89,7 @@ struct GltfResources
     nstl::vector<DemoMaterial> materials;
     nstl::vector<nstl::vector<DemoMesh>> meshes;
 
-    std::unordered_map<std::string, vkgfx::ShaderModuleHandle> shaderModules;
+    nstl::unordered_map<nstl::string, vkgfx::ShaderModuleHandle> shaderModules;
 
     nstl::vector<vkgfx::TestCameraParameters> cameraParameters;
 
@@ -125,7 +126,7 @@ private:
     void createDemoObjectRecursive(cgltf_data const& gltfModel, std::size_t nodeIndex, glm::mat4 parentTransform, DemoScene& scene) const;
 
     void clearScene();
-    bool loadScene(std::string const& gltfPath);
+    bool loadScene(nstl::string const& gltfPath);
     bool loadGltfModel(nstl::string_view basePath, cgltf_data const& model);
 
     void updateUI(float frameTime);
@@ -183,7 +184,7 @@ private:
 
     bool m_reloadImgui = false;
 
-    std::string m_currentScenePath = "";
+    nstl::string m_currentScenePath = "";
 
     std::unique_ptr<vkgfx::Renderer> m_renderer;
 

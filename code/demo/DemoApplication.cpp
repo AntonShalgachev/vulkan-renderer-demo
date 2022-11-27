@@ -404,9 +404,9 @@ DemoApplication::DemoApplication()
     m_commands["window.width"] = coil::bindProperty(&vkr::GlfwWindow::getWidth, m_window.get());
     m_commands["window.height"] = coil::bindProperty(&vkr::GlfwWindow::getHeight, m_window.get());
 
-    m_commands["scene.load"].description("Load scene from a GLTF model").arguments("path") = [this](coil::Context context, std::string_view path) {
-        if (!loadScene(std::string{ path }))
-            context.reportError("Failed to load the scene '" + coil::fromStdStringView(path) + "'");
+    m_commands["scene.load"].description("Load scene from a GLTF model").arguments("path") = [this](coil::Context context, nstl::string_view path) {
+        if (!loadScene(nstl::string{ path }))
+            context.reportError("Failed to load the scene '" + coil::fromNstlStringView(path) + "'");
     };
     m_commands["scene.reload"] = [this]() { loadScene(m_currentScenePath); };
     m_commands["scene.unload"] = coil::bind(&DemoApplication::clearScene, this);
@@ -667,12 +667,8 @@ void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, std
             if (!vertexShaderPath || !fragmentShaderPath)
                 throw std::runtime_error("Failed to find the shader");
 
-            // TODO get rid of this dirty hack
-            std::string vpath = vertexShaderPath->c_str();
-            std::string fpath = fragmentShaderPath->c_str();
-
-            vkgfx::ShaderModuleHandle vertexShaderModule = m_gltfResources->shaderModules[vpath];
-            vkgfx::ShaderModuleHandle fragmentShaderModule = m_gltfResources->shaderModules[fpath];
+            vkgfx::ShaderModuleHandle vertexShaderModule = m_gltfResources->shaderModules[*vertexShaderPath];
+            vkgfx::ShaderModuleHandle fragmentShaderModule = m_gltfResources->shaderModules[*fragmentShaderPath];
 
             pipelineKey.shaderHandles = { vertexShaderModule, fragmentShaderModule };
 
@@ -761,7 +757,7 @@ void DemoApplication::clearScene()
     }
 }
 
-bool DemoApplication::loadScene(std::string const& gltfPath)
+bool DemoApplication::loadScene(nstl::string const& gltfPath)
 {
     clearScene();
 
@@ -778,14 +774,14 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
     if (result != cgltf_result_success)
         return false;
 
-    std::string basePath = "";
+    nstl::string basePath = "";
     if (auto pos = gltfPath.find_last_of("/\\"); pos != std::string::npos)
         basePath = gltfPath.substr(0, pos + 1);
 
     cgltf_load_buffers(&options, data, basePath.c_str());
 
     assert(data);
-    loadGltfModel(nstl::string_view{ basePath.data(), basePath.size() }, *data); // TODO fix this hack
+    loadGltfModel(basePath, *data);
 
     cgltf_free(data);
 
@@ -826,7 +822,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
         auto const& configuration = pair.key();
         auto const& modulePath = pair.value();
         auto handle = resourceManager.createShaderModule(vkc::utils::readFile(modulePath.c_str()), vko::ShaderModuleType::Vertex, "main");
-        m_gltfResources->shaderModules[std::string{ modulePath.c_str() }] = handle; // TODO get rid of this hack
+        m_gltfResources->shaderModules.insert_or_assign(modulePath, handle);
     }
     // TODO implement
 //     for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
@@ -835,7 +831,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
         auto const& configuration = pair.key();
         auto const& modulePath = pair.value();
         auto handle = resourceManager.createShaderModule(vkc::utils::readFile(modulePath.c_str()), vko::ShaderModuleType::Fragment, "main");
-        m_gltfResources->shaderModules[std::string{ modulePath.c_str() }] = handle; // TODO get rid of this hack
+        m_gltfResources->shaderModules.insert_or_assign(modulePath, handle);
     }
 
     m_gltfResources->buffers.reserve(model.buffers_count);
