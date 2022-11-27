@@ -276,12 +276,12 @@ void ui::DebugConsoleWidget::onInputSubmitted(nstl::string_view input)
 
 nstl::optional<std::size_t> ui::DebugConsoleWidget::getHistoryIndex(std::size_t historySize) const
 {
-    return m_replacementIndex < 0 ? nstl::optional<std::size_t>{ historySize + m_replacementIndex } : nstl::optional<std::size_t>{};
+    return m_replacementIndex < 0 ? historySize + m_replacementIndex : nstl::optional<std::size_t>{};
 }
 
 nstl::optional<std::size_t> ui::DebugConsoleWidget::getSuggestionIndex() const
 {
-    return m_replacementIndex > 0 ? nstl::optional<std::size_t>{ m_replacementIndex - 1 } : nstl::optional<std::size_t>{};
+    return m_replacementIndex > 0 ? static_cast<std::size_t>(m_replacementIndex - 1) : nstl::optional<std::size_t>{};
 }
 
 void ui::DebugConsoleWidget::updateSuggestionsWindow(std::size_t selectedIndex)
