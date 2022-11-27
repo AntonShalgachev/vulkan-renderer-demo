@@ -72,6 +72,7 @@ namespace vkgfx
         Image const* getImage(ImageHandle handle) const;
         void removeImage(ImageHandle handle);
 
+        void reserveMoreBuffers(std::size_t size);
         BufferHandle createBuffer(std::size_t size, BufferMetadata metadata);
         void uploadBuffer(BufferHandle handle, void const* data, std::size_t dataSize);
         void uploadBuffer(BufferHandle handle, nstl::span<unsigned char const> bytes);
@@ -103,6 +104,7 @@ namespace vkgfx
         Material const* getMaterial(MaterialHandle handle) const;
         void removeMaterial(MaterialHandle handle);
 
+        void reserveMoreMeshes(std::size_t size);
         MeshHandle createMesh(Mesh mesh);
         void updateMesh(MeshHandle handle, Mesh mesh);
         Mesh const* getMesh(MeshHandle handle) const;

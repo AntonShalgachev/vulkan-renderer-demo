@@ -793,6 +793,19 @@ bool DemoApplication::loadScene(std::string const& gltfPath)
 
 bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const& model)
 {
+    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
+
+    m_gltfResources = std::make_unique<GltfResources>();
+
+    // TODO make more generic?
+    size_t totalMeshes = 0;
+    for (size_t i = 0; i < model.meshes_count; i++)
+        totalMeshes += model.meshes[i].primitives_count;
+    resourceManager.reserveMoreMeshes(totalMeshes);
+    resourceManager.reserveMoreBuffers(model.buffers_count + model.materials_count + totalMeshes);
+
+    m_gltfResources->additionalBuffers.reserve(model.materials_count + totalMeshes);
+
     // TODO is there a better way?
     auto findIndex = [](auto const* object, auto const* firstObject, size_t count) -> size_t
     {
@@ -804,10 +817,6 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
     for (auto i = 0; i < model.extensions_required_count; i++)
         spdlog::warn("GLTF requires extension '{}'", model.extensions_required[i]);
-
-    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
-
-    m_gltfResources = std::make_unique<GltfResources>();
 
     // TODO implement
 //     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
@@ -828,6 +837,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
         m_gltfResources->shaderModules[std::string{ modulePath.c_str() }] = handle; // TODO get rid of this hack
     }
 
+    m_gltfResources->buffers.reserve(model.buffers_count);
     for (auto i = 0; i < model.buffers_count; i++)
     {
         cgltf_buffer const& gltfBuffer = model.buffers[i];
@@ -901,6 +911,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
         m_gltfResources->samplers.push_back(handle);
     }
 
+    m_gltfResources->images.reserve(model.images_count);
     for (auto i = 0; i < model.images_count; i++)
     {
         cgltf_image const& gltfImage = model.images[i];
@@ -1012,13 +1023,13 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
         demoMaterial.metadata.uniformConfig.hasNormalMap = true;
     }
 
+    m_gltfResources->meshes.reserve(model.meshes_count);
     for (auto meshIndex = 0; meshIndex < model.meshes_count; meshIndex++)
     {
         cgltf_mesh const& gltfMesh = model.meshes[meshIndex];
 
         nstl::vector<DemoMesh>& demoMeshes = m_gltfResources->meshes.emplace_back();
         demoMeshes.reserve(gltfMesh.primitives_count);
-
         for (auto primitiveIndex = 0; primitiveIndex < gltfMesh.primitives_count; primitiveIndex++)
         {
             cgltf_primitive const& gltfPrimitive = gltfMesh.primitives[primitiveIndex];

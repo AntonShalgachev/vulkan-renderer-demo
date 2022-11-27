@@ -150,6 +150,15 @@ namespace vkgfx
         auto cbegin() const { return m_objects.cbegin(); }
         auto cend() const { return m_objects.cend(); }
 
+        std::size_t size() const { return m_objects.size(); }
+        
+        void reserve(std::size_t capacity)
+        {
+            m_objects.reserve(capacity);
+            m_headers.reserve(capacity);
+            m_headerIndexMap.reserve(capacity);
+        }
+
     private:
         nstl::optional<std::size_t> getIndex(ResourceHandle handle) const
         {

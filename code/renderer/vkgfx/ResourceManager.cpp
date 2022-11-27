@@ -277,6 +277,11 @@ vkgfx::Image const* vkgfx::ResourceManager::getImage(ImageHandle handle) const
     return m_images.get(handle);
 }
 
+void vkgfx::ResourceManager::reserveMoreBuffers(std::size_t size)
+{
+    m_buffers.reserve(m_buffers.size() + size);
+}
+
 vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(std::size_t size, BufferMetadata metadata)
 {
     VkBufferUsageFlags bufferUsageFlags = 0;
@@ -505,6 +510,11 @@ void vkgfx::ResourceManager::removeMaterial(MaterialHandle handle)
 vkgfx::Material const* vkgfx::ResourceManager::getMaterial(MaterialHandle handle) const
 {
     return m_materials.get(handle);
+}
+
+void vkgfx::ResourceManager::reserveMoreMeshes(std::size_t size)
+{
+    m_meshes.reserve(m_meshes.size() + size);
 }
 
 vkgfx::MeshHandle vkgfx::ResourceManager::createMesh(Mesh mesh)
