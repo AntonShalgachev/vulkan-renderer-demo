@@ -5,19 +5,19 @@
 namespace nstl
 {
     template<typename T>
-    constexpr RemoveReferenceT<T>&& move(T&& arg) noexcept
+    constexpr remove_reference_t<T>&& move(T&& arg) noexcept
     {
-        return static_cast<RemoveReferenceT<T>&&>(arg);
+        return static_cast<remove_reference_t<T>&&>(arg);
     }
 
     template<typename T>
-    constexpr T&& forward(RemoveReferenceT<T>& arg) noexcept
+    constexpr T&& forward(remove_reference_t<T>& arg) noexcept
     {
         return static_cast<T&&>(arg);
     }
 
     template<typename T>
-    constexpr T&& forward(RemoveReferenceT<T>&& arg) noexcept
+    constexpr T&& forward(remove_reference_t<T>&& arg) noexcept
     {
         return static_cast<T&&>(arg);
     }

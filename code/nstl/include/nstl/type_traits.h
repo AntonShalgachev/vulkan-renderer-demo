@@ -3,112 +3,112 @@
 namespace nstl
 {
     template<typename T>
-    struct RemoveCv
+    struct remove_cv
     {
         using Type = T;
     };
     template<typename T>
-    struct RemoveCv<T const>
+    struct remove_cv<T const>
     {
         using Type = T;
     };
     template<typename T>
-    struct RemoveCv<T volatile>
+    struct remove_cv<T volatile>
     {
         using Type = T;
     };
     template<typename T>
-    struct RemoveCv<T const volatile>
+    struct remove_cv<T const volatile>
     {
         using Type = T;
     };
     template<typename T>
-    using RemoveCvT = typename RemoveCv<T>::Type;
+    using remove_cv_t = typename remove_cv<T>::Type;
 
     template<typename T>
-    struct RemoveReference
+    struct remove_reference
     {
         using Type = T;
     };
     template<typename T>
-    struct RemoveReference<T&>
+    struct remove_reference<T&>
     {
         using Type = T;
     };
     template<typename T>
-    struct RemoveReference<T&&>
+    struct remove_reference<T&&>
     {
         using Type = T;
     };
     template<typename T>
-    using RemoveReferenceT = typename RemoveReference<T>::Type;
+    using remove_reference_t = typename remove_reference<T>::Type;
 
     template<typename T>
-    struct RemovePointer
+    struct remove_pointer
     {
         using Type = T;
     };
     template<typename T>
-    struct RemovePointer<T*>
+    struct remove_pointer<T*>
     {
         using Type = T;
     };
     template<typename T>
-    struct RemovePointer<T* const>
+    struct remove_pointer<T* const>
     {
         using Type = T;
     };
     template<typename T>
-    struct RemovePointer<T* volatile>
+    struct remove_pointer<T* volatile>
     {
         using Type = T;
     };
     template<typename T>
-    struct RemovePointer<T* const volatile>
+    struct remove_pointer<T* const volatile>
     {
         using Type = T;
     };
     template<typename T>
-    using RemovePointerT = typename RemovePointer<T>::Type;
+    using remove_pointer_t = typename remove_pointer<T>::Type;
 
-    template<typename T>
-    using DecayT = RemoveCvT<RemoveReferenceT<T>>;
+//     template<typename T>
+//     using DecayT = remove_cv_t<remove_reference_t<T>>;
 
     template<bool B, class T = void>
-    struct EnableIf
+    struct enable_if
     {
     };
     template<class T>
-    struct EnableIf<true, T>
+    struct enable_if<true, T>
     {
         using Type = T;
     };
     template<bool B, class T = void>
-    using EnableIfT = typename EnableIf<B, T>::Type;
+    using enable_if_t = typename enable_if<B, T>::Type;
 
 #if defined(__clang__)
     template<typename T1, typename T2>
-    inline constexpr bool IsSameV = __is_same(T1, T2);
+    inline constexpr bool is_same_v = __is_same(T1, T2);
 #else
     template<typename T1, typename T2>
-    inline constexpr bool IsSameV = false;
+    inline constexpr bool is_same_v = false;
     template<typename T>
-    inline constexpr bool IsSameV<T, T> = true;
+    inline constexpr bool is_same_v<T, T> = true;
 #endif
 
     template<typename T>
-    inline constexpr bool IsVoidV = IsSameV<RemoveCvT<T>, void>;
+    inline constexpr bool is_void_v = is_same_v<remove_cv_t<T>, void>;
 
     template<typename T>
-    using VoidT = void;
+    using void_t = void;
 
     template<typename>
-    constexpr bool IsConstV = false;
+    constexpr bool is_const_v = false;
     template<typename T>
-    constexpr bool IsConstV<const T> = true;
+    constexpr bool is_const_v<const T> = true;
 
     template<class T>
-    constexpr bool IsMemberPointerV = false;
+    constexpr bool is_member_pointer_v = false;
     template<class T, class U>
-    constexpr bool IsMemberPointerV<T U::*> = true;
+    constexpr bool is_member_pointer_v<T U::*> = true;
 }

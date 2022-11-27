@@ -8,7 +8,7 @@ namespace nstl
     template<typename T>
     class Unexpected
     {
-        static_assert(!IsVoidV<T>, "T shouldn't be void");
+        static_assert(!is_void_v<T>, "T shouldn't be void");
 
     public:
         Unexpected(T value);
@@ -33,7 +33,7 @@ namespace nstl
     template<typename T>
     Unexpected<T> makeUnexpected(T value)
     {
-        return Unexpected<RemoveCvT<RemoveReferenceT<T>>>(nstl::move(value));
+        return Unexpected<remove_cv_t<remove_reference_t<T>>>(nstl::move(value));
     }
 
     //////////////////////////////////////////////////////////////////////////

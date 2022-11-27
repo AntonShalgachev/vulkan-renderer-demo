@@ -11,8 +11,8 @@ namespace nstl
     template<typename T, typename E>
     class Expected
     {
-        static_assert(!IsVoidV<T>, "T can't be void");
-        static_assert(!IsVoidV<E>, "E can't be void");
+        static_assert(!is_void_v<T>, "T can't be void");
+        static_assert(!is_void_v<E>, "E can't be void");
 
     public:
         Expected(T value);
@@ -176,7 +176,7 @@ template<typename T, typename E>
 template<typename T2, typename E2>
 bool nstl::Expected<T, E>::operator==(Expected<T2, E2> const& rhs) const
 {
-    static_assert(!IsVoidV<T2>, "Can't compare T with void");
+    static_assert(!is_void_v<T2>, "Can't compare T with void");
 
     if (hasValue() && rhs.hasValue())
         return value() == rhs.value();
