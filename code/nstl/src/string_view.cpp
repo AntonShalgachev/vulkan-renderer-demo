@@ -79,6 +79,18 @@ size_t nstl::string_view::find(string_view str, size_t pos) const
     return string_view::npos;
 }
 
+size_t nstl::string_view::find_last_of(string_view chars) const
+{
+    for (size_t i = 0; i < m_length; i++)
+    {
+        char c = m_str[m_length - 1 - i];
+        if (chars.find(c) != string_view::npos)
+            return m_length - 1 - i;
+    }
+
+    return npos;
+}
+
 nstl::string_view nstl::string_view::substr(size_t offset, size_t length) const
 {
     NSTL_ASSERT(offset <= m_length);

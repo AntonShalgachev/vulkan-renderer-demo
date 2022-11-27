@@ -5,6 +5,8 @@
 
 #include <string.h>
 
+size_t nstl::string::npos = static_cast<size_t>(-1);
+
 nstl::string::string(char const* str) : string(str, strlen(str)) {}
 
 nstl::string::string(string_view str) : string(str.data(), str.length()) {}
@@ -112,6 +114,16 @@ void nstl::string::append(char const* str, size_t length)
     memcpy(m_buffer.data() + oldSize, str, length);
 
     validateIsNullTerminated();
+}
+
+size_t nstl::string::find_last_of(string_view chars) const
+{
+    return static_cast<string_view>(*this).find_last_of(chars);
+}
+
+nstl::string nstl::string::substr(size_t offset, size_t length) const
+{
+    return string{ static_cast<string_view>(*this).substr(offset, length) };
 }
 
 char const* nstl::string::begin() const
