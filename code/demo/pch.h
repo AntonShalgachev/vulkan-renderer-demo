@@ -41,3 +41,6 @@
 #include <algorithm>
 #include <deque>
 #include <cassert>
+
+#include <compare>
+#include <initializer_list>
