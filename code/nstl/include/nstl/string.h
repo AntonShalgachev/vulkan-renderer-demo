@@ -31,6 +31,9 @@ namespace nstl
         void resize(size_t size);
         void append(char const* str, size_t length);
 
+        size_t find_last_of(string_view chars) const;
+        string substr(size_t offset, size_t length = npos) const;
+
         char const* begin() const;
         char const* end() const;
 
@@ -44,6 +47,8 @@ namespace nstl
         bool operator==(char const* rhs) const;
 
         operator string_view() const;
+
+        static size_t npos;
 
     private:
         void validateIsNullTerminated();
