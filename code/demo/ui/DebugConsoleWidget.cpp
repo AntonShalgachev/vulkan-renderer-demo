@@ -2,7 +2,7 @@
 
 #include "imgui.h"
 
-#include <string>
+#include <sstream>
 #include <algorithm>
 
 #include "services/DebugConsoleService.h"

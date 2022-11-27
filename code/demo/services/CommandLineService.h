@@ -1,9 +1,11 @@
 #pragma once
 
-#include "argparse/argparse.hpp"
-
 #include "ServiceContainer.h"
 #include "ScopedDebugCommands.h"
+
+#include "nstl/vector.h"
+
+#include "argparse/argparse.hpp"
 
 class CommandLineService : public ServiceContainer
 {
@@ -17,12 +19,12 @@ public:
     }
 
     bool parse(int argc, char** argv);
-    bool parse(std::vector<std::string> const& arguments);
+    bool parse(nstl::vector<nstl::string> const& arguments);
     bool parseFile(char const* path);
 
-    std::vector<std::string> const& getAll() const { return m_arguments; }
+    nstl::vector<nstl::string> const& getAll() const { return m_arguments; }
 
-    template <typename T = std::string>
+    template <typename T = nstl::string>
     T get(std::string_view arg) const
     {
         try
@@ -40,5 +42,5 @@ public:
 private:
     ScopedDebugCommands m_commands{ services() };
     argparse::ArgumentParser m_parser;
-    std::vector<std::string> m_arguments;
+    nstl::vector<nstl::string> m_arguments;
 };

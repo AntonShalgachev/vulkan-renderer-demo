@@ -66,9 +66,56 @@ namespace
     };
 }
 
-namespace coil
+// conversion helpers
+nstl::string coil::toNstlString(StringView str)
 {
-	COIL_CREATE_TYPE_NAME_DEFINITION(glm::vec3, "vec3");
+    return { str.data(), str.length() };
+}
+
+nstl::string_view coil::toNstlStringView(StringView str)
+{
+    return { str.data(), str.length() };
+}
+
+coil::String coil::fromNstlString(nstl::string_view str)
+{
+    return { str.data(), str.length() };
+}
+
+coil::StringView coil::fromNstlStringView(nstl::string_view str)
+{
+    return { str.data(), str.length() };
+}
+
+// nstl::string
+coil::Expected<nstl::string, coil::String> coil::TypeSerializer<nstl::string>::fromString(coil::Value const& input)
+{
+    if (input.subvalues.size() != 1)
+        return errors::createMismatchedSubvaluesError<nstl::string>(input, 1);
+
+    return toNstlString(input.subvalues[0]);
+}
+
+coil::String coil::TypeSerializer<nstl::string>::toString(nstl::string const& value)
+{
+    return fromNstlString(value);
+}
+
+// nstl::string_view
+coil::Expected<nstl::string_view, coil::String> coil::TypeSerializer<nstl::string_view>::fromString(coil::Value const& input)
+{
+    if (input.subvalues.size() != 1)
+        return errors::createMismatchedSubvaluesError<nstl::string_view>(input, 1);
+
+    return toNstlStringView(input.subvalues[0]);
+}
+
+coil::String coil::TypeSerializer<nstl::string_view>::toString(nstl::string_view const& value)
+{
+    if (value.empty())
+        return coil::String{};
+
+    return fromNstlString(value);
 }
 
 DebugConsoleService::DebugConsoleService(Services& services) : ServiceContainer(services)
@@ -154,12 +201,12 @@ void DebugConsoleService::execute(nstl::string_view command)
     }
 }
 
-std::vector<DebugConsoleService::Suggestion> DebugConsoleService::getSuggestions(nstl::string_view input) const
+nstl::vector<DebugConsoleService::Suggestion> DebugConsoleService::getSuggestions(nstl::string_view input) const
 {
     if (input.empty())
         return {};
 
-    std::vector<Suggestion> suggestions;
+    nstl::vector<Suggestion> suggestions;
 
     rapidfuzz::fuzz::CachedRatio<char> scorer(input);
     for (coil::String const& coilCommand : m_commands)
@@ -190,7 +237,7 @@ std::vector<DebugConsoleService::Suggestion> DebugConsoleService::getSuggestions
 
 nstl::optional<nstl::string_view> DebugConsoleService::autoComplete(nstl::string_view input) const
 {
-    static std::vector<nstl::string_view> candidates;
+    static nstl::vector<nstl::string_view> candidates;
     candidates.clear();
 
     for (coil::String const& coilCommand : m_commands)

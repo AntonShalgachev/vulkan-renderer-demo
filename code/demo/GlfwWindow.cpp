@@ -3,6 +3,8 @@
 #include "wrapper/Surface.h"
 #include "wrapper/Instance.h"
 
+#include "nstl/vector.h"
+
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
@@ -15,8 +17,8 @@ namespace
 
     vkr::GlfwWindow::Action getAction(int glfwAction)
     {
-        static std::vector<vkr::GlfwWindow::Action> const actions = []() {
-            std::vector<vkr::GlfwWindow::Action> result;
+        static nstl::vector<vkr::GlfwWindow::Action> const actions = []() {
+            nstl::vector<vkr::GlfwWindow::Action> result;
             result.resize(3);
             result[GLFW_RELEASE] = vkr::GlfwWindow::Action::Release;
             result[GLFW_PRESS] = vkr::GlfwWindow::Action::Press;
@@ -42,7 +44,7 @@ namespace
     }
 }
 
-vkr::GlfwWindow::GlfwWindow(int width, int height, std::string const& title)
+vkr::GlfwWindow::GlfwWindow(int width, int height, char const* title)
 {
     m_width = width;
     m_height = height;
@@ -104,10 +106,10 @@ vkr::GlfwWindow::~GlfwWindow()
     glfwTerminate();
 }
 
-void vkr::GlfwWindow::createWindow(std::string const& title)
+void vkr::GlfwWindow::createWindow(char const* title)
 {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    m_handle = glfwCreateWindow(m_width, m_height, title.c_str(), nullptr, nullptr);
+    m_handle = glfwCreateWindow(m_width, m_height, title, nullptr, nullptr);
     glfwSetWindowUserPointer(m_handle, this);
 }
 

@@ -97,8 +97,8 @@ struct GltfResources
 
 struct DemoScene
 {
-    std::vector<vkgfx::TestObject> objects;
-    std::vector<DemoCamera> cameras;
+    nstl::vector<vkgfx::TestObject> objects;
+    nstl::vector<DemoCamera> cameras;
 };
 
 class DemoApplication
@@ -168,7 +168,7 @@ private:
     float m_cameraSpeed = 5.0f;
     bool m_paused = false;
 
-    std::vector<bool> m_keyState;
+    nstl::vector<bool> m_keyState;
     vkr::GlfwWindow::Modifiers m_modifiers = vkr::GlfwWindow::Modifiers::None;
 
     std::optional<ui::NotificationManager> m_notifications;

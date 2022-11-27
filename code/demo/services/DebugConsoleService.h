@@ -7,6 +7,7 @@
 #include "nstl/string_view.h"
 #include "nstl/string.h"
 #include "nstl/optional.h"
+#include "nstl/vector.h"
 
 #include "coil/Coil.h"
 #include "coil/StdLibCompat.h"
@@ -149,8 +150,42 @@ namespace coil
         }
     };
 
-	COIL_CREATE_TYPE_NAME_DECLARATION(glm::vec3);
+	COIL_CREATE_TYPE_NAME(glm::vec3, "vec3");
 }
+
+// TODO move out of coil namespace?
+// conversion helpers
+namespace coil
+{
+    nstl::string toNstlString(coil::StringView str);
+    nstl::string_view toNstlStringView(coil::StringView str);
+    coil::String fromNstlString(nstl::string_view str);
+    coil::StringView fromNstlStringView(nstl::string_view str);
+}
+
+// nstl::string
+namespace coil
+{
+    template<>
+    struct TypeSerializer<nstl::string>
+    {
+        static Expected<nstl::string, String> fromString(Value const& input);
+        static String toString(nstl::string const& value);
+    };
+}
+COIL_CREATE_TYPE_NAME(nstl::string, "string");
+
+// nstl::string_view
+namespace coil
+{
+    template<>
+    struct TypeSerializer<nstl::string_view>
+    {
+        static Expected<nstl::string_view, String> fromString(Value const& input);
+        static String toString(nstl::string_view const& value);
+    };
+}
+COIL_CREATE_TYPE_NAME(nstl::string_view, "string");
 
 class DebugConsoleService : public ServiceContainer
 {
@@ -179,14 +214,14 @@ public:
     DebugConsoleService(Services& services);
 
     void execute(nstl::string_view command);
-    std::vector<Suggestion> getSuggestions(nstl::string_view input) const;
+    nstl::vector<Suggestion> getSuggestions(nstl::string_view input) const;
     nstl::optional<nstl::string_view> autoComplete(nstl::string_view input) const;
     void clear();
 
 	void getCommandHelp(std::ostream& os, nstl::string_view name) const;
 
-    std::vector<Line> const& lines() { return m_lines; }
-    std::vector<nstl::string> const& history() { return m_inputHistory; }
+    nstl::vector<Line> const& lines() { return m_lines; }
+    nstl::vector<nstl::string> const& history() { return m_inputHistory; }
 
     template<typename Functor>
     void add(nstl::string_view name, CommandMetadata metadata, Functor functor)
@@ -214,8 +249,8 @@ private:
     coil::UnorderedMap<coil::String, CommandMetadata> m_metadata;
     coil::Vector<coil::String> m_commands;
 
-    std::vector<Line> m_lines;
-    std::vector<nstl::string> m_inputHistory;
+    nstl::vector<Line> m_lines;
+    nstl::vector<nstl::string> m_inputHistory;
 };
 
 // TODO find the right way to do it

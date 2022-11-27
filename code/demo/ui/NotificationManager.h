@@ -1,17 +1,18 @@
 #pragma once
 
-#include <deque>
-#include <string>
-
 #include "services/ServiceContainer.h"
 
 #include "ScopedDebugCommands.h"
+
+#include "nstl/string.h"
+
+#include <deque>
 
 namespace ui
 {
     struct Notification
     {
-        std::string text;
+        nstl::string text;
         float remainingTime = 0.0f;
     };
 
@@ -23,7 +24,7 @@ namespace ui
         void update(float dt);
         void draw() const;
 
-        void add(std::string text);
+        void add(nstl::string text);
 
     private:
         ScopedDebugCommands m_commands{ services() };

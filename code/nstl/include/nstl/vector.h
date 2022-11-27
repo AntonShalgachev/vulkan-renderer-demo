@@ -37,6 +37,7 @@ namespace nstl
 
         void reserve(size_t newCapacity);
         void resize(size_t newSize);
+        void resize(size_t newSize, T const& value);
 
         void push_back(T item);
         void pop_back();
@@ -169,6 +170,31 @@ void nstl::vector<T>::resize(size_t newSize)
             m_buffer.destructLast<T>();
         while (size() < newSize)
             m_buffer.constructNext<T>();
+    }
+
+    NSTL_ASSERT(size() == newSize);
+}
+
+template<typename T>
+void nstl::vector<T>::resize(size_t newSize, T const& value)
+{
+    if (newSize > capacity())
+        grow(newSize);
+
+    NSTL_ASSERT(capacity() >= newSize);
+
+    if constexpr (nstl::is_trivial_v<T>)
+    {
+        for (size_t s = size(); s < newSize; s++)
+            *(begin() + s) = value;
+        m_buffer.resize(newSize);
+    }
+    else
+    {
+        while (size() > newSize)
+            m_buffer.destructLast<T>();
+        while (size() < newSize)
+            m_buffer.constructNext<T>(value);
     }
 
     NSTL_ASSERT(size() == newSize);

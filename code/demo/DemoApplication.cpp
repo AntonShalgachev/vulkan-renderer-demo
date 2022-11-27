@@ -46,6 +46,7 @@
 
 #include "nstl/array.h"
 #include "nstl/span.h"
+#include "nstl/optional.h"
 
 // TODO find a better solution
 template <>
@@ -313,7 +314,7 @@ namespace
         throw std::invalid_argument("type");
     }
 
-    std::optional<std::size_t> findAttributeLocation(nstl::string_view name)
+    nstl::optional<std::size_t> findAttributeLocation(nstl::string_view name)
     {
         static nstl::vector<nstl::string_view> const attributeNames = { "POSITION", "COLOR_0", "TEXCOORD_0", "NORMAL", "TANGENT" }; // TODO move to the shader metadata
 
@@ -473,11 +474,11 @@ bool DemoApplication::init(int argc, char** argv)
     }
 
     {
-        std::stringstream ss;
-        for (std::string const& argument : commandLine.getAll())
-            ss << "'" << argument << "' ";
+        nstl::string args;
+        for (nstl::string const& argument : commandLine.getAll())
+            args += "'" + argument + "' ";
 
-        spdlog::info("Command line arguments: {}", ss.str());
+        spdlog::info("Command line arguments: {}", args);
     }
 
     m_notifications = ui::NotificationManager{ m_services };
@@ -1076,7 +1077,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
                 nstl::string_view name = gltfAttribute.name;
 
-                std::optional<std::size_t> location = findAttributeLocation(name);
+                nstl::optional<std::size_t> location = findAttributeLocation(name);
 
                 if (!location)
                 {
@@ -1220,7 +1221,7 @@ void DemoApplication::updateUI(float frameTime)
         {
             m_paused = !m_paused;
         }
-        static nstl::vector<std::string> texts = {
+        static nstl::vector<nstl::string> texts = {
             "Lorem ipsum dolor sit amet",
             "consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore",
             "et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation",

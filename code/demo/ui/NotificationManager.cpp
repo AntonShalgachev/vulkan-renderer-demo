@@ -54,7 +54,7 @@ void ui::NotificationManager::draw() const
     ImGui::End();
 }
 
-void ui::NotificationManager::add(std::string text)
+void ui::NotificationManager::add(nstl::string text)
 {
     m_notifications.push_back({ text, defaultDuration });
 }

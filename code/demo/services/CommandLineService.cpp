@@ -7,7 +7,7 @@
 
 namespace
 {
-    void append(std::string_view line, std::vector<std::string>& arguments)
+    void append(nstl::string_view line, nstl::vector<nstl::string>& arguments)
     {
         auto isQuote = [](char c) { return c == '"'; };
         auto isComment = [](char c) { return c == ';' || c == '#'; };
@@ -56,16 +56,22 @@ CommandLineService::CommandLineService(Services& services) : ServiceContainer(se
 
 bool CommandLineService::parse(int argc, char** argv)
 {
-    std::vector<std::string> arguments;
-    std::copy(argv, argv + argc, std::back_inserter(arguments));
+    nstl::vector<nstl::string> arguments;
+    arguments.reserve(argc);
+    for (size_t i = 0; i < argc; i++)
+        arguments.emplace_back(argv[i]);
     return parse(arguments);
 }
 
-bool CommandLineService::parse(std::vector<std::string> const& arguments)
+bool CommandLineService::parse(nstl::vector<nstl::string> const& arguments)
 {
     try
     {
-        m_parser.parse_args(arguments);
+        // TODO fix this ugliness
+        std::vector<std::string> stdArguments;
+        for (nstl::string const& arg : arguments)
+            stdArguments.emplace_back(arg.c_str());
+        m_parser.parse_args(stdArguments);
 
         if (!arguments.empty())
         {
@@ -90,11 +96,12 @@ bool CommandLineService::parseFile(char const* path)
     if (!file)
         return false;
 
-    std::vector<std::string> arguments;
+    nstl::vector<nstl::string> arguments;
     arguments.push_back(""); // fake program name
     for (std::string line; std::getline(file, line); )
     {
-        append(line, arguments);
+        // TODO fix this ugliness
+        append(nstl::string_view{ line.data(), line.size() }, arguments);
     }
 
     return parse(arguments);

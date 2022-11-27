@@ -6,7 +6,6 @@
 
 #include "glm.h"
 
-#include <string>
 #include <functional>
 
 struct GLFWwindow;
@@ -38,7 +37,7 @@ namespace vkr
         };
 
     public:
-    	GlfwWindow(int width, int height, std::string const& title);
+    	GlfwWindow(int width, int height, char const* title);
     	~GlfwWindow();
 
         GlfwWindow(GlfwWindow const&) = delete;
@@ -75,7 +74,7 @@ namespace vkr
         void waitUntilInForeground() const override;
 
     private:
-        void createWindow(std::string const& title);
+        void createWindow(char const* title);
         void queryRequiredInstanceExtensions();
 
         static void framebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept;

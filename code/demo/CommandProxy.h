@@ -6,6 +6,7 @@
 
 #include "nstl/string_view.h"
 #include "nstl/string.h"
+#include "nstl/vector.h"
 
 template<typename CommandsContainer>
 class CommandProxy
@@ -27,7 +28,7 @@ public:
     CommandProxy& operator=(std::nullptr_t);
 
     CommandProxy&& description(nstl::string value)&&;
-    CommandProxy&& arguments(std::vector<std::vector<nstl::string>> names)&&;
+    CommandProxy&& arguments(nstl::vector<nstl::vector<nstl::string>> names)&&;
 
     template<typename... T>
     CommandProxy&& arguments(T... names)&&
@@ -77,14 +78,14 @@ CommandProxy<CommandsContainer>&& CommandProxy<CommandsContainer>::description(n
 }
 
 template<typename CommandsContainer>
-CommandProxy<CommandsContainer>&& CommandProxy<CommandsContainer>::arguments(std::vector<std::vector<nstl::string>> names)&&
+CommandProxy<CommandsContainer>&& CommandProxy<CommandsContainer>::arguments(nstl::vector<nstl::vector<nstl::string>> names)&&
 {
     if (m_metadata.functors.size() < names.size())
         m_metadata.functors.resize(names.size());
 
     for (std::size_t i = 0; i < names.size(); i++)
     {
-        std::vector<nstl::string> const& functorArgNames = names[i];
+        nstl::vector<nstl::string> const& functorArgNames = names[i];
         FunctorMetadata& functorMetadata = m_metadata.functors[i];
 
         if (functorMetadata.arguments.size() < functorArgNames.size())
