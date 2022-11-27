@@ -148,16 +148,6 @@ namespace
         return matrix;
     }
 
-    glm::vec4 createColor(std::vector<double> const& flatColor)
-    {
-        if (flatColor.empty())
-            return glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-        if (flatColor.size() == 4)
-            return glm::make_vec4(flatColor.data());
-
-        throw std::runtime_error("unexpected flat color size");
-    }
-
     glm::vec4 createColor(nstl::span<float const> flatColor)
     {
         assert(flatColor.size() == 4);
@@ -321,18 +311,6 @@ namespace
         }
 
         throw std::invalid_argument("type");
-    }
-
-    std::optional<std::size_t> findAttributeLocation(std::string const& name)
-    {
-        static std::vector<std::string> const attributeNames = { "POSITION", "COLOR_0", "TEXCOORD_0", "NORMAL", "TANGENT" }; // TODO move to the shader metadata
-
-        auto it = std::find(attributeNames.cbegin(), attributeNames.cend(), name);
-
-        if (it != attributeNames.end())
-            return static_cast<std::size_t>(std::distance(attributeNames.begin(), it));
-
-        return {};
     }
 
     std::optional<std::size_t> findAttributeLocation(nstl::string_view name)
@@ -1231,7 +1209,7 @@ void DemoApplication::updateUI(float frameTime)
         {
             m_paused = !m_paused;
         }
-        static std::vector<std::string> texts = {
+        static nstl::vector<std::string> texts = {
             "Lorem ipsum dolor sit amet",
             "consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore",
             "et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation",

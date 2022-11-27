@@ -1,10 +1,8 @@
 #include "DebugConsoleWidget.h"
 
 #include "imgui.h"
-#include "magic_enum.hpp"
 
 #include <string>
-#include <set>
 #include <algorithm>
 
 #include "services/DebugConsoleService.h"
@@ -110,7 +108,7 @@ void ui::DebugConsoleWidget::drawInput()
         if (data->EventFlag == ImGuiInputTextFlags_CallbackEdit)
             console->onInputChanged(input);
 
-        std::optional<nstl::string_view> replacement;
+        nstl::optional<nstl::string_view> replacement;
 
         if (data->EventFlag == ImGuiInputTextFlags_CallbackCompletion)
         {
@@ -234,7 +232,7 @@ void ui::DebugConsoleWidget::onInputReplaced(nstl::string_view input)
     m_inputLength = input.size();
 }
 
-std::optional<nstl::string_view> ui::DebugConsoleWidget::onInputHistory(nstl::string_view input, int delta)
+nstl::optional<nstl::string_view> ui::DebugConsoleWidget::onInputHistory(nstl::string_view input, int delta)
 {
     auto const& inputHistory = services().debugConsole().history();
 
@@ -249,17 +247,17 @@ std::optional<nstl::string_view> ui::DebugConsoleWidget::onInputHistory(nstl::st
         updateSuggestionsWindow(*index);
 
     if (auto index = getHistoryIndex(inputHistory.size()))
-        return inputHistory[*index];
+        return nstl::string_view{ inputHistory[*index] };
     if (auto index = getSuggestionIndex())
         return m_suggestions[*index].suggestion.command;
 
     if (m_oldInput)
-        return *m_oldInput;
+        return nstl::string_view{ *m_oldInput };
 
     return {};
 }
 
-std::optional<nstl::string_view> ui::DebugConsoleWidget::onInputCompletion(nstl::string_view input)
+nstl::optional<nstl::string_view> ui::DebugConsoleWidget::onInputCompletion(nstl::string_view input)
 {
     return services().debugConsole().autoComplete(input);
 }
@@ -276,14 +274,14 @@ void ui::DebugConsoleWidget::onInputSubmitted(nstl::string_view input)
     clearInput();
 }
 
-std::optional<std::size_t> ui::DebugConsoleWidget::getHistoryIndex(std::size_t historySize) const
+nstl::optional<std::size_t> ui::DebugConsoleWidget::getHistoryIndex(std::size_t historySize) const
 {
-    return m_replacementIndex < 0 ? historySize + m_replacementIndex : std::optional<std::size_t>{};
+    return m_replacementIndex < 0 ? nstl::optional<std::size_t>{ historySize + m_replacementIndex } : nstl::optional<std::size_t>{};
 }
 
-std::optional<std::size_t> ui::DebugConsoleWidget::getSuggestionIndex() const
+nstl::optional<std::size_t> ui::DebugConsoleWidget::getSuggestionIndex() const
 {
-    return m_replacementIndex > 0 ? m_replacementIndex - 1 : std::optional<std::size_t>{};
+    return m_replacementIndex > 0 ? nstl::optional<std::size_t>{ m_replacementIndex - 1 } : nstl::optional<std::size_t>{};
 }
 
 void ui::DebugConsoleWidget::updateSuggestionsWindow(std::size_t selectedIndex)

@@ -13,8 +13,7 @@
 #include "common/Utils.h"
 
 #include "nstl/array.h"
-
-#include <vector>
+#include "nstl/vector.h"
 
 namespace
 {

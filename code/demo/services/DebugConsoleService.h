@@ -6,6 +6,7 @@
 
 #include "nstl/string_view.h"
 #include "nstl/string.h"
+#include "nstl/optional.h"
 
 #include "coil/Coil.h"
 #include "coil/StdLibCompat.h"
@@ -179,7 +180,7 @@ public:
 
     void execute(nstl::string_view command);
     std::vector<Suggestion> getSuggestions(nstl::string_view input) const;
-    std::optional<nstl::string_view> autoComplete(nstl::string_view input) const;
+    nstl::optional<nstl::string_view> autoComplete(nstl::string_view input) const;
     void clear();
 
 	void getCommandHelp(std::ostream& os, nstl::string_view name) const;

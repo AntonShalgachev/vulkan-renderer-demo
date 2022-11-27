@@ -2,8 +2,8 @@
 
 #include "nstl/string.h"
 #include "nstl/string_view.h"
+#include "nstl/vector.h"
 
-#include <vector>
 #include <sstream>
 
 struct ArgumentMetadata
@@ -14,7 +14,7 @@ struct ArgumentMetadata
 
 struct FunctorMetadata
 {
-    std::vector<ArgumentMetadata> arguments;
+    nstl::vector<ArgumentMetadata> arguments;
     nstl::string returnType;
 
     nstl::string buildRepresentation(nstl::string_view name) const // TODO move to cpp
@@ -49,7 +49,7 @@ struct FunctorMetadata
 struct CommandMetadata
 {
 	nstl::string description;
-	std::vector<FunctorMetadata> functors;
+	nstl::vector<FunctorMetadata> functors;
 
     nstl::string type;
 };

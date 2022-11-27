@@ -7,7 +7,7 @@
 
 #include "glm.h"
 
-#include <vector>
+#include "nstl/vector.h"
 
 namespace vkgfx
 {
@@ -42,5 +42,5 @@ private:
     vkgfx::BufferHandle m_buffer;
     vkgfx::MeshHandle m_mesh;
     vkgfx::PipelineHandle m_pipeline;
-    std::vector<vkgfx::TestObject> m_objects;
+    nstl::vector<vkgfx::TestObject> m_objects;
 };

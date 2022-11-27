@@ -6,10 +6,9 @@
 
 #include "nstl/string_view.h"
 #include "nstl/string.h"
-
-#include <array>
-#include <vector>
-#include <optional>
+#include "nstl/vector.h"
+#include "nstl/optional.h"
+#include "nstl/array.h"
 
 namespace ui
 {
@@ -30,12 +29,12 @@ namespace ui
 
         void onInputChanged(nstl::string_view input);
         void onInputReplaced(nstl::string_view input);
-        std::optional<nstl::string_view> onInputHistory(nstl::string_view input, int delta);
-        std::optional<nstl::string_view> onInputCompletion(nstl::string_view input);
+        nstl::optional<nstl::string_view> onInputHistory(nstl::string_view input, int delta);
+        nstl::optional<nstl::string_view> onInputCompletion(nstl::string_view input);
         void onInputSubmitted(nstl::string_view input);
 
-        std::optional<std::size_t> getHistoryIndex(std::size_t historySize) const;
-        std::optional<std::size_t> getSuggestionIndex() const;
+        nstl::optional<std::size_t> getHistoryIndex(std::size_t historySize) const;
+        nstl::optional<std::size_t> getSuggestionIndex() const;
 
         void updateSuggestionsWindow(std::size_t selectedIndex);
 
@@ -54,15 +53,15 @@ namespace ui
 
         bool m_visible = false;
 
-        std::array<char, 256> m_inputBuffer = {};
+        nstl::array<char, 256> m_inputBuffer = {};
         std::size_t m_inputLength = 0;
 
         bool m_scrollToLast = false;
 
-        std::optional<nstl::string> m_oldInput;
+        nstl::optional<nstl::string> m_oldInput;
         int m_replacementIndex = 0;
 
-        std::vector<Suggestion> m_suggestions;
+        nstl::vector<Suggestion> m_suggestions;
         std::size_t m_suggestionsWindowStart = 0;
         std::size_t m_suggestionsWindowEnd = 0;
     };

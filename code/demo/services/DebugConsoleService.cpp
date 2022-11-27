@@ -188,7 +188,7 @@ std::vector<DebugConsoleService::Suggestion> DebugConsoleService::getSuggestions
     return suggestions;
 }
 
-std::optional<nstl::string_view> DebugConsoleService::autoComplete(nstl::string_view input) const
+nstl::optional<nstl::string_view> DebugConsoleService::autoComplete(nstl::string_view input) const
 {
     static std::vector<nstl::string_view> candidates;
     candidates.clear();
