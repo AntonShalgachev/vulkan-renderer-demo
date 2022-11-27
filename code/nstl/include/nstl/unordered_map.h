@@ -10,8 +10,10 @@ namespace nstl
     template<typename K, typename V>
     class key_value_pair
     {
-        template<typename, typename>
-        friend class unordered_map;
+        // TODO think how to solve this
+
+//         template<typename, typename>
+//         friend class unordered_map;
 
     public:
         K const& key() const
@@ -27,8 +29,8 @@ namespace nstl
             return m_value;
         }
 
-    private:
-        key_value_pair(K key, V value) : m_key(nstl::move(key)), m_value(nstl::move(value)) {}
+//     private:
+//         key_value_pair(K key, V value) : m_key(nstl::move(key)), m_value(nstl::move(value)) {}
 
         K m_key;
         V m_value;
@@ -244,6 +246,23 @@ namespace nstl
         size_t size() const
         {
             return m_nodes.size();
+        }
+
+        template<typename T>
+        V const& operator[](T const& key) const
+        {
+            auto it = find(key);
+            NSTL_ASSERT(it != end());
+            return it->value();
+        }
+
+        template<typename T>
+        V& operator[](T const& key)
+        {
+            if (auto it = find(key); it != end())
+                return it->value();
+
+            return insert_or_assign(key, V{})->value();
         }
 
     private:
