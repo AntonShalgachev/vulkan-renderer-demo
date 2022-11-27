@@ -1,5 +1,7 @@
 #include "nstl/buffer.h"
 
+#include "nstl/algorithm.h"
+
 #include <string.h>
 
 nstl::Buffer::Buffer(size_t capacity, size_t chunkSize) : m_ptr(capacity* chunkSize > 0 ? new char[capacity * chunkSize] : nullptr), m_capacity(capacity), m_chunkSize(chunkSize)
@@ -10,7 +12,9 @@ nstl::Buffer::Buffer(size_t capacity, size_t chunkSize) : m_ptr(capacity* chunkS
 nstl::Buffer::Buffer(Buffer const& rhs) : Buffer(rhs.m_capacity, rhs.m_chunkSize)
 {
     NSTL_ASSERT(rhs.m_constructedObjectsCount == 0);
-    copy(rhs.m_ptr, rhs.m_size * m_chunkSize);
+
+    copy(rhs.m_ptr, rhs.m_size);
+
     m_size = rhs.m_size;
 }
 
@@ -90,9 +94,9 @@ void nstl::Buffer::copy(void const* ptr, size_t size)
         return;
 
     NSTL_ASSERT(ptr);
-    NSTL_ASSERT(size <= capacityBytes());
+    NSTL_ASSERT(size * m_chunkSize <= capacityBytes());
 
-    memcpy(m_ptr, ptr, size);
+    memcpy(m_ptr, ptr, size * m_chunkSize);
 }
 
 void nstl::Buffer::swap(Buffer& rhs) noexcept

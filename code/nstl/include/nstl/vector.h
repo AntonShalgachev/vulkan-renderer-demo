@@ -5,6 +5,8 @@
 #include "utility.h"
 #include "buffer.h"
 #include "span.h"
+#include "type_traits.h"
+#include "algorithm.h"
 
 #include <stddef.h>
 
@@ -21,7 +23,6 @@ namespace nstl
     public:
         vector() = default;
         vector(size_t size);
-        vector(T const* begin, T const* end);
         template<typename Iterator>
         vector(Iterator begin, Iterator end); // TODO remove?
         vector(std::initializer_list<T> list);
@@ -93,24 +94,24 @@ nstl::vector<T>::vector(size_t size) : m_buffer(size, sizeof(T))
 }
 
 template<typename T>
-nstl::vector<T>::vector(T const* begin, T const* end) : m_buffer(end - begin, sizeof(T))
-{
-    NSTL_ASSERT(capacity() >= static_cast<size_t>((end - begin)));
-    NSTL_ASSERT(empty());
-
-    for (T const* it = begin; it != end; it++)
-        m_buffer.constructNext<T>(*it);
-}
-
-template<typename T>
 template<typename Iterator>
 nstl::vector<T>::vector(Iterator begin, Iterator end) : m_buffer(end - begin, sizeof(T))
 {
     NSTL_ASSERT(capacity() >= static_cast<size_t>((end - begin)));
     NSTL_ASSERT(empty());
 
-    for (Iterator it = begin; it != end; it++)
-        m_buffer.constructNext<T>(*it);
+    if constexpr (nstl::is_trivial_v<T>)
+    {
+        size_t size = end - begin;
+        m_buffer.resize(size);
+//         nstl::copy(begin, end, this->begin());
+        m_buffer.copy(begin, size);
+    }
+    else
+    {
+        for (Iterator it = begin; it != end; it++)
+            m_buffer.constructNext<T>(*it);
+    }
 }
 
 template<typename T>
@@ -158,10 +159,17 @@ void nstl::vector<T>::resize(size_t newSize)
 
     NSTL_ASSERT(capacity() >= newSize);
 
-    while (size() > newSize)
-        m_buffer.destructLast<T>();
-    while (size() < newSize)
-        m_buffer.constructNext<T>();
+    if constexpr (nstl::is_trivial_v<T>)
+    {
+        m_buffer.resize(newSize);
+    }
+    else
+    {
+        while (size() > newSize)
+            m_buffer.destructLast<T>();
+        while (size() < newSize)
+            m_buffer.constructNext<T>();
+    }
 
     NSTL_ASSERT(size() == newSize);
 }
@@ -173,7 +181,15 @@ void nstl::vector<T>::push_back(T item)
     reserve(nextSize);
     NSTL_ASSERT(capacity() >= nextSize);
 
-    m_buffer.constructNext<T>(nstl::move(item));
+    if constexpr (nstl::is_trivial_v<T>)
+    {
+        *end() = nstl::move(item);
+        m_buffer.resize(nextSize);
+    }
+    else
+    {
+        m_buffer.constructNext<T>(nstl::move(item));
+    }
 }
 
 template<typename T>
@@ -181,7 +197,10 @@ void nstl::vector<T>::pop_back()
 {
     NSTL_ASSERT(!empty());
 
-    m_buffer.destructLast<T>();
+    if constexpr (nstl::is_trivial_v<T>)
+        resize(size() - 1);
+    else
+        m_buffer.destructLast<T>();
 }
 
 template<typename T>
@@ -216,7 +235,16 @@ T& nstl::vector<T>::emplace_back(Args&&... args)
     reserve(nextSize);
     NSTL_ASSERT(capacity() >= nextSize);
 
-    return m_buffer.constructNext<T>(nstl::forward<Args>(args)...);
+    if constexpr (nstl::is_trivial_v<T>)
+    {
+        *end() = T{ nstl::forward<Args>(args)... };
+        m_buffer.resize(nextSize);
+        return back();
+    }
+    else
+    {
+        return m_buffer.constructNext<T>(nstl::forward<Args>(args)...);
+    }
 }
 
 template<typename T>
@@ -239,8 +267,16 @@ void nstl::vector<T>::erase_unsorted(T* it)
 template<typename T>
 void nstl::vector<T>::clear()
 {
-    while (m_buffer.size() > 0)
-        m_buffer.destructLast<T>();
+
+    if constexpr (nstl::is_trivial_v<T>)
+    {
+        m_buffer.resize(0);
+    }
+    else
+    {
+        while (m_buffer.size() > 0)
+            m_buffer.destructLast<T>();
+    }
 }
 
 template<typename T>
@@ -373,13 +409,21 @@ void nstl::vector<T>::grow(size_t newCapacity)
 {
     Buffer buffer{ newCapacity, sizeof(T) };
 
-    for (size_t i = 0; i < m_buffer.size(); i++)
-        buffer.constructNext<T>(nstl::move(*m_buffer.get<T>(i)));
+    if constexpr (nstl::is_trivial_v<T>)
+    {
+        buffer.resize(m_buffer.size());
+//         nstl::copy(m_buffer.data(), m_buffer.data() + m_buffer.size(), buffer.data());
+        buffer.copy(m_buffer.data(), m_buffer.size());
+    }
+    else
+    {
+        for (size_t i = 0; i < m_buffer.size(); i++)
+            buffer.constructNext<T>(nstl::move(*m_buffer.get<T>(i)));
+    }
 
     NSTL_ASSERT(m_buffer.size() == buffer.size());
 
-    while (m_buffer.size() > 0)
-        m_buffer.destructLast<T>();
+    clear();
 
     m_buffer = nstl::move(buffer);
 

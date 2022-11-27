@@ -71,8 +71,8 @@ namespace nstl
     template<typename T>
     using remove_pointer_t = typename remove_pointer<T>::Type;
 
-//     template<typename T>
-//     using DecayT = remove_cv_t<remove_reference_t<T>>;
+    template<typename T>
+    using simple_decay_t = remove_cv_t<remove_reference_t<T>>;
 
     template<bool B, class T = void>
     struct enable_if
@@ -111,4 +111,15 @@ namespace nstl
     constexpr bool is_member_pointer_v = false;
     template<class T, class U>
     constexpr bool is_member_pointer_v<T U::*> = true;
+
+#if defined(__clang__) || defined(_MSC_VER)
+    template<typename T, typename... Args>
+    inline constexpr bool is_trivially_constructible_v = __is_trivially_constructible(T, Args...);
+    template<typename T>
+    inline constexpr bool is_trivially_destructible_v = __is_trivially_destructible(T);
+    template<typename T>
+    inline constexpr bool is_trivial_v = __is_trivially_constructible(T) && __is_trivially_copyable(T);
+#else
+#error Unsupported compiler
+#endif
 }
