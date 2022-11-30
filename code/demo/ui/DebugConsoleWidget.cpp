@@ -1,25 +1,17 @@
 #include "DebugConsoleWidget.h"
 
+#include "services/DebugConsoleService.h"
+
 #include "imgui.h"
 
-#include <sstream>
-#include <algorithm>
+#include "nstl/algorithm.h"
 
-#include "services/DebugConsoleService.h"
+#include <sstream>
 
 namespace
 {
     std::size_t outputLinesCount = 15;
     std::size_t suggestionsLinesCountMax = 5;
-
-    std::size_t clamp(std::size_t value, std::size_t from, std::size_t to)
-    {
-        if (value > to)
-            return to;
-        if (value < from)
-            return from;
-        return value;
-    };
 
     auto getLineColor(DebugConsoleService::Line::Type type)
     {
@@ -222,7 +214,7 @@ void ui::DebugConsoleWidget::onInputChanged(nstl::string_view input)
         m_suggestions.push_back(std::move(suggestion));
     }
 
-    auto const linesCount = std::min(m_suggestions.size(), suggestionsLinesCountMax);
+    auto const linesCount = nstl::min(m_suggestions.size(), suggestionsLinesCountMax);
     m_suggestionsWindowStart = 0;
     m_suggestionsWindowEnd = linesCount;
 }
@@ -238,7 +230,7 @@ nstl::optional<nstl::string_view> ui::DebugConsoleWidget::onInputHistory(nstl::s
 
     int minIndex = -inputHistory.size();
     int maxIndex = m_suggestions.size();
-    m_replacementIndex = std::min(std::max(m_replacementIndex + delta, minIndex), maxIndex);
+    m_replacementIndex = nstl::clamp(m_replacementIndex + delta, minIndex, maxIndex);
 
     if (m_replacementIndex != 0 && !m_oldInput)
         m_oldInput = nstl::string{ input };

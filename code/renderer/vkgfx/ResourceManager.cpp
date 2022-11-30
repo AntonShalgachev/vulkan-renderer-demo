@@ -19,6 +19,7 @@
 #include "PipelineKey.h"
 
 #include "nstl/optional.h"
+#include "nstl/algorithm.h"
 
 #include <assert.h>
 
@@ -372,8 +373,8 @@ void vkgfx::ResourceManager::uploadDynamicBufferToStaging(BufferHandle handle, v
     std::size_t start = offset;
     std::size_t end = offset + dataSize;
 
-    buffer->stagingDirtyStart = std::min(buffer->stagingDirtyStart, start);
-    buffer->stagingDirtyEnd = std::max(buffer->stagingDirtyEnd, end);
+    buffer->stagingDirtyStart = nstl::min(buffer->stagingDirtyStart, start);
+    buffer->stagingDirtyEnd = nstl::max(buffer->stagingDirtyEnd, end);
 }
 
 void vkgfx::ResourceManager::transferDynamicBuffersFromStaging(std::size_t resourceIndex)

@@ -2,6 +2,8 @@
 
 #include "rapidfuzz/fuzz.hpp"
 
+#include "nstl/algorithm.h"
+
 #include <iomanip>
 
 namespace
@@ -130,7 +132,7 @@ DebugConsoleService::DebugConsoleService(Services& services) : ServiceContainer(
         for (coil::String const& command : m_commands)
             maxNameLength = std::max(maxNameLength, command.length());
 
-        maxNameLength = std::min(maxNameLength, maxAllowedNameLength);
+        maxNameLength = nstl::min(maxNameLength, maxAllowedNameLength);
 
         context.loglinef("%-*s\t%s", maxNameLength, "Command name", "Description");
         context.loglinef("%-*s\t%s", maxNameLength, "------------", "-----------");

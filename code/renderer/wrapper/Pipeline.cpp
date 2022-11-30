@@ -5,9 +5,6 @@
 #include "RenderPass.h"
 #include "Device.h"
 
-#include <iterator>
-#include <algorithm>
-
 namespace
 {
 	nstl::vector<VkPipelineShaderStageCreateInfo> createStageDescriptions(nstl::span<vko::ShaderModule const*> shaderModules)

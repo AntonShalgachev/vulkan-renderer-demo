@@ -30,6 +30,7 @@
 #include "nstl/string_view.h"
 #include "nstl/unordered_map.h"
 #include "nstl/span.h"
+#include "nstl/algorithm.h"
 
 #include <functional>
 #include <memory>
@@ -38,7 +39,6 @@
 #include <unordered_set>
 #include <set>
 #include <map>
-#include <algorithm>
 #include <deque>
 #include <cassert>
 

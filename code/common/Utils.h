@@ -2,8 +2,7 @@
 
 #include "nstl/vector.h"
 #include "nstl/string_view.h"
-
-#include <algorithm>
+#include "nstl/algorithm.h"
 
 namespace vkc
 {
@@ -14,7 +13,7 @@ namespace vkc
         {
             for (const auto& requestedOption : requestedOptions)
             {
-                auto it = std::find_if(availableOptions.begin(), availableOptions.end(), [requestedOption](auto const& availableOption)
+                auto it = nstl::find_if(availableOptions.begin(), availableOptions.end(), [requestedOption](auto const& availableOption)
                 {
                     return nstl::string_view{ availableOption } == nstl::string_view{ requestedOption };
                 });

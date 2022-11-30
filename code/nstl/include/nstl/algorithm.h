@@ -16,6 +16,16 @@ namespace nstl
         return last;
     }
 
+    template <class InputIt, class Pred>
+    constexpr InputIt find_if(InputIt first, InputIt last, Pred const& pred)
+    {
+        for (; first != last; ++first)
+            if (pred(*first))
+                return first;
+
+        return last;
+    }
+
     template <class InputIt, class OutputIt>
     constexpr OutputIt copy(InputIt first, InputIt last, OutputIt dest)
     {
@@ -34,4 +44,26 @@ namespace nstl
             return dest;
         }
     }
+
+    template<class T>
+    T const& min(T const& a, T const& b)
+    {
+        return (a < b) ? a : b;
+    }
+
+    template<class T>
+    T const& max(T const& a, T const& b)
+    {
+        return (a > b) ? a : b;
+    }
+
+    template<typename T>
+    T const& clamp(T const& value, T const& from, T const& to)
+    {
+        if (value < from)
+            return from;
+        if (value > to)
+            return to;
+        return value;
+    };
 }

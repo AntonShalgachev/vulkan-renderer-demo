@@ -39,6 +39,7 @@
 #include "glm.h"
 
 #include "nstl/array.h"
+#include "nstl/algorithm.h"
 
 #include <vulkan/vulkan.h>
 
@@ -108,8 +109,8 @@ namespace
         auto width = static_cast<uint32_t>(surface.getWidth());
         auto height = static_cast<uint32_t>(surface.getHeight());
 
-        width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, width));
-        height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, height));
+        width = nstl::clamp(width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+        height = nstl::clamp(height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
 
         return { width, height };
     }
@@ -708,7 +709,7 @@ void vkgfx::Renderer::createSwapchain()
     const uint32_t maxImageCount = parameters.getCapabilities().maxImageCount;
     config.minImageCount = minImageCount + 1;
     if (maxImageCount > 0)
-        config.minImageCount = std::min(config.minImageCount, maxImageCount);
+        config.minImageCount = nstl::min(config.minImageCount, maxImageCount);
 
     config.preTransform = parameters.getCapabilities().currentTransform;
 
