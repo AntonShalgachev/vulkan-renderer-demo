@@ -37,7 +37,6 @@
 #include <functional>
 #include <memory>
 #include <sstream>
-#include <iomanip>
 
 #include <compare>
 #include <initializer_list>

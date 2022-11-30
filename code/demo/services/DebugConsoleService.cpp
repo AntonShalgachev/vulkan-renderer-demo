@@ -4,8 +4,6 @@
 
 #include "nstl/algorithm.h"
 
-#include <iomanip>
-
 namespace
 {
     class CommandsListIterator
@@ -130,7 +128,7 @@ DebugConsoleService::DebugConsoleService(Services& services) : ServiceContainer(
 
         std::size_t maxNameLength = 0;
         for (coil::String const& command : m_commands)
-            maxNameLength = std::max(maxNameLength, command.length());
+            maxNameLength = nstl::max(maxNameLength, command.length());
 
         maxNameLength = nstl::min(maxNameLength, maxAllowedNameLength);
 
