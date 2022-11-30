@@ -5,7 +5,7 @@
 
 #include "nstl/array.h"
 
-#include <cassert>
+#include <assert.h>
 
 vko::DescriptorPool::DescriptorPool(Device const& device)
     : m_device(device)

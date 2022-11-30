@@ -13,7 +13,8 @@
 #include "nstl/optional.h"
 #include "nstl/string.h"
 
-#include <cassert>
+#include <assert.h>
+
 #include <cstddef>
 #include <compare>
 #include <functional>

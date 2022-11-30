@@ -4,7 +4,7 @@
 #include "PhysicalDevice.h"
 #include "Device.h"
 
-#include <cassert>
+#include <assert.h>
 
 namespace
 {

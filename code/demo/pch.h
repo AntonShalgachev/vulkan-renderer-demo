@@ -32,6 +32,8 @@
 #include "nstl/span.h"
 #include "nstl/algorithm.h"
 
+#include <assert.h>
+
 #include <functional>
 #include <memory>
 #include <sstream>
@@ -40,7 +42,6 @@
 #include <set>
 #include <map>
 #include <deque>
-#include <cassert>
 
 #include <compare>
 #include <initializer_list>

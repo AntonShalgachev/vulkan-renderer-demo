@@ -12,7 +12,7 @@
 
 #include "nstl/vector.h"
 
-#include <cassert>
+#include <assert.h>
 
 namespace
 {
