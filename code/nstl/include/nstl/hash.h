@@ -20,6 +20,14 @@ namespace nstl
         nstl::hash<T> hasher;
         hash_combine(hash, hasher(v));
     }
+
+    template<typename... Ts>
+    size_t hash_values(Ts const&... values)
+    {
+        size_t seed = 0;
+        (hash_combine(seed, values), ...);
+        return seed;
+    }
 }
 
 #define DECLARE_POD_HASH(T) \

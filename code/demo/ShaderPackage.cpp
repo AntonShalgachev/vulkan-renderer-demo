@@ -76,3 +76,8 @@ nstl::string const* ShaderPackage::get(ShaderConfiguration const& config) const
 
     return &it->value();
 }
+
+size_t ShaderConfiguration::hash() const
+{
+    return nstl::hash_values(hasColor, hasTexCoord, hasNormal, hasTangent, hasTangent, hasTexture, hasNormalMap);
+}

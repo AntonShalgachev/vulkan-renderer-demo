@@ -2,6 +2,7 @@
 
 #include "nstl/vector.h"
 #include "nstl/optional.h"
+#include "nstl/hash.h"
 
 #include <cstdint>
 #include <assert.h>
@@ -270,3 +271,9 @@ namespace vkgfx
 #endif
     };
 }
+
+template<>
+struct nstl::hash<vkgfx::ResourceHandle>
+{
+    size_t operator()(vkgfx::ResourceHandle const& value) const;
+};

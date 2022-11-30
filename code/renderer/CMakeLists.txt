@@ -69,6 +69,7 @@ set(ALL_FILES
     "vkgfx/Material.h"
     "vkgfx/Mesh.h"
     "vkgfx/PipelineKey.h"
+    "vkgfx/PipelineKey.cpp"
     "vkgfx/Handles.h"
     "vkgfx/ResourceManager.h"
     "vkgfx/ResourceManager.cpp"

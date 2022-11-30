@@ -8,29 +8,6 @@
 
 namespace vkgfx
 {
-    namespace utils
-    {
-        template<typename... Ts>
-        size_t hash(Ts const&... values)
-        {
-            size_t seed = 0;
-            (nstl::hash_combine(seed, values), ...);
-            return seed;
-        }
-    }
-}
-
-template<>
-struct nstl::hash<vkgfx::ResourceHandle>
-{
-    size_t operator()(vkgfx::ResourceHandle const& value) const
-    {
-        return vkgfx::utils::hash(value.index, value.reincarnation);
-    }
-};
-
-namespace vkgfx
-{
     struct OldResourceHandle
     {
         std::size_t index = static_cast<std::size_t>(-1);

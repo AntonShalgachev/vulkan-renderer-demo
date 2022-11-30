@@ -53,3 +53,8 @@ namespace vkgfx
         assert(container.get(h6)->value == 6);
     }
 }
+
+size_t nstl::hash<vkgfx::ResourceHandle>::operator()(vkgfx::ResourceHandle const& value) const
+{
+    return nstl::hash_values(value.index, value.reincarnation);
+}

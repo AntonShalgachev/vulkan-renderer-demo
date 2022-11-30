@@ -16,6 +16,8 @@ struct ShaderConfiguration
     bool hasNormalMap = false;
 
     bool operator==(ShaderConfiguration const&) const = default;
+
+    size_t hash() const;
 };
 
 namespace nstl
@@ -25,16 +27,10 @@ namespace nstl
     {
         std::size_t operator()(ShaderConfiguration const& rhs) const
         {
-            std::size_t seed = 0;
-            nstl::hash_combine(seed, rhs.hasColor);
-            nstl::hash_combine(seed, rhs.hasTexCoord);
-            nstl::hash_combine(seed, rhs.hasNormal);
-            nstl::hash_combine(seed, rhs.hasTangent);
-            nstl::hash_combine(seed, rhs.hasTexture);
-            nstl::hash_combine(seed, rhs.hasNormalMap);
-            return seed;
+            return rhs.hash();
         }
     };
+
 }
 
 class ShaderPackage

@@ -44,10 +44,7 @@ namespace vkgfx
 
         auto operator<=>(UniformConfiguration const&) const = default;
 
-        size_t hash() const
-        {
-            return utils::hash(hasBuffer, hasAlbedoTexture, hasNormalMap);
-        }
+        size_t hash() const;
     };
 }
 
@@ -63,10 +60,7 @@ namespace vkgfx
 
             auto operator<=>(Binding const&) const = default;
 
-            size_t hash() const
-            {
-                return utils::hash(stride);
-            }
+            size_t hash() const;
         };
 
         struct Attribute
@@ -78,10 +72,7 @@ namespace vkgfx
 
             auto operator<=>(Attribute const&) const = default;
 
-            size_t hash() const
-            {
-                return utils::hash(binding, location, offset);
-            }
+            size_t hash() const;
         };
 
         nstl::vector<Binding> bindings;
@@ -90,10 +81,7 @@ namespace vkgfx
 
         auto operator<=>(VertexConfiguration const&) const = default;
 
-        size_t hash() const
-        {
-            return utils::hash(bindings, attributes, topology);
-        }
+        size_t hash() const;
     };
 }
 
@@ -113,10 +101,7 @@ namespace vkgfx
 
         auto operator<=>(RenderConfiguration const&) const = default;
 
-        size_t hash() const
-        {
-            return utils::hash(cullBackfaces, wireframe, depthTest, alphaBlending);
-        }
+        size_t hash() const;
     };
 }
 
@@ -131,10 +116,7 @@ namespace vkgfx
 
         auto operator<=>(PushConstantRange const&) const = default;
 
-        size_t hash() const
-        {
-            return utils::hash(offset, size);
-        }
+        size_t hash() const;
     };
 }
 
@@ -148,10 +130,7 @@ namespace vkgfx
 
         auto operator<=>(DescriptorSetLayoutKey const&) const = default;
 
-        size_t hash() const
-        {
-            return utils::hash(uniformConfig);
-        }
+        size_t hash() const;
     };
 }
 
@@ -166,10 +145,7 @@ namespace vkgfx
 
         auto operator<=>(PipelineLayoutKey const&) const = default;
 
-        size_t hash() const
-        {
-            return utils::hash(uniformConfigs, pushConstantRanges);
-        }
+        size_t hash() const;
     };
 }
 
@@ -187,10 +163,7 @@ namespace vkgfx
 
         auto operator<=>(PipelineKey const&) const = default;
 
-        size_t hash() const
-        {
-            return utils::hash(shaderHandles, uniformConfigs, vertexConfig, renderConfig, pushConstantRanges);
-        }
+        size_t hash() const;
     };
 }
 
