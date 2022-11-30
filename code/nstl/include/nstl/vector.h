@@ -404,6 +404,19 @@ T& nstl::vector<T>::operator[](size_t index)
 }
 
 template<typename T>
+bool nstl::vector<T>::operator==(vector const& rhs) const
+{
+    if (size() != rhs.size())
+        return false;
+
+    for (size_t i = 0; i < size(); i++)
+        if ((*this)[i] != rhs[i])
+            return false;
+
+    return true;
+}
+
+template<typename T>
 auto nstl::vector<T>::operator<=>(vector const& rhs) const
 {
     // TODO use lexicographical_compare_three_way
