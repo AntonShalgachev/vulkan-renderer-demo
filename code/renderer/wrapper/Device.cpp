@@ -6,11 +6,11 @@
 #include "QueueFamilyIndices.h"
 #include "Queue.h"
 
-#include <set>
-
 vko::Device::Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily const& graphics, vko::QueueFamily const& present, nstl::vector<const char*> const& extensions)
 {
-    std::set<QueueFamily const*> uniqueQueueFamilies = {&graphics, &present};
+    nstl::vector<QueueFamily const*> uniqueQueueFamilies = { &graphics };
+    if (&present != &graphics)
+        uniqueQueueFamilies.push_back(&present);
 
     // The device is created with 1 queue of each family
 
