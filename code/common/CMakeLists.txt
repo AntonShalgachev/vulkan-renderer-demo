@@ -4,8 +4,6 @@ set(ALL_FILES
     "glm.h"
     "glm.cpp"
     
-    "Hash.cpp"
-    "Hash.h"
     "Timer.cpp"
     "Timer.h"
     "Utils.cpp"

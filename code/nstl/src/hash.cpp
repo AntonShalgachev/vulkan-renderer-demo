@@ -1,6 +1,6 @@
 #include "nstl/hash.h"
 
-size_t nstl::computeStringHash(char const* bytes, size_t size)
+size_t nstl::hash_string(char const* bytes, size_t size)
 {
     // djb2 from http://www.cse.yorku.ca/~oz/hash.html
 
@@ -12,10 +12,15 @@ size_t nstl::computeStringHash(char const* bytes, size_t size)
     return hash;
 }
 
+void nstl::hash_combine(size_t& hash, size_t hash2)
+{
+    hash ^= hash2 + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+}
+
 #define DEFINE_POS_HASH(T) \
     size_t nstl::hash<T>::operator()(T const& value) \
     { \
-        return computeStringHash(reinterpret_cast<char const*>(&value), sizeof(value)); \
+        return hash_string(reinterpret_cast<char const*>(&value), sizeof(value)); \
     }
 
 DEFINE_POS_HASH(bool);
@@ -33,3 +38,5 @@ DEFINE_POS_HASH(unsigned long long);
 DEFINE_POS_HASH(float);
 DEFINE_POS_HASH(double);
 DEFINE_POS_HASH(long double);
+
+#undef DEFINE_POS_HASH

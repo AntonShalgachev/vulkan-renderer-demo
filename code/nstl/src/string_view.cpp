@@ -148,5 +148,5 @@ bool nstl::operator!=(string_view const& lhs, string_view const& rhs)
 
 size_t nstl::hash<nstl::string_view>::operator()(string_view const& value)
 {
-    return computeStringHash(value.data(), value.length());
+    return hash_string(value.data(), value.length());
 }

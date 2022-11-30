@@ -1,10 +1,9 @@
 #pragma once
 
-#include "Hash.h"
-
 #include "nstl/unordered_map.h"
 #include "nstl/string.h"
 #include "nstl/string_view.h"
+#include "nstl/hash.h"
 
 // TODO store Mesh::Metadata and DescriptorSetConfiguration instead
 struct ShaderConfiguration
@@ -27,12 +26,12 @@ namespace nstl
         std::size_t operator()(ShaderConfiguration const& rhs) const
         {
             std::size_t seed = 0;
-            vkc::hash::combine(seed, rhs.hasColor);
-            vkc::hash::combine(seed, rhs.hasTexCoord);
-            vkc::hash::combine(seed, rhs.hasNormal);
-            vkc::hash::combine(seed, rhs.hasTangent);
-            vkc::hash::combine(seed, rhs.hasTexture);
-            vkc::hash::combine(seed, rhs.hasNormalMap);
+            nstl::hash_combine(seed, rhs.hasColor);
+            nstl::hash_combine(seed, rhs.hasTexCoord);
+            nstl::hash_combine(seed, rhs.hasNormal);
+            nstl::hash_combine(seed, rhs.hasTangent);
+            nstl::hash_combine(seed, rhs.hasTexture);
+            nstl::hash_combine(seed, rhs.hasNormalMap);
             return seed;
         }
     };
