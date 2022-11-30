@@ -48,6 +48,8 @@ namespace nstl
         template<typename... Args>
         T& emplace_back(Args&&... args);
 
+        void erase(T* first, T* last);
+
         void erase_unsorted(T const& value);
         void erase_unsorted(T* it);
 
@@ -271,6 +273,16 @@ T& nstl::vector<T>::emplace_back(Args&&... args)
     {
         return m_buffer.constructNext<T>(nstl::forward<Args>(args)...);
     }
+}
+
+template<typename T>
+void nstl::vector<T>::erase(T* first, T* last)
+{
+    assert(last == end()); // TODO implement erase properly
+
+    size_t erasedCount = last - first;
+    assert(size() >= erasedCount);
+    resize(size() - erasedCount);
 }
 
 template<typename T>

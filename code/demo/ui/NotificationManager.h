@@ -5,8 +5,7 @@
 #include "ScopedDebugCommands.h"
 
 #include "nstl/string.h"
-
-#include <deque>
+#include "nstl/vector.h"
 
 namespace ui
 {
@@ -28,6 +27,6 @@ namespace ui
 
     private:
         ScopedDebugCommands m_commands{ services() };
-        std::deque<Notification> m_notifications;
+        nstl::vector<Notification> m_notifications;
     };
 }

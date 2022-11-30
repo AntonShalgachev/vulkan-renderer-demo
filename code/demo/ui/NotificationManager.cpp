@@ -17,8 +17,9 @@ void ui::NotificationManager::update(float dt)
     for (Notification& notification : m_notifications)
         notification.remainingTime -= dt;
 
-    while (!m_notifications.empty() && m_notifications.front().remainingTime <= 0.0f)
-        m_notifications.pop_front();
+    m_notifications.erase(std::remove_if(m_notifications.begin(), m_notifications.end(), [](Notification const& notification){
+        return notification.remainingTime <= 0.0f;
+    }), m_notifications.end());
 }
 
 void ui::NotificationManager::draw() const
