@@ -16,6 +16,7 @@
 
 #include "nstl/vector.h"
 #include "nstl/unordered_map.h"
+#include "nstl/optional.h"
 
 #include <memory>
 
@@ -172,8 +173,8 @@ private:
     nstl::vector<bool> m_keyState;
     vkr::GlfwWindow::Modifiers m_modifiers = vkr::GlfwWindow::Modifiers::None;
 
-    std::optional<ui::NotificationManager> m_notifications;
-    std::optional<ui::DebugConsoleWidget> m_debugConsole;
+    nstl::optional<ui::NotificationManager> m_notifications;
+    nstl::optional<ui::DebugConsoleWidget> m_debugConsole;
 
     bool m_drawImguiDemo = false;
     bool m_drawImguiDebugger = false;

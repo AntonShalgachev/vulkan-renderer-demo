@@ -44,7 +44,7 @@ namespace
         }
 
     private:
-        std::optional<nstl::string_view> m_self;
+        nstl::optional<nstl::string_view> m_self;
         nstl::string_view m_rest;
     };
 
