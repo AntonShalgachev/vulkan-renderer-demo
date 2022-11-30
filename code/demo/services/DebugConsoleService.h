@@ -98,7 +98,7 @@ namespace coil
             if (input.subvalues.size() != N)
                 return errors::createMismatchedSubvaluesError<glm::vec3>(input, N);
 
-            std::array<ElementType, N> values;
+            ElementType values[N];
             for (std::size_t i = 0; i < N; i++)
             {
                 auto maybeValue = TypeSerializer<ElementType>::fromString(input.subvalues[i]);
@@ -108,7 +108,7 @@ namespace coil
                 values[i] = *std::move(maybeValue);
             }
 
-            return glm::make_vec3(values.data());
+            return glm::make_vec3(values);
         }
 
         static coil::String toString(glm::vec3 const& value)

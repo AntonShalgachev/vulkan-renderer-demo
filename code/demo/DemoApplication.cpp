@@ -1,7 +1,6 @@
 #include "DemoApplication.h"
 
 #include <memory>
-#include <array>
 #include <vector>
 #include <sstream>
 #include <iostream>
