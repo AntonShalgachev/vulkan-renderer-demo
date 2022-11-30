@@ -549,7 +549,7 @@ vkgfx::Mesh const* vkgfx::ResourceManager::getMesh(MeshHandle handle) const
 vkgfx::DescriptorSetLayoutHandle vkgfx::ResourceManager::getOrCreateDescriptorSetLayout(DescriptorSetLayoutKey const& key)
 {
     if (auto it = m_descriptorSetLayoutHandles.find(key); it != m_descriptorSetLayoutHandles.end())
-        return it->second;
+        return it->value();
 
     return createDescriptorSetLayout(key);
 }
@@ -562,7 +562,7 @@ vko::DescriptorSetLayout const& vkgfx::ResourceManager::getDescriptorSetLayout(D
 vkgfx::PipelineLayoutHandle vkgfx::ResourceManager::getOrCreatePipelineLayout(PipelineLayoutKey const& key)
 {
     if (auto it = m_pipelineLayoutHandles.find(key); it != m_pipelineLayoutHandles.end())
-        return it->second;
+        return it->value();
 
     return createPipelineLayout(key);
 }
@@ -575,7 +575,7 @@ vko::PipelineLayout const& vkgfx::ResourceManager::getPipelineLayout(PipelineLay
 vkgfx::PipelineHandle vkgfx::ResourceManager::getOrCreatePipeline(PipelineKey const& key)
 {
     if (auto it = m_pipelineHandles.find(key); it != m_pipelineHandles.end())
-        return it->second;
+        return it->value();
 
     return createPipeline(key);
 }

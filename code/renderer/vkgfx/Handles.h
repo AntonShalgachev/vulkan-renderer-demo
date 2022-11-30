@@ -2,6 +2,33 @@
 
 #include "ResourceContainer.h"
 
+#include "nstl/hash.h"
+
+#define DEFINE_RESOURCE_HANDLE_HASH(T) template<> struct nstl::hash<T> { size_t operator()(T const& value) const { return nstl::hash<vkgfx::ResourceHandle>{}(static_cast<vkgfx::ResourceHandle>(value)); } }
+
+namespace vkgfx
+{
+    namespace utils
+    {
+        template<typename... Ts>
+        size_t hash(Ts const&... values)
+        {
+            size_t seed = 0;
+            (nstl::hash_combine(seed, values), ...);
+            return seed;
+        }
+    }
+}
+
+template<>
+struct nstl::hash<vkgfx::ResourceHandle>
+{
+    size_t operator()(vkgfx::ResourceHandle const& value) const
+    {
+        return vkgfx::utils::hash(value.index, value.reincarnation);
+    }
+};
+
 namespace vkgfx
 {
     struct OldResourceHandle
@@ -66,3 +93,7 @@ namespace vkgfx
         
     };
 }
+
+DEFINE_RESOURCE_HANDLE_HASH(vkgfx::ShaderModuleHandle);
+
+#undef DEFINE_RESOURCE_HANDLE_HASH

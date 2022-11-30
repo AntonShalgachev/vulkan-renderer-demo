@@ -1,12 +1,11 @@
 #pragma once
 
-#include <map>
+#include "ResourceContainer.h"
 
 #include "nstl/vector.h"
 #include "nstl/span.h"
 #include "nstl/string.h"
-
-#include "ResourceContainer.h"
+#include "nstl/unordered_map.h"
 
 namespace vko
 {
@@ -149,12 +148,12 @@ namespace vkgfx
         ResourceContainer<Mesh> m_meshes;
 
         nstl::vector<vko::DescriptorSetLayout> m_descriptorSetLayouts;
-        std::map<DescriptorSetLayoutKey, DescriptorSetLayoutHandle> m_descriptorSetLayoutHandles;
+        nstl::unordered_map<DescriptorSetLayoutKey, DescriptorSetLayoutHandle> m_descriptorSetLayoutHandles;
 
         nstl::vector<vko::PipelineLayout> m_pipelineLayouts;
-        std::map<PipelineLayoutKey, PipelineLayoutHandle> m_pipelineLayoutHandles;
+        nstl::unordered_map<PipelineLayoutKey, PipelineLayoutHandle> m_pipelineLayoutHandles;
 
         nstl::vector<vko::Pipeline> m_pipelines;
-        std::map<PipelineKey, PipelineHandle> m_pipelineHandles;
+        nstl::unordered_map<PipelineKey, PipelineHandle> m_pipelineHandles;
     };
 }
