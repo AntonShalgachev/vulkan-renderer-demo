@@ -4,43 +4,26 @@
 #include "ScopedDebugCommands.h"
 
 #include "nstl/vector.h"
-
-#include "argparse/argparse.hpp"
+#include "nstl/string.h"
+#include "nstl/unordered_map.h"
 
 class CommandLineService : public ServiceContainer
 {
 public:
     CommandLineService(Services& services);
 
-    template <typename... Targs>
-    argparse::Argument& add(Targs... args)
-    {
-        return m_parser.add_argument(std::move(args)...);
-    }
+    void add(int argc, char** argv);
+    void addLine(nstl::string_view line);
+    void add(nstl::string arg);
 
-    bool parse(int argc, char** argv);
-    bool parse(nstl::vector<nstl::string> const& arguments);
-    bool parseFile(char const* path);
+    bool parse();
 
     nstl::vector<nstl::string> const& getAll() const { return m_arguments; }
 
-    template <typename T = nstl::string>
-    T get(std::string_view arg) const
-    {
-        try
-        {
-            return m_parser.get<T>(arg);
-        }
-        catch (std::exception const& ex)
-        {
-            // TODO
-        }
-
-        return T{};
-    }
+    nstl::span<nstl::string_view const> get(nstl::string_view name) const;
 
 private:
     ScopedDebugCommands m_commands{ services() };
-    argparse::ArgumentParser m_parser;
     nstl::vector<nstl::string> m_arguments;
+    nstl::unordered_map<nstl::string_view, nstl::vector<nstl::string_view>> m_argMap;
 };

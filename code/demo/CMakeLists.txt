@@ -58,7 +58,6 @@ target_link_libraries(${PROJECT_NAME}
     magic_enum
     coil::coil
     rapidfuzz::rapidfuzz
-    argparse::argparse
     spdlog::spdlog
     yyjson
     dds-ktx::dds-ktx

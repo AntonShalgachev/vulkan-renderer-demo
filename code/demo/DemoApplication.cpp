@@ -445,10 +445,11 @@ DemoApplication::~DemoApplication()
 
 void DemoApplication::registerCommandLineOptions(CommandLineService& commandLine)
 {
-    commandLine.add("--execute")
-        .default_value(std::vector<std::string>{})
-        .append()
-        .help("execute a given command");
+    // TODO implement
+//     commandLine.add("--execute")
+//         .default_value(std::vector<std::string>{})
+//         .append()
+//         .help("execute a given command");
 }
 
 bool DemoApplication::init(int argc, char** argv)
@@ -461,14 +462,17 @@ bool DemoApplication::init(int argc, char** argv)
 //     if (!std::filesystem::exists("data"))
 //         spdlog::warn("Current directory doesn't contain 'data', probably wrong directory");
 
-    if (!commandLine.parse(argc, argv))
+    commandLine.add(argc, argv);
+
+    {
+        nstl::string contents = vkc::utils::readTextFile("data/cmdline.ini");
+        for (nstl::string_view line : vkc::utils::split(contents))
+            commandLine.addLine(line);
+    }
+
+    if (!commandLine.parse())
     {
         spdlog::critical("Failed to parse command line arguments");
-        return false;
-    }
-    if (!commandLine.parseFile("data/cmdline.ini"))
-    {
-        spdlog::critical("Failed to parse cmdline.ini");
         return false;
     }
 
@@ -488,9 +492,9 @@ bool DemoApplication::init(int argc, char** argv)
 
 void DemoApplication::run()
 {
-    auto lines = m_services.commandLine().get<std::vector<std::string>>("--execute");
+    auto const& lines = m_services.commandLine().get("--execute");
     for (auto const& line : lines)
-        m_services.debugConsole().execute(nstl::string_view{ line.data(), line.size() }); // TODO fix
+        m_services.debugConsole().execute(line);
 
     m_frameTimer.start();
     m_window->startEventLoop([this]() { drawFrame(); });

@@ -139,6 +139,16 @@ namespace nstl
             return { m_nodes.end() };
         }
 
+        size_t size()
+        {
+            return m_nodes.size();
+        }
+
+        bool empty()
+        {
+            return m_nodes.empty();
+        }
+
         iterator insert_or_assign(K key, V value)
         {
             if (iterator it = find(key); it != end())

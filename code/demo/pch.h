@@ -17,7 +17,6 @@
 #include "services/DebugDrawService.h"
 #include "ScopedDebugCommands.h"
 
-#include "argparse/argparse.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
 #include "coil/Coil.h"

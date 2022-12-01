@@ -2,6 +2,7 @@
 
 #include "nstl/vector.h"
 #include "nstl/string_view.h"
+#include "nstl/string.h"
 #include "nstl/algorithm.h"
 
 namespace vkc
@@ -27,5 +28,8 @@ namespace vkc
 
         // TODO implement asset manager instead
         nstl::vector<unsigned char> readFile(char const* filename);
+        nstl::string readTextFile(char const* filename);
+
+        nstl::vector<nstl::string_view> split(nstl::string_view str);
     }
 }

@@ -3,7 +3,7 @@
 
 #include "spdlog/spdlog.h"
 
-#include <fstream>
+// TODO rework this class
 
 namespace
 {
@@ -54,55 +54,47 @@ CommandLineService::CommandLineService(Services& services) : ServiceContainer(se
     };
 }
 
-bool CommandLineService::parse(int argc, char** argv)
+void CommandLineService::add(int argc, char** argv)
 {
-    nstl::vector<nstl::string> arguments;
-    arguments.reserve(argc);
+    m_arguments.reserve(m_arguments.size() + argc);
     for (size_t i = 0; i < argc; i++)
-        arguments.emplace_back(argv[i]);
-    return parse(arguments);
+        add(argv[i]);
 }
 
-bool CommandLineService::parse(nstl::vector<nstl::string> const& arguments)
+void CommandLineService::addLine(nstl::string_view line)
 {
-    try
-    {
-        // TODO fix this ugliness
-        std::vector<std::string> stdArguments;
-        for (nstl::string const& arg : arguments)
-            stdArguments.emplace_back(arg.c_str());
-        m_parser.parse_args(stdArguments);
-
-        if (!arguments.empty())
-        {
-            for (auto it = std::next(arguments.begin()); it != arguments.end(); it++)
-                m_arguments.push_back(*it);
-        }
-
-        return true;
-    }
-    catch (const std::runtime_error& err)
-    {
-        std::cerr << err.what() << std::endl;
-    }
-
-    return false;
+    append(line, m_arguments);
 }
 
-bool CommandLineService::parseFile(char const* path)
+void CommandLineService::add(nstl::string arg)
 {
-    std::ifstream file{ path };
+    assert(m_argMap.empty()); // adding arguments might invalidate existing ones
+    m_arguments.push_back(nstl::move(arg));
+}
 
-    if (!file)
-        return false;
-
-    nstl::vector<nstl::string> arguments;
-    arguments.push_back(""); // fake program name
-    for (std::string line; std::getline(file, line); )
+bool CommandLineService::parse()
+{
+    assert(!m_arguments.empty());
+    assert(m_arguments.size() % 2 == 1);
+    for (size_t i = 1; i < m_arguments.size(); i += 2)
     {
-        // TODO fix this ugliness
-        append(nstl::string_view{ line.data(), line.size() }, arguments);
+        nstl::string_view key = m_arguments[i];
+        nstl::string_view value = m_arguments[i + 1];
+
+        auto it = m_argMap.find(key);
+        if (it != m_argMap.end())
+            it->value().push_back(value);
+        else
+            m_argMap.insert_or_assign(key, { value });
     }
 
-    return parse(arguments);
+    return true;
+}
+
+nstl::span<nstl::string_view const> CommandLineService::get(nstl::string_view name) const
+{
+    auto it = m_argMap.find(name);
+    if (it == m_argMap.end())
+        return {};
+    return it->value();
 }
