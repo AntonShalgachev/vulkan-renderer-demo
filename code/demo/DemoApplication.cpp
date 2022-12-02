@@ -1,6 +1,5 @@
 #include "DemoApplication.h"
 
-#include <memory>
 #include <vector>
 #include <sstream>
 #include <iostream>
@@ -347,8 +346,8 @@ namespace
 
 DemoApplication::DemoApplication()
 {
-    m_services.setDebugConsole(std::make_unique<DebugConsoleService>(m_services));
-    m_services.setCommandLine(std::make_unique<CommandLineService>(m_services));
+    m_services.setDebugConsole(nstl::make_unique<DebugConsoleService>(m_services));
+    m_services.setCommandLine(nstl::make_unique<CommandLineService>(m_services));
 
     m_commands["imgui.demo"] = ::toggle(&m_drawImguiDemo);
     m_commands["imgui.debugger"] = ::toggle(&m_drawImguiDebugger);
@@ -376,7 +375,7 @@ DemoApplication::DemoApplication()
 
     m_keyState.resize(1 << 8 * sizeof(char), false);
 
-    m_window = std::make_unique<vkr::GlfwWindow>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
+    m_window = nstl::make_unique<vkr::GlfwWindow>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
     m_window->addKeyCallback([this](vkr::GlfwWindow::Action action, vkr::GlfwWindow::Key key, char c, vkr::GlfwWindow::Modifiers modifiers) { onKey(action, key, c, modifiers); });
     m_window->addMouseMoveCallback([this](glm::vec2 const& delta) { onMouseMove(delta); });
 
@@ -393,9 +392,9 @@ DemoApplication::DemoApplication()
         assert(m.level != vko::DebugMessage::Level::Error);
     };
 
-    m_renderer = std::make_unique<vkgfx::Renderer>("Vulkan demo with new API", VALIDATION_ENABLED, *m_window, messageCallback);
+    m_renderer = nstl::make_unique<vkgfx::Renderer>("Vulkan demo with new API", VALIDATION_ENABLED, *m_window, messageCallback);
 
-    m_services.setDebugDraw(std::make_unique<DebugDrawService>(*m_renderer));
+    m_services.setDebugDraw(nstl::make_unique<DebugDrawService>(*m_renderer));
 
     loadImgui();
 
@@ -504,8 +503,8 @@ void DemoApplication::createResources()
 {
     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
 
-    m_defaultVertexShader = std::make_unique<ShaderPackage>("data/shaders/packaged/shader.vert");
-    m_defaultFragmentShader = std::make_unique<ShaderPackage>("data/shaders/packaged/shader.frag");
+    m_defaultVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shader.vert");
+    m_defaultFragmentShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shader.frag");
 
     m_defaultSampler = resourceManager.createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
 
@@ -540,7 +539,7 @@ void DemoApplication::loadImgui()
 
     io.Fonts->AddFontDefault();
 
-    m_imGuiDrawer = std::make_unique<ImGuiDrawer>(*m_renderer);
+    m_imGuiDrawer = nstl::make_unique<ImGuiDrawer>(*m_renderer);
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForVulkan(m_window->getHandle(), true);
@@ -795,7 +794,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 {
     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
 
-    m_gltfResources = std::make_unique<GltfResources>();
+    m_gltfResources = nstl::make_unique<GltfResources>();
 
     // TODO make more generic?
     size_t totalMeshes = 0;

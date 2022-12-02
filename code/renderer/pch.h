@@ -13,6 +13,7 @@
 #include "nstl/optional.h"
 #include "nstl/string.h"
 #include "nstl/function.h"
+#include "nstl/unique_ptr.h"
 
 #include <assert.h>
 #include <stddef.h>

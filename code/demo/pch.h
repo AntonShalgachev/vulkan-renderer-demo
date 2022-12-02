@@ -31,10 +31,10 @@
 #include "nstl/span.h"
 #include "nstl/algorithm.h"
 #include "nstl/function.h"
+#include "nstl/unique_ptr.h"
 
 #include <assert.h>
 
-#include <memory>
 #include <sstream>
 
 #include <compare>

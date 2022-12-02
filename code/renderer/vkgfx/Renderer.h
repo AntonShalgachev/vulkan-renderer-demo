@@ -6,8 +6,7 @@
 
 #include "nstl/vector.h"
 #include "nstl/function.h"
-
-#include <memory>
+#include "nstl/unique_ptr.h"
 
 namespace vko
 {
@@ -69,18 +68,18 @@ namespace vkgfx
 
         // TODO don't use unique_ptrs
 
-        std::unique_ptr<vkr::Application> m_application; // TODO don't use
-        std::unique_ptr<ResourceManager> m_resourceManager;
+        nstl::unique_ptr<vkr::Application> m_application; // TODO don't use
+        nstl::unique_ptr<ResourceManager> m_resourceManager;
 
-        std::unique_ptr<RendererData> m_data;
+        nstl::unique_ptr<RendererData> m_data;
 
-        std::unique_ptr<vko::Swapchain> m_swapchain;
-        nstl::vector<std::unique_ptr<vko::Framebuffer>> m_swapchainFramebuffers;
-        nstl::vector<std::unique_ptr<vko::ImageView>> m_swapchainImageViews;
-        std::unique_ptr<vko::RenderPass> m_renderPass;
-        std::unique_ptr<vko::Image> m_depthImage;
-        std::unique_ptr<vko::DeviceMemory> m_depthImageMemory;
-        std::unique_ptr<vko::ImageView> m_depthImageView;
+        nstl::unique_ptr<vko::Swapchain> m_swapchain;
+        nstl::vector<nstl::unique_ptr<vko::Framebuffer>> m_swapchainFramebuffers;
+        nstl::vector<nstl::unique_ptr<vko::ImageView>> m_swapchainImageViews;
+        nstl::unique_ptr<vko::RenderPass> m_renderPass;
+        nstl::unique_ptr<vko::Image> m_depthImage;
+        nstl::unique_ptr<vko::DeviceMemory> m_depthImageMemory;
+        nstl::unique_ptr<vko::ImageView> m_depthImageView;
         std::size_t m_width = 0;
         std::size_t m_height = 0;
 

@@ -234,7 +234,7 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
 {
     m_window.addResizeCallback([this](int, int) { onWindowResized(); });
 
-    m_application = std::make_unique<vkr::Application>(name, enableValidationLayers, false, window, nstl::move(onDebugMessage));
+    m_application = nstl::make_unique<vkr::Application>(name, enableValidationLayers, false, window, nstl::move(onDebugMessage));
 
     vko::Instance const& instance = m_application->getInstance();
     vko::Device const& device = m_application->getDevice();
@@ -247,7 +247,7 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
 
     vkr::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
 
-    m_data = std::make_unique<RendererData>(RendererData{
+    m_data = nstl::make_unique<RendererData>(RendererData{
         .frameDescriptorPool{device},
     });
 
@@ -255,7 +255,7 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
     m_data->m_depthFormat = findDepthFormat(physicalDevice);
 
     {
-        m_renderPass = std::make_unique<vko::RenderPass>(device, m_data->m_surfaceFormat.format, m_data->m_depthFormat);
+        m_renderPass = nstl::make_unique<vko::RenderPass>(device, m_data->m_surfaceFormat.format, m_data->m_depthFormat);
         instance.setDebugName(device.getHandle(), m_renderPass->getHandle(), "Main");
     }
 
@@ -289,7 +289,7 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
         m_frameResources.push_back(std::move(resources));
     }
 
-    m_resourceManager = std::make_unique<ResourceManager>(device, physicalDevice, m_application->getShortLivedCommandPool(), device.getGraphicsQueue(), *m_renderPass, FRAME_RESOURCE_COUNT);
+    m_resourceManager = nstl::make_unique<ResourceManager>(device, physicalDevice, m_application->getShortLivedCommandPool(), device.getGraphicsQueue(), *m_renderPass, FRAME_RESOURCE_COUNT);
 
     createCameraResources();
 
@@ -713,7 +713,7 @@ void vkgfx::Renderer::createSwapchain()
 
     config.preTransform = parameters.getCapabilities().currentTransform;
 
-    m_swapchain = std::make_unique<vko::Swapchain>(device, m_application->getSurface(), indices.getGraphicsQueueFamily(), indices.getPresentQueueFamily(), std::move(config));
+    m_swapchain = nstl::make_unique<vko::Swapchain>(device, m_application->getSurface(), indices.getGraphicsQueueFamily(), indices.getPresentQueueFamily(), std::move(config));
     instance.setDebugName(device.getHandle(), m_swapchain->getHandle(), "Main");
 
     // TODO move swapchain images to the ResourceManager?
@@ -724,7 +724,7 @@ void vkgfx::Renderer::createSwapchain()
     for (std::size_t i = 0; i < images.size(); i++)
     {
         vko::Image const& image = images[i];
-        m_swapchainImageViews.push_back(std::make_unique<vko::ImageView>(device, image, VK_IMAGE_ASPECT_COLOR_BIT));
+        m_swapchainImageViews.push_back(nstl::make_unique<vko::ImageView>(device, image, VK_IMAGE_ASPECT_COLOR_BIT));
 
         // TODO remove this ugly .c_str()
         instance.setDebugName(device.getHandle(), image.getHandle(), std::format("Swapchain #{}", i).c_str());
@@ -733,11 +733,11 @@ void vkgfx::Renderer::createSwapchain()
 
     VkExtent2D swapchainExtent = m_swapchain->getExtent();
 
-    m_depthImage = std::make_unique<vko::Image>(m_application->getDevice(), swapchainExtent.width, swapchainExtent.height, m_data->m_depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
-    m_depthImageMemory = std::make_unique<vko::DeviceMemory>(m_application->getDevice(), m_application->getPhysicalDevice(), m_depthImage->getMemoryRequirements(), VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    m_depthImage = nstl::make_unique<vko::Image>(m_application->getDevice(), swapchainExtent.width, swapchainExtent.height, m_data->m_depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    m_depthImageMemory = nstl::make_unique<vko::DeviceMemory>(m_application->getDevice(), m_application->getPhysicalDevice(), m_depthImage->getMemoryRequirements(), VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     m_depthImage->bindMemory(*m_depthImageMemory);
 
-    m_depthImageView = std::make_unique<vko::ImageView>(device, *m_depthImage, VK_IMAGE_ASPECT_DEPTH_BIT);
+    m_depthImageView = nstl::make_unique<vko::ImageView>(device, *m_depthImage, VK_IMAGE_ASPECT_DEPTH_BIT);
 
     instance.setDebugName(device.getHandle(), m_depthImage->getHandle(), "Main depth");
     instance.setDebugName(device.getHandle(), m_depthImageView->getHandle(), "Main depth");
@@ -745,8 +745,8 @@ void vkgfx::Renderer::createSwapchain()
     m_swapchainFramebuffers.reserve(m_swapchainImageViews.size());
     for (std::size_t i = 0; i < m_swapchainImageViews.size(); i++)
     {
-        std::unique_ptr<vko::ImageView> const& colorImageView = m_swapchainImageViews[i];
-        m_swapchainFramebuffers.push_back(std::make_unique<vko::Framebuffer>(device, *colorImageView, *m_depthImageView, *m_renderPass, m_swapchain->getExtent()));
+        nstl::unique_ptr<vko::ImageView> const& colorImageView = m_swapchainImageViews[i];
+        m_swapchainFramebuffers.push_back(nstl::make_unique<vko::Framebuffer>(device, *colorImageView, *m_depthImageView, *m_renderPass, m_swapchain->getExtent()));
 
         // TODO remove this ugly .c_str()
         instance.setDebugName(device.getHandle(), m_swapchainFramebuffers.back()->getHandle(), std::format("Main #{}", i).c_str());

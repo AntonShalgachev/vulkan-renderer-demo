@@ -17,8 +17,7 @@
 #include "nstl/vector.h"
 #include "nstl/unordered_map.h"
 #include "nstl/optional.h"
-
-#include <memory>
+#include "nstl/unique_ptr.h"
 
 class CommandLineService;
 class ImGuiDrawer;
@@ -142,17 +141,17 @@ private:
 
     ScopedDebugCommands m_commands{ m_services };
 
-    std::unique_ptr<vkr::GlfwWindow> m_window;
+    nstl::unique_ptr<vkr::GlfwWindow> m_window;
 
-    std::unique_ptr<ImGuiDrawer> m_imGuiDrawer;
+    nstl::unique_ptr<ImGuiDrawer> m_imGuiDrawer;
 
-    std::unique_ptr<GltfResources> m_gltfResources;
+    nstl::unique_ptr<GltfResources> m_gltfResources;
 
     DemoScene m_demoScene;
 
     // Resources
-    std::unique_ptr<ShaderPackage> m_defaultVertexShader;
-    std::unique_ptr<ShaderPackage> m_defaultFragmentShader;
+    nstl::unique_ptr<ShaderPackage> m_defaultVertexShader;
+    nstl::unique_ptr<ShaderPackage> m_defaultFragmentShader;
 
     vkgfx::SamplerHandle m_defaultSampler;
     vkgfx::ImageHandle m_defaultAlbedoImage;
@@ -187,7 +186,7 @@ private:
 
     nstl::string m_currentScenePath = "";
 
-    std::unique_ptr<vkgfx::Renderer> m_renderer;
+    nstl::unique_ptr<vkgfx::Renderer> m_renderer;
 
     vkgfx::TestCameraTransform m_cameraTransform;
     vkgfx::TestCameraParameters m_cameraParameters;

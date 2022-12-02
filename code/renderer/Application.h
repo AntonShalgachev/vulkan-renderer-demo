@@ -1,8 +1,7 @@
 #pragma once
 
 #include "nstl/function.h"
-
-#include <memory>
+#include "nstl/unique_ptr.h"
 
 #include <vulkan/vulkan.h> // TODO remove
 
@@ -40,7 +39,7 @@ namespace vkr
 
         void onSurfaceChanged();
     private:
-        std::unique_ptr<ApplicationImpl> m_impl;
-        std::unique_ptr<vko::CommandPool> m_shortLivedCommandPool;
+        nstl::unique_ptr<ApplicationImpl> m_impl;
+        nstl::unique_ptr<vko::CommandPool> m_shortLivedCommandPool;
     };
 }

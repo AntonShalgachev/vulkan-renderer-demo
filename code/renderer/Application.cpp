@@ -108,10 +108,10 @@ namespace vkr
 
 vkr::Application::Application(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage)
 {
-    m_impl = std::make_unique<ApplicationImpl>(name, enableValidation, enableApiDump, window, nstl::move(onDebugMessage));
+    m_impl = nstl::make_unique<ApplicationImpl>(name, enableValidation, enableApiDump, window, nstl::move(onDebugMessage));
 
     // TODO remove
-    m_shortLivedCommandPool = std::make_unique<vko::CommandPool>(getDevice(), getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily());
+    m_shortLivedCommandPool = nstl::make_unique<vko::CommandPool>(getDevice(), getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily());
 }
 
 vkr::Application::~Application() = default;

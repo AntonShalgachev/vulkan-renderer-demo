@@ -1,36 +1,34 @@
 #pragma once
 
-#include "assert.h"
-#include "utility.h"
+#include "nstl/assert.h"
+#include "nstl/utility.h"
 
 namespace nstl
 {
     template<typename T>
-    class UniquePtr
+    class unique_ptr
     {
     public:
-        explicit UniquePtr(T* ptr = nullptr) : m_ptr(ptr) {}
-        UniquePtr(UniquePtr&& rhs)
+        unique_ptr() = default;
+        explicit unique_ptr(T* ptr) : m_ptr(ptr) {}
+        unique_ptr(nullptr_t) {}
+        unique_ptr(unique_ptr&& rhs)
         {
             nstl::exchange(m_ptr, rhs.m_ptr);
         }
-        ~UniquePtr()
+        ~unique_ptr()
         {
             if (m_ptr)
                 delete m_ptr;
         }
 
-        UniquePtr& operator=(UniquePtr&& rhs)
+        unique_ptr& operator=(unique_ptr&& rhs)
         {
             nstl::exchange(m_ptr, rhs.m_ptr);
             return *this;
         }
 
-        T* get()
-        {
-            return m_ptr;
-        }
-        T const* get() const
+        T* get() const
         {
             return m_ptr;
         }
@@ -40,32 +38,22 @@ namespace nstl
             return m_ptr != nullptr;
         }
 
-        T const& operator*() const
-        {
-            NSTL_ASSERT(m_ptr);
-            return *m_ptr;
-        }
-        T& operator*()
+        T& operator*() const
         {
             NSTL_ASSERT(m_ptr);
             return *m_ptr;
         }
 
-        T const* operator->() const
-        {
-            NSTL_ASSERT(m_ptr);
-            return m_ptr;
-        }
-        T* operator->()
+        T* operator->() const
         {
             NSTL_ASSERT(m_ptr);
             return m_ptr;
         }
 
         template<typename T2>
-        operator UniquePtr<T2>()&&
+        operator unique_ptr<T2>()&&
         {
-            UniquePtr<T2> result{ m_ptr };
+            unique_ptr<T2> result{ m_ptr };
             m_ptr = nullptr;
             return result;
         }
@@ -75,8 +63,8 @@ namespace nstl
     };
 
     template<typename T, typename... Args>
-    UniquePtr<T> makeUnique(Args&&... args)
+    unique_ptr<T> make_unique(Args&&... args)
     {
-        return UniquePtr<T>(new T(nstl::forward<Args>(args)...));
+        return unique_ptr<T>(new T(nstl::forward<Args>(args)...));
     }
 }
