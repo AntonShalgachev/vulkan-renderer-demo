@@ -230,11 +230,11 @@ namespace vkgfx
     };
 }
 
-vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Window& window, std::function<void(vko::DebugMessage)> onDebugMessage) : m_window(window)
+vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Window& window, nstl::function<void(vko::DebugMessage)> onDebugMessage) : m_window(window)
 {
     m_window.addResizeCallback([this](int, int) { onWindowResized(); });
 
-    m_application = std::make_unique<vkr::Application>(name, enableValidationLayers, false, window, std::move(onDebugMessage));
+    m_application = std::make_unique<vkr::Application>(name, enableValidationLayers, false, window, nstl::move(onDebugMessage));
 
     vko::Instance const& instance = m_application->getInstance();
     vko::Device const& device = m_application->getDevice();

@@ -26,7 +26,7 @@ namespace
         result.reserve(devices.size());
 
         for (vko::PhysicalDevice& device : devices)
-            result.emplace_back(std::move(device), surface);
+            result.emplace_back(nstl::move(device), surface);
 
         return result;
     }
@@ -77,8 +77,8 @@ namespace vkr
     class ApplicationImpl
     {
     public:
-        ApplicationImpl(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, std::function<void(vko::DebugMessage)> onDebugMessage)
-            : m_instance(name, createInstanceExtensions(enableValidation, window), enableValidation, enableApiDump, enableValidation ? std::move(onDebugMessage) : nullptr)
+        ApplicationImpl(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage)
+            : m_instance(name, createInstanceExtensions(enableValidation, window), enableValidation, enableApiDump, enableValidation ? nstl::move(onDebugMessage) : nullptr)
             , m_surface(window.createSurface(m_instance))
             , m_physicalDevices(createPhysicalDeviceSurfaceContainer(m_instance.findPhysicalDevices(), m_surface))
             , m_currentPhysicalDeviceIndex(findSuitablePhysicalDeviceIndex(m_physicalDevices))
@@ -106,9 +106,9 @@ namespace vkr
     };
 }
 
-vkr::Application::Application(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, std::function<void(vko::DebugMessage)> onDebugMessage)
+vkr::Application::Application(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage)
 {
-    m_impl = std::make_unique<ApplicationImpl>(name, enableValidation, enableApiDump, window, std::move(onDebugMessage));
+    m_impl = std::make_unique<ApplicationImpl>(name, enableValidation, enableApiDump, window, nstl::move(onDebugMessage));
 
     // TODO remove
     m_shortLivedCommandPool = std::make_unique<vko::CommandPool>(getDevice(), getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily());

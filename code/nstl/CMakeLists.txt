@@ -22,6 +22,7 @@ add_library(nstl # custom template library
     "include/nstl/array.h"
     "include/nstl/lexicographical_compare.h"
     "include/nstl/vector_hash.h"
+    "include/nstl/function.h"
 
     "src/string.cpp"
     "src/string_view.cpp"

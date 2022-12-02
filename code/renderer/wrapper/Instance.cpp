@@ -52,13 +52,13 @@ namespace
         if (callbackData->pMessage)
             message.text = callbackData->pMessage;
 
-        self->dispatchDebugMessage(std::move(message));
+        self->dispatchDebugMessage(nstl::move(message));
 
         return VK_FALSE;
     }
 }
 
-vko::Instance::Instance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump, std::function<void(DebugMessage)> onDebugMessage) : m_onDebugMessage(std::move(onDebugMessage))
+vko::Instance::Instance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump, nstl::function<void(DebugMessage)> onDebugMessage) : m_onDebugMessage(nstl::move(onDebugMessage))
 {
     m_availableLayers = getAvailableLayers();
     m_availableLayerNames.reserve(m_availableLayers.size());
@@ -174,5 +174,5 @@ nstl::vector<vko::PhysicalDevice> vko::Instance::findPhysicalDevices()
 
 void vko::Instance::dispatchDebugMessage(DebugMessage message)
 {
-    m_onDebugMessage(std::move(message));
+    m_onDebugMessage(nstl::move(message));
 }

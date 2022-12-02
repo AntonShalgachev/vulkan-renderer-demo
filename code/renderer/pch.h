@@ -12,9 +12,7 @@
 #include "nstl/span.h"
 #include "nstl/optional.h"
 #include "nstl/string.h"
+#include "nstl/function.h"
 
 #include <assert.h>
-
-#include <cstddef>
-#include <compare>
-#include <functional>
+#include <stddef.h>

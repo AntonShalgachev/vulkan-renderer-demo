@@ -30,10 +30,10 @@
 #include "nstl/unordered_map.h"
 #include "nstl/span.h"
 #include "nstl/algorithm.h"
+#include "nstl/function.h"
 
 #include <assert.h>
 
-#include <functional>
 #include <memory>
 #include <sstream>
 

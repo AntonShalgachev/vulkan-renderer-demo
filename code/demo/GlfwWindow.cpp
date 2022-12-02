@@ -74,19 +74,19 @@ vko::Surface vkr::GlfwWindow::createSurface(vko::Instance const& instance) const
     return vko::Surface{ handle, instance, *this };
 }
 
-void vkr::GlfwWindow::addResizeCallback(std::function<void(int, int)> callback)
+void vkr::GlfwWindow::addResizeCallback(nstl::function<void(int, int)> callback)
 {
-    m_resizeCallbacks.emplace_back(std::move(callback));
+    m_resizeCallbacks.emplace_back(nstl::move(callback));
 }
 
-void vkr::GlfwWindow::addKeyCallback(std::function<void(Action, Key, char, Modifiers)> callback)
+void vkr::GlfwWindow::addKeyCallback(nstl::function<void(Action, Key, char, Modifiers)> callback)
 {
-    m_keyCallbacks.emplace_back(std::move(callback));
+    m_keyCallbacks.emplace_back(nstl::move(callback));
 }
 
-void vkr::GlfwWindow::addMouseMoveCallback(std::function<void(glm::vec2)> callback)
+void vkr::GlfwWindow::addMouseMoveCallback(nstl::function<void(glm::vec2)> callback)
 {
-    m_mouseMoveCallbacks.emplace_back(std::move(callback));
+    m_mouseMoveCallbacks.emplace_back(nstl::move(callback));
 }
 
 void vkr::GlfwWindow::waitUntilInForeground() const

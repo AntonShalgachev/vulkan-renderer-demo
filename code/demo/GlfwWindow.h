@@ -3,10 +3,9 @@
 #include "wrapper/Window.h"
 
 #include "nstl/vector.h"
+#include "nstl/function.h"
 
 #include "glm.h"
-
-#include <functional>
 
 struct GLFWwindow;
 
@@ -67,9 +66,9 @@ namespace vkr
             }
         }
 
-        void addResizeCallback(std::function<void(int, int)> callback) override;
-        void addKeyCallback(std::function<void(Action, Key, char, Modifiers)> callback);
-		void addMouseMoveCallback(std::function<void(glm::vec2)> callback);
+        void addResizeCallback(nstl::function<void(int, int)> callback) override;
+        void addKeyCallback(nstl::function<void(Action, Key, char, Modifiers)> callback);
+		void addMouseMoveCallback(nstl::function<void(glm::vec2)> callback);
 
         void waitUntilInForeground() const override;
 
@@ -104,9 +103,9 @@ namespace vkr
 
         nstl::vector<char const*> m_requiredInstanceExtensions;
 
-        nstl::vector<std::function<void(int, int)>> m_resizeCallbacks;
-        nstl::vector<std::function<void(Action, Key, char, Modifiers)>> m_keyCallbacks;
-        nstl::vector<std::function<void(glm::vec2)>> m_mouseMoveCallbacks;
+        nstl::vector<nstl::function<void(int, int)>> m_resizeCallbacks;
+        nstl::vector<nstl::function<void(Action, Key, char, Modifiers)>> m_keyCallbacks;
+        nstl::vector<nstl::function<void(glm::vec2)>> m_mouseMoveCallbacks;
     };
 }
 

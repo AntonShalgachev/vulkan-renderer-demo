@@ -1,8 +1,7 @@
 #pragma once
 
 #include "nstl/vector.h"
-
-#include <functional>
+#include "nstl/function.h"
 
 namespace vko
 {
@@ -18,6 +17,6 @@ namespace vko
         virtual nstl::vector<char const*> const& getRequiredInstanceExtensions() const = 0;
 
         virtual void waitUntilInForeground() const = 0;
-        virtual void addResizeCallback(std::function<void(int, int)> callback) = 0;
+        virtual void addResizeCallback(nstl::function<void(int, int)> callback) = 0;
     };
 }

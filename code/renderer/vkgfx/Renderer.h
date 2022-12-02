@@ -5,9 +5,9 @@
 #include "PipelineKey.h"
 
 #include "nstl/vector.h"
+#include "nstl/function.h"
 
 #include <memory>
-#include <functional>
 
 namespace vko
 {
@@ -36,7 +36,7 @@ namespace vkgfx
     class Renderer
     {
     public:
-        Renderer(char const* name, bool enableValidationLayers, vko::Window& window, std::function<void(vko::DebugMessage)> onDebugMessage = {});
+        Renderer(char const* name, bool enableValidationLayers, vko::Window& window, nstl::function<void(vko::DebugMessage)> onDebugMessage = {});
         ~Renderer();
 
         ResourceManager& getResourceManager() const { return *m_resourceManager; }

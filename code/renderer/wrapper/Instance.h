@@ -4,10 +4,9 @@
 
 #include "nstl/vector.h"
 #include "nstl/string.h"
+#include "nstl/function.h"
 
 #include <vulkan/vulkan.h>
-
-#include <functional>
 
 namespace vko
 {
@@ -17,7 +16,7 @@ namespace vko
     class Instance
     {
     public:
-    	Instance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump, std::function<void(DebugMessage)> onDebugMessage);
+    	Instance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump, nstl::function<void(DebugMessage)> onDebugMessage);
     	~Instance();
 
         Instance(Instance const&) = default;
@@ -60,7 +59,7 @@ namespace vko
     	UniqueHandle<VkInstance> m_handle;
 
         UniqueHandle<VkDebugUtilsMessengerEXT> m_debugMessenger;
-        std::function<void(DebugMessage)> m_onDebugMessage;
+        nstl::function<void(DebugMessage)> m_onDebugMessage;
 
         nstl::vector<VkLayerProperties> m_availableLayers;
         nstl::vector<char const*> m_availableLayerNames;
