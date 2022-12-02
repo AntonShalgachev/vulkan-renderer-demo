@@ -3,6 +3,7 @@
 #include "nstl/vector.h"
 #include "nstl/optional.h"
 #include "nstl/hash.h"
+#include "nstl/utility.h"
 
 #include <cstdint>
 #include <assert.h>
@@ -195,11 +196,11 @@ namespace vkgfx
                 m_objects[i1] = std::move(o);
             }
 
-            std::swap(m_headers[headerIndex1].objectIndex, m_headers[headerIndex2].objectIndex);
-            std::swap(m_headerIndexMap[i1], m_headerIndexMap[i2]);
+            nstl::exchange(m_headers[headerIndex1].objectIndex, m_headers[headerIndex2].objectIndex);
+            nstl::exchange(m_headerIndexMap[i1], m_headerIndexMap[i2]);
 
 #ifdef VALIDATE_RESOURCE_CONTAINER
-            std::swap(m_objectHandles[i1], m_objectHandles[i2]);
+            nstl::exchange(m_objectHandles[i1], m_objectHandles[i2]);
 #endif
 
 #ifdef VALIDATE_RESOURCE_CONTAINER
