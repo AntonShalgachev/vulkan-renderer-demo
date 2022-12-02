@@ -4,6 +4,7 @@
 #include "Swapchain.h"
 #include "ImageView.h"
 #include "Device.h"
+#include "Assert.h"
 
 #include "nstl/array.h"
 

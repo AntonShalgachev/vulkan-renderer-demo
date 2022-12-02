@@ -2,6 +2,8 @@
 
 #include "nstl/assert.h"
 
+#include <stddef.h>
+
 namespace nstl
 {
     template<typename Signature>
@@ -17,12 +19,12 @@ namespace nstl
         function(Func func)
         {
             m_func = new Func(nstl::move(func));
-            m_callFunc = static_cast<CallFuncPtr>([](void* func, Args... args) -> R {
+            m_callFunc = [](void* func, Args... args) -> R {
                 return (*static_cast<Func*>(func))(nstl::move(args)...);
-            });
-            m_destroyFunc = static_cast<DestroyFuncPtr>([](void* func) {
+            };
+            m_destroyFunc = [](void* func) {
                 delete static_cast<Func*>(func);
-            });
+            };
         }
 
         function(function const& rhs) = delete;
@@ -34,7 +36,7 @@ namespace nstl
         ~function()
         {
             if (m_func && m_destroyFunc)
-                static_cast<DestroyFuncPtr>(m_destroyFunc)(m_func);
+                m_destroyFunc(m_func);
         }
 
         function& operator=(function const& rhs) = delete;
@@ -48,7 +50,7 @@ namespace nstl
         {
             NSTL_ASSERT(m_func);
             NSTL_ASSERT(m_callFunc);
-            return static_cast<CallFuncPtr>(m_callFunc)(m_func, nstl::move(args)...);
+            return m_callFunc(m_func, nstl::move(args)...);
         }
 
         operator bool() const
@@ -68,7 +70,7 @@ namespace nstl
         using DestroyFuncPtr = void(*)(void* func);
 
         void* m_func = nullptr;
-        void* m_callFunc = nullptr;
-        void* m_destroyFunc = nullptr;
+        CallFuncPtr m_callFunc = nullptr;
+        DestroyFuncPtr m_destroyFunc = nullptr;
     };
 }

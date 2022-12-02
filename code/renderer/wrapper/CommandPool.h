@@ -1,7 +1,10 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
 #include "UniqueHandle.h"
+
+#include <vulkan/vulkan.h>
+
+#include <stddef.h>
 
 namespace vko
 {
@@ -15,7 +18,7 @@ namespace vko
     	explicit CommandPool(Device const& device, QueueFamily const& queueFamily);
         ~CommandPool();
 
-        vko::CommandBuffers allocate(std::size_t size) const;
+        vko::CommandBuffers allocate(size_t size) const;
 
         CommandPool(CommandPool const&) = default;
         CommandPool(CommandPool&&) = default;

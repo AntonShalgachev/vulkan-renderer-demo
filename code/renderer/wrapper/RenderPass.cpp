@@ -1,6 +1,7 @@
 #include "RenderPass.h"
 
 #include "Device.h"
+#include "Assert.h"
 
 #include "nstl/array.h"
 

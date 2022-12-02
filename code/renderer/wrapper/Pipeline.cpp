@@ -4,6 +4,7 @@
 #include "PipelineLayout.h"
 #include "RenderPass.h"
 #include "Device.h"
+#include "Assert.h"
 
 namespace
 {

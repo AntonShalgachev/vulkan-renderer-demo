@@ -1,5 +1,7 @@
 #include "Sampler.h"
+
 #include "Device.h"
+#include "Assert.h"
 
 namespace
 {

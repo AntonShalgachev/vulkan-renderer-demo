@@ -3,6 +3,8 @@
 #include "nstl/assert.h"
 #include "nstl/utility.h"
 
+#include <stddef.h>
+
 namespace nstl
 {
     template<typename T>

@@ -27,7 +27,7 @@ vko::CommandPool::~CommandPool()
     vkDestroyCommandPool(m_device.getHandle(), m_handle, nullptr);
 }
 
-vko::CommandBuffers vko::CommandPool::allocate(std::size_t size) const
+vko::CommandBuffers vko::CommandPool::allocate(size_t size) const
 {
     return CommandBuffers{ m_device, *this, size };
 }

@@ -2,6 +2,7 @@
 
 #include "Image.h"
 #include "Device.h"
+#include "Assert.h"
 
 namespace vko
 {
