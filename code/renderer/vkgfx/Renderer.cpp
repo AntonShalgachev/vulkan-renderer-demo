@@ -40,10 +40,9 @@
 
 #include "nstl/array.h"
 #include "nstl/algorithm.h"
+#include "nstl/sprintf.h"
 
 #include <vulkan/vulkan.h>
-
-#include <format>
 
 namespace
 {
@@ -70,7 +69,8 @@ namespace
                 return format;
         }
 
-        throw std::runtime_error("failed to find supported format!");
+        assert(false);
+        return VkFormat{};
     }
 
     VkFormat findDepthFormat(vko::PhysicalDevice const& physicalDevice)
@@ -127,7 +127,8 @@ namespace
             return VK_INDEX_TYPE_UINT32;
         }
 
-        throw std::invalid_argument("type");
+        assert(false);
+        return VK_INDEX_TYPE_UINT32;
     }
 
     struct DescriptorSetUpdateConfig
@@ -278,13 +279,13 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
         };
 
         // TODO remove this ugly .c_str()
-        instance.setDebugName(device.getHandle(), resources.imageAvailableSemaphore.getHandle(), std::format("Image available #{}", i).c_str());
-        instance.setDebugName(device.getHandle(), resources.renderFinishedSemaphore.getHandle(), std::format("Render finished #{}", i).c_str());
-        instance.setDebugName(device.getHandle(), resources.inFlightFence.getHandle(), std::format("In-flight fence #{}", i).c_str());
-        instance.setDebugName(device.getHandle(), resources.commandPool.getHandle(), std::format("Main #{}", i).c_str());
+        instance.setDebugName(device.getHandle(), resources.imageAvailableSemaphore.getHandle(), nstl::sprintf("Image available %d", i).c_str());
+        instance.setDebugName(device.getHandle(), resources.renderFinishedSemaphore.getHandle(), nstl::sprintf("Render finished %d", i).c_str());
+        instance.setDebugName(device.getHandle(), resources.inFlightFence.getHandle(), nstl::sprintf("In-flight fence %d", i).c_str());
+        instance.setDebugName(device.getHandle(), resources.commandPool.getHandle(), nstl::sprintf("Main %d", i).c_str());
 
         for (std::size_t index = 0; index < resources.commandBuffers.getSize(); index++)
-            instance.setDebugName(device.getHandle(), resources.commandBuffers.getHandle(index), std::format("Buffer{} #{}", index, i).c_str());
+            instance.setDebugName(device.getHandle(), resources.commandBuffers.getHandle(index), nstl::sprintf("Buffer{} %d", index, i).c_str());
 
         m_frameResources.push_back(std::move(resources));
     }
@@ -368,7 +369,7 @@ void vkgfx::Renderer::draw()
     }
 
     if (aquireImageResult != VK_SUCCESS && aquireImageResult != VK_SUBOPTIMAL_KHR)
-        throw std::runtime_error("failed to acquire swapchain image!");
+        assert(false);
 
     frameResources.inFlightFence.reset();
 
@@ -394,7 +395,7 @@ void vkgfx::Renderer::draw()
 
     VkResult presentResult = vkQueuePresentKHR(device.getPresentQueue().getHandle(), &presentInfo); // TODO move to the object
     if (presentResult != VK_SUCCESS && presentResult != VK_ERROR_OUT_OF_DATE_KHR)
-        throw std::runtime_error("vkQueuePresentKHR failed");
+        assert(false);
 
     if (aquireImageResult == VK_SUBOPTIMAL_KHR)
     {
@@ -727,8 +728,8 @@ void vkgfx::Renderer::createSwapchain()
         m_swapchainImageViews.push_back(nstl::make_unique<vko::ImageView>(device, image, VK_IMAGE_ASPECT_COLOR_BIT));
 
         // TODO remove this ugly .c_str()
-        instance.setDebugName(device.getHandle(), image.getHandle(), std::format("Swapchain #{}", i).c_str());
-        instance.setDebugName(device.getHandle(), m_swapchainImageViews.back()->getHandle(), std::format("Swapchain #{}", i).c_str());
+        instance.setDebugName(device.getHandle(), image.getHandle(), nstl::sprintf("Swapchain %d", i).c_str());
+        instance.setDebugName(device.getHandle(), m_swapchainImageViews.back()->getHandle(), nstl::sprintf("Swapchain %d", i).c_str());
     }
 
     VkExtent2D swapchainExtent = m_swapchain->getExtent();
@@ -749,7 +750,7 @@ void vkgfx::Renderer::createSwapchain()
         m_swapchainFramebuffers.push_back(nstl::make_unique<vko::Framebuffer>(device, *colorImageView, *m_depthImageView, *m_renderPass, m_swapchain->getExtent()));
 
         // TODO remove this ugly .c_str()
-        instance.setDebugName(device.getHandle(), m_swapchainFramebuffers.back()->getHandle(), std::format("Main #{}", i).c_str());
+        instance.setDebugName(device.getHandle(), m_swapchainFramebuffers.back()->getHandle(), nstl::sprintf("Main %d", i).c_str());
     }
 
     m_width = extent.width;

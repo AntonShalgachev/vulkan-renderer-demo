@@ -23,12 +23,14 @@ add_library(nstl # custom template library
     "include/nstl/lexicographical_compare.h"
     "include/nstl/vector_hash.h"
     "include/nstl/function.h"
+    "include/nstl/sprintf.h"
 
     "src/string.cpp"
     "src/string_view.cpp"
     "src/new.cpp"
     "src/buffer.cpp"
     "src/hash.cpp"
+    "src/sprintf.cpp"
 
     "nstl.natvis"
 )
