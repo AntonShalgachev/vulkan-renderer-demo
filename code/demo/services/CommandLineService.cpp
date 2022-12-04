@@ -1,8 +1,6 @@
 #include "CommandLineService.h"
 #include "DebugConsoleService.h"
 
-#include "spdlog/spdlog.h"
-
 // TODO rework this class
 
 namespace

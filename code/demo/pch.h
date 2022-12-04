@@ -17,8 +17,6 @@
 #include "services/DebugDrawService.h"
 #include "ScopedDebugCommands.h"
 
-#include "spdlog/spdlog.h"
-#include "spdlog/fmt/ostr.h"
 #include "coil/Coil.h"
 #include "magic_enum.hpp"
 
