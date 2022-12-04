@@ -12,6 +12,7 @@ set(BUILD_STATIC_LIBS ON CACHE INTERNAL "")
 add_subdirectory(imgui)
 add_subdirectory(dds-ktx)
 add_subdirectory(cgltf)
+add_subdirectory(stb)
 
 FetchContent_Declare(
     glfw
@@ -29,19 +30,6 @@ FetchContent_Declare(
     URL https://github.com/g-truc/glm/archive/refs/tags/0.9.9.8.tar.gz # 0.9.9.8
 )
 FetchDependency(glm)
-
-# TODO remove this dependency and manually add stb_image
-FetchContent_Declare(
-    tinygltf
-    URL https://github.com/syoyo/tinygltf/archive/3d4150419e8ad40dab89d6f4079382377b492310.tar.gz # Merge pull request #362 from hschwane/master
-)
-set(TINYGLTF_BUILD_LOADER_EXAMPLE OFF CACHE INTERNAL "")
-set(TINYGLTF_BUILD_GL_EXAMPLES OFF CACHE INTERNAL "")
-set(TINYGLTF_BUILD_VALIDATOR_EXAMPLE OFF CACHE INTERNAL "")
-set(TINYGLTF_BUILD_BUILDER_EXAMPLE OFF CACHE INTERNAL "")
-set(TINYGLTF_HEADER_ONLY OFF CACHE INTERNAL "")
-set(TINYGLTF_INSTALL OFF CACHE INTERNAL "")
-FetchDependency(tinygltf)
 
 FetchContent_Declare(
     magic_enum

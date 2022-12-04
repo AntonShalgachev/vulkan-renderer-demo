@@ -54,7 +54,7 @@ target_link_libraries(${PROJECT_NAME}
     glfw
     imgui
     common
-    tinygltf
+    stb
     magic_enum
     coil::coil
     rapidfuzz::rapidfuzz
