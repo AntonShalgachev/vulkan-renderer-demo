@@ -186,12 +186,13 @@ void ui::DebugConsoleWidget::drawSuggestions()
 
 void ui::DebugConsoleWidget::drawCommandHelp(nstl::string_view name)
 {
-    std::stringstream ss;
-    services().debugConsole().getCommandHelp(ss, name);
+    nstl::string_builder builder;
+    services().debugConsole().getCommandHelp(builder, name);
+    nstl::string commandHelp = builder.build();
 
 	ImGui::PushStyleColor(ImGuiCol_Text, commandHelpColor);
-	for (std::string line; std::getline(ss, line); )
-        ImGui::Text("  %s", line.c_str());
+    for (nstl::string_view line : vkc::utils::split(commandHelp))
+        ImGui::Text("  %.*s", line.slength(), line.data());
 	ImGui::PopStyleColor();
 }
 

@@ -561,19 +561,20 @@ void DemoApplication::unloadImgui()
 
 void DemoApplication::onKey(vkr::GlfwWindow::Action action, vkr::GlfwWindow::Key key, char c, vkr::GlfwWindow::Modifiers mods)
 {
-    std::stringstream ss;
-    auto separator = "";
-
-    for (vkr::GlfwWindow::Modifiers value : magic_enum::enum_values<vkr::GlfwWindow::Modifiers>())
-    {
-        if (mods & value)
-        {
-            ss << separator << magic_enum::enum_name(value);
-            separator = " | ";
-        }
-    }
-
-    std::cout << magic_enum::enum_name(action) << ' ' << magic_enum::enum_name(key) << ' ' << ss.str() << ": " << "'" << c << "'" << std::endl;
+    // TODO fix or remove
+//     std::stringstream ss;
+//     auto separator = "";
+// 
+//     for (vkr::GlfwWindow::Modifiers value : magic_enum::enum_values<vkr::GlfwWindow::Modifiers>())
+//     {
+//         if (mods & value)
+//         {
+//             ss << separator << magic_enum::enum_name(value);
+//             separator = " | ";
+//         }
+//     }
+// 
+//     std::cout << magic_enum::enum_name(action) << ' ' << magic_enum::enum_name(key) << ' ' << ss.str() << ": " << "'" << c << "'" << std::endl;
 
     std::size_t index = static_cast<std::size_t>(c);
     m_keyState[index] = action == vkr::GlfwWindow::Action::Press;

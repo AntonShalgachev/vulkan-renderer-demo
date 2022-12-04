@@ -16,6 +16,11 @@
 
 #include "glm.h"
 
+namespace nstl
+{
+    class string_builder;
+}
+
 // TODO move to other file
 namespace utils
 {
@@ -23,15 +28,19 @@ namespace utils
     std::string flatten(StringVectorLike const& strings, std::string_view decorator = "", std::string_view separator = ", ")
     {
         std::string_view currentSeparator = "";
-        std::stringstream ss;
+
+        std::string result;
 
         for (auto const& value : strings)
         {
-            ss << currentSeparator << decorator << value << decorator;
+            result += currentSeparator;
+            result += decorator;
+            result += value;
+            result += decorator;
             currentSeparator = separator;
         }
 
-        return ss.str();
+        return result;
     }
 
     // TODO move?
@@ -218,7 +227,7 @@ public:
     nstl::optional<nstl::string_view> autoComplete(nstl::string_view input) const;
     void clear();
 
-	void getCommandHelp(std::ostream& os, nstl::string_view name) const;
+	void getCommandHelp(nstl::string_builder& builder, nstl::string_view name) const;
 
     nstl::vector<Line> const& lines() { return m_lines; }
     nstl::vector<nstl::string> const& history() { return m_inputHistory; }

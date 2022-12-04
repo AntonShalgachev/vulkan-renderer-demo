@@ -15,6 +15,7 @@ set(ALL_FILES
     "ScopedDebugCommands.cpp"
     "CommandProxy.h"
     "CommandMetadata.h"
+    "CommandMetadata.cpp"
     "ShaderPackage.h"
     "ShaderPackage.cpp"
     

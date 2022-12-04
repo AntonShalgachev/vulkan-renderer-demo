@@ -158,9 +158,9 @@ DebugConsoleService::DebugConsoleService(Services& services) : ServiceContainer(
 
     auto commandHelp = [this](coil::Context context, coil::StringView command)
     {
-        std::stringstream ss;
-        getCommandHelp(ss, utils::coilToNstlStringView(command));
-        context.logf("%s", ss.str().c_str());// TODO fix this hack
+        nstl::string_builder builder;
+        getCommandHelp(builder, utils::coilToNstlStringView(command));
+        context.logf("%s", builder.build().c_str());
     };
 
     commands["help"].description("Print global/command help").arguments({ {}, {"command_name"} }) = coil::overloaded(std::move(globalHelp), std::move(commandHelp));
@@ -182,10 +182,8 @@ void DebugConsoleService::execute(nstl::string_view command)
         for (coil::String const& error : result.errors)
             addLine("  " + utils::coilToNstlString(error), Line::Type::Error);
 
-        // TODO not the best way to split the string
-        std::stringstream ss{ coil::toStdString(result.output) };
-        for (std::string line; std::getline(ss, line); )
-            addLine("  " + nstl::string{ line.c_str() }, Line::Type::Output); // TODO fix this hack
+        for (nstl::string_view line : vkc::utils::split(utils::coilToNstlStringView(result.output)))
+            addLine("  " + nstl::string{ line }, Line::Type::Output);
 
         if (result.returnValue)
             addLine("  -> '" + utils::coilToNstlString(*result.returnValue) + "'", Line::Type::ReturnValue);
@@ -193,10 +191,11 @@ void DebugConsoleService::execute(nstl::string_view command)
         if (!result.errors.empty())
         {
             addLine("  See command help:", Line::Type::CommandHelp);
-            std::stringstream ss;
-            getCommandHelp(ss, utils::coilToNstlStringView(result.input.name));
-            for (std::string line; std::getline(ss, line); )
-                addLine("    " + nstl::string{ line.c_str() }, Line::Type::CommandHelp);; // TODO fix this hack
+            nstl::string_builder builder;
+            getCommandHelp(builder, utils::coilToNstlStringView(result.input.name));
+            nstl::string commandHelp = builder.build();
+            for (nstl::string_view line : vkc::utils::split(commandHelp))
+                addLine("    " + nstl::string{ line }, Line::Type::CommandHelp);
         }
     }
 }
@@ -275,35 +274,29 @@ void DebugConsoleService::clear()
     m_lines.clear();
 }
 
-void DebugConsoleService::getCommandHelp(std::ostream& os, nstl::string_view name) const
+void DebugConsoleService::getCommandHelp(nstl::string_builder& builder, nstl::string_view name) const
 {
-    // TODO fix this hack
-    auto toStdStringView = [](nstl::string_view sv)
+    auto const* functors = m_bindings.get(utils::nstlToCoilStringView(name));
+    if (!functors)
     {
-        return std::string_view{ sv.data(), sv.size() };
-    };
+        builder.append("Command '").append(name).append("' doesn't exist\n");
+        return;
+    }
 
-	auto const* functors = m_bindings.get(utils::nstlToCoilStringView(name));
-	if (!functors)
-	{
-		os << "Command '" << toStdStringView(name) << "' doesn't exist" << std::endl;
-		return;
-	}
+    CommandMetadata const* metadata = getMetadata(name);
 
-	CommandMetadata const* metadata = getMetadata(name);
+    if (!metadata)
+        return;
 
-	if (!metadata)
-		return;
+    if (!metadata->type.empty())
+        builder.append("Type: ").append(metadata->type).append('\n');
 
-	if (!metadata->type.empty())
-		os << "Type: " << toStdStringView(metadata->type) << std::endl;
+    if (!metadata->description.empty())
+        builder.append("Description: ").append(metadata->description).append('\n');
 
-	if (!metadata->description.empty())
-		os << "Description: " << toStdStringView(metadata->description) << std::endl;
-
-	os << "Usage:" << std::endl;
-	for (FunctorMetadata const& functor : metadata->functors)
-		os << "  " << toStdStringView(functor.buildRepresentation(name)) << std::endl;
+    builder.append("Usage:\n");
+    for (FunctorMetadata const& functor : metadata->functors)
+        builder.append("  ").append(functor.buildRepresentation(name)).append('\n');
 }
 
 void DebugConsoleService::add(nstl::string_view name, CommandMetadata metadata, coil::AnyFunctor anyFunctor)
