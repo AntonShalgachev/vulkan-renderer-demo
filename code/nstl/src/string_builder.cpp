@@ -57,7 +57,7 @@ nstl::string nstl::string_builder::build() const
     string result;
     result.reserve(totalSize);
 
-    size_t resultCapacity = result.capacity();
+    [[maybe_unused]] size_t resultCapacity = result.capacity();
 
     for (string const& chunk : m_chunks)
         result += chunk;
