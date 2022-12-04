@@ -19,6 +19,7 @@ namespace nstl
 
         size_t length() const;
         size_t size() const;
+        size_t capacity() const;
         int slength() const;
         bool empty() const;
         void reserve(size_t capacity);
