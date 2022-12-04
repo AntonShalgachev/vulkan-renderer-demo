@@ -1,14 +1,10 @@
 #pragma once
-#include <chrono>
 
 namespace vkc
 {
     class Timer
     {
     public:
-        using ClockT = std::chrono::high_resolution_clock;
-        using TimePointT = std::chrono::time_point<ClockT>;
-
     	Timer();
 
         void start();
@@ -17,6 +13,7 @@ namespace vkc
         float getTime() const;
 
     private:
-        TimePointT m_startTime;
+        size_t m_countsPerSecond = 0;
+        size_t m_startTime = 0;
     };
 }

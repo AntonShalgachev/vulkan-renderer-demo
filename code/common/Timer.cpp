@@ -1,33 +1,56 @@
 #include "Timer.h"
 
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+#include <assert.h>
+
 namespace
 {
-    inline float getDeltaTime(vkc::Timer::TimePointT startTime, vkc::Timer::TimePointT stopTime)
+    size_t now()
     {
-        return std::chrono::duration<float, std::chrono::seconds::period>(stopTime - startTime).count();
+        LARGE_INTEGER counter;
+
+        if (!QueryPerformanceCounter(&counter))
+            assert(false);
+
+        return counter.QuadPart;
+    }
+
+    float getDeltaTime(size_t startTime, size_t stopTime, size_t frequency)
+    {
+        return 1.0f * (stopTime - startTime) / frequency;
     }
 }
 
 vkc::Timer::Timer()
 {
+    {
+        LARGE_INTEGER frequency;
+        if (!QueryPerformanceFrequency(&frequency))
+            assert(false);
+
+        m_countsPerSecond = frequency.QuadPart;
+    }
+
     start();
 }
 
 void vkc::Timer::start()
 {
-    m_startTime = ClockT::now();
+    m_startTime = now();
 }
 
 float vkc::Timer::loop()
 {
-    TimePointT loopTime = ClockT::now();
-    float dt = getDeltaTime(m_startTime, loopTime);
+    size_t loopTime = now();
+    float dt = getDeltaTime(m_startTime, loopTime, m_countsPerSecond);
     m_startTime = loopTime;
     return dt;
 }
 
 float vkc::Timer::getTime() const
 {
-    TimePointT currentTime = ClockT::now();
-    return getDeltaTime(m_startTime, currentTime);
+    size_t currentTime = now();
+    return getDeltaTime(m_startTime, currentTime, m_countsPerSecond);
 }
