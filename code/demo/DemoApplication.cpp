@@ -439,6 +439,11 @@ DemoApplication::~DemoApplication()
     m_notifications = {};
     m_commands.clear();
 
+    // TODO remove forced services destruction order
+    m_services.setDebugDraw(nullptr);
+    m_services.setCommandLine(nullptr);
+    m_services.setDebugConsole(nullptr);
+
     m_services = Services{};
 }
 
