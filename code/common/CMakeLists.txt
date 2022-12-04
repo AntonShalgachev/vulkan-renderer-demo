@@ -2,7 +2,6 @@ set(PROJECT_NAME common)
 
 set(ALL_FILES
     "glm.h"
-    "glm.cpp"
     
     "Timer.cpp"
     "Timer.h"
