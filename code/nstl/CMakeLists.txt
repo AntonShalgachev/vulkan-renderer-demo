@@ -1,6 +1,6 @@
 set(NSTL_ENABLE_ASSERTS OFF CACHE BOOL "Configure NSTL to enable asserts")
 
-add_library(nstl # custom template library
+add_library(nstl # non-standard template library
     "include/nstl/algorithm.h"
     "include/nstl/assert.h"
     "include/nstl/buffer.h"
@@ -24,6 +24,7 @@ add_library(nstl # custom template library
     "include/nstl/vector_hash.h"
     "include/nstl/function.h"
     "include/nstl/sprintf.h"
+    "include/nstl/string_builder.h"
 
     "src/string.cpp"
     "src/string_view.cpp"
@@ -31,6 +32,7 @@ add_library(nstl # custom template library
     "src/buffer.cpp"
     "src/hash.cpp"
     "src/sprintf.cpp"
+    "src/string_builder.cpp"
 
     "nstl.natvis"
 )
