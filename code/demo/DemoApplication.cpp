@@ -40,6 +40,9 @@
 #include "services/CommandLineService.h"
 #include "services/DebugDrawService.h"
 
+#include "demo/console/GlmSerializer.h"
+#include "demo/console/EnumSerializer.h"
+
 #include "common/Utils.h"
 
 #include "nstl/array.h"

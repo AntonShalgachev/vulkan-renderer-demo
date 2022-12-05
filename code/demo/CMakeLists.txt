@@ -21,6 +21,10 @@ set(ALL_FILES
     
     "GlfwWindow.cpp"
     "GlfwWindow.h"
+
+    "console/GlmSerializer.h"
+    "console/GlmSerializer.cpp"
+    "console/EnumSerializer.h"
     
     "services/DebugConsoleService.h"
     "services/DebugConsoleService.cpp"

@@ -2,6 +2,8 @@
 #include "imgui.h"
 #include "services/DebugConsoleService.h"
 
+#include <algorithm> // TODO remove. Now used only for remove_if
+
 namespace
 {
     float defaultDuration = 5.0f;

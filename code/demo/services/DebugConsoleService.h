@@ -10,11 +10,6 @@
 #include "nstl/vector.h"
 
 #include "coil/Coil.h"
-#include "coil/StdLibCompat.h"
-
-#include "magic_enum.hpp"
-
-#include "glm.h"
 
 namespace nstl
 {
@@ -24,25 +19,6 @@ namespace nstl
 // TODO move to other file
 namespace utils
 {
-    template<typename StringVectorLike>
-    std::string flatten(StringVectorLike const& strings, std::string_view decorator = "", std::string_view separator = ", ")
-    {
-        std::string_view currentSeparator = "";
-
-        std::string result;
-
-        for (auto const& value : strings)
-        {
-            result += currentSeparator;
-            result += decorator;
-            result += value;
-            result += decorator;
-            currentSeparator = separator;
-        }
-
-        return result;
-    }
-
     // TODO move?
     inline nstl::string coilToNstlString(coil::StringView str)
     {
@@ -68,75 +44,6 @@ namespace utils
 // TODO move to some other file
 namespace coil
 {
-    template<typename E>
-    struct TypeSerializer<E, std::enable_if_t<std::is_enum_v<E>>>
-    {
-        static Expected<E, std::string> fromString(Value const& input)
-        {
-            if (input.subvalues.size() != 1)
-                return errors::createMismatchedSubvaluesError<E>(input, 1);
-
-            auto value = input.subvalues[0];
-
-            auto pred = [](unsigned char a, unsigned char b) { return std::tolower(a) == std::tolower(b); };
-            std::optional<E> optionalValue = magic_enum::enum_cast<E>(value, std::move(pred));
-
-            if (optionalValue.has_value())
-                return optionalValue.value();
-
-            std::string names = ::utils::flatten(magic_enum::enum_names<E>(), "'");
-
-            return errors::createGenericError<E>(input, coil::sprintf("Possible values are [%s]", names.c_str()));
-        }
-
-        static std::string toString(E const& value)
-        {
-            return magic_enum::enum_name(value);
-        }
-	};
-
-    // TODO make it templated
-    template<>
-    struct TypeSerializer<glm::vec3>
-    {
-        static std::size_t const N = 3;
-        using ElementType = float;
-
-        static Expected<glm::vec3, coil::String> fromString(Value const& input)
-        {
-            if (input.subvalues.size() != N)
-                return errors::createMismatchedSubvaluesError<glm::vec3>(input, N);
-
-            ElementType values[N];
-            for (std::size_t i = 0; i < N; i++)
-            {
-                auto maybeValue = TypeSerializer<ElementType>::fromString(input.subvalues[i]);
-                if (!maybeValue)
-                    return errors::createGenericError<glm::vec3>(input, maybeValue.error());
-
-                values[i] = *std::move(maybeValue);
-            }
-
-            return glm::make_vec3(values);
-        }
-
-        static coil::String toString(glm::vec3 const& value)
-        {
-            coil::String result = "(";
-            coil::StringView separator = "";
-
-            for (std::size_t i = 0; i < N; i++)
-            {
-                result += separator;
-                result += coil::toString(value[i]);
-                separator = ", ";
-            }
-
-            result += ")";
-            return result;
-        }
-    };
-
     template<typename T, typename>
     struct TypeName
     {
@@ -145,21 +52,6 @@ namespace coil
             return typeid(T).name();
         }
     };
-
-    template<typename E>
-    struct TypeName<E, std::enable_if_t<std::is_enum_v<E>>>
-    {
-        static coil::StringView name()
-        {
-            std::string_view typeName = magic_enum::enum_type_name<E>();
-            auto it = typeName.rfind("::");
-            if (it != std::string_view::npos)
-                typeName = typeName.substr(it + 2);
-            return coil::StringView{ typeName.data(), typeName.size() };
-        }
-    };
-
-	COIL_CREATE_TYPE_NAME(glm::vec3, "vec3");
 }
 
 // TODO move out of coil namespace?
