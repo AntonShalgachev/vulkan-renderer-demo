@@ -1,8 +1,11 @@
 #include "DebugConsoleService.h"
 
+#include "common/Utils.h"
+
 #include "rapidfuzz/fuzz.hpp"
 
 #include "nstl/algorithm.h"
+#include "nstl/string_builder.h"
 
 namespace
 {

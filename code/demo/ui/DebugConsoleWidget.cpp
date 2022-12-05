@@ -2,11 +2,12 @@
 
 #include "services/DebugConsoleService.h"
 
+#include "common/Utils.h"
+
 #include "imgui.h"
 
 #include "nstl/algorithm.h"
-
-#include <sstream>
+#include "nstl/string_builder.h"
 
 namespace
 {
