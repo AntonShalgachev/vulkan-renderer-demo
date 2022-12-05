@@ -278,10 +278,10 @@ T& nstl::vector<T>::emplace_back(Args&&... args)
 template<typename T>
 void nstl::vector<T>::erase(T* first, T* last)
 {
-    assert(last == end()); // TODO implement erase properly
+    NSTL_ASSERT(last == end()); // TODO implement erase properly
 
     size_t erasedCount = last - first;
-    assert(size() >= erasedCount);
+    NSTL_ASSERT(size() >= erasedCount);
     resize(size() - erasedCount);
 }
 
