@@ -1,6 +1,5 @@
 #pragma once
 
-#include "glm.h"
 #include "vkgfx/Renderer.h"
 #include "vkgfx/ResourceManager.h"
 #include "vkgfx/Handles.h"
@@ -18,7 +17,6 @@
 #include "ScopedDebugCommands.h"
 
 #include "coil/Coil.h"
-#include "magic_enum.hpp"
 
 #include "nstl/vector.h"
 #include "nstl/optional.h"
