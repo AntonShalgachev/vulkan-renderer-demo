@@ -5,7 +5,7 @@
 #include "nstl/vector.h"
 #include "nstl/function.h"
 
-#include "glm.h"
+#include "glm.h" // TODO remove this header
 
 struct GLFWwindow;
 

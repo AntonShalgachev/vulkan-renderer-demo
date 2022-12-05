@@ -6,11 +6,15 @@
 #include "vkgfx/Mesh.h"
 #include "vkgfx/PipelineKey.h"
 
+#include "vkgfx/TestObject.h"
+
 #include "ShaderPackage.h"
 
 #include "wrapper/ShaderModule.h" // TODO remove, used only for enum
 
 #include "common/Utils.h"
+
+#include "common/glm.h"
 
 #include "nstl/array.h"
 #include "nstl/vector.h"

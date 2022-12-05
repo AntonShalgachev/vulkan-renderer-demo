@@ -3,15 +3,15 @@
 #include "ServiceContainer.h"
 
 #include "vkgfx/Handles.h"
-#include "vkgfx/TestObject.h"
-
-#include "glm.h"
 
 #include "nstl/vector.h"
+
+#include "common/glm-fwd.h"
 
 namespace vkgfx
 {
     class Renderer;
+    struct TestObject;
 }
 
 class DebugDrawService
