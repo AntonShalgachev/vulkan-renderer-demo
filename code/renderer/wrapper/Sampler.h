@@ -7,18 +7,8 @@ namespace vko
 {
     class Device;
 
-    enum class SamplerFilterMode
-    {
-        Nearest,
-        Linear,
-    };
-
-    enum class SamplerWrapMode
-    {
-        Repeat,
-        Mirror,
-        ClampToEdge,
-    };
+    enum class SamplerFilterMode;
+    enum class SamplerWrapMode;
 
     class Sampler
     {

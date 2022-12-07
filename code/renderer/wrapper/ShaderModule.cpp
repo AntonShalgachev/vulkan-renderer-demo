@@ -2,6 +2,7 @@
 
 #include "Assert.h"
 #include "Device.h"
+#include "ShaderModuleProperties.h"
 
 #include "nstl/vector.h"
 #include "nstl/span.h"

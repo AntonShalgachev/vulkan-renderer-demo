@@ -19,9 +19,9 @@
 #include "backends/imgui_impl_glfw.h"
 #pragma warning(pop)
 
-#include "wrapper/Sampler.h" // TODO remove
+#include "wrapper/SamplerProperties.h"
 #include "wrapper/DebugMessage.h"
-#include "wrapper/ShaderModule.h" // TODO remove, used only for enum
+#include "wrapper/ShaderModuleProperties.h"
 #include "ImGuiDrawer.h"
 
 #include "ShaderPackage.h"

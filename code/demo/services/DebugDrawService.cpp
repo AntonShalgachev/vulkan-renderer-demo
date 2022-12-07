@@ -10,7 +10,7 @@
 
 #include "ShaderPackage.h"
 
-#include "wrapper/ShaderModule.h" // TODO remove, used only for enum
+#include "wrapper/ShaderModuleProperties.h"
 
 #include "common/Utils.h"
 

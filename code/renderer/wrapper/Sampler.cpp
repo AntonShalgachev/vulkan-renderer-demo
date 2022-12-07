@@ -2,6 +2,7 @@
 
 #include "Device.h"
 #include "Assert.h"
+#include "SamplerProperties.h"
 
 namespace
 {

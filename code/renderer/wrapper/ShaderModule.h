@@ -11,12 +11,7 @@ namespace vko
 {
     class Device;
 
-    enum class ShaderModuleType
-    {
-        Vertex,
-        Geometry,
-        Fragment,
-    };
+    enum class ShaderModuleType;
 
     class ShaderModule
     {
