@@ -2,8 +2,6 @@
 
 #include "Assert.h"
 #include "PhysicalDevice.h"
-#include "PhysicalDeviceSurfaceContainer.h"
-#include "QueueFamilyIndices.h"
 #include "Queue.h"
 
 vko::Device::Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily const& graphics, vko::QueueFamily const& present, nstl::vector<const char*> const& extensions)
