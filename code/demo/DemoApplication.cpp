@@ -1,11 +1,5 @@
 #include "DemoApplication.h"
 
-#include <vector>
-#include <sstream>
-#include <iostream>
-// #include <filesystem>
-#include <thread>
-
 #include "stb_image.h"
 #include "glm.h"
 #include "magic_enum.hpp"
