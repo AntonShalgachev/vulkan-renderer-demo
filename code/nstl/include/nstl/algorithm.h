@@ -26,6 +26,28 @@ namespace nstl
         return last;
     }
 
+    template <typename InputIt, typename T>
+    InputIt remove(InputIt first, InputIt last, const T& value)
+    {
+        first = nstl::find(first, last, value);
+        if (first != last)
+            for (InputIt i = first; ++i != last; )
+                if (!(*i == value))
+                    *first++ = nstl::move(*i);
+        return first;
+    }
+
+    template <typename InputIt, typename Pred>
+    InputIt remove_if(InputIt first, InputIt last, Pred const& p)
+    {
+        first = nstl::find_if(first, last, p);
+        if (first != last)
+            for (InputIt i = first; ++i != last; )
+                if (!p(*i))
+                    *first++ = nstl::move(*i);
+        return first;
+    }
+
     template <class InputIt, class OutputIt>
     constexpr OutputIt copy(InputIt first, InputIt last, OutputIt dest)
     {

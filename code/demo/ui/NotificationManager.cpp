@@ -1,8 +1,10 @@
 #include "NotificationManager.h"
-#include "imgui.h"
+
 #include "services/DebugConsoleService.h"
 
-#include <algorithm> // TODO remove. Now used only for remove_if
+#include "nstl/algorithm.h"
+
+#include "imgui.h"
 
 namespace
 {
@@ -19,7 +21,7 @@ void ui::NotificationManager::update(float dt)
     for (Notification& notification : m_notifications)
         notification.remainingTime -= dt;
 
-    m_notifications.erase(std::remove_if(m_notifications.begin(), m_notifications.end(), [](Notification const& notification){
+    m_notifications.erase(nstl::remove_if(m_notifications.begin(), m_notifications.end(), [](Notification const& notification){
         return notification.remainingTime <= 0.0f;
     }), m_notifications.end());
 }
