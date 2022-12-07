@@ -14,13 +14,10 @@ ShaderPackage::ShaderPackage(nstl::string_view path)
         yyjson_doc* doc = nullptr;
 
         {
-            auto data = vkc::utils::readFile(packageMetadataPath.c_str());
-            // TODO looks ugly
-            char* begin = reinterpret_cast<char*>(data.begin());
-            char* end = reinterpret_cast<char*>(data.end());
+            auto contents = vkc::utils::readTextFile(packageMetadataPath.c_str());
 
             yyjson_read_err error{};
-            doc = yyjson_read_opts(begin, end - begin, 0, nullptr, &error);
+            doc = yyjson_read_opts(contents.data(), contents.size(), 0, nullptr, &error);
         }
 
         yyjson_val* jRoot = yyjson_doc_get_root(doc);

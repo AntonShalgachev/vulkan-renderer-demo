@@ -27,7 +27,7 @@ namespace vkc
         }
 
         // TODO implement asset manager instead
-        nstl::vector<unsigned char> readFile(char const* filename);
+        nstl::vector<unsigned char> readBinaryFile(char const* filename);
         nstl::string readTextFile(char const* filename);
 
         nstl::vector<nstl::string_view> split(nstl::string_view str);

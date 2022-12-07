@@ -1,43 +1,48 @@
 #include "Utils.h"
 
-#include <fstream>
+#include <assert.h>
 
-nstl::vector<unsigned char> vkc::utils::readFile(char const* filename)
+nstl::vector<unsigned char> vkc::utils::readBinaryFile(char const* filename)
 {
-    std::ifstream file(filename, std::ios::ate | std::ios::binary);
+    FILE* fp = fopen(filename, "rb");
 
-    if (!file.is_open())
-        throw std::runtime_error("failed to open file!");
+    assert(fp);
 
-    std::streamsize fileSize = file.tellg();
-    nstl::vector<unsigned char> buffer(static_cast<std::size_t>(fileSize));
+    fseek(fp, 0L, SEEK_END);
+    size_t fileSize = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
 
-    file.seekg(0);
-    file.read(reinterpret_cast<char*>(buffer.data()), fileSize); // safe, since char and unsigned char have the same alignment and representation
-    file.close();
+    nstl::vector<unsigned char> buffer(fileSize);
+
+    size_t readBytes = fread(buffer.data(), 1, buffer.size(), fp);
+    assert(readBytes == fileSize);
+
+    fclose(fp);
 
     return buffer;
 }
 
 nstl::string vkc::utils::readTextFile(char const* filename)
 {
-    std::ifstream file(filename);
+    FILE* fp = fopen(filename, "rt");
 
-    if (!file.is_open())
-        throw std::runtime_error("failed to open file!");
+    assert(fp);
 
-    file.ignore(std::numeric_limits<std::streamsize>::max());
-    std::streamsize fileSize = file.gcount();
-    file.clear();
+    fseek(fp, 0L, SEEK_END);
+    size_t fileSize = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
 
-    nstl::string content;
-    content.resize(static_cast<std::size_t>(fileSize));
+    nstl::string contents;
+    contents.resize(fileSize);
 
-    file.seekg(0);
-    file.read(content.data(), content.size());
-    file.close();
+    size_t readChars = fread(contents.data(), 1, contents.size(), fp);
+    assert(readChars <= fileSize);
 
-    return content;
+    fclose(fp);
+
+    contents.resize(readChars);
+
+    return contents;
 }
 
 nstl::vector<nstl::string_view> vkc::utils::split(nstl::string_view str)
