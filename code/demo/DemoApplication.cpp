@@ -43,6 +43,8 @@
 #include "nstl/span.h"
 #include "nstl/optional.h"
 
+#include <algorithm> // TODO remove; used only for std::sort
+
 // TODO find a better solution
 template <>
 struct magic_enum::customize::enum_range<vkr::GlfwWindow::Key> {
@@ -281,7 +283,8 @@ namespace
         if (gltfAttributeType == cgltf_type_vec4 && gltfComponentType == cgltf_component_type_r_32f)
             return vkgfx::AttributeType::Vec4f;
 
-        throw std::invalid_argument("gltfAttributeType and gltfComponentType");
+        assert(false);
+        return vkgfx::AttributeType::Vec4f;
     }
 
     std::size_t getAttributeByteSize(vkgfx::AttributeType type)
@@ -306,7 +309,8 @@ namespace
             return 16 * gltfFloatSize;
         }
 
-        throw std::invalid_argument("type");
+        assert(false);
+        return 0;
     }
 
     nstl::optional<std::size_t> findAttributeLocation(nstl::string_view name)
@@ -669,8 +673,7 @@ void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, std
             nstl::string const* vertexShaderPath = m_defaultVertexShader->get(shaderConfiguration);
             nstl::string const* fragmentShaderPath = m_defaultFragmentShader->get(shaderConfiguration);
 
-            if (!vertexShaderPath || !fragmentShaderPath)
-                throw std::runtime_error("Failed to find the shader");
+            assert(vertexShaderPath && fragmentShaderPath);
 
             vkgfx::ShaderModuleHandle vertexShaderModule = m_gltfResources->shaderModules[*vertexShaderPath];
             vkgfx::ShaderModuleHandle fragmentShaderModule = m_gltfResources->shaderModules[*fragmentShaderPath];
