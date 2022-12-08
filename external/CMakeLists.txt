@@ -29,7 +29,7 @@ FetchDependency(magic_enum)
 
 FetchContent_Declare(
     coil
-    URL https://github.com/AntonShalgachev/coil/archive/458bda33b9fa93d687d4342175d3859f0e2359a8.tar.gz # enable asserts in GitHub Actions
+    URL https://github.com/AntonShalgachev/coil/archive/32589744ab28925630a51e1e6f28964838632a9f.tar.gz # Merge pull request #35 from AntonShalgachev/fix-dtor-name 
 )
 set(COIL_BASIC_TYPENAME OFF CACHE INTERNAL "")
 FetchDependency(coil)
