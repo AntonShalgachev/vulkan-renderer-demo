@@ -132,7 +132,7 @@ template<typename T>
 nstl::vector<T>::vector(vector&& rhs) = default;
 
 template<typename T>
-nstl::vector<T>::~vector()
+nstl::vector<T>::~vector<T>()
 {
     clear();
 }
