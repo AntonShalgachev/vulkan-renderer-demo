@@ -562,20 +562,22 @@ void DemoApplication::unloadImgui()
 
 void DemoApplication::onKey(vkr::GlfwWindow::Action action, vkr::GlfwWindow::Key key, char c, vkr::GlfwWindow::Modifiers mods)
 {
-    // TODO fix or remove
-//     std::stringstream ss;
-//     auto separator = "";
-// 
-//     for (vkr::GlfwWindow::Modifiers value : magic_enum::enum_values<vkr::GlfwWindow::Modifiers>())
-//     {
-//         if (mods & value)
-//         {
-//             ss << separator << magic_enum::enum_name(value);
-//             separator = " | ";
-//         }
-//     }
-// 
-//     std::cout << magic_enum::enum_name(action) << ' ' << magic_enum::enum_name(key) << ' ' << ss.str() << ": " << "'" << c << "'" << std::endl;
+    char const* separator = "";
+
+    nstl::string_builder builder;
+
+    for (vkr::GlfwWindow::Modifiers value : magic_enum::enum_values<vkr::GlfwWindow::Modifiers>())
+    {
+        if (mods & value)
+        {
+            std::string_view stdName = magic_enum::enum_name(value);
+            nstl::string_view name = { stdName.data(), stdName.size() };
+            builder.append(separator).append(name);
+            separator = " | ";
+        }
+    }
+
+    spdlog::info("onKey: {} {} {}: '{}'", magic_enum::enum_name(action), magic_enum::enum_name(key), builder.build(), c);
 
     std::size_t index = static_cast<std::size_t>(c);
     m_keyState[index] = action == vkr::GlfwWindow::Action::Press;
