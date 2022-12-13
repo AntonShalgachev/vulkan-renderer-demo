@@ -410,15 +410,6 @@ DemoApplication::DemoApplication()
     m_commands["scene.reload"] = [this]() { loadScene(m_currentScenePath); };
     m_commands["scene.unload"] = coil::bind(&DemoApplication::clearScene, this);
 
-    enum class TestEnum
-    {
-        Value1,
-        Value2,
-    };
-    m_commands["scene.enum-test"] = [](TestEnum value) {
-        return value;
-    };
-
     m_cameraTransform = {
         .position = CAMERA_POS,
         .rotation = createRotation(CAMERA_ANGLES),
@@ -793,7 +784,7 @@ bool DemoApplication::loadScene(nstl::string const& gltfPath)
         return false;
 
     nstl::string basePath = "";
-    if (auto pos = gltfPath.find_last_of("/\\"); pos != std::string::npos)
+    if (auto pos = gltfPath.find_last_of("/\\"); pos != nstl::string::npos)
         basePath = gltfPath.substr(0, pos + 1);
 
     cgltf_load_buffers(&options, data, basePath.c_str());

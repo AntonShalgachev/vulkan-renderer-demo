@@ -4,6 +4,8 @@
 
 #include "coil/Coil.h" // TODO don't include whole Coil
 
+#include <ctype.h>
+
 namespace utils
 {
     template<typename StringVectorLike>
