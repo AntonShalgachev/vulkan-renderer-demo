@@ -43,8 +43,6 @@
 #include "nstl/span.h"
 #include "nstl/optional.h"
 
-#include <algorithm> // TODO remove; used only for std::sort
-
 // TODO find a better solution
 template <>
 struct charming_enum::customize::enum_range<vkr::GlfwWindow::Key> {
@@ -1162,12 +1160,19 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
         assert(model.scene);
         m_demoScene = createDemoScene(model, *model.scene);
 
-        std::sort(m_demoScene.objects.begin(), m_demoScene.objects.end(), [](vkgfx::TestObject const& lhs, vkgfx::TestObject const& rhs)
-        {
-            if (lhs.pipeline != rhs.pipeline)
-                return lhs.pipeline < rhs.pipeline;
+        qsort(m_demoScene.objects.data(), m_demoScene.objects.size(), sizeof(vkgfx::TestObject), [](void const* p1, void const* p2) -> int {
+            vkgfx::TestObject const& lhs = *static_cast<vkgfx::TestObject const*>(p1);
+            vkgfx::TestObject const& rhs = *static_cast<vkgfx::TestObject const*>(p2);
 
-            return lhs.material < rhs.material;
+            auto cmp = [](auto const& lhs, auto const& rhs) -> int
+            {
+                return (lhs > rhs) - (lhs < rhs);
+            };
+
+            if (lhs.pipeline != rhs.pipeline)
+                return cmp(lhs.pipeline, rhs.pipeline);
+
+            return cmp(lhs.material, rhs.material);
         });
 
         if (!m_demoScene.cameras.empty())
