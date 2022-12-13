@@ -1,31 +1,38 @@
 #pragma once
 
-#include "coil/Coil.h"
-#include "magic_enum.hpp"
+#include "common/charming_enum.h"
 
-#include <string>
-#include <string_view>
+#include "coil/Coil.h" // TODO don't include whole Coil
 
 namespace utils
 {
     template<typename StringVectorLike>
-    std::string flatten(StringVectorLike const& strings, std::string_view decorator = "", std::string_view separator = ", ")
+    nstl::string flatten(StringVectorLike const& strings, nstl::string_view decorator = "", nstl::string_view separator = ", ")
     {
-        std::string_view currentSeparator = "";
+        nstl::string_builder builder;
 
-        std::string result;
+        nstl::string_view currentSeparator = "";
 
         for (auto const& value : strings)
         {
-            result += currentSeparator;
-            result += decorator;
-            result += value;
-            result += decorator;
+            builder.append(currentSeparator).append(decorator).append(value).append(decorator);
             currentSeparator = separator;
         }
 
-        return result;
+        return builder.build();
     }
+
+    bool caseInsensitivePredicate(nstl::string_view lhs, nstl::string_view rhs)
+    {
+        if (lhs.length() != rhs.length())
+            return false;
+
+        for (size_t i = 0; i < lhs.size(); i++)
+            if (tolower(lhs[i]) != tolower(rhs[i]))
+                return false;
+
+        return true;
+    };
 }
 
 namespace coil
@@ -38,22 +45,19 @@ namespace coil
             if (input.subvalues.size() != 1)
                 return errors::createMismatchedSubvaluesError<E>(input, 1);
 
-            std::string_view value{ input.subvalues[0].data(), input.subvalues[0].length() };
+            nstl::string_view value{ input.subvalues[0].data(), input.subvalues[0].length() };
+            
+            if (nstl::optional<E> optionalValue = charming_enum::enum_cast<E>(value, ::utils::caseInsensitivePredicate))
+                return *optionalValue;
 
-            auto pred = [](unsigned char a, unsigned char b) { return std::tolower(a) == std::tolower(b); };
-            std::optional<E> optionalValue = magic_enum::enum_cast<E>(value, std::move(pred));
-
-            if (optionalValue.has_value())
-                return optionalValue.value();
-
-            std::string names = ::utils::flatten(magic_enum::enum_names<E>(), "'");
+            nstl::string names = ::utils::flatten(charming_enum::enum_names<E>(), "'");
 
             return errors::createGenericError<E>(input, coil::sprintf("Possible values are [%s]", names.c_str()));
         }
 
         static coil::String toString(E const& value)
         {
-            std::string_view name = magic_enum::enum_name(value);
+            nstl::string_view name = charming_enum::enum_name(value);
             return coil::StringView{ name.data(), name.size() };
         }
     };
@@ -63,10 +67,11 @@ namespace coil
     {
         static coil::StringView name()
         {
-            std::string_view typeName = magic_enum::enum_type_name<E>();
-            auto it = typeName.rfind("::");
-            if (it != std::string_view::npos)
-                typeName = typeName.substr(it + 2);
+            nstl::string_view typeName = charming_enum::enum_type_name<E>();
+            // TODO implement
+//             auto it = typeName.rfind("::");
+//             if (it != std::string_view::npos)
+//                 typeName = typeName.substr(it + 2);
             return coil::StringView{ typeName.data(), typeName.size() };
         }
     };

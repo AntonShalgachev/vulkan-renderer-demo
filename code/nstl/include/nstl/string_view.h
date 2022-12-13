@@ -1,5 +1,6 @@
 #pragma once
 
+#include "assert.h"
 #include "hash.h"
 
 #include <stddef.h>
@@ -12,7 +13,10 @@ namespace nstl
     {
     public:
         string_view(char const* str = "");
-        string_view(char const* str, size_t length);
+        constexpr string_view(char const* str, size_t length) : m_str(str), m_length(length)
+        {
+            NSTL_ASSERT(m_str);
+        }
 
         size_t length() const;
         size_t size() const;

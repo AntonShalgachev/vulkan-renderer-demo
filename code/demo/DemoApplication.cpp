@@ -2,7 +2,6 @@
 
 #include "stb_image.h"
 #include "glm.h"
-#include "magic_enum.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
 #include "dds-ktx.h"
@@ -38,6 +37,7 @@
 #include "demo/console/EnumSerializer.h"
 
 #include "common/Utils.h"
+#include "common/charming_enum.h"
 
 #include "nstl/array.h"
 #include "nstl/span.h"
@@ -47,17 +47,17 @@
 
 // TODO find a better solution
 template <>
-struct magic_enum::customize::enum_range<vkr::GlfwWindow::Key> {
+struct charming_enum::customize::enum_range<vkr::GlfwWindow::Key> {
     static constexpr int min = 0;
     static constexpr int max = 10;
 };
 template <>
-struct magic_enum::customize::enum_range<vkr::GlfwWindow::Modifiers> {
+struct charming_enum::customize::enum_range<vkr::GlfwWindow::Modifiers> {
     static constexpr int min = 0;
     static constexpr int max = 10;
 };
 template <>
-struct magic_enum::customize::enum_range<vkr::GlfwWindow::Action> {
+struct charming_enum::customize::enum_range<vkr::GlfwWindow::Action> {
     static constexpr int min = 0;
     static constexpr int max = 10;
 };
@@ -410,6 +410,15 @@ DemoApplication::DemoApplication()
     m_commands["scene.reload"] = [this]() { loadScene(m_currentScenePath); };
     m_commands["scene.unload"] = coil::bind(&DemoApplication::clearScene, this);
 
+    enum class TestEnum
+    {
+        Value1,
+        Value2,
+    };
+    m_commands["scene.enum-test"] = [](TestEnum value) {
+        return value;
+    };
+
     m_cameraTransform = {
         .position = CAMERA_POS,
         .rotation = createRotation(CAMERA_ANGLES),
@@ -566,18 +575,17 @@ void DemoApplication::onKey(vkr::GlfwWindow::Action action, vkr::GlfwWindow::Key
 
     nstl::string_builder builder;
 
-    for (vkr::GlfwWindow::Modifiers value : magic_enum::enum_values<vkr::GlfwWindow::Modifiers>())
+    for (vkr::GlfwWindow::Modifiers value : charming_enum::enum_values<vkr::GlfwWindow::Modifiers>())
     {
         if (mods & value)
         {
-            std::string_view stdName = magic_enum::enum_name(value);
-            nstl::string_view name = { stdName.data(), stdName.size() };
+            nstl::string_view name = charming_enum::enum_name(value);
             builder.append(separator).append(name);
             separator = " | ";
         }
     }
 
-    spdlog::info("onKey: {} {} {}: '{}'", magic_enum::enum_name(action), magic_enum::enum_name(key), builder.build(), c);
+    spdlog::info("onKey: {} {} {}: '{}'", charming_enum::enum_name(action), charming_enum::enum_name(key), builder.build(), c);
 
     std::size_t index = static_cast<std::size_t>(c);
     m_keyState[index] = action == vkr::GlfwWindow::Action::Press;

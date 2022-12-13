@@ -9,11 +9,6 @@ size_t nstl::string_view::npos = static_cast<size_t>(-1);
 
 nstl::string_view::string_view(char const* str) : string_view(str, strlen(str)) {}
 
-nstl::string_view::string_view(char const* str, size_t length) : m_str(str), m_length(length)
-{
-    NSTL_ASSERT(m_str);
-}
-
 size_t nstl::string_view::length() const
 {
     return m_length;

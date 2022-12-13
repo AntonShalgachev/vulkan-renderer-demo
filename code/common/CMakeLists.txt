@@ -3,6 +3,7 @@ set(PROJECT_NAME common)
 set(ALL_FILES
     "glm.h"
     "glm-fwd.h"
+    "charming_enum.h"
     
     "Timer.cpp"
     "Timer.h"
@@ -28,4 +29,5 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS) # TO
 target_link_libraries(${PROJECT_NAME}
     glm::glm
     nstl
+    charming_enum
 )

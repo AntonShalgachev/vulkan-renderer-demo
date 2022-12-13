@@ -22,12 +22,6 @@ FetchContent_Declare(
 FetchDependency(glm)
 
 FetchContent_Declare(
-    magic_enum
-    URL https://github.com/Neargye/magic_enum/archive/refs/tags/v0.8.0.tar.gz # 0.8.0
-)
-FetchDependency(magic_enum)
-
-FetchContent_Declare(
     coil
     URL https://github.com/AntonShalgachev/coil/archive/32589744ab28925630a51e1e6f28964838632a9f.tar.gz # Merge pull request #35 from AntonShalgachev/fix-dtor-name 
 )

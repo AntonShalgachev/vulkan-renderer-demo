@@ -60,7 +60,6 @@ target_link_libraries(${PROJECT_NAME}
     imgui
     common
     stb
-    magic_enum
     coil::coil
     rapidfuzz::rapidfuzz
     spdlog::spdlog
