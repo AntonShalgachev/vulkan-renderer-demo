@@ -7,6 +7,7 @@
 #include "span.h"
 #include "type_traits.h"
 #include "algorithm.h"
+#include "lexicographical_compare.h"
 
 #include <stddef.h>
 
@@ -107,7 +108,6 @@ nstl::vector<T>::vector(Iterator begin, Iterator end) : m_buffer(end - begin, si
     {
         size_t size = end - begin;
         m_buffer.resize(size);
-//         nstl::copy(begin, end, this->begin());
         m_buffer.copy(begin, size);
     }
     else
@@ -419,28 +419,7 @@ bool nstl::vector<T>::operator==(vector const& rhs) const
 template<typename T>
 auto nstl::vector<T>::operator<=>(vector const& rhs) const
 {
-    // TODO use lexicographical_compare_three_way
-
-    vector const& lhs = *this;
-
-    T const* lhsBegin = lhs.begin();
-    T const* lhsEnd = lhs.end();
-    T const* rhsBegin = rhs.begin();
-    T const* rhsEnd = rhs.end();
-
-    T const* lhsIt = lhsBegin;
-    T const* rhsIt = rhsBegin;
-
-    while (lhsIt != lhsEnd)
-    {
-        if (rhsIt == rhsEnd)
-            return std::strong_ordering::greater;
-        if (auto result = (*lhsIt <=> *rhsIt); result != 0)
-            return result;
-        ++lhsIt;
-        ++rhsIt;
-    }
-    return (rhsIt == rhsEnd) <=> true;
+    return lexicographical_compare_three_way(begin(), end(), rhs.begin(), rhs.end());
 }
 
 template<typename T>
@@ -463,7 +442,6 @@ void nstl::vector<T>::grow(size_t newCapacity)
     if constexpr (nstl::is_trivial_v<T>)
     {
         buffer.resize(m_buffer.size());
-//         nstl::copy(m_buffer.data(), m_buffer.data() + m_buffer.size(), buffer.data());
         buffer.copy(m_buffer.data(), m_buffer.size());
     }
     else
