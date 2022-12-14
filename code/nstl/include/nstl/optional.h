@@ -34,10 +34,17 @@ namespace nstl
         bool operator==(optional const& rhs) const;
         bool operator!=(optional const& rhs) const;
 
+        // TODO make if out-of-line?
         template<typename T2>
-        bool operator==(T2 const& rhs) const;
+        friend bool operator==(optional const& lhs, T2 const& rhs)
+        {
+            return lhs.m_hasValue && lhs.m_value == rhs;
+        }
         template<typename T2>
-        bool operator!=(T2 const& rhs) const;
+        friend bool operator!=(optional const& lhs, T2 const& rhs)
+        {
+            return !(lhs == rhs);
+        }
 
     private:
         void construct(T const& value);
@@ -182,20 +189,6 @@ bool nstl::optional<T>::operator==(optional const& rhs) const
 
 template<typename T>
 bool nstl::optional<T>::operator!=(optional const& rhs) const
-{
-    return !(*this == rhs);
-}
-
-template<typename T>
-template<typename T2>
-bool nstl::optional<T>::operator==(T2 const& rhs) const
-{
-    return m_hasValue && m_value == rhs;
-}
-
-template<typename T>
-template<typename T2>
-bool nstl::optional<T>::operator!=(T2 const& rhs) const
 {
     return !(*this == rhs);
 }
