@@ -2,10 +2,16 @@
 
 #include <assert.h>
 
-#if defined(__clang__) || defined(__GNUC__) // TODO: || defined(__PRETTY_FUNCTION__)
+#if defined(__clang__)
 #define CHARMING_ENUM_IS_CLANG (1)
 #else
 #define CHARMING_ENUM_IS_CLANG (0)
+#endif
+
+#if defined(__GNUC__)
+#define CHARMING_ENUM_IS_GCC (1)
+#else
+#define CHARMING_ENUM_IS_GCC (0)
 #endif
 
 #if defined(_MSC_VER)
@@ -14,14 +20,20 @@
 #define CHARMING_ENUM_IS_MSVC (0)
 #endif
 
-#if CHARMING_ENUM_IS_CLANG
+#if CHARMING_ENUM_IS_CLANG || CHARMING_ENUM_IS_GCC
 #define CHARMING_ENUM_FUNCTION_NAME __PRETTY_FUNCTION__
-#define CHARMING_ENUM_FUNCTION_NAME_LENGTH (sizeof(CHARMING_ENUM_FUNCTION_NAME) - 2)
 #elif CHARMING_ENUM_IS_MSVC
 #define CHARMING_ENUM_FUNCTION_NAME __FUNCSIG__
-#define CHARMING_ENUM_FUNCTION_NAME_LENGTH (sizeof(CHARMING_ENUM_FUNCTION_NAME) - 17)
 #else
 #error Unsupported compiler!
+#endif
+
+#if CHARMING_ENUM_IS_CLANG
+#define CHARMING_ENUM_HAS_MEMCPY_INTRINSICS 1
+#elif CHARMING_ENUM_IS_MSVC
+#define CHARMING_ENUM_HAS_MEMCPY_INTRINSICS 0
+#else
+#error TODO
 #endif
 
 // TODO disable default range to force every enum to have its own range
@@ -200,15 +212,19 @@ namespace charming_enum
 
                 value++;
 
-                assert(comma_pos + 2 < list.length);
-                assert(list.data[comma_pos + 1] == ' ');
-                offset = comma_pos + 2;
+                offset = comma_pos + 1;
+                assert(offset < list.length);
+
+                if (list.data[offset] == ' ')
+                    offset++;
+
+                assert(offset < list.length);
             }
 
             return count;
         }
 
-        CHARMING_ENUM_CONSTEXPR size_t parse_pretty_function_clang(simple_string_view name, simple_span<simple_string_view> names, simple_span<int> values, int value_offset) noexcept
+        CHARMING_ENUM_CONSTEXPR size_t parse_pretty_function_brackets(simple_string_view name, simple_span<simple_string_view> names, simple_span<int> values, int value_offset) noexcept
         {
             char const* names_begin_char = __builtin_char_memchr(name.data, '<', name.length); // TODO abstract this for other compilers
             assert(names_begin_char);
@@ -242,19 +258,41 @@ namespace charming_enum
 
         CHARMING_ENUM_CONSTEXPR size_t parse_pretty_function(simple_string_view name, simple_span<simple_string_view> names, simple_span<int> values, int value_offset) noexcept
         {
+            // clang:
+            // auto charming_enum::detail::pretty_function() [Es = <((anonymous namespace)::Enum1)-1, (anonymous namespace)::Enum1::Value1, (anonymous namespace)::Enum1::Value2, ((anonymous namespace)::Enum1)2>]
+
+            // gcc:
+            // constexpr auto charming_enum::detail::pretty_function() [with auto ...Es = {(<unnamed>::Enum1)-1, <unnamed>::Enum1::Value1, <unnamed>::Enum1::Value2, (<unnamed>::Enum1)2}]
+
+            // msvc:
+            // auto __cdecl charming_enum::detail::pretty_function<(enum `anonymous-namespace'::Enum1)0xffffffff,`anonymous-namespace'::Enum1::Value1,`anonymous-namespace'::Enum1::Value2,(enum `anonymous-namespace'::Enum1)0x2>(void) noexcept
+
 #if CHARMING_ENUM_IS_CLANG
-            return parse_pretty_function_clang(name, names, values, value_offset);
+            return parse_pretty_function_brackets(name, names, values, value_offset);
 #else
-            return parse_pretty_function_msvc(name, destination);
+            return parse_pretty_function_brackets(name, names, values, value_offset);
 #endif
         }
 
-        CHARMING_ENUM_CONSTEXPR simple_string_view parse_type_pretty_function(simple_string_view name) noexcept
+        CHARMING_ENUM_CONSTEXPR simple_string_view parse_type_pretty_function(simple_string_view pretty_function_str) noexcept
         {
+            // clang:
+            // auto charming_enum::detail::pretty_function() [T = (anonymous namespace)::Enum1]
+
+            // gcc:
+            // constexpr auto charming_enum::detail::pretty_function() [with T = {anonymous}::Enum1]
+
+            // msvc:
+            // auto __cdecl charming_enum::detail::pretty_function<enum `anonymous-namespace'::Enum1>(void) noexcept
+
 #if CHARMING_ENUM_IS_CLANG
-            return parse_type_pretty_function_clang(name);
+            return parse_type_pretty_function_clang(pretty_function_str);
 #else
-            return parse_type_pretty_function_msvc(name);
+
+            simple_string_view name;
+            int value;
+            parse_pretty_function_brackets(pretty_function_str, { &name, 1 }, { &value, 1 }, 0);
+            return name;
 #endif
         }
 
@@ -318,9 +356,20 @@ namespace charming_enum
 
                 constexpr static_string(simple_string_view sv)
                 {
-                    // TODO probably can be unrolled (N times) if the builtin isn't available
+#if CHARMING_ENUM_HAS_MEMCPY_INTRINSICS
                     __builtin_memcpy(data, sv.data, N); // TODO abstract this for other compilers
+#else
+                    // TODO probably can be unrolled (N times)
+                    for (size_t i = 0; i < sv.length; i++)
+                        data[i] = sv.data[i];
+#endif
                 }
+
+//                 template<size_t... Is>
+//                 constexpr static_string(index_sequence<Is...>, simple_string_view sv) : data{sv.data[Is]...}
+//                 {
+//                     
+//                 }
 
                 constexpr operator string_view() const { return string_view{ data, N }; }
 
@@ -345,9 +394,6 @@ namespace charming_enum
                 static constexpr size_t size = sizeof...(Ts);
             };
 
-            template<typename... Ts>
-            using simple_tuple = simple_tuple_impl<make_index_sequence<sizeof...(Ts)>, Ts...>;
-
             template<typename E>
             constexpr parse_result_t<E> parse_result_v = parse_pretty_function_for<E>(make_integer_sequence<int, enum_range_info<E>::size>{});
 
@@ -358,7 +404,10 @@ namespace charming_enum
             constexpr simple_string_view enum_type_name_view_v = parse_type_pretty_function(pretty_function<E>());
 
             template<typename E>
-            constexpr static_string<enum_type_name_view_v<E>.length> enum_type_name_v = enum_type_name_view_v<E>;
+            constexpr size_t enum_type_name_length = enum_type_name_view_v<E>.length;
+
+            template<typename E>
+            constexpr static_string<enum_type_name_length<E>> enum_type_name_v = enum_type_name_view_v<E>;
 
             //////////////////////////////////////////////////////////////////////////
 
@@ -375,7 +424,7 @@ namespace charming_enum
             template<typename E, size_t... Is>
             struct storage_type_helper<E, index_sequence<Is...>>
             {
-                using type = simple_tuple<enum_entry_storage<parse_result_v<E>.names.data[Is].length>...>;
+                using type = simple_tuple_impl<index_sequence<Is...>, enum_entry_storage<parse_result_v<E>.names.data[Is].length>...>;
             };
 
             template<typename E>
