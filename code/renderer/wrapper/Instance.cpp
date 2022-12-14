@@ -71,7 +71,7 @@ vko::Instance::Instance(char const* appName, nstl::vector<char const*> const& ex
         m_availableExtensionNames.push_back(extension.extensionName);
 
     createInstance(appName, extensions, enableValidation, enableApiDump);
-    findFunctions();
+    findFunctions(enableValidation);
     createDebugMessenger();
 }
 
@@ -113,7 +113,7 @@ void vko::Instance::createInstance(char const* appName, nstl::vector<char const*
     VKO_ASSERT(vkCreateInstance(&instanceCreateInfo, nullptr, &m_handle.get()));
 }
 
-void vko::Instance::findFunctions()
+void vko::Instance::findFunctions(bool enableValidation)
 {
     auto findFunction = [this](auto& destination, char const* name)
     {
@@ -121,9 +121,12 @@ void vko::Instance::findFunctions()
         assert(destination);
     };
 
-    findFunction(m_vkCreateDebugUtilsMessengerEXT, "vkCreateDebugUtilsMessengerEXT");
-    findFunction(m_vkDestroyDebugUtilsMessengerEXT, "vkDestroyDebugUtilsMessengerEXT");
-    findFunction(m_vkSetDebugUtilsObjectNameEXT, "vkSetDebugUtilsObjectNameEXT");
+    if (enableValidation)
+    {
+        findFunction(m_vkCreateDebugUtilsMessengerEXT, "vkCreateDebugUtilsMessengerEXT");
+        findFunction(m_vkDestroyDebugUtilsMessengerEXT, "vkDestroyDebugUtilsMessengerEXT");
+        findFunction(m_vkSetDebugUtilsObjectNameEXT, "vkSetDebugUtilsObjectNameEXT");
+    }
 }
 
 void vko::Instance::createDebugMessenger()

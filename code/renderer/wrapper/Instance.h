@@ -50,7 +50,7 @@ namespace vko
 
     private:
         void createInstance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump);
-        void findFunctions();
+        void findFunctions(bool enableValidation);
         void createDebugMessenger();
 
         void setDebugName(VkDevice device, uint64_t handle, VkObjectType type, char const* name) const;
