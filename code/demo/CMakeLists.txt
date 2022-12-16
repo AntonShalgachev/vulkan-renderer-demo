@@ -62,7 +62,7 @@ target_link_libraries(${PROJECT_NAME}
     stb
     coil::coil
     rapidfuzz::rapidfuzz
-    spdlog::spdlog
+    logging
     yyjson
     dds-ktx::dds-ktx
     cgltf

@@ -2,8 +2,6 @@
 
 #include "stb_image.h"
 #include "glm.h"
-#include "spdlog/spdlog.h"
-#include "spdlog/fmt/ostr.h"
 #include "dds-ktx.h"
 #include "cgltf.h"
 
@@ -39,6 +37,8 @@
 #include "common/Utils.h"
 #include "common/charming_enum.h"
 
+#include "logging/logging.h"
+
 #include "nstl/array.h"
 #include "nstl/span.h"
 #include "nstl/optional.h"
@@ -58,40 +58,6 @@ template <>
 struct charming_enum::customize::enum_range<vkr::GlfwWindow::Action> {
     static constexpr int min = 0;
     static constexpr int max = 10;
-};
-
-// TODO move somewhere
-template<>
-struct fmt::formatter<nstl::string> : fmt::formatter<std::string_view>
-{
-    template<typename ParseContext>
-    constexpr auto parse(ParseContext& ctx)
-    {
-        return ctx.begin();
-    }
-
-    template<typename FormatContext>
-    auto format(nstl::string const& str, FormatContext& ctx)
-    {
-        std::string_view sv{ str.data(), str.length() };
-        return fmt::formatter<std::string_view>::format(sv, ctx);
-    }
-};
-template<>
-struct fmt::formatter<nstl::string_view> : fmt::formatter<std::string_view>
-{
-    template<typename ParseContext>
-    constexpr auto parse(ParseContext& ctx)
-    {
-        return ctx.begin();
-    }
-
-    template<typename FormatContext>
-    auto format(nstl::string_view const& str, FormatContext& ctx)
-    {
-        std::string_view sv{ str.data(), str.length() };
-        return fmt::formatter<std::string_view>::format(sv, ctx);
-    }
 };
 
 namespace
@@ -382,11 +348,11 @@ DemoApplication::DemoApplication()
     {
         // TODO don't log "Info" level to the console
 // 		if (m.level == vko::DebugMessage::Level::Info)
-// 			spdlog::info("{}", m.text);
+// 			logging::info("{}", m.text);
 		if (m.level == vko::DebugMessage::Level::Warning)
-			spdlog::warn("{}", m.text);
+			logging::warn("{}", m.text);
 		if (m.level == vko::DebugMessage::Level::Error)
-			spdlog::error("{}", m.text);
+			logging::error("{}", m.text);
 
         assert(m.level != vko::DebugMessage::Level::Error);
     };
@@ -460,10 +426,10 @@ bool DemoApplication::init(int argc, char** argv)
     auto& commandLine = m_services.commandLine();
     DemoApplication::registerCommandLineOptions(commandLine); // TODO move somewhere to allow others to register custom options
 
-//     spdlog::info("Current directory: {}", std::filesystem::current_path());
+//     logging::info("Current directory: {}", std::filesystem::current_path());
 
 //     if (!std::filesystem::exists("data"))
-//         spdlog::warn("Current directory doesn't contain 'data', probably wrong directory");
+//         logging::warn("Current directory doesn't contain 'data', probably wrong directory");
 
     commandLine.add(argc, argv);
 
@@ -475,7 +441,7 @@ bool DemoApplication::init(int argc, char** argv)
 
     if (!commandLine.parse())
     {
-        spdlog::critical("Failed to parse command line arguments");
+        logging::error("Failed to parse command line arguments");
         return false;
     }
 
@@ -484,7 +450,7 @@ bool DemoApplication::init(int argc, char** argv)
         for (nstl::string const& argument : commandLine.getAll())
             args += "'" + argument + "' ";
 
-        spdlog::info("Command line arguments: {}", args);
+        logging::info("Command line arguments: {}", args);
     }
 
     m_notifications = ui::NotificationManager{ m_services };
@@ -574,7 +540,7 @@ void DemoApplication::onKey(vkr::GlfwWindow::Action action, vkr::GlfwWindow::Key
         }
     }
 
-    spdlog::info("onKey: {} {} {}: '{}'", charming_enum::enum_name(action), charming_enum::enum_name(key), builder.build(), c);
+    logging::info("onKey: {} {} {}: '{}'", charming_enum::enum_name(action), charming_enum::enum_name(key), builder.build(), c);
 
     std::size_t index = static_cast<std::size_t>(c);
     m_keyState[index] = action == vkr::GlfwWindow::Action::Press;
@@ -820,7 +786,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     };
 
     for (auto i = 0; i < model.extensions_required_count; i++)
-        spdlog::warn("GLTF requires extension '{}'", model.extensions_required[i]);
+        logging::warn("GLTF requires extension '{}'", model.extensions_required[i]);
 
     // TODO implement
 //     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
@@ -1084,7 +1050,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
                 if (!location)
                 {
-                    spdlog::warn("Skipping attribute '{}'", name);
+                    logging::warn("Skipping attribute '{}'", name);
                     continue;
                 }
 

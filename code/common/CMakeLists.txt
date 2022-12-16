@@ -4,6 +4,7 @@ set(ALL_FILES
     "glm.h"
     "glm-fwd.h"
     "charming_enum.h"
+    "fmt.h"
     
     "Timer.cpp"
     "Timer.h"
@@ -30,4 +31,5 @@ target_link_libraries(${PROJECT_NAME}
     glm::glm
     nstl
     charming_enum
+    fmt::fmt
 )

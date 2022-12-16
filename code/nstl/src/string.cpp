@@ -123,6 +123,11 @@ void nstl::string::append(char const* str, size_t length)
     validateIsNullTerminated();
 }
 
+void nstl::string::push_back(char c)
+{
+    return append(&c, 1);
+}
+
 size_t nstl::string::find_last_of(string_view chars) const
 {
     return static_cast<string_view>(*this).find_last_of(chars);

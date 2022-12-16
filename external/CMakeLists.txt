@@ -35,11 +35,10 @@ FetchContent_Declare(
 FetchDependency(rapidfuzz)
 
 FetchContent_Declare(
-    spdlog
-    URL https://github.com/gabime/spdlog/archive/refs/tags/v1.10.0.tar.gz # 1.10.0
+    fmt
+    URL https://github.com/fmtlib/fmt/archive/refs/tags/9.1.0.tar.gz # 9.1.0
 )
-set(SPDLOG_ENABLE_PCH ON CACHE INTERNAL "")
-FetchDependency(spdlog)
+FetchDependency(fmt)
 
 FetchContent_Declare(
     vma

@@ -31,6 +31,7 @@ namespace nstl
 
         void resize(size_t size);
         void append(char const* str, size_t length);
+        void push_back(char c);
 
         size_t find_last_of(string_view chars) const;
         string substr(size_t offset, size_t length = npos) const;
