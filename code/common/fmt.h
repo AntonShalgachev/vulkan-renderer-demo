@@ -76,7 +76,7 @@ namespace common
     {
         nstl::string result;
 
-        fmt::format_to(StringAppender{ result }, format, nstl::forward<Ts>(args)...);
+        fmt::format_to(StringAppender{ result }, fmt::runtime(format), nstl::forward<Ts>(args)...);
 
         return result;
     }
