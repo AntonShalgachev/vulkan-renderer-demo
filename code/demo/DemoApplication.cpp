@@ -309,10 +309,89 @@ namespace
 
 //////////////////////////////////////////////////////////////////////////
 
-DemoApplication::DemoApplication()
+DemoApplication::~DemoApplication()
+{
+    clearScene();
+    unloadImgui();
+
+    // TODO come up with a better way to destroy objects with captured services
+    m_debugConsole = {};
+    m_notifications = {};
+    m_commands.clear();
+
+    // TODO remove forced services destruction order
+    m_services.setDebugDraw(nullptr);
+    m_services.setCommandLine(nullptr);
+    m_services.setDebugConsole(nullptr);
+
+    m_services = Services{};
+}
+
+void DemoApplication::registerCommandLineOptions(CommandLineService& commandLine)
+{
+    // TODO implement
+//     commandLine.add("--execute")
+//         .default_value(std::vector<std::string>{})
+//         .append()
+//         .help("execute a given command");
+}
+
+bool DemoApplication::init(int argc, char** argv)
 {
     m_services.setDebugConsole(nstl::make_unique<DebugConsoleService>(m_services));
     m_services.setCommandLine(nstl::make_unique<CommandLineService>(m_services));
+
+    auto& commandLine = m_services.commandLine();
+    DemoApplication::registerCommandLineOptions(commandLine); // TODO move somewhere to allow others to register custom options
+
+//     logging::info("Current directory: {}", std::filesystem::current_path());
+
+//     if (!std::filesystem::exists("data"))
+//         logging::warn("Current directory doesn't contain 'data', probably wrong directory");
+
+    commandLine.add(argc, argv);
+
+    {
+        nstl::string contents = vkc::utils::readTextFile("data/cmdline.ini");
+        for (nstl::string_view line : vkc::utils::split(contents))
+            commandLine.addLine(line);
+    }
+
+    if (!commandLine.parse())
+    {
+        logging::error("Failed to parse command line arguments");
+        return false;
+    }
+
+    {
+        nstl::string args;
+        for (nstl::string const& argument : commandLine.getAll())
+            args += "'" + argument + "' ";
+
+        logging::info("Command line arguments: {}", args);
+    }
+
+    m_notifications = ui::NotificationManager{ m_services };
+    m_debugConsole = ui::DebugConsoleWidget{ m_services };
+
+    init();
+
+    return true;
+}
+
+void DemoApplication::run()
+{
+    auto const& lines = m_services.commandLine().get("--exec-before-run");
+    for (auto const& line : lines)
+        m_services.debugConsole().execute(line);
+
+    m_frameTimer.start();
+    m_window->startEventLoop([this]() { drawFrame(); });
+}
+
+void DemoApplication::init()
+{
+    m_validationEnabled = VALIDATION_ENABLED;
 
     m_commands["imgui.demo"] = ::toggle(&m_drawImguiDemo);
     m_commands["imgui.debugger"] = ::toggle(&m_drawImguiDebugger);
@@ -338,6 +417,13 @@ DemoApplication::DemoApplication()
     m_commands["fps"].description("Show/hide the FPS widget") = ::toggle(&m_showFps);
     m_commands["fps.update_period"].description("Update period of the FPS widget") = coil::variable(&m_fpsUpdatePeriod);
 
+    m_commands["vulkan.enable-validation"].description("Enable Vulkan validation layers") = coil::variable(&m_validationEnabled);
+
+    // TODO find a proper place for these commands
+    auto const& lines = m_services.commandLine().get("--exec-before-init");
+    for (auto const& line : lines)
+        m_services.debugConsole().execute(line);
+
     m_keyState.resize(1 << 8 * sizeof(char), false);
 
     m_window = nstl::make_unique<vkr::GlfwWindow>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
@@ -349,15 +435,15 @@ DemoApplication::DemoApplication()
         // TODO don't log "Info" level to the console
 // 		if (m.level == vko::DebugMessage::Level::Info)
 // 			logging::info("{}", m.text);
-		if (m.level == vko::DebugMessage::Level::Warning)
-			logging::warn("{}", m.text);
-		if (m.level == vko::DebugMessage::Level::Error)
-			logging::error("{}", m.text);
+        if (m.level == vko::DebugMessage::Level::Warning)
+            logging::warn("{}", m.text);
+        if (m.level == vko::DebugMessage::Level::Error)
+            logging::error("{}", m.text);
 
         assert(m.level != vko::DebugMessage::Level::Error);
     };
 
-    m_renderer = nstl::make_unique<vkgfx::Renderer>("Vulkan demo with new API", VALIDATION_ENABLED, *m_window, messageCallback);
+    m_renderer = nstl::make_unique<vkgfx::Renderer>("Vulkan demo with new API", m_validationEnabled, *m_window, messageCallback);
 
     m_services.setDebugDraw(nstl::make_unique<DebugDrawService>(*m_renderer));
 
@@ -392,81 +478,6 @@ DemoApplication::DemoApplication()
     };
 
     createResources();
-}
-
-DemoApplication::~DemoApplication()
-{
-    clearScene();
-    unloadImgui();
-
-    // TODO come up with a better way to destroy objects with captured services
-    m_debugConsole = {};
-    m_notifications = {};
-    m_commands.clear();
-
-    // TODO remove forced services destruction order
-    m_services.setDebugDraw(nullptr);
-    m_services.setCommandLine(nullptr);
-    m_services.setDebugConsole(nullptr);
-
-    m_services = Services{};
-}
-
-void DemoApplication::registerCommandLineOptions(CommandLineService& commandLine)
-{
-    // TODO implement
-//     commandLine.add("--execute")
-//         .default_value(std::vector<std::string>{})
-//         .append()
-//         .help("execute a given command");
-}
-
-bool DemoApplication::init(int argc, char** argv)
-{
-    auto& commandLine = m_services.commandLine();
-    DemoApplication::registerCommandLineOptions(commandLine); // TODO move somewhere to allow others to register custom options
-
-//     logging::info("Current directory: {}", std::filesystem::current_path());
-
-//     if (!std::filesystem::exists("data"))
-//         logging::warn("Current directory doesn't contain 'data', probably wrong directory");
-
-    commandLine.add(argc, argv);
-
-    {
-        nstl::string contents = vkc::utils::readTextFile("data/cmdline.ini");
-        for (nstl::string_view line : vkc::utils::split(contents))
-            commandLine.addLine(line);
-    }
-
-    if (!commandLine.parse())
-    {
-        logging::error("Failed to parse command line arguments");
-        return false;
-    }
-
-    {
-        nstl::string args;
-        for (nstl::string const& argument : commandLine.getAll())
-            args += "'" + argument + "' ";
-
-        logging::info("Command line arguments: {}", args);
-    }
-
-    m_notifications = ui::NotificationManager{ m_services };
-    m_debugConsole = ui::DebugConsoleWidget{ m_services };
-
-    return true;
-}
-
-void DemoApplication::run()
-{
-    auto const& lines = m_services.commandLine().get("--execute");
-    for (auto const& line : lines)
-        m_services.debugConsole().execute(line);
-
-    m_frameTimer.start();
-    m_window->startEventLoop([this]() { drawFrame(); });
 }
 
 void DemoApplication::createResources()

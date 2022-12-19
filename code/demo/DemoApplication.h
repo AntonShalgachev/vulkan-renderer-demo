@@ -105,7 +105,6 @@ struct DemoScene
 class DemoApplication
 {
 public:
-    DemoApplication();
     ~DemoApplication();
 
     static void registerCommandLineOptions(CommandLineService& commandLine);
@@ -114,6 +113,7 @@ public:
     void run();
 
 private:
+    void init();
     void createResources();
 
     void loadImgui();
@@ -168,6 +168,8 @@ private:
     float m_mouseSensitivity = 0.3f;
     float m_cameraSpeed = 5.0f;
     bool m_paused = false;
+
+    bool m_validationEnabled = false;
 
     nstl::vector<bool> m_keyState;
     vkr::GlfwWindow::Modifiers m_modifiers = vkr::GlfwWindow::Modifiers::None;
