@@ -29,12 +29,6 @@ set(COIL_BASIC_TYPENAME OFF CACHE INTERNAL "")
 FetchDependency(coil)
 
 FetchContent_Declare(
-    rapidfuzz
-    URL https://github.com/maxbachmann/rapidfuzz-cpp/archive/refs/tags/v1.0.4.tar.gz # 1.0.4
-)
-FetchDependency(rapidfuzz)
-
-FetchContent_Declare(
     fmt
     URL https://github.com/fmtlib/fmt/archive/refs/tags/9.1.0.tar.gz # 9.1.0
 )

@@ -52,6 +52,7 @@ namespace ui
         ScopedDebugCommands m_commands{ services() };
 
         bool m_visible = false;
+        bool m_showScore = false;
 
         nstl::array<char, 256> m_inputBuffer = {};
         std::size_t m_inputLength = 0;

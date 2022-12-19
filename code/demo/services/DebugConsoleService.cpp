@@ -2,10 +2,10 @@
 
 #include "common/Utils.h"
 
-#include "rapidfuzz/fuzz.hpp"
-
 #include "nstl/algorithm.h"
 #include "nstl/string_builder.h"
+
+#include <algorithm> // for std::sort
 
 namespace
 {
@@ -67,6 +67,48 @@ namespace
     private:
         nstl::string_view m_commands;
     };
+
+    size_t levenshteinDistance(nstl::string_view lhs, nstl::string_view rhs)
+    {
+        if (lhs.empty())
+            return rhs.length();
+
+        if (rhs.empty())
+            return lhs.length();
+
+        if (lhs == rhs)
+            return 0;
+
+        nstl::vector<size_t> cache;
+        cache.resize(lhs.length());
+
+        for (size_t i = 0; i < lhs.length(); i++)
+            cache[i] = i + 1;
+
+        size_t result = 0;
+        for (size_t bIndex = 0; bIndex < rhs.length(); bIndex++)
+        {
+            char c = rhs[bIndex];
+            result = bIndex;
+            size_t distance = bIndex;
+
+            for (size_t index = 0; index < lhs.length(); index++)
+            {
+                size_t bDistance = (c == lhs[index]) ? distance : distance + 1;
+                distance = cache[index];
+
+                cache[index] = result = distance > result
+                    ? bDistance > result
+                    ? result + 1
+                    : bDistance
+                    : bDistance > distance
+                    ? distance + 1
+                    : bDistance;
+            }
+        }
+
+        return result;
+    }
 }
 
 // conversion helpers
@@ -210,28 +252,27 @@ nstl::vector<DebugConsoleService::Suggestion> DebugConsoleService::getSuggestion
 
     nstl::vector<Suggestion> suggestions;
 
-    rapidfuzz::fuzz::CachedRatio<char> scorer(input);
     for (coil::String const& coilCommand : m_commands)
     {
         nstl::string_view command = utils::coilToNstlStringView(coilCommand);
 
-        float score = 0.0f;
+        size_t distance = 0;
 
         if (command.starts_with(input))
-            score = 200.0f; // force full-matches to be on top
+            distance = 0;
         else if (command.find(input) != nstl::string_view::npos)
-            score = 150.0f;
+            distance = 0;
         else
-            score = static_cast<float>(scorer.similarity(command));
+            distance = levenshteinDistance(input, command);
 
-        suggestions.push_back({ command, score });
+        suggestions.push_back({ command, distance });
     }
 
     std::sort(suggestions.begin(), suggestions.end(), [](Suggestion const& lhs, Suggestion const& rhs)
     {
-        if (lhs.score == rhs.score)
+        if (lhs.distance == rhs.distance)
             return lhs.command < rhs.command;
-        return lhs.score > rhs.score;
+        return lhs.distance < rhs.distance;
     });
 
     return suggestions;

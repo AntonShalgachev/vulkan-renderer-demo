@@ -40,7 +40,9 @@ namespace
 
 ui::DebugConsoleWidget::DebugConsoleWidget(Services& services) : ServiceContainer(services)
 {
-    m_commands["ui.console.toggle"] = coil::bind(&DebugConsoleWidget::toggle, this);
+    // TODO fix: this is captured, but the object is later relocated
+//     m_commands["ui.console.toggle"] = coil::bind(&DebugConsoleWidget::toggle, this);
+//     m_commands["ui.console.show-score"] = coil::variable(&m_showScore);
 }
 
 void ui::DebugConsoleWidget::draw()
@@ -166,13 +168,19 @@ void ui::DebugConsoleWidget::drawSuggestions()
 
         {
             nstl::string_view command = m_suggestions[i].suggestion.command;
+            size_t distance = m_suggestions[i].suggestion.distance;
             nstl::string_view description = m_suggestions[i].description;
-            ImGui::Text("  %.*s", static_cast<int>(command.size()), command.data());
+
+            if (m_showScore)
+                ImGui::Text("  [%zu] %.*s", distance, command.slength(), command.data());
+            else
+                ImGui::Text("  %.*s", command.slength(), command.data());
+
             if (!description.empty())
             {
                 ImGui::PushStyleColor(ImGuiCol_Text, suggestionDescriptionColor);
                 ImGui::SameLine();
-                ImGui::Text(" // %.*s", static_cast<int>(description.size()), description.data());
+                ImGui::Text(" // %.*s", description.slength(), description.data());
                 ImGui::PopStyleColor();
             }
         }

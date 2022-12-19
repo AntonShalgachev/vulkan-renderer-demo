@@ -109,7 +109,7 @@ public:
     struct Suggestion
     {
         nstl::string_view command;
-        float score;
+        size_t distance;
     };
 
     DebugConsoleService(Services& services);
