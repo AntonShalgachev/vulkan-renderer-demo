@@ -244,7 +244,6 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
     instance.setDebugName(device.getHandle(), device.getHandle(), "Device");
     instance.setDebugName(device.getHandle(), device.getGraphicsQueue().getHandle(), "Graphics");
     instance.setDebugName(device.getHandle(), device.getPresentQueue().getHandle(), "Present");
-    instance.setDebugName(device.getHandle(), m_application->getShortLivedCommandPool().getHandle(), "Short-lived");
 
     vkr::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
 
@@ -290,7 +289,7 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
         m_frameResources.push_back(std::move(resources));
     }
 
-    m_resourceManager = nstl::make_unique<ResourceManager>(device, physicalDevice, m_application->getShortLivedCommandPool(), device.getGraphicsQueue(), *m_renderPass, FRAME_RESOURCE_COUNT);
+    m_resourceManager = nstl::make_unique<ResourceManager>(device, physicalDevice, device.getGraphicsQueue(), *m_renderPass, FRAME_RESOURCE_COUNT);
 
     createCameraResources();
 

@@ -4,7 +4,6 @@
 #include "vko/Surface.h"
 #include "vko/PhysicalDevice.h"
 #include "vko/Device.h"
-#include "vko/CommandPool.h"
 #include "vko/Queue.h"
 #include "vko/Window.h"
 
@@ -111,9 +110,6 @@ namespace vkr
 vkr::Application::Application(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage)
 {
     m_impl = nstl::make_unique<ApplicationImpl>(name, enableValidation, enableApiDump, window, nstl::move(onDebugMessage));
-
-    // TODO remove
-    m_shortLivedCommandPool = nstl::make_unique<vko::CommandPool>(getDevice(), getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily());
 }
 
 vkr::Application::~Application() = default;
@@ -131,11 +127,6 @@ vko::Surface const& vkr::Application::getSurface() const
 vko::Device const& vkr::Application::getDevice() const
 {
     return m_impl->getDevice();
-}
-
-vko::CommandPool const& vkr::Application::getShortLivedCommandPool() const
-{
-    return *m_shortLivedCommandPool;
 }
 
 vkr::PhysicalDeviceSurfaceParameters const& vkr::Application::getPhysicalDeviceSurfaceParameters() const

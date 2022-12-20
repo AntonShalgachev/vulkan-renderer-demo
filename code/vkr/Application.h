@@ -11,7 +11,6 @@ namespace vko
     class Surface;
     class PhysicalDevice;
     class Device;
-    class CommandPool;
     struct DebugMessage;
     class Window;
 }
@@ -32,14 +31,12 @@ namespace vkr
         vko::Surface const& getSurface() const;
         vko::Device const& getDevice() const;
 
-        vko::CommandPool const& getShortLivedCommandPool() const;
-
         PhysicalDeviceSurfaceParameters const& getPhysicalDeviceSurfaceParameters() const;
         vko::PhysicalDevice const& getPhysicalDevice() const;
 
         void onSurfaceChanged();
+
     private:
         nstl::unique_ptr<ApplicationImpl> m_impl;
-        nstl::unique_ptr<vko::CommandPool> m_shortLivedCommandPool;
     };
 }

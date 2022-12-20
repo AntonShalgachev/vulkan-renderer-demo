@@ -192,15 +192,14 @@ namespace
     }
 }
 
-vkgfx::ResourceManager::ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::CommandPool const& uploadCommandPool, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, std::size_t resourceCount)
+vkgfx::ResourceManager::ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, std::size_t resourceCount)
     : m_device(device)
     , m_physicalDevice(physicalDevice)
-    , m_uploadCommandPool(uploadCommandPool)
     , m_uploadQueue(uploadQueue)
     , m_renderPass(renderPass)
     , m_resourceCount(resourceCount)
 {
-
+    m_uploadCommandPool = nstl::make_unique<vko::CommandPool>(device, uploadQueue.getFamily()); // TODO set debug name for it
 }
 
 vkgfx::ResourceManager::~ResourceManager() = default;
@@ -594,7 +593,7 @@ void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, void const* data
         BufferWithMemory stagingBuffer{ m_device, m_physicalDevice, dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
         stagingBuffer.memory().copyFrom(data, dataSize);
 
-        OneTimeCommandBuffer commandBuffer{ m_uploadCommandPool, m_uploadQueue };
+        OneTimeCommandBuffer commandBuffer{ *m_uploadCommandPool, m_uploadQueue };
         vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), 0, buffer.buffer, offset, dataSize);
         commandBuffer.submit();
     }
@@ -619,7 +618,7 @@ void vkgfx::ResourceManager::uploadImage(Image const& image, void const* data, s
     BufferWithMemory stagingBuffer{ m_device, m_physicalDevice, dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
     stagingBuffer.memory().copyFrom(data, dataSize);
 
-    OneTimeCommandBuffer commandBuffer{ m_uploadCommandPool, m_uploadQueue };
+    OneTimeCommandBuffer commandBuffer{ *m_uploadCommandPool, m_uploadQueue };
     transitionImageLayout(commandBuffer.getHandle(), image.image.getHandle(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     // TODO extract to some class
     copyBufferToImage(commandBuffer.getHandle(), stagingBuffer.buffer().getHandle(), image.image.getHandle(), width, height);

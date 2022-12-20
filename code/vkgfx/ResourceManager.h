@@ -6,6 +6,7 @@
 #include "nstl/span.h"
 #include "nstl/string.h"
 #include "nstl/unordered_map.h"
+#include "nstl/unique_ptr.h"
 
 namespace vko
 {
@@ -61,7 +62,7 @@ namespace vkgfx
     class ResourceManager
     {
     public:
-        ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::CommandPool const& uploadCommandPool, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, std::size_t resourceCount);
+        ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, std::size_t resourceCount);
         ~ResourceManager();
 
         ImageHandle createImage(ImageMetadata metadata);
@@ -133,10 +134,11 @@ namespace vkgfx
     private:
         vko::Device const& m_device;
         vko::PhysicalDevice const& m_physicalDevice; // TODO replace with the allocator
-        vko::CommandPool const& m_uploadCommandPool;
         vko::Queue const& m_uploadQueue;
         vko::RenderPass const& m_renderPass; // TODO remove
         std::size_t m_resourceCount = 0; // TODO rename
+
+        nstl::unique_ptr<vko::CommandPool> m_uploadCommandPool;
 
         ResourceContainer<Image> m_images;
         ResourceContainer<Buffer> m_buffers;
