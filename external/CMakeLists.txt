@@ -42,6 +42,6 @@ FetchDependency(vma)
 
 FetchContent_Declare(
     yyjson
-    URL https://github.com/ibireme/yyjson/archive/refs/tags/0.5.1.tar.gz # 0.5.1
+    URL https://github.com/ibireme/yyjson/archive/refs/tags/0.6.0.tar.gz # 0.6.0
 )
 FetchDependency(yyjson)
