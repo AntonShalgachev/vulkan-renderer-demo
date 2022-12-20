@@ -1,7 +1,7 @@
 #include "GlfwWindow.h"
 
-#include "wrapper/Surface.h"
-#include "wrapper/Instance.h"
+#include "vko/Surface.h"
+#include "vko/Instance.h"
 
 #include "nstl/vector.h"
 

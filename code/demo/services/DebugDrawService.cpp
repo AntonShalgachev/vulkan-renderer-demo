@@ -10,7 +10,7 @@
 
 #include "ShaderPackage.h"
 
-#include "wrapper/ShaderModuleProperties.h"
+#include "vko/ShaderModuleProperties.h"
 
 #include "common/Utils.h"
 

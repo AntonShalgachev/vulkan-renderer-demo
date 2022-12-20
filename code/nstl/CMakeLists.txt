@@ -1,6 +1,8 @@
 set(NSTL_ENABLE_ASSERTS OFF CACHE BOOL "Configure NSTL to enable asserts")
 
 add_library(nstl # non-standard template library
+    "pch.h"
+
     "include/nstl/algorithm.h"
     "include/nstl/assert.h"
     "include/nstl/buffer.h"
@@ -47,6 +49,8 @@ if(MSVC)
 else()
   target_compile_options(nstl PRIVATE -Wall -Wextra -Wpedantic -Werror)
 endif()
+
+target_precompile_headers(nstl PRIVATE "pch.h")
 
 if (${NSTL_ENABLE_ASSERTS})
     target_compile_definitions(nstl PUBLIC NSTL_CONFIG_ENABLE_ASSERTS=1)

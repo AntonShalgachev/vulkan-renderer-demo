@@ -55,7 +55,8 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE "pch.h")
 set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 
 target_link_libraries(${PROJECT_NAME}
-    renderer
+    vko # TODO remove
+    vkgfx # TODO remove
     glfw
     imgui
     common

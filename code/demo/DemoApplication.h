@@ -105,6 +105,7 @@ struct DemoScene
 class DemoApplication
 {
 public:
+    DemoApplication();
     ~DemoApplication();
 
     static void registerCommandLineOptions(CommandLineService& commandLine);

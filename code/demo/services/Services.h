@@ -11,6 +11,7 @@ class DebugDrawService;
 class Services
 {
 public:
+    Services();
     ~Services();
 
     Services& operator=(Services&& rhs) = default;

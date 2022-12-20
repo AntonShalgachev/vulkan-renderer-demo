@@ -4,6 +4,7 @@
 #include "DebugConsoleService.h"
 #include "DebugDrawService.h"
 
+Services::Services() = default;
 Services::~Services() = default;
 
 void Services::setCommandLine(nstl::unique_ptr<CommandLineService> service)

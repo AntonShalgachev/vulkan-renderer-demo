@@ -4,8 +4,8 @@
 #include "ShaderPackage.h"
 #include "glm.h"
 
-#include "wrapper/SamplerProperties.h"
-#include "wrapper/ShaderModuleProperties.h"
+#include "vko/SamplerProperties.h"
+#include "vko/ShaderModuleProperties.h"
 
 #include "vkgfx/Renderer.h"
 #include "vkgfx/ResourceManager.h"

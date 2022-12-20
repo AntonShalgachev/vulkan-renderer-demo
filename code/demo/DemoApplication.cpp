@@ -10,9 +10,9 @@
 #include "backends/imgui_impl_glfw.h"
 #pragma warning(pop)
 
-#include "wrapper/SamplerProperties.h"
-#include "wrapper/DebugMessage.h"
-#include "wrapper/ShaderModuleProperties.h"
+#include "vko/SamplerProperties.h"
+#include "vko/DebugMessage.h"
+#include "vko/ShaderModuleProperties.h"
 #include "ImGuiDrawer.h"
 
 #include "ShaderPackage.h"
@@ -42,6 +42,7 @@
 #include "nstl/array.h"
 #include "nstl/span.h"
 #include "nstl/optional.h"
+#include "nstl/string_builder.h"
 
 // TODO find a better solution
 template <>
@@ -308,6 +309,8 @@ namespace
 }
 
 //////////////////////////////////////////////////////////////////////////
+
+DemoApplication::DemoApplication() = default;
 
 DemoApplication::~DemoApplication()
 {
