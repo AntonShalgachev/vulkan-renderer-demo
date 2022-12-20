@@ -3,6 +3,7 @@
 #include "vkr/QueueFamilyIndices.h"
 
 #include "nstl/vector.h"
+#include "nstl/span.h"
 
 #include <vulkan/vulkan.h>
 
@@ -29,8 +30,8 @@ namespace vkr
         PhysicalDeviceSurfaceParameters& operator=(PhysicalDeviceSurfaceParameters&&) = delete;
 
         VkSurfaceCapabilitiesKHR const& getCapabilities() const { return m_capabilities; }
-        nstl::vector<VkSurfaceFormatKHR> const& getFormats() const { return m_formats; }
-        nstl::vector<VkPresentModeKHR> const& getPresentModes() const { return m_presentModes; }
+        nstl::span<VkSurfaceFormatKHR const> getFormats() const { return m_formats; }
+        nstl::span<VkPresentModeKHR const> getPresentModes() const { return m_presentModes; }
         bool isPresentationSupported(vko::QueueFamily const& queueFamily) const;
 
         void onSurfaceChanged();
