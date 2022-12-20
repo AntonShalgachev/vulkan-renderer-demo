@@ -1,7 +1,7 @@
 #include "Semaphore.h"
 
-#include "Assert.h"
-#include "Device.h"
+#include "renderer/wrapper/Assert.h"
+#include "renderer/wrapper/Device.h"
 
 vko::Semaphore::Semaphore(Device const& device) : m_device(device)
 {

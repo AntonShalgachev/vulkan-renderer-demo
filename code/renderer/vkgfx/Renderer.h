@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Handles.h"
-#include "TestObject.h"
-#include "PipelineKey.h"
+#include "renderer/vkgfx/Handles.h"
+#include "renderer/vkgfx/TestObject.h"
+#include "renderer/vkgfx/PipelineKey.h"
 
 #include "nstl/vector.h"
 #include "nstl/function.h"

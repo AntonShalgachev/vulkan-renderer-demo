@@ -1,10 +1,10 @@
 #include "Swapchain.h"
 
-#include "Assert.h"
-#include "Image.h"
-#include "Device.h"
-#include "Surface.h"
-#include "QueueFamily.h"
+#include "renderer/wrapper/Assert.h"
+#include "renderer/wrapper/Image.h"
+#include "renderer/wrapper/Device.h"
+#include "renderer/wrapper/Surface.h"
+#include "renderer/wrapper/QueueFamily.h"
 
 vko::Swapchain::Swapchain(Device const& device, Surface const& surface, QueueFamily const& graphics, QueueFamily const& presentation, Config config)
     : m_device(device)

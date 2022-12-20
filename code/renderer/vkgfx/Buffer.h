@@ -1,8 +1,8 @@
 #pragma once
 
-#include "wrapper/DeviceMemory.h"
-#include "wrapper/Buffer.h"
-#include "vkgfx/BufferMetadata.h"
+#include "renderer/wrapper/DeviceMemory.h"
+#include "renderer/wrapper/Buffer.h"
+#include "renderer/vkgfx/BufferMetadata.h"
 
 #include "nstl/vector.h"
 

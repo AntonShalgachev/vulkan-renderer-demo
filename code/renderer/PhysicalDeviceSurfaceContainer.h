@@ -1,8 +1,9 @@
 #pragma once
 
-#include "wrapper/PhysicalDevice.h"
-#include "wrapper/Surface.h"
-#include "PhysicalDeviceSurfaceParameters.h"
+#include "renderer/wrapper/PhysicalDevice.h"
+#include "renderer/wrapper/Surface.h"
+
+#include "renderer/PhysicalDeviceSurfaceParameters.h"
 
 namespace vkr
 {

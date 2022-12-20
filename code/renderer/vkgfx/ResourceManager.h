@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ResourceContainer.h"
+#include "renderer/vkgfx/ResourceContainer.h"
 
 #include "nstl/vector.h"
 #include "nstl/span.h"

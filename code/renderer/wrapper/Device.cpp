@@ -1,8 +1,8 @@
 #include "Device.h"
 
-#include "Assert.h"
-#include "PhysicalDevice.h"
-#include "Queue.h"
+#include "renderer/wrapper/Assert.h"
+#include "renderer/wrapper/PhysicalDevice.h"
+#include "renderer/wrapper/Queue.h"
 
 vko::Device::Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily const& graphics, vko::QueueFamily const& present, nstl::vector<const char*> const& extensions)
 {

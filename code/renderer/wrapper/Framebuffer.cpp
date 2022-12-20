@@ -1,10 +1,10 @@
 #include "Framebuffer.h"
 
-#include "RenderPass.h"
-#include "Swapchain.h"
-#include "ImageView.h"
-#include "Device.h"
-#include "Assert.h"
+#include "renderer/wrapper/RenderPass.h"
+#include "renderer/wrapper/Swapchain.h"
+#include "renderer/wrapper/ImageView.h"
+#include "renderer/wrapper/Device.h"
+#include "renderer/wrapper/Assert.h"
 
 #include "nstl/array.h"
 

@@ -1,8 +1,8 @@
 #include "Sampler.h"
 
-#include "Device.h"
-#include "Assert.h"
-#include "SamplerProperties.h"
+#include "renderer/wrapper/Device.h"
+#include "renderer/wrapper/Assert.h"
+#include "renderer/wrapper/SamplerProperties.h"
 
 namespace
 {

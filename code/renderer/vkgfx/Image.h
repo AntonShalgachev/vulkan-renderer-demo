@@ -1,10 +1,10 @@
 #pragma once
 
-#include "wrapper/DeviceMemory.h"
-#include "wrapper/Image.h"
-#include "wrapper/ImageView.h"
+#include "renderer/wrapper/DeviceMemory.h"
+#include "renderer/wrapper/Image.h"
+#include "renderer/wrapper/ImageView.h"
 
-#include "ImageMetadata.h"
+#include "renderer/vkgfx/ImageMetadata.h"
 
 namespace vkgfx
 {

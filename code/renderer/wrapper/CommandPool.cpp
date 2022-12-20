@@ -1,9 +1,9 @@
 #include "CommandPool.h"
 
-#include "Assert.h"
-#include "Device.h"
-#include "QueueFamily.h"
-#include "CommandBuffers.h"
+#include "renderer/wrapper/Assert.h"
+#include "renderer/wrapper/Device.h"
+#include "renderer/wrapper/QueueFamily.h"
+#include "renderer/wrapper/CommandBuffers.h"
 
 vko::CommandPool::CommandPool(Device const& device, QueueFamily const& queueFamily)
     : m_device(device)

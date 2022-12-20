@@ -1,10 +1,10 @@
 #include "Pipeline.h"
 
-#include "ShaderModule.h"
-#include "PipelineLayout.h"
-#include "RenderPass.h"
-#include "Device.h"
-#include "Assert.h"
+#include "renderer/wrapper/ShaderModule.h"
+#include "renderer/wrapper/PipelineLayout.h"
+#include "renderer/wrapper/RenderPass.h"
+#include "renderer/wrapper/Device.h"
+#include "renderer/wrapper/Assert.h"
 
 namespace
 {

@@ -1,8 +1,8 @@
 #include "Image.h"
 
-#include "Assert.h"
-#include "DeviceMemory.h"
-#include "Device.h"
+#include "renderer/wrapper/Assert.h"
+#include "renderer/wrapper/DeviceMemory.h"
+#include "renderer/wrapper/Device.h"
 
 namespace vko
 {

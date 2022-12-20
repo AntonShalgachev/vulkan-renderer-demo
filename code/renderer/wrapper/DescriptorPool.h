@@ -1,7 +1,7 @@
 #pragma once
 
-#include "UniqueHandle.h"
-#include "DescriptorSets.h" // TODO remove if possible
+#include "renderer/wrapper/UniqueHandle.h"
+#include "renderer/wrapper/DescriptorSets.h" // TODO remove if possible
 
 #include "nstl/span.h"
 #include "nstl/optional.h"

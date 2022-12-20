@@ -1,7 +1,7 @@
 #include "Surface.h"
 
-#include "Instance.h"
-#include "Window.h"
+#include "renderer/wrapper/Instance.h"
+#include "renderer/wrapper/Window.h"
 
 vko::Surface::Surface(VkSurfaceKHR handle, Instance const& instance, vko::Window const& window)
     : m_handle(handle)

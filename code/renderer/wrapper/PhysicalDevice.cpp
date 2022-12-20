@@ -1,6 +1,7 @@
 #include "PhysicalDevice.h"
 
-#include "Assert.h"
+#include "renderer/wrapper/Assert.h"
+
 #include "common/Utils.h"
 
 vko::PhysicalDevice::PhysicalDevice(VkPhysicalDevice handle) : m_handle(handle)

@@ -1,7 +1,7 @@
 #include "DescriptorSetLayout.h"
 
-#include "Device.h"
-#include "Assert.h"
+#include "renderer/wrapper/Device.h"
+#include "renderer/wrapper/Assert.h"
 
 vko::DescriptorSetLayout::DescriptorSetLayout(Device const& device, DescriptorSetConfiguration config)
     : m_device(device)

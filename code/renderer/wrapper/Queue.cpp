@@ -1,6 +1,6 @@
 #include "Queue.h"
 
-#include "Assert.h"
+#include "renderer/wrapper/Assert.h"
 
 vko::Queue::Queue(VkQueue handle, QueueFamily const& queueFamily)
     : m_handle(handle)

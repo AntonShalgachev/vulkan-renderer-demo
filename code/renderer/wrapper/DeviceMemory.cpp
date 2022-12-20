@@ -1,8 +1,8 @@
 #include "DeviceMemory.h"
 
-#include "Assert.h"
-#include "PhysicalDevice.h"
-#include "Device.h"
+#include "renderer/wrapper/Assert.h"
+#include "renderer/wrapper/PhysicalDevice.h"
+#include "renderer/wrapper/Device.h"
 
 #include <assert.h>
 

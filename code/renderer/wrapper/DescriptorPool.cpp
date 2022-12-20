@@ -1,7 +1,7 @@
 #include "DescriptorPool.h"
 
-#include "Assert.h"
-#include "Device.h"
+#include "renderer/wrapper/Assert.h"
+#include "renderer/wrapper/Device.h"
 
 #include "nstl/array.h"
 

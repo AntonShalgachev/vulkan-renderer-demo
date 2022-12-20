@@ -1,7 +1,7 @@
 #pragma once
 
-#include "QueueFamily.h"
-#include "UniqueHandle.h"
+#include "renderer/wrapper/QueueFamily.h"
+#include "renderer/wrapper/UniqueHandle.h"
 
 #include "nstl/vector.h"
 #include "nstl/string.h"

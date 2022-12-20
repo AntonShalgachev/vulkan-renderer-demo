@@ -1,8 +1,8 @@
 #include "ShaderModule.h"
 
-#include "Assert.h"
-#include "Device.h"
-#include "ShaderModuleProperties.h"
+#include "renderer/wrapper/Assert.h"
+#include "renderer/wrapper/Device.h"
+#include "renderer/wrapper/ShaderModuleProperties.h"
 
 #include "nstl/vector.h"
 #include "nstl/span.h"

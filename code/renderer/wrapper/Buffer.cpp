@@ -1,8 +1,8 @@
 #include "Buffer.h"
 
-#include "Assert.h"
-#include "DeviceMemory.h"
-#include "Device.h"
+#include "renderer/wrapper/Assert.h"
+#include "renderer/wrapper/DeviceMemory.h"
+#include "renderer/wrapper/Device.h"
 
 vko::Buffer::Buffer(Device const& device, VkDeviceSize size, VkBufferUsageFlags usage)
     : m_device(device.getHandle())

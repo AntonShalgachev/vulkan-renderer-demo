@@ -1,9 +1,10 @@
 #include "PhysicalDeviceSurfaceParameters.h"
 
-#include "wrapper/Assert.h"
-#include "wrapper/PhysicalDevice.h"
-#include "wrapper/Surface.h"
-#include "QueueFamilyIndices.h"
+#include "renderer/wrapper/Assert.h"
+#include "renderer/wrapper/PhysicalDevice.h"
+#include "renderer/wrapper/Surface.h"
+
+#include "renderer/QueueFamilyIndices.h"
 
 namespace
 {

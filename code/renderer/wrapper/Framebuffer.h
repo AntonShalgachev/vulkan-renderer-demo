@@ -1,7 +1,8 @@
 #pragma once
 
+#include "renderer/wrapper/UniqueHandle.h"
+
 #include <vulkan/vulkan.h>
-#include "UniqueHandle.h"
 
 namespace vko
 {

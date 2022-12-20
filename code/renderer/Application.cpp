@@ -1,14 +1,16 @@
 #include "Application.h"
-#include "wrapper/Instance.h"
-#include "wrapper/Surface.h"
-#include "wrapper/PhysicalDevice.h"
-#include "wrapper/Device.h"
-#include "PhysicalDeviceSurfaceContainer.h"
-#include "PhysicalDeviceSurfaceParameters.h"
-#include "QueueFamilyIndices.h"
-#include "wrapper/CommandPool.h"
-#include "wrapper/Queue.h"
-#include "wrapper/Window.h"
+
+#include "renderer/wrapper/Instance.h"
+#include "renderer/wrapper/Surface.h"
+#include "renderer/wrapper/PhysicalDevice.h"
+#include "renderer/wrapper/Device.h"
+#include "renderer/wrapper/CommandPool.h"
+#include "renderer/wrapper/Queue.h"
+#include "renderer/wrapper/Window.h"
+
+#include "renderer/PhysicalDeviceSurfaceContainer.h"
+#include "renderer/PhysicalDeviceSurfaceParameters.h"
+#include "renderer/QueueFamilyIndices.h"
 
 #include "nstl/vector.h"
 

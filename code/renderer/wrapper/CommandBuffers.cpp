@@ -1,12 +1,12 @@
 #include "CommandBuffers.h"
 
-#include "Assert.h"
-#include "Semaphore.h"
-#include "Fence.h"
-#include "Device.h"
-#include "CommandPool.h"
-#include "QueueFamily.h"
-#include "Queue.h"
+#include "renderer/wrapper/Assert.h"
+#include "renderer/wrapper/Semaphore.h"
+#include "renderer/wrapper/Fence.h"
+#include "renderer/wrapper/Device.h"
+#include "renderer/wrapper/CommandPool.h"
+#include "renderer/wrapper/QueueFamily.h"
+#include "renderer/wrapper/Queue.h"
 
 vko::CommandBuffers::CommandBuffers(Device const& device, CommandPool const& commandPool, std::size_t size)
     : m_device(device.getHandle())

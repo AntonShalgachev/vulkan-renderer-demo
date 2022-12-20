@@ -1,9 +1,10 @@
 #include "Instance.h"
 
-#include "Assert.h"
-#include "PhysicalDevice.h"
+#include "renderer/wrapper/Assert.h"
+#include "renderer/wrapper/PhysicalDevice.h"
+#include "renderer/wrapper/DebugMessage.h"
+
 #include "common/Utils.h"
-#include "DebugMessage.h"
 
 namespace
 {

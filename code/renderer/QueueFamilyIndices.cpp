@@ -1,8 +1,9 @@
 #include "QueueFamilyIndices.h"
 
-#include "wrapper/PhysicalDevice.h"
-#include "PhysicalDeviceSurfaceParameters.h"
-#include "wrapper/QueueFamily.h"
+#include "renderer/wrapper/PhysicalDevice.h"
+#include "renderer/wrapper/QueueFamily.h"
+
+#include "renderer/PhysicalDeviceSurfaceParameters.h"
 
 vkr::QueueFamilyIndices::QueueFamilyIndices(vko::PhysicalDevice const& physicalDevice, vkr::PhysicalDeviceSurfaceParameters const& physicalDeviceSurfaceParameters)
 {

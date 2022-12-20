@@ -1,7 +1,7 @@
 #include "Fence.h"
 
-#include "Assert.h"
-#include "Device.h"
+#include "renderer/wrapper/Assert.h"
+#include "renderer/wrapper/Device.h"
 
 vko::Fence::Fence(Device const& device) : m_device(device)
 {

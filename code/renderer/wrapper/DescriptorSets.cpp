@@ -1,5 +1,6 @@
 #include "DescriptorSets.h"
-#include "Device.h"
+
+#include "renderer/wrapper/Device.h"
 
 vko::DescriptorSets::DescriptorSets(Device const& device, nstl::vector<VkDescriptorSet> handles)
     : m_device(&device)

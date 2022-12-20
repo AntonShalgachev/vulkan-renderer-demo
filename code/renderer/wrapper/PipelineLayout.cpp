@@ -1,7 +1,7 @@
 #include "PipelineLayout.h"
 
-#include "Assert.h"
-#include "Device.h"
+#include "renderer/wrapper/Assert.h"
+#include "renderer/wrapper/Device.h"
 
 vko::PipelineLayout::PipelineLayout(Device const& device, nstl::span<VkDescriptorSetLayout const> setLayouts, nstl::span<VkPushConstantRange const> pushConstantRanges)
     : m_device(device)
