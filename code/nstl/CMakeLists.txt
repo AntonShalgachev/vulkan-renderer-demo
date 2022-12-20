@@ -1,4 +1,4 @@
-set(NSTL_ENABLE_ASSERTS OFF CACHE BOOL "Configure NSTL to enable asserts")
+option(NSTL_ENABLE_ASSERTS "Configure NSTL to enable asserts" ON)
 
 add_library(nstl # non-standard template library
     "pch.h"
