@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nstl/assert.h"
+#include "nstl/utility.h"
 
 #include <stddef.h>
 

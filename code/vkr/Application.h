@@ -3,8 +3,6 @@
 #include "nstl/function.h"
 #include "nstl/unique_ptr.h"
 
-#include <vulkan/vulkan.h> // TODO remove
-
 namespace vko
 {
     class Instance;
