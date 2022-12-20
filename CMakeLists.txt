@@ -14,7 +14,8 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
 	cmake_policy(SET CMP0135 NEW)
 endif()
 
-set(DEMO_CLANG_TRACE OFF CACHE BOOL "Generate Clang trace files")
+option(DEMO_CLANG_TRACE "Generate Clang trace files" OFF)
+option(DEMO_PCH "Use precompiled headers" OFF)
 
 if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
     set(OLD_FLAGS ${CMAKE_CXX_FLAGS})
@@ -34,6 +35,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 find_package(Vulkan REQUIRED)
 
 add_subdirectory(external)
+
 add_subdirectory(code/nstl)
 add_subdirectory(code/demo)
 add_subdirectory(code/common)

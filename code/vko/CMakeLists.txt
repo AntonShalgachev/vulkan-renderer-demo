@@ -70,7 +70,9 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(vko PUBLIC -Wno-defaulted-function-deleted)
 endif()
 
-target_precompile_headers(vko PRIVATE "pch.h")
+if(DEMO_PCH)
+    target_precompile_headers(vko PRIVATE "pch.h")
+endif()
 
 target_link_libraries(vko
     Vulkan::Vulkan

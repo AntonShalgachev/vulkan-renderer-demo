@@ -50,7 +50,9 @@ else()
   target_compile_options(nstl PRIVATE -Wall -Wextra -Wpedantic -Werror)
 endif()
 
-target_precompile_headers(nstl PRIVATE "pch.h")
+if(DEMO_PCH)
+    target_precompile_headers(nstl PRIVATE "pch.h")
+endif()
 
 if (${NSTL_ENABLE_ASSERTS})
     target_compile_definitions(nstl PUBLIC NSTL_CONFIG_ENABLE_ASSERTS=1)

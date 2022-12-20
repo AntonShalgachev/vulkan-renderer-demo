@@ -29,7 +29,9 @@ target_include_directories(vkgfx PUBLIC
 
 target_compile_features(vkgfx PUBLIC cxx_std_20)
 
-target_precompile_headers(vkgfx PRIVATE "pch.h")
+if(DEMO_PCH)
+    target_precompile_headers(vkgfx PRIVATE "pch.h")
+endif()
 
 target_link_libraries(vkgfx
     vko
