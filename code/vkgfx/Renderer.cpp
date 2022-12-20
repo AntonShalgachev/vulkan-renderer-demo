@@ -41,6 +41,7 @@
 #include "nstl/array.h"
 #include "nstl/algorithm.h"
 #include "nstl/sprintf.h"
+#include "nstl/span.h"
 
 #include <vulkan/vulkan.h>
 
@@ -56,7 +57,7 @@ namespace
 
     int const FRAME_RESOURCE_COUNT = 3;
 
-    VkFormat findSupportedFormat(vko::PhysicalDevice const& physicalDevice, const nstl::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
+    VkFormat findSupportedFormat(vko::PhysicalDevice const& physicalDevice, nstl::span<VkFormat const> candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
     {
         for (VkFormat format : candidates)
         {
@@ -75,12 +76,11 @@ namespace
 
     VkFormat findDepthFormat(vko::PhysicalDevice const& physicalDevice)
     {
-        static const nstl::vector<VkFormat> candidates = { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT };
-
+        VkFormat candidates[] = { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT };
         return findSupportedFormat(physicalDevice, candidates, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
     }
 
-    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const nstl::vector<VkSurfaceFormatKHR>& availableFormats)
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(nstl::span<VkSurfaceFormatKHR const> availableFormats)
     {
         if (availableFormats.empty())
             return { VK_FORMAT_UNDEFINED , VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
@@ -92,7 +92,7 @@ namespace
         return availableFormats[0];
     }
 
-    VkPresentModeKHR chooseSwapPresentMode(const nstl::vector<VkPresentModeKHR>& availablePresentModes)
+    VkPresentModeKHR chooseSwapPresentMode(nstl::span<VkPresentModeKHR const> availablePresentModes)
     {
         for (const auto& availablePresentMode : availablePresentModes)
             if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
