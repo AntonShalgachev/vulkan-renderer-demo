@@ -246,12 +246,14 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
     instance.setDebugName(device.getHandle(), device.getPresentQueue().getHandle(), "Present");
 
     vkr::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
+    vko::QueueFamily const& graphicsQueueFamily = parameters.getQueueFamilyIndices().getGraphicsQueueFamily();
+    nstl::span<VkSurfaceFormatKHR const> formats = parameters.getFormats();
 
     m_data = nstl::make_unique<RendererData>(RendererData{
         .frameDescriptorPool{device},
     });
 
-    m_data->m_surfaceFormat = chooseSwapSurfaceFormat(parameters.getFormats());
+    m_data->m_surfaceFormat = chooseSwapSurfaceFormat(formats);
     m_data->m_depthFormat = findDepthFormat(physicalDevice);
 
     {
@@ -260,8 +262,6 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
     }
 
     createSwapchain();
-
-    vko::QueueFamily const& graphicsQueueFamily = m_application->getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily();
 
     for (auto i = 0; i < FRAME_RESOURCE_COUNT; i++)
     {
@@ -695,25 +695,29 @@ void vkgfx::Renderer::createSwapchain()
 {
     vko::Instance const& instance = m_application->getInstance();
     vko::Device const& device = m_application->getDevice();
-    vkr::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
-    vkr::QueueFamilyIndices const& indices = parameters.getQueueFamilyIndices();
 
-    VkExtent2D extent = chooseSwapchainExtent(m_application->getSurface(), parameters.getCapabilities());
+    vkr::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
+    VkSurfaceCapabilitiesKHR const& capabilities = parameters.getCapabilities();
+    nstl::span<VkPresentModeKHR const> presentModes = parameters.getPresentModes();
+    vko::QueueFamily const& graphicsQueueFamily = parameters.getQueueFamilyIndices().getGraphicsQueueFamily();
+    vko::QueueFamily const& presentQueueFamily = parameters.getQueueFamilyIndices().getPresentQueueFamily();
+
+    VkExtent2D extent = chooseSwapchainExtent(m_application->getSurface(), capabilities);
 
     vko::Swapchain::Config config;
     config.surfaceFormat = m_data->m_surfaceFormat;
-    config.presentMode = chooseSwapPresentMode(parameters.getPresentModes());
+    config.presentMode = chooseSwapPresentMode(presentModes);
     config.extent = extent;
 
-    const uint32_t minImageCount = parameters.getCapabilities().minImageCount;
-    const uint32_t maxImageCount = parameters.getCapabilities().maxImageCount;
+    const uint32_t minImageCount = capabilities.minImageCount;
+    const uint32_t maxImageCount = capabilities.maxImageCount;
     config.minImageCount = minImageCount + 1;
     if (maxImageCount > 0)
         config.minImageCount = nstl::min(config.minImageCount, maxImageCount);
 
-    config.preTransform = parameters.getCapabilities().currentTransform;
+    config.preTransform = capabilities.currentTransform;
 
-    m_swapchain = nstl::make_unique<vko::Swapchain>(device, m_application->getSurface(), indices.getGraphicsQueueFamily(), indices.getPresentQueueFamily(), std::move(config));
+    m_swapchain = nstl::make_unique<vko::Swapchain>(device, m_application->getSurface(), graphicsQueueFamily, presentQueueFamily, std::move(config));
     instance.setDebugName(device.getHandle(), m_swapchain->getHandle(), "Main");
 
     // TODO move swapchain images to the ResourceManager?
