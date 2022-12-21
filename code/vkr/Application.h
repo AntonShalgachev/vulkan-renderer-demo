@@ -16,7 +16,7 @@ namespace vko
 namespace vkr
 {
     class ApplicationImpl;
-    class PhysicalDeviceSurfaceParameters;
+    struct PhysicalDeviceSurfaceParameters;
 
     // TODO rename to Context
     class Application
@@ -29,8 +29,8 @@ namespace vkr
         vko::Surface const& getSurface() const;
         vko::Device const& getDevice() const;
 
-        PhysicalDeviceSurfaceParameters const& getPhysicalDeviceSurfaceParameters() const;
         vko::PhysicalDevice const& getPhysicalDevice() const;
+        PhysicalDeviceSurfaceParameters const& getPhysicalDeviceSurfaceParameters() const;
 
         void onSurfaceChanged();
 

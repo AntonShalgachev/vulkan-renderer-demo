@@ -6,6 +6,7 @@
 #include "vko/Device.h"
 #include "vko/Queue.h"
 #include "vko/Window.h"
+#include "vko/Assert.h"
 
 #include "vkr/PhysicalDeviceSurfaceParameters.h"
 
@@ -19,33 +20,89 @@ namespace
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
 
-    struct PhysicalDeviceSurfaceContainer
+    VkSurfaceCapabilitiesKHR queryCapabilities(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
     {
-        // TODO remove constructor
-        PhysicalDeviceSurfaceContainer(vko::PhysicalDevice&& physicalDdevice, vko::Surface const& surface)
-            : physicalDevice(std::move(physicalDdevice))
-            , parameters(physicalDevice, surface)
-        {
+        VkSurfaceCapabilitiesKHR result{};
+        VKO_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice.getHandle(), surface.getHandle(), &result));
+        return result;
+    }
 
+    nstl::vector<VkSurfaceFormatKHR> queryFormats(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
+    {
+        uint32_t count = 0;
+        VKO_ASSERT(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice.getHandle(), surface.getHandle(), &count, nullptr));
+
+        nstl::vector<VkSurfaceFormatKHR> result;
+
+        if (count > 0)
+        {
+            result.resize(count);
+            VKO_ASSERT(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice.getHandle(), surface.getHandle(), &count, result.data()));
         }
 
-        vko::PhysicalDevice physicalDevice;
-        vkr::PhysicalDeviceSurfaceParameters parameters;
-    };
+        return result;
+    }
+
+    nstl::vector<VkPresentModeKHR> queryPresentModes(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
+    {
+        uint32_t count = 0;
+        VKO_ASSERT(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice.getHandle(), surface.getHandle(), &count, nullptr));
+
+        nstl::vector<VkPresentModeKHR> result;
+
+        if (count > 0)
+        {
+            result.resize(count);
+            VKO_ASSERT(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice.getHandle(), surface.getHandle(), &count, result.data()));
+        }
+
+        return result;
+    }
+
+    bool queryPresentationSupport(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface, vko::QueueFamily const& queueFamily)
+    {
+        VkBool32 result = false;
+        VKO_ASSERT(vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice.getHandle(), queueFamily.getIndex(), surface.getHandle(), &result));
+        return result;
+    }
+
+    vkr::PhysicalDeviceSurfaceParameters queryParameters(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
+    {
+        vkr::PhysicalDeviceSurfaceParameters params;
+        params.capabilities = queryCapabilities(physicalDevice, surface);
+        params.formats = queryFormats(physicalDevice, surface);
+        params.presentModes = queryPresentModes(physicalDevice, surface);
+
+        for (vko::QueueFamily const& queueFamily : physicalDevice.getQueueFamilies())
+        {
+            if (queueFamily.getProperties().queueFlags & VK_QUEUE_GRAPHICS_BIT)
+                params.graphicsQueueFamily = &queueFamily;
+
+            if (queryPresentationSupport(physicalDevice, surface, queueFamily))
+                params.presentQueueFamily = &queueFamily;
+
+            if (params.graphicsQueueFamily && params.presentQueueFamily)
+                break;
+        }
+
+        return params;
+    }
+
+//     void updateCapabilities(PhysicalDeviceSurfaceParameters& params, vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
+//     {
+// 
+//     }
 
     bool isDeviceSuitable(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
     {
-        vkr::PhysicalDeviceSurfaceParameters parameters{ physicalDevice, surface };
+        if (!physicalDevice.areExtensionsSupported(DEVICE_EXTENSIONS))
+            return false;
 
-        bool const areExtensionsSupported = physicalDevice.areExtensionsSupported(DEVICE_EXTENSIONS);
+        if (!physicalDevice.getFeatures().samplerAnisotropy)
+            return false;
 
-        bool swapchainSupported = false;
-        if (areExtensionsSupported)
-        {
-            swapchainSupported = !parameters.getFormats().empty() && !parameters.getPresentModes().empty();
-        }
-
-        return parameters.areQueueFamiliesComplete() && areExtensionsSupported && swapchainSupported && physicalDevice.getFeatures().samplerAnisotropy;
+        vkr::PhysicalDeviceSurfaceParameters params = queryParameters(physicalDevice, surface);
+        return params.graphicsQueueFamily && params.presentQueueFamily && !params.formats.empty() && !params.presentModes.empty();
     }
 
     nstl::vector<const char*> createInstanceExtensions(bool enableValidation, vko::Window const& window)
@@ -80,8 +137,8 @@ namespace vkr
             : m_instance(name, createInstanceExtensions(enableValidation, window), enableValidation, enableApiDump, enableValidation ? nstl::move(onDebugMessage) : nullptr)
             , m_surface(window.createSurface(m_instance))
             , m_physicalDevice(findPhysicalDevice(m_instance, m_surface))
-            , m_parameters(m_physicalDevice, m_surface)
-            , m_device(getPhysicalDevice(), m_parameters.getGraphicsQueueFamily(), m_parameters.getPresentQueueFamily(), DEVICE_EXTENSIONS)
+            , m_params(queryParameters(m_physicalDevice, m_surface))
+            , m_device(getPhysicalDevice(), *m_params.graphicsQueueFamily, *m_params.presentQueueFamily, DEVICE_EXTENSIONS)
         {
 
         }
@@ -91,15 +148,19 @@ namespace vkr
         vko::Device const& getDevice() const { return m_device; }
 
         vko::PhysicalDevice const& getPhysicalDevice() const { return m_physicalDevice; }
-        PhysicalDeviceSurfaceParameters const& getPhysicalDeviceSurfaceParameters() const { return m_parameters; }
-        PhysicalDeviceSurfaceParameters& getPhysicalDeviceSurfaceParameters() { return m_parameters; }
+        PhysicalDeviceSurfaceParameters const& getParameters() const { return m_params; }
+
+        void onSurfaceChanged()
+        {
+            m_params.capabilities = queryCapabilities(m_physicalDevice, m_surface);
+        }
 
     private:
         vko::Instance m_instance;
         vko::Surface m_surface;
 
         vko::PhysicalDevice m_physicalDevice;
-        PhysicalDeviceSurfaceParameters m_parameters;
+        PhysicalDeviceSurfaceParameters m_params;
 
         vko::Device m_device;
     };
@@ -127,17 +188,17 @@ vko::Device const& vkr::Application::getDevice() const
     return m_impl->getDevice();
 }
 
-vkr::PhysicalDeviceSurfaceParameters const& vkr::Application::getPhysicalDeviceSurfaceParameters() const
-{
-    return m_impl->getPhysicalDeviceSurfaceParameters();
-}
-
 vko::PhysicalDevice const& vkr::Application::getPhysicalDevice() const
 {
     return m_impl->getPhysicalDevice();
 }
 
+vkr::PhysicalDeviceSurfaceParameters const& vkr::Application::getPhysicalDeviceSurfaceParameters() const
+{
+    return m_impl->getParameters();
+}
+
 void vkr::Application::onSurfaceChanged()
 {
-    m_impl->getPhysicalDeviceSurfaceParameters().onSurfaceChanged();
+    return m_impl->onSurfaceChanged();
 }

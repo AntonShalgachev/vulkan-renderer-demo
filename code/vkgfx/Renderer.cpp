@@ -245,8 +245,8 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
     instance.setDebugName(device.getHandle(), device.getPresentQueue().getHandle(), "Present");
 
     vkr::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
-    vko::QueueFamily const& graphicsQueueFamily = parameters.getGraphicsQueueFamily();
-    nstl::span<VkSurfaceFormatKHR const> formats = parameters.getFormats();
+    vko::QueueFamily const& graphicsQueueFamily = *parameters.graphicsQueueFamily;
+    nstl::span<VkSurfaceFormatKHR const> formats = parameters.formats;
 
     m_data = nstl::make_unique<RendererData>(RendererData{
         .frameDescriptorPool{device},
@@ -283,7 +283,7 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
         instance.setDebugName(device.getHandle(), resources.commandPool.getHandle(), nstl::sprintf("Main %d", i).c_str());
 
         for (std::size_t index = 0; index < resources.commandBuffers.getSize(); index++)
-            instance.setDebugName(device.getHandle(), resources.commandBuffers.getHandle(index), nstl::sprintf("Buffer{} %d", index, i).c_str());
+            instance.setDebugName(device.getHandle(), resources.commandBuffers.getHandle(index), nstl::sprintf("Buffer%zu %d", index, i).c_str());
 
         m_frameResources.push_back(std::move(resources));
     }
@@ -696,10 +696,10 @@ void vkgfx::Renderer::createSwapchain()
     vko::Device const& device = m_application->getDevice();
 
     vkr::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
-    VkSurfaceCapabilitiesKHR const& capabilities = parameters.getCapabilities();
-    nstl::span<VkPresentModeKHR const> presentModes = parameters.getPresentModes();
-    vko::QueueFamily const& graphicsQueueFamily = parameters.getGraphicsQueueFamily();
-    vko::QueueFamily const& presentQueueFamily = parameters.getPresentQueueFamily();
+    VkSurfaceCapabilitiesKHR const& capabilities = parameters.capabilities;
+    nstl::span<VkPresentModeKHR const> presentModes = parameters.presentModes;
+    vko::QueueFamily const& graphicsQueueFamily = *parameters.graphicsQueueFamily;
+    vko::QueueFamily const& presentQueueFamily = *parameters.presentQueueFamily;
 
     VkExtent2D extent = chooseSwapchainExtent(m_application->getSurface(), capabilities);
 
