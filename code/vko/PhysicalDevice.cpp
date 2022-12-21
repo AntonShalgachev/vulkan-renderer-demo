@@ -9,7 +9,7 @@ vko::PhysicalDevice::PhysicalDevice(VkPhysicalDevice handle) : m_handle(handle)
     init();
 }
 
-bool vko::PhysicalDevice::areExtensionsSupported(nstl::vector<char const*> const& requestedExtensions) const
+bool vko::PhysicalDevice::areExtensionsSupported(nstl::span<char const* const> requestedExtensions) const
 {
     return vkc::utils::hasEveryOption(m_availableExtensionNames, requestedExtensions);
 }

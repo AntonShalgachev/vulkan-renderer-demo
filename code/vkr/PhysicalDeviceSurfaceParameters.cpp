@@ -47,7 +47,7 @@ namespace
 
     nstl::vector<bool> queryPresentationSupport(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
     {
-        nstl::vector<vko::QueueFamily> const& queueFamilies = physicalDevice.getQueueFamilies();
+        nstl::span<vko::QueueFamily const> queueFamilies = physicalDevice.getQueueFamilies();
 
         nstl::vector<bool> result;
 

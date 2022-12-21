@@ -5,6 +5,7 @@
 
 #include "nstl/vector.h"
 #include "nstl/string.h"
+#include "nstl/span.h"
 
 #include <vulkan/vulkan.h>
 
@@ -19,9 +20,9 @@ namespace vko
 
         VkPhysicalDeviceProperties const& getProperties() const { return m_properties; }
         VkPhysicalDeviceFeatures const& getFeatures() const { return m_features; }
-        nstl::vector<QueueFamily> const& getQueueFamilies() const { return m_queueFamilies; } // TODO use std::span
+        nstl::span<QueueFamily const> getQueueFamilies() const { return m_queueFamilies; }
 
-        bool areExtensionsSupported(nstl::vector<char const*> const& requestedExtensions) const; // TODO use std::span
+        bool areExtensionsSupported(nstl::span<char const* const> requestedExtensions) const; // TODO use std::span
 
     private:
         void init();
