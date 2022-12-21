@@ -34,7 +34,6 @@
 // TODO remove vkr references
 #include "vkr/Application.h"
 #include "vkr/PhysicalDeviceSurfaceParameters.h"
-#include "vkr/QueueFamilyIndices.h"
 
 #include "glm.h"
 
@@ -246,7 +245,7 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
     instance.setDebugName(device.getHandle(), device.getPresentQueue().getHandle(), "Present");
 
     vkr::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
-    vko::QueueFamily const& graphicsQueueFamily = parameters.getQueueFamilyIndices().getGraphicsQueueFamily();
+    vko::QueueFamily const& graphicsQueueFamily = parameters.getGraphicsQueueFamily();
     nstl::span<VkSurfaceFormatKHR const> formats = parameters.getFormats();
 
     m_data = nstl::make_unique<RendererData>(RendererData{
@@ -699,8 +698,8 @@ void vkgfx::Renderer::createSwapchain()
     vkr::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
     VkSurfaceCapabilitiesKHR const& capabilities = parameters.getCapabilities();
     nstl::span<VkPresentModeKHR const> presentModes = parameters.getPresentModes();
-    vko::QueueFamily const& graphicsQueueFamily = parameters.getQueueFamilyIndices().getGraphicsQueueFamily();
-    vko::QueueFamily const& presentQueueFamily = parameters.getQueueFamilyIndices().getPresentQueueFamily();
+    vko::QueueFamily const& graphicsQueueFamily = parameters.getGraphicsQueueFamily();
+    vko::QueueFamily const& presentQueueFamily = parameters.getPresentQueueFamily();
 
     VkExtent2D extent = chooseSwapchainExtent(m_application->getSurface(), capabilities);
 

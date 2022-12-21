@@ -1,7 +1,5 @@
 #pragma once
 
-#include "vkr/QueueFamilyIndices.h"
-
 #include "nstl/vector.h"
 #include "nstl/span.h"
 
@@ -16,8 +14,6 @@ namespace vko
 
 namespace vkr
 {
-    class QueueFamilyIndices;
-
     class PhysicalDeviceSurfaceParameters
     {
     public:
@@ -36,7 +32,9 @@ namespace vkr
 
         void onSurfaceChanged();
 
-        QueueFamilyIndices const& getQueueFamilyIndices() const { return m_queueFamilyIndices; };
+        bool areQueueFamiliesComplete() const { return m_graphicsQueueFamily && m_presentQueueFamily; }
+        vko::QueueFamily const& getGraphicsQueueFamily() const { return *m_graphicsQueueFamily; }
+        vko::QueueFamily const& getPresentQueueFamily() const { return *m_presentQueueFamily; }
 
     private:
         vko::PhysicalDevice const& m_physicalDevice;
@@ -47,6 +45,7 @@ namespace vkr
         nstl::vector<VkPresentModeKHR> m_presentModes;
         nstl::vector<bool> m_queuePresentationSupport;
 
-        QueueFamilyIndices m_queueFamilyIndices;
+        vko::QueueFamily const* m_graphicsQueueFamily = nullptr;
+        vko::QueueFamily const* m_presentQueueFamily = nullptr;
     };
 }

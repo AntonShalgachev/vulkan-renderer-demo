@@ -8,7 +8,6 @@
 #include "vko/Window.h"
 
 #include "vkr/PhysicalDeviceSurfaceParameters.h"
-#include "vkr/QueueFamilyIndices.h"
 
 #include "nstl/vector.h"
 
@@ -46,7 +45,7 @@ namespace
             swapchainSupported = !parameters.getFormats().empty() && !parameters.getPresentModes().empty();
         }
 
-        return parameters.getQueueFamilyIndices().isValid() && areExtensionsSupported && swapchainSupported && physicalDevice.getFeatures().samplerAnisotropy;
+        return parameters.areQueueFamiliesComplete() && areExtensionsSupported && swapchainSupported && physicalDevice.getFeatures().samplerAnisotropy;
     }
 
     nstl::vector<const char*> createInstanceExtensions(bool enableValidation, vko::Window const& window)
@@ -82,7 +81,7 @@ namespace vkr
             , m_surface(window.createSurface(m_instance))
             , m_physicalDevice(findPhysicalDevice(m_instance, m_surface))
             , m_parameters(m_physicalDevice, m_surface)
-            , m_device(getPhysicalDevice(), m_parameters.getQueueFamilyIndices().getGraphicsQueueFamily(), m_parameters.getQueueFamilyIndices().getPresentQueueFamily(), DEVICE_EXTENSIONS)
+            , m_device(getPhysicalDevice(), m_parameters.getGraphicsQueueFamily(), m_parameters.getPresentQueueFamily(), DEVICE_EXTENSIONS)
         {
 
         }

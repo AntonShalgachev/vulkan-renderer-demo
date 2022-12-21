@@ -4,8 +4,6 @@
 #include "vko/PhysicalDevice.h"
 #include "vko/Surface.h"
 
-#include "vkr/QueueFamilyIndices.h"
-
 namespace
 {
     VkSurfaceCapabilitiesKHR queryCapabilities(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
@@ -79,9 +77,18 @@ vkr::PhysicalDeviceSurfaceParameters::PhysicalDeviceSurfaceParameters(vko::Physi
     , m_formats(queryFormats(physicalDevice, surface))
     , m_presentModes(queryPresentModes(physicalDevice, surface))
     , m_queuePresentationSupport(queryPresentationSupport(physicalDevice, surface))
-    , m_queueFamilyIndices(physicalDevice, *this)
 {
+    for (vko::QueueFamily const& queueFamily : physicalDevice.getQueueFamilies())
+    {
+        if (queueFamily.getProperties().queueFlags & VK_QUEUE_GRAPHICS_BIT)
+            m_graphicsQueueFamily = &queueFamily;
 
+        if (isPresentationSupported(queueFamily))
+            m_presentQueueFamily = &queueFamily;
+
+        if (m_graphicsQueueFamily && m_presentQueueFamily)
+            break;
+    }
 }
 
 vkr::PhysicalDeviceSurfaceParameters::~PhysicalDeviceSurfaceParameters() = default;

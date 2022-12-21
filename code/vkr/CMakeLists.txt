@@ -5,8 +5,6 @@ add_library(vkr
     "Application.h"
     "PhysicalDeviceSurfaceParameters.cpp"
     "PhysicalDeviceSurfaceParameters.h"
-    "QueueFamilyIndices.cpp"
-    "QueueFamilyIndices.h"
 )
 
 target_include_directories(vkr PUBLIC
