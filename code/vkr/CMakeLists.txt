@@ -3,8 +3,6 @@ add_library(vkr
 
     "Application.cpp"
     "Application.h"
-    "PhysicalDeviceSurfaceContainer.cpp"
-    "PhysicalDeviceSurfaceContainer.h"
     "PhysicalDeviceSurfaceParameters.cpp"
     "PhysicalDeviceSurfaceParameters.h"
     "QueueFamilyIndices.cpp"

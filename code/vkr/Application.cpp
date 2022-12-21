@@ -7,7 +7,6 @@
 #include "vko/Queue.h"
 #include "vko/Window.h"
 
-#include "vkr/PhysicalDeviceSurfaceContainer.h"
 #include "vkr/PhysicalDeviceSurfaceParameters.h"
 #include "vkr/QueueFamilyIndices.h"
 
@@ -21,21 +20,23 @@ namespace
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
 
-    nstl::vector<vkr::PhysicalDeviceSurfaceContainer> createPhysicalDeviceSurfaceContainer(nstl::vector<vko::PhysicalDevice> devices, vko::Surface const& surface)
+    struct PhysicalDeviceSurfaceContainer
     {
-        nstl::vector<vkr::PhysicalDeviceSurfaceContainer> result;
-        result.reserve(devices.size());
+        // TODO remove constructor
+        PhysicalDeviceSurfaceContainer(vko::PhysicalDevice&& physicalDdevice, vko::Surface const& surface)
+            : physicalDevice(std::move(physicalDdevice))
+            , parameters(physicalDevice, surface)
+        {
 
-        for (vko::PhysicalDevice& device : devices)
-            result.emplace_back(nstl::move(device), surface);
+        }
 
-        return result;
-    }
+        vko::PhysicalDevice physicalDevice;
+        vkr::PhysicalDeviceSurfaceParameters parameters;
+    };
 
-    bool isDeviceSuitable(vkr::PhysicalDeviceSurfaceContainer const& container)
+    bool isDeviceSuitable(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
     {
-        auto const& physicalDevice = container.getPhysicalDevice();
-        auto const& parameters = container.getParameters();
+        vkr::PhysicalDeviceSurfaceParameters parameters{ physicalDevice, surface };
 
         bool const areExtensionsSupported = physicalDevice.areExtensionsSupported(DEVICE_EXTENSIONS);
 
@@ -48,20 +49,6 @@ namespace
         return parameters.getQueueFamilyIndices().isValid() && areExtensionsSupported && swapchainSupported && physicalDevice.getFeatures().samplerAnisotropy;
     }
 
-    std::size_t findSuitablePhysicalDeviceIndex(nstl::vector<vkr::PhysicalDeviceSurfaceContainer> const& physicalDevices) // TODO use std::span
-    {
-        for (std::size_t index = 0; index < physicalDevices.size(); index++)
-        {
-            auto const& physicalDevice = physicalDevices[index];
-
-            if (isDeviceSuitable(physicalDevice))
-                return index;
-        }
-
-        assert(false);
-        return static_cast<std::size_t>(-1);
-    }
-
     nstl::vector<const char*> createInstanceExtensions(bool enableValidation, vko::Window const& window)
     {
         nstl::vector<const char*> extensions = window.getRequiredInstanceExtensions();
@@ -70,6 +57,18 @@ namespace
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
         return extensions;
+    }
+
+    vko::PhysicalDevice findPhysicalDevice(vko::Instance const& instance, vko::Surface const& surface)
+    {
+        nstl::vector<vko::PhysicalDevice> physicalDevices = instance.findPhysicalDevices();
+        
+        for (vko::PhysicalDevice& physicalDevice : physicalDevices)
+            if (isDeviceSuitable(physicalDevice, surface))
+                return nstl::move(physicalDevice);
+
+        assert(false);
+        return nstl::move(physicalDevices[0]);
     }
 }
 
@@ -81,9 +80,9 @@ namespace vkr
         ApplicationImpl(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage)
             : m_instance(name, createInstanceExtensions(enableValidation, window), enableValidation, enableApiDump, enableValidation ? nstl::move(onDebugMessage) : nullptr)
             , m_surface(window.createSurface(m_instance))
-            , m_physicalDevices(createPhysicalDeviceSurfaceContainer(m_instance.findPhysicalDevices(), m_surface))
-            , m_currentPhysicalDeviceIndex(findSuitablePhysicalDeviceIndex(m_physicalDevices))
-            , m_device(getPhysicalDevice(), getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getGraphicsQueueFamily(), getPhysicalDeviceSurfaceParameters().getQueueFamilyIndices().getPresentQueueFamily(), DEVICE_EXTENSIONS)
+            , m_physicalDevice(findPhysicalDevice(m_instance, m_surface))
+            , m_parameters(m_physicalDevice, m_surface)
+            , m_device(getPhysicalDevice(), m_parameters.getQueueFamilyIndices().getGraphicsQueueFamily(), m_parameters.getQueueFamilyIndices().getPresentQueueFamily(), DEVICE_EXTENSIONS)
         {
 
         }
@@ -92,17 +91,17 @@ namespace vkr
         vko::Surface const& getSurface() const { return m_surface; }
         vko::Device const& getDevice() const { return m_device; }
 
-        PhysicalDeviceSurfaceContainer const& getPhysicalDeviceSurfaceContainer() const { return m_physicalDevices[m_currentPhysicalDeviceIndex]; }
-        PhysicalDeviceSurfaceContainer& getPhysicalDeviceSurfaceContainer() { return m_physicalDevices[m_currentPhysicalDeviceIndex]; }
-        vko::PhysicalDevice const& getPhysicalDevice() const { return getPhysicalDeviceSurfaceContainer().getPhysicalDevice(); }
-        PhysicalDeviceSurfaceParameters const& getPhysicalDeviceSurfaceParameters() const { return getPhysicalDeviceSurfaceContainer().getParameters(); }
-        PhysicalDeviceSurfaceParameters& getPhysicalDeviceSurfaceParameters() { return getPhysicalDeviceSurfaceContainer().getParameters(); }
+        vko::PhysicalDevice const& getPhysicalDevice() const { return m_physicalDevice; }
+        PhysicalDeviceSurfaceParameters const& getPhysicalDeviceSurfaceParameters() const { return m_parameters; }
+        PhysicalDeviceSurfaceParameters& getPhysicalDeviceSurfaceParameters() { return m_parameters; }
 
     private:
         vko::Instance m_instance;
         vko::Surface m_surface;
-        nstl::vector<vkr::PhysicalDeviceSurfaceContainer> m_physicalDevices;
-        std::size_t m_currentPhysicalDeviceIndex;
+
+        vko::PhysicalDevice m_physicalDevice;
+        PhysicalDeviceSurfaceParameters m_parameters;
+
         vko::Device m_device;
     };
 }

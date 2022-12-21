@@ -26,7 +26,7 @@ namespace vko
 
         VkInstance getHandle() const { return m_handle; }
 
-        nstl::vector<vko::PhysicalDevice> findPhysicalDevices();
+        nstl::vector<vko::PhysicalDevice> findPhysicalDevices() const;
 
 #define SET_DEBUG_NAME_FUNC(T, ObjectType) \
     void setDebugName(VkDevice device, T handle, char const* name) const { return setDebugName(device, reinterpret_cast<uint64_t>(handle), ObjectType, name); } \

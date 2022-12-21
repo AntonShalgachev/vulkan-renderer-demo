@@ -159,7 +159,7 @@ void vko::Instance::setDebugName(VkDevice device, uint64_t handle, VkObjectType 
     VKO_ASSERT(m_vkSetDebugUtilsObjectNameEXT(device, &nameInfo));
 }
 
-nstl::vector<vko::PhysicalDevice> vko::Instance::findPhysicalDevices()
+nstl::vector<vko::PhysicalDevice> vko::Instance::findPhysicalDevices() const
 {
     uint32_t count = 0;
     VKO_ASSERT(vkEnumeratePhysicalDevices(m_handle, &count, nullptr));
