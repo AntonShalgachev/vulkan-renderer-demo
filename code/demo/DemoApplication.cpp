@@ -431,7 +431,7 @@ void DemoApplication::init()
 
     m_window = nstl::make_unique<GlfwWindow>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
     m_window->addKeyCallback([this](GlfwWindow::Action action, GlfwWindow::Key key, char c, GlfwWindow::Modifiers modifiers) { onKey(action, key, c, modifiers); });
-    m_window->addMouseMoveCallback([this](glm::vec2 const& delta) { onMouseMove(delta); });
+    m_window->addMouseMoveCallback([this](float deltaX, float deltaY) { onMouseMove({ deltaX, deltaY }); });
 
     auto messageCallback = [](vko::DebugMessage m)
     {

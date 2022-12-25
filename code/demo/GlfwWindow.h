@@ -5,8 +5,6 @@
 #include "nstl/vector.h"
 #include "nstl/function.h"
 
-#include "glm.h" // TODO remove this header
-
 struct GLFWwindow;
 
 class GlfwWindow : public vko::Window
@@ -66,7 +64,7 @@ public:
 
     void addResizeCallback(nstl::function<void(int, int)> callback) override;
     void addKeyCallback(nstl::function<void(Action, Key, char, Modifiers)> callback);
-    void addMouseMoveCallback(nstl::function<void(glm::vec2)> callback);
+    void addMouseMoveCallback(nstl::function<void(float deltaX, float deltaY)> callback);
 
     void waitUntilInForeground() const override;
 
@@ -97,13 +95,14 @@ private:
 
     bool m_canCaptureCursor = true;
     bool m_cursorCaptured = false;
-    glm::vec2 m_lastCursorPosition;
+    float m_lastCursorPositionX = 0.0f;
+    float m_lastCursorPositionY = 0.0f;
 
     nstl::vector<char const*> m_requiredInstanceExtensions;
 
     nstl::vector<nstl::function<void(int, int)>> m_resizeCallbacks;
     nstl::vector<nstl::function<void(Action, Key, char, Modifiers)>> m_keyCallbacks;
-    nstl::vector<nstl::function<void(glm::vec2)>> m_mouseMoveCallbacks;
+    nstl::vector<nstl::function<void(float deltaX, float deltaY)>> m_mouseMoveCallbacks;
 };
 
 inline GlfwWindow::Modifiers operator|(GlfwWindow::Modifiers lhs, GlfwWindow::Modifiers rhs)

@@ -84,7 +84,7 @@ void GlfwWindow::addKeyCallback(nstl::function<void(Action, Key, char, Modifiers
     m_keyCallbacks.emplace_back(nstl::move(callback));
 }
 
-void GlfwWindow::addMouseMoveCallback(nstl::function<void(glm::vec2)> callback)
+void GlfwWindow::addMouseMoveCallback(nstl::function<void(float deltaX, float deltaY)> callback)
 {
     m_mouseMoveCallbacks.emplace_back(nstl::move(callback));
 }
@@ -192,15 +192,17 @@ void GlfwWindow::cursorPositionCallback(GLFWwindow* window, double xpos, double 
 
 void GlfwWindow::onCursorPosition(double xpos, double ypos)
 {
-    glm::vec2 pos = { static_cast<float>(xpos), static_cast<float>(ypos) };
-	glm::vec2 delta = pos - m_lastCursorPosition;
-	m_lastCursorPosition = pos;
+    float deltaX = xpos - m_lastCursorPositionX;
+    float deltaY = ypos - m_lastCursorPositionY;
+
+    m_lastCursorPositionX = xpos;
+    m_lastCursorPositionY = ypos;
 
     if (m_cursorCaptured)
     {
 		for (auto const& callback : m_mouseMoveCallbacks)
 			if (callback)
-				callback(delta);
+                callback(deltaX, deltaY);
     }
 }
 
