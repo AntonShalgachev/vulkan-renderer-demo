@@ -23,7 +23,7 @@ FetchDependency(glm)
 
 FetchContent_Declare(
     coil
-    URL https://github.com/AntonShalgachev/coil/archive/32589744ab28925630a51e1e6f28964838632a9f.tar.gz # Merge pull request #35 from AntonShalgachev/fix-dtor-name 
+    URL https://github.com/AntonShalgachev/coil/archive/a1365d2aa789675e37ca388c5bcf382502af7c1b.tar.gz # Merge pull request #39 from AntonShalgachev/restructure-compilation-time-benchmark
 )
 set(COIL_BASIC_TYPENAME OFF CACHE INTERNAL "")
 FetchDependency(coil)

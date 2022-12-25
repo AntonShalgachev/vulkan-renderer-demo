@@ -1,5 +1,7 @@
 #include "GlmSerializer.h"
 
+#include "coil/detail/StringConv.h" // TODO remove detail include
+
 #include "glm.h"
 
 coil::Expected<glm::vec3, coil::String> coil::TypeSerializer<glm::vec3>::fromString(Value const& input)

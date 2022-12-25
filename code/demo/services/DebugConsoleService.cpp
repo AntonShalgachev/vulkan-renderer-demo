@@ -169,11 +169,11 @@ DebugConsoleService::DebugConsoleService(Services& services) : ServiceContainer(
 
     commands["list"].description("List available commands") = [this](coil::Context context)
     {
-        std::size_t maxAllowedNameLength = 50;
+        int maxAllowedNameLength = 50;
 
-        std::size_t maxNameLength = 0;
+        int maxNameLength = 0;
         for (coil::String const& command : m_commands)
-            maxNameLength = nstl::max(maxNameLength, command.length());
+            maxNameLength = nstl::max(maxNameLength, command.slength());
 
         maxNameLength = nstl::min(maxNameLength, maxAllowedNameLength);
 
@@ -354,11 +354,11 @@ void DebugConsoleService::add(nstl::string_view name, CommandMetadata metadata, 
 {
     coil::StringView coilName = utils::nstlToCoilStringView(name);
     coil::Bindings::Command const& command = m_bindings.add(coilName, std::move(anyFunctors));
-    auto it = m_metadata.insertOrAssign(coilName, std::move(metadata));
+    auto it = m_metadata.insertOrAssign(coil::String{ coilName }, std::move(metadata));
 
     fillCommandMetadata(it->value(), command.functors);
 
-    m_commands.pushBack(coilName);
+    m_commands.pushBack(coil::String{ coilName });
 }
 
 void DebugConsoleService::remove(nstl::string_view name)

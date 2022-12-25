@@ -1,6 +1,6 @@
 #pragma once
 
-#include "coil/Coil.h"
+#include "coil/Coil.h" // TODO forward-declare?
 #include "glm-fwd.h"
 
 namespace coil
