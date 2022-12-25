@@ -728,8 +728,8 @@ void vkgfx::Renderer::createSwapchain()
         m_swapchainImageViews.push_back(nstl::make_unique<vko::ImageView>(device, image, VK_IMAGE_ASPECT_COLOR_BIT));
 
         // TODO remove this ugly .c_str()
-        instance.setDebugName(device.getHandle(), image.getHandle(), nstl::sprintf("Swapchain %d", i).c_str());
-        instance.setDebugName(device.getHandle(), m_swapchainImageViews.back()->getHandle(), nstl::sprintf("Swapchain %d", i).c_str());
+        instance.setDebugName(device.getHandle(), image.getHandle(), nstl::sprintf("Swapchain %zu", i).c_str());
+        instance.setDebugName(device.getHandle(), m_swapchainImageViews.back()->getHandle(), nstl::sprintf("Swapchain %zu", i).c_str());
     }
 
     VkExtent2D swapchainExtent = m_swapchain->getExtent();
@@ -750,7 +750,7 @@ void vkgfx::Renderer::createSwapchain()
         m_swapchainFramebuffers.push_back(nstl::make_unique<vko::Framebuffer>(device, *colorImageView, *m_depthImageView, *m_renderPass, m_swapchain->getExtent()));
 
         // TODO remove this ugly .c_str()
-        instance.setDebugName(device.getHandle(), m_swapchainFramebuffers.back()->getHandle(), nstl::sprintf("Main %d", i).c_str());
+        instance.setDebugName(device.getHandle(), m_swapchainFramebuffers.back()->getHandle(), nstl::sprintf("Main %zu", i).c_str());
     }
 
     m_width = extent.width;
