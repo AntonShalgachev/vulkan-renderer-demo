@@ -20,13 +20,9 @@ namespace vko
     struct DebugMessage;
 }
 
-namespace vkr
-{
-    class Application; // TODO don't use
-}
-
 namespace vkgfx
 {
+    class Application;
     struct RendererData;
     struct RendererFrameResources;
     class ResourceManager;
@@ -68,7 +64,7 @@ namespace vkgfx
 
         // TODO don't use unique_ptrs
 
-        nstl::unique_ptr<vkr::Application> m_application; // TODO don't use
+        nstl::unique_ptr<Application> m_application;
         nstl::unique_ptr<ResourceManager> m_resourceManager;
 
         nstl::unique_ptr<RendererData> m_data;

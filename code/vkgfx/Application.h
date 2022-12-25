@@ -14,7 +14,7 @@ namespace vko
     struct PhysicalDeviceSurfaceParameters;
 }
 
-namespace vkr
+namespace vkgfx
 {
     struct ApplicationImpl;
 

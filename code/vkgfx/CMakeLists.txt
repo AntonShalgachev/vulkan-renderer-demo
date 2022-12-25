@@ -1,6 +1,8 @@
 add_library(vkgfx
     "pch.h"
 
+    "Application.h"
+    "Application.cpp"
     "Buffer.h"
     "Buffer.cpp"
     "BufferMetadata.h"
@@ -36,5 +38,4 @@ endif()
 target_link_libraries(vkgfx
     vko
     common
-    vkr # TODO remove
 )

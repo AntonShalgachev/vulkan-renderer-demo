@@ -23,6 +23,7 @@
 #include "vko/Sampler.h"
 #include "vko/PhysicalDeviceSurfaceParameters.h"
 
+#include "vkgfx/Application.h"
 #include "vkgfx/ResourceManager.h"
 #include "vkgfx/TestObject.h"
 #include "vkgfx/Mesh.h"
@@ -31,9 +32,6 @@
 #include "vkgfx/Texture.h"
 #include "vkgfx/Image.h"
 #include "vkgfx/PipelineKey.h"
-
-// TODO remove vkr references
-#include "vkr/Application.h"
 
 #include "glm.h"
 
@@ -234,7 +232,7 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
 {
     m_window.addResizeCallback([this](int, int) { onWindowResized(); });
 
-    m_application = nstl::make_unique<vkr::Application>(name, enableValidationLayers, false, window, nstl::move(onDebugMessage));
+    m_application = nstl::make_unique<Application>(name, enableValidationLayers, false, window, nstl::move(onDebugMessage));
 
     vko::Instance const& instance = m_application->getInstance();
     vko::Device const& device = m_application->getDevice();

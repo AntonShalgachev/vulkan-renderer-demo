@@ -52,7 +52,7 @@ namespace
     }
 }
 
-namespace vkr
+namespace vkgfx
 {
     struct ApplicationImpl
     {
@@ -82,39 +82,39 @@ namespace vkr
     };
 }
 
-vkr::Application::Application(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage)
+vkgfx::Application::Application(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage)
 {
     m_impl = nstl::make_unique<ApplicationImpl>(name, enableValidation, enableApiDump, window, nstl::move(onDebugMessage));
 }
 
-vkr::Application::~Application() = default;
+vkgfx::Application::~Application() = default;
 
-vko::Instance const& vkr::Application::getInstance() const
+vko::Instance const& vkgfx::Application::getInstance() const
 {
     return m_impl->instance;
 }
 
-vko::Surface const& vkr::Application::getSurface() const
+vko::Surface const& vkgfx::Application::getSurface() const
 {
     return m_impl->surface;
 }
 
-vko::Device const& vkr::Application::getDevice() const
+vko::Device const& vkgfx::Application::getDevice() const
 {
     return m_impl->device;
 }
 
-vko::PhysicalDevice const& vkr::Application::getPhysicalDevice() const
+vko::PhysicalDevice const& vkgfx::Application::getPhysicalDevice() const
 {
     return m_impl->physicalDevice;
 }
 
-vko::PhysicalDeviceSurfaceParameters const& vkr::Application::getPhysicalDeviceSurfaceParameters() const
+vko::PhysicalDeviceSurfaceParameters const& vkgfx::Application::getPhysicalDeviceSurfaceParameters() const
 {
     return m_impl->params;
 }
 
-void vkr::Application::onSurfaceChanged()
+void vkgfx::Application::onSurfaceChanged()
 {
     return m_impl->updatePhysicalDeviceSurfaceParameters();
 }
