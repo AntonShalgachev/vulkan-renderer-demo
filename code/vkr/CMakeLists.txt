@@ -3,7 +3,6 @@ add_library(vkr
 
     "Application.cpp"
     "Application.h"
-    "PhysicalDeviceSurfaceParameters.h"
 )
 
 target_include_directories(vkr PUBLIC

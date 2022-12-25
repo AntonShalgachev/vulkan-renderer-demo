@@ -21,6 +21,7 @@
 #include "vko/DescriptorSetLayout.h"
 #include "vko/Instance.h"
 #include "vko/Sampler.h"
+#include "vko/PhysicalDeviceSurfaceParameters.h"
 
 #include "vkgfx/ResourceManager.h"
 #include "vkgfx/TestObject.h"
@@ -33,7 +34,6 @@
 
 // TODO remove vkr references
 #include "vkr/Application.h"
-#include "vkr/PhysicalDeviceSurfaceParameters.h"
 
 #include "glm.h"
 
@@ -244,7 +244,7 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
     instance.setDebugName(device.getHandle(), device.getGraphicsQueue().getHandle(), "Graphics");
     instance.setDebugName(device.getHandle(), device.getPresentQueue().getHandle(), "Present");
 
-    vkr::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
+    vko::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
     vko::QueueFamily const& graphicsQueueFamily = *parameters.graphicsQueueFamily;
     nstl::span<VkSurfaceFormatKHR const> formats = parameters.formats;
 
@@ -695,7 +695,7 @@ void vkgfx::Renderer::createSwapchain()
     vko::Instance const& instance = m_application->getInstance();
     vko::Device const& device = m_application->getDevice();
 
-    vkr::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
+    vko::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
     VkSurfaceCapabilitiesKHR const& capabilities = parameters.capabilities;
     nstl::span<VkPresentModeKHR const> presentModes = parameters.presentModes;
     vko::QueueFamily const& graphicsQueueFamily = *parameters.graphicsQueueFamily;

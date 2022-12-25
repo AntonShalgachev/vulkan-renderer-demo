@@ -9,10 +9,7 @@ namespace vko
     class PhysicalDevice;
     class Surface;
     class QueueFamily;
-}
 
-namespace vkr
-{
     struct PhysicalDeviceSurfaceParameters
     {
         VkSurfaceCapabilitiesKHR capabilities{};
@@ -21,4 +18,6 @@ namespace vkr
         vko::QueueFamily const* graphicsQueueFamily = nullptr;
         vko::QueueFamily const* presentQueueFamily = nullptr;
     };
+
+    PhysicalDeviceSurfaceParameters queryPhysicalDeviceSurfaceParameters(PhysicalDevice const& physicalDevice, Surface const& surface);
 }

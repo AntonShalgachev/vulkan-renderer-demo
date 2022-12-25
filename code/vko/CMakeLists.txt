@@ -31,6 +31,8 @@ add_library(vko
     "Instance.cpp"
     "PhysicalDevice.h"
     "PhysicalDevice.cpp"
+    "PhysicalDeviceSurfaceParameters.h"
+    "PhysicalDeviceSurfaceParameters.cpp"
     "Pipeline.h"
     "Pipeline.cpp"
     "PipelineLayout.h"
