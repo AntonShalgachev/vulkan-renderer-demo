@@ -46,17 +46,17 @@
 
 // TODO find a better solution
 template <>
-struct charming_enum::customize::enum_range<vkr::GlfwWindow::Key> {
+struct charming_enum::customize::enum_range<GlfwWindow::Key> {
     static constexpr int min = 0;
     static constexpr int max = 10;
 };
 template <>
-struct charming_enum::customize::enum_range<vkr::GlfwWindow::Modifiers> {
+struct charming_enum::customize::enum_range<GlfwWindow::Modifiers> {
     static constexpr int min = 0;
     static constexpr int max = 10;
 };
 template <>
-struct charming_enum::customize::enum_range<vkr::GlfwWindow::Action> {
+struct charming_enum::customize::enum_range<GlfwWindow::Action> {
     static constexpr int min = 0;
     static constexpr int max = 10;
 };
@@ -429,8 +429,8 @@ void DemoApplication::init()
 
     m_keyState.resize(1 << 8 * sizeof(char), false);
 
-    m_window = nstl::make_unique<vkr::GlfwWindow>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
-    m_window->addKeyCallback([this](vkr::GlfwWindow::Action action, vkr::GlfwWindow::Key key, char c, vkr::GlfwWindow::Modifiers modifiers) { onKey(action, key, c, modifiers); });
+    m_window = nstl::make_unique<GlfwWindow>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
+    m_window->addKeyCallback([this](GlfwWindow::Action action, GlfwWindow::Key key, char c, GlfwWindow::Modifiers modifiers) { onKey(action, key, c, modifiers); });
     m_window->addMouseMoveCallback([this](glm::vec2 const& delta) { onMouseMove(delta); });
 
     auto messageCallback = [](vko::DebugMessage m)
@@ -452,9 +452,9 @@ void DemoApplication::init()
 
     loadImgui();
 
-    m_commands["window.resize"].arguments("width", "height") = coil::bind(&vkr::GlfwWindow::resize, m_window.get());
-    m_commands["window.width"] = coil::bindProperty(&vkr::GlfwWindow::getWidth, m_window.get());
-    m_commands["window.height"] = coil::bindProperty(&vkr::GlfwWindow::getHeight, m_window.get());
+    m_commands["window.resize"].arguments("width", "height") = coil::bind(&GlfwWindow::resize, m_window.get());
+    m_commands["window.width"] = coil::bindProperty(&GlfwWindow::getWidth, m_window.get());
+    m_commands["window.height"] = coil::bindProperty(&GlfwWindow::getHeight, m_window.get());
 
     m_commands["scene.load"].description("Load scene from a GLTF model").arguments("path") = [this](coil::Context context, nstl::string_view path) {
         if (!loadScene(nstl::string{ path }))
@@ -538,13 +538,13 @@ void DemoApplication::unloadImgui()
     ImGui::DestroyContext();
 }
 
-void DemoApplication::onKey(vkr::GlfwWindow::Action action, vkr::GlfwWindow::Key key, char c, vkr::GlfwWindow::Modifiers mods)
+void DemoApplication::onKey(GlfwWindow::Action action, GlfwWindow::Key key, char c, GlfwWindow::Modifiers mods)
 {
     char const* separator = "";
 
     nstl::string_builder builder;
 
-    for (vkr::GlfwWindow::Modifiers value : charming_enum::enum_values<vkr::GlfwWindow::Modifiers>())
+    for (GlfwWindow::Modifiers value : charming_enum::enum_values<GlfwWindow::Modifiers>())
     {
         if (mods & value)
         {
@@ -557,10 +557,10 @@ void DemoApplication::onKey(vkr::GlfwWindow::Action action, vkr::GlfwWindow::Key
     logging::info("onKey: {} {} {}: '{}'", charming_enum::enum_name(action), charming_enum::enum_name(key), builder.build(), c);
 
     std::size_t index = static_cast<std::size_t>(c);
-    m_keyState[index] = action == vkr::GlfwWindow::Action::Press;
+    m_keyState[index] = action == GlfwWindow::Action::Press;
     m_modifiers = mods;
 
-    if (c == '`' && action == vkr::GlfwWindow::Action::Press)
+    if (c == '`' && action == GlfwWindow::Action::Press)
         m_debugConsole->toggle();
 }
 

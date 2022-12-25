@@ -120,7 +120,7 @@ private:
     void loadImgui();
     void unloadImgui();
 
-    void onKey(vkr::GlfwWindow::Action action, vkr::GlfwWindow::Key key, char c, vkr::GlfwWindow::Modifiers mods);
+    void onKey(GlfwWindow::Action action, GlfwWindow::Key key, char c, GlfwWindow::Modifiers mods);
     void onMouseMove(glm::vec2 const& delta);
 
     DemoScene createDemoScene(cgltf_data const& gltfModel, cgltf_scene const& gltfScene) const;
@@ -142,7 +142,7 @@ private:
 
     ScopedDebugCommands m_commands{ m_services };
 
-    nstl::unique_ptr<vkr::GlfwWindow> m_window;
+    nstl::unique_ptr<GlfwWindow> m_window;
 
     nstl::unique_ptr<ImGuiDrawer> m_imGuiDrawer;
 
@@ -173,7 +173,7 @@ private:
     bool m_validationEnabled = false;
 
     nstl::vector<bool> m_keyState;
-    vkr::GlfwWindow::Modifiers m_modifiers = vkr::GlfwWindow::Modifiers::None;
+    GlfwWindow::Modifiers m_modifiers = GlfwWindow::Modifiers::None;
 
     nstl::optional<ui::NotificationManager> m_notifications;
     nstl::optional<ui::DebugConsoleWidget> m_debugConsole;

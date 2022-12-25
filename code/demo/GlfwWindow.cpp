@@ -10,41 +10,41 @@
 
 namespace
 {
-    static vkr::GlfwWindow* getAppFromWindow(GLFWwindow* window) noexcept
+    static GlfwWindow* getAppFromWindow(GLFWwindow* window) noexcept
     {
-        return static_cast<vkr::GlfwWindow*>(glfwGetWindowUserPointer(window));
+        return static_cast<GlfwWindow*>(glfwGetWindowUserPointer(window));
     }
 
-    vkr::GlfwWindow::Action getAction(int glfwAction)
+    GlfwWindow::Action getAction(int glfwAction)
     {
-        static nstl::vector<vkr::GlfwWindow::Action> const actions = []() {
-            nstl::vector<vkr::GlfwWindow::Action> result;
+        static nstl::vector<GlfwWindow::Action> const actions = []() {
+            nstl::vector<GlfwWindow::Action> result;
             result.resize(3);
-            result[GLFW_RELEASE] = vkr::GlfwWindow::Action::Release;
-            result[GLFW_PRESS] = vkr::GlfwWindow::Action::Press;
-            result[GLFW_REPEAT] = vkr::GlfwWindow::Action::Repeat;
+            result[GLFW_RELEASE] = GlfwWindow::Action::Release;
+            result[GLFW_PRESS] = GlfwWindow::Action::Press;
+            result[GLFW_REPEAT] = GlfwWindow::Action::Repeat;
             return result;
         }();
 
         return actions[static_cast<std::size_t>(glfwAction)];
     }
 
-    vkr::GlfwWindow::Modifiers getModifiers(int mods)
+    GlfwWindow::Modifiers getModifiers(int mods)
     {
-        vkr::GlfwWindow::Modifiers modifiers = vkr::GlfwWindow::Modifiers::None;
+        GlfwWindow::Modifiers modifiers = GlfwWindow::Modifiers::None;
 
         if (mods & GLFW_MOD_CONTROL)
-            modifiers = modifiers | vkr::GlfwWindow::Modifiers::Ctrl;
+            modifiers = modifiers | GlfwWindow::Modifiers::Ctrl;
         if (mods & GLFW_MOD_SHIFT)
-            modifiers = modifiers | vkr::GlfwWindow::Modifiers::Shift;
+            modifiers = modifiers | GlfwWindow::Modifiers::Shift;
         if (mods & GLFW_MOD_ALT)
-            modifiers = modifiers | vkr::GlfwWindow::Modifiers::Alt;
+            modifiers = modifiers | GlfwWindow::Modifiers::Alt;
 
         return modifiers;
     }
 }
 
-vkr::GlfwWindow::GlfwWindow(int width, int height, char const* title)
+GlfwWindow::GlfwWindow(int width, int height, char const* title)
 {
     m_width = width;
     m_height = height;
@@ -59,12 +59,12 @@ vkr::GlfwWindow::GlfwWindow(int width, int height, char const* title)
     queryRequiredInstanceExtensions();
 }
 
-void vkr::GlfwWindow::resize(int width, int height)
+void GlfwWindow::resize(int width, int height)
 {
     glfwSetWindowSize(m_handle, width, height);
 }
 
-vko::Surface vkr::GlfwWindow::createSurface(vko::Instance const& instance) const
+vko::Surface GlfwWindow::createSurface(vko::Instance const& instance) const
 {
     VkSurfaceKHR handle;
 
@@ -74,22 +74,22 @@ vko::Surface vkr::GlfwWindow::createSurface(vko::Instance const& instance) const
     return vko::Surface{ handle, instance, *this };
 }
 
-void vkr::GlfwWindow::addResizeCallback(nstl::function<void(int, int)> callback)
+void GlfwWindow::addResizeCallback(nstl::function<void(int, int)> callback)
 {
     m_resizeCallbacks.emplace_back(nstl::move(callback));
 }
 
-void vkr::GlfwWindow::addKeyCallback(nstl::function<void(Action, Key, char, Modifiers)> callback)
+void GlfwWindow::addKeyCallback(nstl::function<void(Action, Key, char, Modifiers)> callback)
 {
     m_keyCallbacks.emplace_back(nstl::move(callback));
 }
 
-void vkr::GlfwWindow::addMouseMoveCallback(nstl::function<void(glm::vec2)> callback)
+void GlfwWindow::addMouseMoveCallback(nstl::function<void(glm::vec2)> callback)
 {
     m_mouseMoveCallbacks.emplace_back(nstl::move(callback));
 }
 
-void vkr::GlfwWindow::waitUntilInForeground() const
+void GlfwWindow::waitUntilInForeground() const
 {
     int width = 0, height = 0;
     glfwGetFramebufferSize(m_handle, &width, &height);
@@ -100,20 +100,20 @@ void vkr::GlfwWindow::waitUntilInForeground() const
     }
 }
 
-vkr::GlfwWindow::~GlfwWindow()
+GlfwWindow::~GlfwWindow()
 {
     glfwDestroyWindow(m_handle);
     glfwTerminate();
 }
 
-void vkr::GlfwWindow::createWindow(char const* title)
+void GlfwWindow::createWindow(char const* title)
 {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     m_handle = glfwCreateWindow(m_width, m_height, title, nullptr, nullptr);
     glfwSetWindowUserPointer(m_handle, this);
 }
 
-void vkr::GlfwWindow::queryRequiredInstanceExtensions()
+void GlfwWindow::queryRequiredInstanceExtensions()
 {
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions;
@@ -122,13 +122,13 @@ void vkr::GlfwWindow::queryRequiredInstanceExtensions()
     m_requiredInstanceExtensions = nstl::vector<char const*>(glfwExtensions, glfwExtensions + glfwExtensionCount); // TODO use std::span?
 }
 
-void vkr::GlfwWindow::framebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept
+void GlfwWindow::framebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept
 {
     if (auto app = ::getAppFromWindow(window))
         app->onFramebufferResized(width, height);
 }
 
-void vkr::GlfwWindow::onFramebufferResized(int width, int height)
+void GlfwWindow::onFramebufferResized(int width, int height)
 {
     m_width = width;
     m_height = height;
@@ -140,13 +140,13 @@ void vkr::GlfwWindow::onFramebufferResized(int width, int height)
     }
 }
 
-void vkr::GlfwWindow::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) noexcept
+void GlfwWindow::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) noexcept
 {
     if (auto app = ::getAppFromWindow(window))
         app->onKey(key, scancode, action, mods);
 }
 
-void vkr::GlfwWindow::onKey(int glfwKey, int, int glfwAction, int glfwMods)
+void GlfwWindow::onKey(int glfwKey, int, int glfwAction, int glfwMods)
 {
     Action action = getAction(glfwAction);
 
@@ -168,13 +168,13 @@ void vkr::GlfwWindow::onKey(int glfwKey, int, int glfwAction, int glfwMods)
             callback(action, key, c, mods);
 }
 
-void vkr::GlfwWindow::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) noexcept
+void GlfwWindow::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) noexcept
 {
 	if (auto app = ::getAppFromWindow(window))
 		app->onMouseButton(button, action, mods);
 }
 
-void vkr::GlfwWindow::onMouseButton(int glfwButton, int glfwAction, int)
+void GlfwWindow::onMouseButton(int glfwButton, int glfwAction, int)
 {
     if (m_canCaptureCursor && glfwButton == GLFW_MOUSE_BUTTON_LEFT)
     {
@@ -184,13 +184,13 @@ void vkr::GlfwWindow::onMouseButton(int glfwButton, int glfwAction, int)
     }
 }
 
-void vkr::GlfwWindow::cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) noexcept
+void GlfwWindow::cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) noexcept
 {
 	if (auto app = ::getAppFromWindow(window))
 		app->onCursorPosition(xpos, ypos);
 }
 
-void vkr::GlfwWindow::onCursorPosition(double xpos, double ypos)
+void GlfwWindow::onCursorPosition(double xpos, double ypos)
 {
     glm::vec2 pos = { static_cast<float>(xpos), static_cast<float>(ypos) };
 	glm::vec2 delta = pos - m_lastCursorPosition;
@@ -204,12 +204,12 @@ void vkr::GlfwWindow::onCursorPosition(double xpos, double ypos)
     }
 }
 
-bool vkr::GlfwWindow::shouldClose() const
+bool GlfwWindow::shouldClose() const
 {
     return glfwWindowShouldClose(m_handle) > 0;
 }
 
-void vkr::GlfwWindow::pollEvents() const
+void GlfwWindow::pollEvents() const
 {
     glfwPollEvents();
 }
