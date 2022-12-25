@@ -56,39 +56,31 @@ namespace
 
 namespace vkr
 {
-    class ApplicationImpl
+    struct ApplicationImpl
     {
     public:
         ApplicationImpl(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage)
-            : m_instance(name, createInstanceExtensions(enableValidation, window), enableValidation, enableApiDump, enableValidation ? nstl::move(onDebugMessage) : nullptr)
-            , m_surface(window.createSurface(m_instance))
-            , m_physicalDevice(findPhysicalDevice(m_instance, m_surface))
-            , m_params(vko::queryPhysicalDeviceSurfaceParameters(m_physicalDevice, m_surface))
-            , m_device(getPhysicalDevice(), *m_params.graphicsQueueFamily, *m_params.presentQueueFamily, DEVICE_EXTENSIONS)
+            : instance(name, createInstanceExtensions(enableValidation, window), enableValidation, enableApiDump, enableValidation ? nstl::move(onDebugMessage) : nullptr)
+            , surface(window.createSurface(instance))
+            , physicalDevice(findPhysicalDevice(instance, surface))
+            , params(vko::queryPhysicalDeviceSurfaceParameters(physicalDevice, surface))
+            , device(physicalDevice, *params.graphicsQueueFamily, *params.presentQueueFamily, DEVICE_EXTENSIONS)
         {
 
         }
 
-        vko::Instance const& getInstance() const { return m_instance; }
-        vko::Surface const& getSurface() const { return m_surface; }
-        vko::Device const& getDevice() const { return m_device; }
-
-        vko::PhysicalDevice const& getPhysicalDevice() const { return m_physicalDevice; }
-        vko::PhysicalDeviceSurfaceParameters const& getParameters() const { return m_params; }
-
-        void onSurfaceChanged()
+        void updatePhysicalDeviceSurfaceParameters()
         {
-            m_params = vko::queryPhysicalDeviceSurfaceParameters(m_physicalDevice, m_surface);
+            params = vko::queryPhysicalDeviceSurfaceParameters(physicalDevice, surface);
         }
 
-    private:
-        vko::Instance m_instance;
-        vko::Surface m_surface;
+        vko::Instance instance;
+        vko::Surface surface;
 
-        vko::PhysicalDevice m_physicalDevice;
-        vko::PhysicalDeviceSurfaceParameters m_params;
+        vko::PhysicalDevice physicalDevice;
+        vko::PhysicalDeviceSurfaceParameters params;
 
-        vko::Device m_device;
+        vko::Device device;
     };
 }
 
@@ -101,30 +93,30 @@ vkr::Application::~Application() = default;
 
 vko::Instance const& vkr::Application::getInstance() const
 {
-    return m_impl->getInstance();
+    return m_impl->instance;
 }
 
 vko::Surface const& vkr::Application::getSurface() const
 {
-    return m_impl->getSurface();
+    return m_impl->surface;
 }
 
 vko::Device const& vkr::Application::getDevice() const
 {
-    return m_impl->getDevice();
+    return m_impl->device;
 }
 
 vko::PhysicalDevice const& vkr::Application::getPhysicalDevice() const
 {
-    return m_impl->getPhysicalDevice();
+    return m_impl->physicalDevice;
 }
 
 vko::PhysicalDeviceSurfaceParameters const& vkr::Application::getPhysicalDeviceSurfaceParameters() const
 {
-    return m_impl->getParameters();
+    return m_impl->params;
 }
 
 void vkr::Application::onSurfaceChanged()
 {
-    return m_impl->onSurfaceChanged();
+    return m_impl->updatePhysicalDeviceSurfaceParameters();
 }

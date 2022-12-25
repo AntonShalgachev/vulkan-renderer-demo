@@ -16,7 +16,7 @@ namespace vko
 
 namespace vkr
 {
-    class ApplicationImpl;
+    struct ApplicationImpl;
 
     // TODO rename to Context
     class Application
