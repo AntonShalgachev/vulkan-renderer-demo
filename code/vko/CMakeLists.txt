@@ -2,7 +2,6 @@ add_library(vko
     "pch.h"
 
     "Assert.h"
-    "Assert.cpp"
     "Buffer.h"
     "Buffer.cpp"
     "CommandBuffers.h"
@@ -55,9 +54,7 @@ add_library(vko
     "Swapchain.h"
     "Swapchain.cpp"
     "UniqueHandle.h"
-    "UniqueHandle.cpp"
     "Window.h"
-    "Window.cpp"
 )
 
 target_include_directories(vko PUBLIC
