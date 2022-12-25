@@ -4,9 +4,7 @@
 #include "vko/Surface.h"
 #include "vko/PhysicalDevice.h"
 #include "vko/Device.h"
-#include "vko/Queue.h"
 #include "vko/Window.h"
-#include "vko/Assert.h"
 #include "vko/PhysicalDeviceSurfaceParameters.h"
 
 #include "nstl/vector.h"
