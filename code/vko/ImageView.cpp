@@ -19,7 +19,7 @@ namespace vko
 		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		imageViewCreateInfo.subresourceRange.layerCount = 1;
 
-		VKO_ASSERT(vkCreateImageView(m_device, &imageViewCreateInfo, nullptr, &m_handle.get()));
+		VKO_VERIFY(vkCreateImageView(m_device, &imageViewCreateInfo, nullptr, &m_handle.get()));
 	}
 
 	ImageView::~ImageView()

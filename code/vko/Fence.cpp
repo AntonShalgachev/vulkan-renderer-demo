@@ -9,7 +9,7 @@ vko::Fence::Fence(Device const& device) : m_device(device)
     fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    VKO_ASSERT(vkCreateFence(m_device.getHandle(), &fenceCreateInfo, nullptr, &m_handle.get()));
+    VKO_VERIFY(vkCreateFence(m_device.getHandle(), &fenceCreateInfo, nullptr, &m_handle.get()));
 }
 
 vko::Fence::~Fence()
@@ -19,12 +19,12 @@ vko::Fence::~Fence()
 
 void vko::Fence::wait() const
 {
-    VKO_ASSERT(vkWaitForFences(m_device.getHandle(), 1, &m_handle.get(), VK_TRUE, UINT64_MAX));
+    VKO_VERIFY(vkWaitForFences(m_device.getHandle(), 1, &m_handle.get(), VK_TRUE, UINT64_MAX));
 }
 
 void vko::Fence::reset() const
 {
-    VKO_ASSERT(vkResetFences(m_device.getHandle(), 1, &m_handle.get()));
+    VKO_VERIFY(vkResetFences(m_device.getHandle(), 1, &m_handle.get()));
 }
 
 bool vko::Fence::isSignaled() const

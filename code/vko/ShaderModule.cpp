@@ -43,7 +43,7 @@ vko::ShaderModule::ShaderModule(Device const& device, nstl::span<unsigned char c
     createInfo.codeSize = bytes.size();
     createInfo.pCode = code.data();
 
-    VKO_ASSERT(vkCreateShaderModule(m_device, &createInfo, nullptr, &m_handle.get()));
+    VKO_VERIFY(vkCreateShaderModule(m_device, &createInfo, nullptr, &m_handle.get()));
 }
 
 vko::ShaderModule::~ShaderModule()

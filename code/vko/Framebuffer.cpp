@@ -22,7 +22,7 @@ vko::Framebuffer::Framebuffer(Device const& device, vko::ImageView const& colorI
     framebufferCreateInfo.height = extent.height;
     framebufferCreateInfo.layers = 1;
 
-    VKO_ASSERT(vkCreateFramebuffer(m_device.getHandle(), &framebufferCreateInfo, nullptr, &m_handle.get()));
+    VKO_VERIFY(vkCreateFramebuffer(m_device.getHandle(), &framebufferCreateInfo, nullptr, &m_handle.get()));
 }
 
 vko::Framebuffer::~Framebuffer()

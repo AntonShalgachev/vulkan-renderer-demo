@@ -33,7 +33,7 @@ vko::DescriptorPool::DescriptorPool(Device const& device)
     poolCreateInfo.pPoolSizes = poolSizes.data();
     poolCreateInfo.maxSets = N;
 
-    VKO_ASSERT(vkCreateDescriptorPool(m_device.getHandle(), &poolCreateInfo, nullptr, &m_handle.get()));
+    VKO_VERIFY(vkCreateDescriptorPool(m_device.getHandle(), &poolCreateInfo, nullptr, &m_handle.get()));
 }
 
 vko::DescriptorPool::~DescriptorPool()
@@ -74,5 +74,5 @@ nstl::vector<VkDescriptorSet> vko::DescriptorPool::allocateRaw(nstl::span<VkDesc
 
 void vko::DescriptorPool::reset()
 {
-    VKO_ASSERT(vkResetDescriptorPool(m_device.getHandle(), m_handle, 0));
+    VKO_VERIFY(vkResetDescriptorPool(m_device.getHandle(), m_handle, 0));
 }

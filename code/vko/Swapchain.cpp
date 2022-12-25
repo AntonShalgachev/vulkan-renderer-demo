@@ -41,7 +41,7 @@ vko::Swapchain::Swapchain(Device const& device, Surface const& surface, QueueFam
     swapchainCreateInfo.clipped = VK_TRUE;
     swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    VKO_ASSERT(vkCreateSwapchainKHR(m_device.getHandle(), &swapchainCreateInfo, nullptr, &m_handle.get()));
+    VKO_VERIFY(vkCreateSwapchainKHR(m_device.getHandle(), &swapchainCreateInfo, nullptr, &m_handle.get()));
 
     retrieveImages();
 }
@@ -74,11 +74,11 @@ nstl::vector<vko::Image> const& vko::Swapchain::getImages() const
 void vko::Swapchain::retrieveImages()
 {
     uint32_t finalImageCount = 0;
-    VKO_ASSERT(vkGetSwapchainImagesKHR(m_device.getHandle(), m_handle, &finalImageCount, nullptr));
+    VKO_VERIFY(vkGetSwapchainImagesKHR(m_device.getHandle(), m_handle, &finalImageCount, nullptr));
 
     nstl::vector<VkImage> imageHandles;
     imageHandles.resize(finalImageCount);
-    VKO_ASSERT(vkGetSwapchainImagesKHR(m_device.getHandle(), m_handle, &finalImageCount, imageHandles.data()));
+    VKO_VERIFY(vkGetSwapchainImagesKHR(m_device.getHandle(), m_handle, &finalImageCount, imageHandles.data()));
 
     m_images.reserve(finalImageCount);
     for (VkImage const& handle : imageHandles)

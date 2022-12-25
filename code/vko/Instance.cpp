@@ -11,9 +11,9 @@ namespace
     nstl::vector<VkLayerProperties> getAvailableLayers()
     {
         uint32_t count = 0;
-        VKO_ASSERT(vkEnumerateInstanceLayerProperties(&count, nullptr));
+        VKO_VERIFY(vkEnumerateInstanceLayerProperties(&count, nullptr));
         nstl::vector<VkLayerProperties> availableLayers(count);
-        VKO_ASSERT(vkEnumerateInstanceLayerProperties(&count, availableLayers.data()));
+        VKO_VERIFY(vkEnumerateInstanceLayerProperties(&count, availableLayers.data()));
 
         return availableLayers;
     }
@@ -21,9 +21,9 @@ namespace
     nstl::vector<VkExtensionProperties> getAvailableExtensions()
     {
         uint32_t count = 0;
-        VKO_ASSERT(vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr));
+        VKO_VERIFY(vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr));
         nstl::vector<VkExtensionProperties> availableExtensions(count);
-        VKO_ASSERT(vkEnumerateInstanceExtensionProperties(nullptr, &count, availableExtensions.data()));
+        VKO_VERIFY(vkEnumerateInstanceExtensionProperties(nullptr, &count, availableExtensions.data()));
 
         return availableExtensions;
     }
@@ -111,7 +111,7 @@ void vko::Instance::createInstance(char const* appName, nstl::vector<char const*
     instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(requestedLayers.size());
     instanceCreateInfo.ppEnabledLayerNames = requestedLayers.data();
 
-    VKO_ASSERT(vkCreateInstance(&instanceCreateInfo, nullptr, &m_handle.get()));
+    VKO_VERIFY(vkCreateInstance(&instanceCreateInfo, nullptr, &m_handle.get()));
 }
 
 void vko::Instance::findFunctions(bool enableValidation)
@@ -142,7 +142,7 @@ void vko::Instance::createDebugMessenger()
     createInfo.pfnUserCallback = debugMessageCallback;
     createInfo.pUserData = this;
 
-    VKO_ASSERT(m_vkCreateDebugUtilsMessengerEXT(m_handle.get(), &createInfo, nullptr, &m_debugMessenger.get()));
+    VKO_VERIFY(m_vkCreateDebugUtilsMessengerEXT(m_handle.get(), &createInfo, nullptr, &m_debugMessenger.get()));
 }
 
 void vko::Instance::setDebugName(VkDevice device, uint64_t handle, VkObjectType type, char const* name) const
@@ -156,17 +156,17 @@ void vko::Instance::setDebugName(VkDevice device, uint64_t handle, VkObjectType 
     nameInfo.objectHandle = handle;
     nameInfo.pObjectName = name;
 
-    VKO_ASSERT(m_vkSetDebugUtilsObjectNameEXT(device, &nameInfo));
+    VKO_VERIFY(m_vkSetDebugUtilsObjectNameEXT(device, &nameInfo));
 }
 
 nstl::vector<vko::PhysicalDevice> vko::Instance::findPhysicalDevices() const
 {
     uint32_t count = 0;
-    VKO_ASSERT(vkEnumeratePhysicalDevices(m_handle, &count, nullptr));
+    VKO_VERIFY(vkEnumeratePhysicalDevices(m_handle, &count, nullptr));
     assert(count > 0);
 
     nstl::vector<VkPhysicalDevice> physicalDeviceHandles(count);
-    VKO_ASSERT(vkEnumeratePhysicalDevices(m_handle, &count, physicalDeviceHandles.data()));
+    VKO_VERIFY(vkEnumeratePhysicalDevices(m_handle, &count, physicalDeviceHandles.data()));
 
     nstl::vector<vko::PhysicalDevice> physicalDevices;
     physicalDevices.reserve(count);

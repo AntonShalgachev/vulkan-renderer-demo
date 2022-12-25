@@ -25,9 +25,9 @@ void vko::PhysicalDevice::init()
 void vko::PhysicalDevice::queryAvailableExtensions()
 {
     uint32_t count = 0;
-    VKO_ASSERT(vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, nullptr));
+    VKO_VERIFY(vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, nullptr));
     m_availableExtensions.resize(count);
-    VKO_ASSERT(vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, m_availableExtensions.data()));
+    VKO_VERIFY(vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, m_availableExtensions.data()));
 
     for (const auto& extension : m_availableExtensions)
         m_availableExtensionNames.push_back(extension.extensionName);

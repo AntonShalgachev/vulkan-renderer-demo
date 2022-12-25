@@ -11,5 +11,5 @@ vko::Queue::Queue(VkQueue handle, QueueFamily const& queueFamily)
 
 void vko::Queue::waitIdle() const
 {
-    VKO_ASSERT(vkQueueWaitIdle(m_handle));
+    VKO_VERIFY(vkQueueWaitIdle(m_handle));
 }

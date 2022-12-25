@@ -13,13 +13,13 @@ vko::CommandPool::CommandPool(Device const& device, QueueFamily const& queueFami
     poolCreateInfo.queueFamilyIndex = queueFamily.getIndex();
     poolCreateInfo.flags = 0; // TODO make use of it
 
-    VKO_ASSERT(vkCreateCommandPool(m_device.getHandle(), &poolCreateInfo, nullptr, &m_handle.get()));
+    VKO_VERIFY(vkCreateCommandPool(m_device.getHandle(), &poolCreateInfo, nullptr, &m_handle.get()));
 }
 
 void vko::CommandPool::reset() const
 {
     VkCommandPoolResetFlags flags = 0;
-    VKO_ASSERT(vkResetCommandPool(m_device.getHandle(), m_handle, flags));
+    VKO_VERIFY(vkResetCommandPool(m_device.getHandle(), m_handle, flags));
 }
 
 vko::CommandPool::~CommandPool()

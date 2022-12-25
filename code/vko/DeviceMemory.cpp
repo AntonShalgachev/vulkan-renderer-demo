@@ -39,10 +39,10 @@ vko::DeviceMemory::DeviceMemory(Device const& device, PhysicalDevice const& phys
     allocInfo.allocationSize = memoryRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, memoryProperties);
 
-    VKO_ASSERT(vkAllocateMemory(m_device, &allocInfo, nullptr, &m_handle.get()));
+    VKO_VERIFY(vkAllocateMemory(m_device, &allocInfo, nullptr, &m_handle.get()));
 
     if ((memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
-        VKO_ASSERT(vkMapMemory(m_device, m_handle, 0, memoryRequirements.size, 0, &m_data));
+        VKO_VERIFY(vkMapMemory(m_device, m_handle, 0, memoryRequirements.size, 0, &m_data));
 }
 
 vko::DeviceMemory::~DeviceMemory()

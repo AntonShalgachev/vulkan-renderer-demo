@@ -188,7 +188,7 @@ vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, Rend
     pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
     pipelineCreateInfo.basePipelineIndex = -1;
 
-	VKO_ASSERT(vkCreateGraphicsPipelines(m_device.getHandle(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &m_handle.get()));
+	VKO_VERIFY(vkCreateGraphicsPipelines(m_device.getHandle(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &m_handle.get()));
 
 	auto layoutsSpan = layout.getDescriptorSetLayouts();
 	m_descriptorSetLayouts = nstl::vector<VkDescriptorSetLayout>{ layoutsSpan.begin(), layoutsSpan.end() };

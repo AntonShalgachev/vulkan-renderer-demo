@@ -60,7 +60,7 @@ vko::RenderPass::RenderPass(Device const& device, VkFormat colorFormat, VkFormat
     renderPassCreateInfo.dependencyCount = 1;
     renderPassCreateInfo.pDependencies = &dependency;
 
-    VKO_ASSERT(vkCreateRenderPass(m_device.getHandle(), &renderPassCreateInfo, nullptr, &m_handle.get()));
+    VKO_VERIFY(vkCreateRenderPass(m_device.getHandle(), &renderPassCreateInfo, nullptr, &m_handle.get()));
 }
 
 vko::RenderPass::~RenderPass()

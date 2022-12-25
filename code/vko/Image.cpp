@@ -26,7 +26,7 @@ namespace vko
         imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 
-        VKO_ASSERT(vkCreateImage(m_device, &imageCreateInfo, nullptr, &m_handle.get()));
+        VKO_VERIFY(vkCreateImage(m_device, &imageCreateInfo, nullptr, &m_handle.get()));
     }
 
     Image::Image(Device const& device, VkImage image, VkFormat format) : m_device(device.getHandle())
@@ -52,6 +52,6 @@ namespace vko
 
     void Image::bindMemory(DeviceMemory const& memory) const
     {
-        VKO_ASSERT(vkBindImageMemory(m_device, m_handle, memory.getHandle(), 0));
+        VKO_VERIFY(vkBindImageMemory(m_device, m_handle, memory.getHandle(), 0));
     }
 }

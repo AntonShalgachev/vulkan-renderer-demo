@@ -3,8 +3,8 @@
 #include <vulkan/vulkan.h>
 
 #ifdef NDEBUG
-#define VKO_ASSERT(cmd) (cmd)
+#define VKO_VERIFY(cmd) (cmd)
 #else
 #include <assert.h>
-#define VKO_ASSERT(cmd) (assert((cmd) == VK_SUCCESS))
+#define VKO_VERIFY(cmd) (assert((cmd) == VK_SUCCESS))
 #endif

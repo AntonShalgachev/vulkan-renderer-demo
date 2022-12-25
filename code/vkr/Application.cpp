@@ -23,21 +23,21 @@ namespace
     VkSurfaceCapabilitiesKHR queryCapabilities(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
     {
         VkSurfaceCapabilitiesKHR result{};
-        VKO_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice.getHandle(), surface.getHandle(), &result));
+        VKO_VERIFY(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice.getHandle(), surface.getHandle(), &result));
         return result;
     }
 
     nstl::vector<VkSurfaceFormatKHR> queryFormats(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
     {
         uint32_t count = 0;
-        VKO_ASSERT(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice.getHandle(), surface.getHandle(), &count, nullptr));
+        VKO_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice.getHandle(), surface.getHandle(), &count, nullptr));
 
         nstl::vector<VkSurfaceFormatKHR> result;
 
         if (count > 0)
         {
             result.resize(count);
-            VKO_ASSERT(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice.getHandle(), surface.getHandle(), &count, result.data()));
+            VKO_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice.getHandle(), surface.getHandle(), &count, result.data()));
         }
 
         return result;
@@ -46,14 +46,14 @@ namespace
     nstl::vector<VkPresentModeKHR> queryPresentModes(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
     {
         uint32_t count = 0;
-        VKO_ASSERT(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice.getHandle(), surface.getHandle(), &count, nullptr));
+        VKO_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice.getHandle(), surface.getHandle(), &count, nullptr));
 
         nstl::vector<VkPresentModeKHR> result;
 
         if (count > 0)
         {
             result.resize(count);
-            VKO_ASSERT(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice.getHandle(), surface.getHandle(), &count, result.data()));
+            VKO_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice.getHandle(), surface.getHandle(), &count, result.data()));
         }
 
         return result;
@@ -62,7 +62,7 @@ namespace
     bool queryPresentationSupport(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface, vko::QueueFamily const& queueFamily)
     {
         VkBool32 result = false;
-        VKO_ASSERT(vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice.getHandle(), queueFamily.getIndex(), surface.getHandle(), &result));
+        VKO_VERIFY(vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice.getHandle(), queueFamily.getIndex(), surface.getHandle(), &result));
         return result;
     }
 

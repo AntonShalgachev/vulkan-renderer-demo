@@ -20,7 +20,7 @@ vko::CommandBuffers::CommandBuffers(Device const& device, CommandPool const& com
 
     nstl::vector<VkCommandBuffer> rawHandles;
     rawHandles.resize(size);
-    VKO_ASSERT(vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, rawHandles.data()));
+    VKO_VERIFY(vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, rawHandles.data()));
 
     m_handles.reserve(size);
     for (VkCommandBuffer handle : rawHandles)
@@ -42,7 +42,7 @@ vko::CommandBuffers::~CommandBuffers()
 
 void vko::CommandBuffers::reset(std::size_t index) const
 {
-    VKO_ASSERT(vkResetCommandBuffer(m_handles[index], 0));
+    VKO_VERIFY(vkResetCommandBuffer(m_handles[index], 0));
 }
 
 void vko::CommandBuffers::begin(std::size_t index, bool oneTime /*= true*/) const
@@ -56,12 +56,12 @@ void vko::CommandBuffers::begin(std::size_t index, bool oneTime /*= true*/) cons
     commandBufferBeginInfo.flags = flags;
     commandBufferBeginInfo.pInheritanceInfo = nullptr;
 
-    VKO_ASSERT(vkBeginCommandBuffer(m_handles[index], &commandBufferBeginInfo));
+    VKO_VERIFY(vkBeginCommandBuffer(m_handles[index], &commandBufferBeginInfo));
 }
 
 void vko::CommandBuffers::end(std::size_t index) const
 {
-    VKO_ASSERT(vkEndCommandBuffer(m_handles[index]));
+    VKO_VERIFY(vkEndCommandBuffer(m_handles[index]));
 }
 
 void vko::CommandBuffers::submit(std::size_t index, Queue const& queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence) const
@@ -90,5 +90,5 @@ void vko::CommandBuffers::submit(std::size_t index, Queue const& queue, Semaphor
 
     VkFence signalFenceHandle = signalFence ? signalFence->getHandle() : VK_NULL_HANDLE;
 
-    VKO_ASSERT(vkQueueSubmit(queue.getHandle(), 1, &submitInfo, signalFenceHandle));
+    VKO_VERIFY(vkQueueSubmit(queue.getHandle(), 1, &submitInfo, signalFenceHandle));
 }

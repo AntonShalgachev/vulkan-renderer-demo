@@ -14,7 +14,7 @@ vko::Buffer::Buffer(Device const& device, VkDeviceSize size, VkBufferUsageFlags 
     bufferCreateInfo.usage = usage;
     bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    VKO_ASSERT(vkCreateBuffer(m_device, &bufferCreateInfo, nullptr, &m_handle.get()));
+    VKO_VERIFY(vkCreateBuffer(m_device, &bufferCreateInfo, nullptr, &m_handle.get()));
 }
 
 vko::Buffer::~Buffer()
@@ -33,7 +33,7 @@ VkMemoryRequirements vko::Buffer::getMemoryRequirements() const
 
 void vko::Buffer::bindMemory(DeviceMemory const& memory) const
 {
-    VKO_ASSERT(vkBindBufferMemory(m_device, m_handle, memory.getHandle(), 0));
+    VKO_VERIFY(vkBindBufferMemory(m_device, m_handle, memory.getHandle(), 0));
 }
 
 void vko::Buffer::copy(VkCommandBuffer commandBuffer, Buffer const& source, std::size_t sourceOffset, Buffer const& destination, std::size_t destinationOffset, std::size_t size)
