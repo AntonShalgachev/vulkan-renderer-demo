@@ -32,13 +32,13 @@ namespace
         uint32_t count = 0;
         VKO_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice.getHandle(), surface.getHandle(), &count, nullptr));
 
-        nstl::vector<VkSurfaceFormatKHR> result;
+        if (count <= 0)
+            return {};
 
-        if (count > 0)
-        {
-            result.resize(count);
-            VKO_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice.getHandle(), surface.getHandle(), &count, result.data()));
-        }
+        nstl::vector<VkSurfaceFormatKHR> result;
+        result.resize(count);
+
+        VKO_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice.getHandle(), surface.getHandle(), &count, result.data()));
 
         return result;
     }
@@ -48,13 +48,13 @@ namespace
         uint32_t count = 0;
         VKO_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice.getHandle(), surface.getHandle(), &count, nullptr));
 
-        nstl::vector<VkPresentModeKHR> result;
+        if (count <= 0)
+            return {};
 
-        if (count > 0)
-        {
-            result.resize(count);
-            VKO_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice.getHandle(), surface.getHandle(), &count, result.data()));
-        }
+        nstl::vector<VkPresentModeKHR> result;
+        result.resize(count);
+
+        VKO_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice.getHandle(), surface.getHandle(), &count, result.data()));
 
         return result;
     }
@@ -87,11 +87,6 @@ namespace
 
         return params;
     }
-
-//     void updateCapabilities(PhysicalDeviceSurfaceParameters& params, vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
-//     {
-// 
-//     }
 
     bool isDeviceSuitable(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
     {
