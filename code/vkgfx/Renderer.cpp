@@ -23,7 +23,7 @@
 #include "vko/Sampler.h"
 #include "vko/PhysicalDeviceSurfaceParameters.h"
 
-#include "vkgfx/Application.h"
+#include "vkgfx/Context.h"
 #include "vkgfx/ResourceManager.h"
 #include "vkgfx/TestObject.h"
 #include "vkgfx/Mesh.h"
@@ -232,17 +232,17 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
 {
     m_window.addResizeCallback([this](int, int) { onWindowResized(); });
 
-    m_application = nstl::make_unique<Application>(name, enableValidationLayers, false, window, nstl::move(onDebugMessage));
+    m_context = nstl::make_unique<Context>(name, enableValidationLayers, false, window, nstl::move(onDebugMessage));
 
-    vko::Instance const& instance = m_application->getInstance();
-    vko::Device const& device = m_application->getDevice();
-    vko::PhysicalDevice const& physicalDevice = m_application->getPhysicalDevice();
+    vko::Instance const& instance = m_context->getInstance();
+    vko::Device const& device = m_context->getDevice();
+    vko::PhysicalDevice const& physicalDevice = m_context->getPhysicalDevice();
 
     instance.setDebugName(device.getHandle(), device.getHandle(), "Device");
     instance.setDebugName(device.getHandle(), device.getGraphicsQueue().getHandle(), "Graphics");
     instance.setDebugName(device.getHandle(), device.getPresentQueue().getHandle(), "Present");
 
-    vko::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
+    vko::PhysicalDeviceSurfaceParameters const& parameters = m_context->getPhysicalDeviceSurfaceParameters();
     vko::QueueFamily const& graphicsQueueFamily = *parameters.graphicsQueueFamily;
     nstl::span<VkSurfaceFormatKHR const> formats = parameters.formats;
 
@@ -317,7 +317,7 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
 
 vkgfx::Renderer::~Renderer()
 {
-    m_application->getDevice().waitIdle();
+    m_context->getDevice().waitIdle();
 
     destroySwapchain();
 }
@@ -344,7 +344,7 @@ void vkgfx::Renderer::addOneFrameTestObject(TestObject object)
 
 void vkgfx::Renderer::waitIdle()
 {
-    m_application->getDevice().waitIdle();
+    m_context->getDevice().waitIdle();
 }
 
 void vkgfx::Renderer::draw()
@@ -353,7 +353,7 @@ void vkgfx::Renderer::draw()
 
     frameResources.inFlightFence.wait();
 
-    vko::Device const& device = m_application->getDevice();
+    vko::Device const& device = m_context->getDevice();
 
     uint32_t imageIndex;
     VkResult aquireImageResult = vkAcquireNextImageKHR(device.getHandle(), m_swapchain->getHandle(), std::numeric_limits<uint64_t>::max(), frameResources.imageAvailableSemaphore.getHandle(), VK_NULL_HANDLE, &imageIndex);
@@ -405,7 +405,7 @@ void vkgfx::Renderer::onWindowResized()
 {
     m_window.waitUntilInForeground();
 
-    m_application->onSurfaceChanged(); // TODO remove?
+    m_context->onSurfaceChanged(); // TODO remove?
 
     recreateSwapchain();
 }
@@ -448,7 +448,7 @@ void vkgfx::Renderer::createCameraResources()
             },
         };
 
-        updateDescriptorSet(m_application->getDevice().getHandle(), m_data->frameDescriptorSet, config);
+        updateDescriptorSet(m_context->getDevice().getHandle(), m_data->frameDescriptorSet, config);
     }
 }
 
@@ -537,7 +537,7 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
                     descriptorSets = descriptorPools.back().allocateRaw(descriptorSetLayouts);
 
                 if (descriptorSets.empty())
-                    descriptorPools.emplace_back(m_application->getDevice());
+                    descriptorPools.emplace_back(m_context->getDevice());
             } while (descriptorSets.empty());
 
             Material const* material = m_resourceManager->getMaterial(object.material);
@@ -612,8 +612,8 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
                 });
             }
 
-            updateDescriptorSet(m_application->getDevice().getHandle(), descriptorSets[0], config1);
-            updateDescriptorSet(m_application->getDevice().getHandle(), descriptorSets[1], config2);
+            updateDescriptorSet(m_context->getDevice().getHandle(), descriptorSets[0], config1);
+            updateDescriptorSet(m_context->getDevice().getHandle(), descriptorSets[1], config2);
 
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 1, descriptorSets.size(), descriptorSets.data(), dynamicBufferOffsets12.size(), dynamicBufferOffsets12.data());
 
@@ -690,16 +690,16 @@ void vkgfx::Renderer::updateCameraBuffer()
 
 void vkgfx::Renderer::createSwapchain()
 {
-    vko::Instance const& instance = m_application->getInstance();
-    vko::Device const& device = m_application->getDevice();
+    vko::Instance const& instance = m_context->getInstance();
+    vko::Device const& device = m_context->getDevice();
 
-    vko::PhysicalDeviceSurfaceParameters const& parameters = m_application->getPhysicalDeviceSurfaceParameters();
+    vko::PhysicalDeviceSurfaceParameters const& parameters = m_context->getPhysicalDeviceSurfaceParameters();
     VkSurfaceCapabilitiesKHR const& capabilities = parameters.capabilities;
     nstl::span<VkPresentModeKHR const> presentModes = parameters.presentModes;
     vko::QueueFamily const& graphicsQueueFamily = *parameters.graphicsQueueFamily;
     vko::QueueFamily const& presentQueueFamily = *parameters.presentQueueFamily;
 
-    VkExtent2D extent = chooseSwapchainExtent(m_application->getSurface(), capabilities);
+    VkExtent2D extent = chooseSwapchainExtent(m_context->getSurface(), capabilities);
 
     vko::Swapchain::Config config;
     config.surfaceFormat = m_data->m_surfaceFormat;
@@ -714,7 +714,7 @@ void vkgfx::Renderer::createSwapchain()
 
     config.preTransform = capabilities.currentTransform;
 
-    m_swapchain = nstl::make_unique<vko::Swapchain>(device, m_application->getSurface(), graphicsQueueFamily, presentQueueFamily, std::move(config));
+    m_swapchain = nstl::make_unique<vko::Swapchain>(device, m_context->getSurface(), graphicsQueueFamily, presentQueueFamily, std::move(config));
     instance.setDebugName(device.getHandle(), m_swapchain->getHandle(), "Main");
 
     // TODO move swapchain images to the ResourceManager?
@@ -734,8 +734,8 @@ void vkgfx::Renderer::createSwapchain()
 
     VkExtent2D swapchainExtent = m_swapchain->getExtent();
 
-    m_depthImage = nstl::make_unique<vko::Image>(m_application->getDevice(), swapchainExtent.width, swapchainExtent.height, m_data->m_depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
-    m_depthImageMemory = nstl::make_unique<vko::DeviceMemory>(m_application->getDevice(), m_application->getPhysicalDevice(), m_depthImage->getMemoryRequirements(), VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    m_depthImage = nstl::make_unique<vko::Image>(m_context->getDevice(), swapchainExtent.width, swapchainExtent.height, m_data->m_depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    m_depthImageMemory = nstl::make_unique<vko::DeviceMemory>(m_context->getDevice(), m_context->getPhysicalDevice(), m_depthImage->getMemoryRequirements(), VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     m_depthImage->bindMemory(*m_depthImageMemory);
 
     m_depthImageView = nstl::make_unique<vko::ImageView>(device, *m_depthImage, VK_IMAGE_ASPECT_DEPTH_BIT);
@@ -759,7 +759,7 @@ void vkgfx::Renderer::createSwapchain()
 
 void vkgfx::Renderer::destroySwapchain()
 {
-    m_application->getDevice().waitIdle();
+    m_context->getDevice().waitIdle();
 
     m_swapchainFramebuffers.clear();
     m_depthImageView = nullptr;

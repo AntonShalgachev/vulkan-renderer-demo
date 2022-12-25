@@ -1,8 +1,8 @@
 add_library(vkgfx
     "pch.h"
 
-    "Application.h"
-    "Application.cpp"
+    "Context.h"
+    "Context.cpp"
     "Buffer.h"
     "Buffer.cpp"
     "BufferMetadata.h"

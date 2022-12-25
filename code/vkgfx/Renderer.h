@@ -22,7 +22,7 @@ namespace vko
 
 namespace vkgfx
 {
-    class Application;
+    class Context;
     struct RendererData;
     struct RendererFrameResources;
     class ResourceManager;
@@ -64,7 +64,8 @@ namespace vkgfx
 
         // TODO don't use unique_ptrs
 
-        nstl::unique_ptr<Application> m_application;
+        // TODO restructure Renderer and Context
+        nstl::unique_ptr<Context> m_context;
         nstl::unique_ptr<ResourceManager> m_resourceManager;
 
         nstl::unique_ptr<RendererData> m_data;

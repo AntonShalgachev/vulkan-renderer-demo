@@ -16,14 +16,13 @@ namespace vko
 
 namespace vkgfx
 {
-    struct ApplicationImpl;
+    struct ContextImpl;
 
-    // TODO rename to Context
-    class Application
+    class Context
     {
     public:
-        Application(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage = {});
-        ~Application();
+        Context(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage = {});
+        ~Context();
 
         vko::Instance const& getInstance() const;
         vko::Surface const& getSurface() const;
@@ -35,6 +34,6 @@ namespace vkgfx
         void onSurfaceChanged();
 
     private:
-        nstl::unique_ptr<ApplicationImpl> m_impl;
+        nstl::unique_ptr<ContextImpl> m_impl;
     };
 }

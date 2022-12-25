@@ -1,4 +1,4 @@
-#include "Application.h"
+#include "Context.h"
 
 #include "vko/Instance.h"
 #include "vko/Surface.h"
@@ -54,10 +54,10 @@ namespace
 
 namespace vkgfx
 {
-    struct ApplicationImpl
+    struct ContextImpl
     {
     public:
-        ApplicationImpl(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage)
+        ContextImpl(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage)
             : instance(name, createInstanceExtensions(enableValidation, window), enableValidation, enableApiDump, enableValidation ? nstl::move(onDebugMessage) : nullptr)
             , surface(window.createSurface(instance))
             , physicalDevice(findPhysicalDevice(instance, surface))
@@ -82,39 +82,39 @@ namespace vkgfx
     };
 }
 
-vkgfx::Application::Application(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage)
+vkgfx::Context::Context(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage)
 {
-    m_impl = nstl::make_unique<ApplicationImpl>(name, enableValidation, enableApiDump, window, nstl::move(onDebugMessage));
+    m_impl = nstl::make_unique<ContextImpl>(name, enableValidation, enableApiDump, window, nstl::move(onDebugMessage));
 }
 
-vkgfx::Application::~Application() = default;
+vkgfx::Context::~Context() = default;
 
-vko::Instance const& vkgfx::Application::getInstance() const
+vko::Instance const& vkgfx::Context::getInstance() const
 {
     return m_impl->instance;
 }
 
-vko::Surface const& vkgfx::Application::getSurface() const
+vko::Surface const& vkgfx::Context::getSurface() const
 {
     return m_impl->surface;
 }
 
-vko::Device const& vkgfx::Application::getDevice() const
+vko::Device const& vkgfx::Context::getDevice() const
 {
     return m_impl->device;
 }
 
-vko::PhysicalDevice const& vkgfx::Application::getPhysicalDevice() const
+vko::PhysicalDevice const& vkgfx::Context::getPhysicalDevice() const
 {
     return m_impl->physicalDevice;
 }
 
-vko::PhysicalDeviceSurfaceParameters const& vkgfx::Application::getPhysicalDeviceSurfaceParameters() const
+vko::PhysicalDeviceSurfaceParameters const& vkgfx::Context::getPhysicalDeviceSurfaceParameters() const
 {
     return m_impl->params;
 }
 
-void vkgfx::Application::onSurfaceChanged()
+void vkgfx::Context::onSurfaceChanged()
 {
     return m_impl->updatePhysicalDeviceSurfaceParameters();
 }
