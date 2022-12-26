@@ -394,9 +394,7 @@ void vkgfx::Renderer::draw()
         assert(false);
 
     if (aquireImageResult == VK_SUBOPTIMAL_KHR)
-    {
         recreateSwapchain();
-    }
 
     m_nextFrameResourcesIndex = (m_nextFrameResourcesIndex + 1) % FRAME_RESOURCE_COUNT;
 }
@@ -419,14 +417,12 @@ void vkgfx::Renderer::createCameraResources()
     };
     m_cameraBuffer = m_resourceManager->createBuffer(sizeof(CameraData), std::move(metadata));
 
-    m_frameUniformConfiguration = {
-        .hasBuffer = true,
-        .hasAlbedoTexture = false,
-        .hasNormalMap = false,
-    };
-
     DescriptorSetLayoutKey key = {
-        .uniformConfig = m_frameUniformConfiguration,
+        .uniformConfig = {
+            .hasBuffer = true,
+            .hasAlbedoTexture = false,
+            .hasNormalMap = false,
+        },
     };
 
     m_frameDescriptorSetLayout = m_resourceManager->getOrCreateDescriptorSetLayout(key);

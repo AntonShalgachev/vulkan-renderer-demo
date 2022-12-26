@@ -2,7 +2,6 @@
 
 #include "vkgfx/Handles.h"
 #include "vkgfx/TestObject.h"
-#include "vkgfx/PipelineKey.h"
 
 #include "nstl/vector.h"
 #include "nstl/function.h"
@@ -87,7 +86,6 @@ namespace vkgfx
         TestCameraTransform m_cameraTransform;
         TestCameraParameters m_cameraParameters;
         TestLightParameters m_lightParameters;
-        UniformConfiguration m_frameUniformConfiguration;
         DescriptorSetLayoutHandle m_frameDescriptorSetLayout;
 
         nstl::vector<TestObject> m_oneFrameTestObjects;

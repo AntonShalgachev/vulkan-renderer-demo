@@ -16,6 +16,7 @@
 #include "vkgfx/Material.h"
 #include "vkgfx/BufferMetadata.h"
 #include "vkgfx/TestObject.h"
+#include "vkgfx/PipelineKey.h"
 
 #include "common/Utils.h"
 
