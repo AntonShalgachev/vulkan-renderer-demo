@@ -5,10 +5,8 @@
 #include "dds-ktx.h"
 #include "cgltf.h"
 
-#pragma warning(push, 0)
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
-#pragma warning(pop)
 
 #include "vko/SamplerProperties.h"
 #include "vko/DebugMessage.h"
