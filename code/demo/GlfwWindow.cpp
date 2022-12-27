@@ -10,9 +10,19 @@
 
 namespace
 {
-    static GlfwWindow* getAppFromWindow(GLFWwindow* window) noexcept
+    GlfwWindow* getWindowFromHandle(GLFWwindow* handle) noexcept
     {
-        return static_cast<GlfwWindow*>(glfwGetWindowUserPointer(window));
+        return static_cast<GlfwWindow*>(glfwGetWindowUserPointer(handle));
+    }
+
+    template<auto MemberFunc>
+    auto createGlfwCallback()
+    {
+        return [](GLFWwindow* handle, auto... args) {
+            auto window = ::getWindowFromHandle(handle);
+            assert(window);
+            (window->*MemberFunc)(nstl::forward<decltype(args)>(args)...);
+        };
     }
 
     GlfwWindow::Action getAction(int glfwAction)
@@ -85,10 +95,7 @@ GlfwWindow::GlfwWindow(int width, int height, char const* title)
     glfwInit();
 
     createWindow(title);
-    glfwSetFramebufferSizeCallback(m_handle, GlfwWindow::framebufferResizeCallback);
-    glfwSetKeyCallback(m_handle, GlfwWindow::keyCallback);
-    glfwSetMouseButtonCallback(m_handle, GlfwWindow::mouseButtonCallback);
-    glfwSetCursorPosCallback(m_handle, GlfwWindow::cursorPositionCallback);
+    setupCallbacks();
     queryRequiredInstanceExtensions();
     createCursors();
 }
@@ -152,6 +159,14 @@ void GlfwWindow::createWindow(char const* title)
     glfwSetWindowUserPointer(m_handle, this);
 }
 
+void GlfwWindow::setupCallbacks()
+{
+    glfwSetFramebufferSizeCallback(m_handle, createGlfwCallback<&GlfwWindow::onFramebufferResized>());
+    glfwSetKeyCallback(m_handle, createGlfwCallback<&GlfwWindow::onKey>());
+    glfwSetMouseButtonCallback(m_handle, createGlfwCallback<&GlfwWindow::onMouseButton>());
+    glfwSetCursorPosCallback(m_handle, createGlfwCallback<&GlfwWindow::onCursorPosition>());
+}
+
 void GlfwWindow::queryRequiredInstanceExtensions()
 {
     uint32_t glfwExtensionCount = 0;
@@ -171,28 +186,14 @@ void GlfwWindow::createCursors()
     }
 }
 
-void GlfwWindow::framebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept
-{
-    if (auto app = ::getAppFromWindow(window))
-        app->onFramebufferResized(width, height);
-}
-
 void GlfwWindow::onFramebufferResized(int width, int height)
 {
     m_width = width;
     m_height = height;
 
     for (auto const& callback : m_resizeCallbacks)
-    {
         if (callback)
             callback(width, height);
-    }
-}
-
-void GlfwWindow::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) noexcept
-{
-    if (auto app = ::getAppFromWindow(window))
-        app->onKey(key, scancode, action, mods);
 }
 
 void GlfwWindow::onKey(int glfwKey, int, int glfwAction, int glfwMods)
@@ -217,12 +218,6 @@ void GlfwWindow::onKey(int glfwKey, int, int glfwAction, int glfwMods)
             callback(action, key, c, mods);
 }
 
-void GlfwWindow::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) noexcept
-{
-	if (auto app = ::getAppFromWindow(window))
-		app->onMouseButton(button, action, mods);
-}
-
 void GlfwWindow::onMouseButton(int glfwButton, int glfwAction, int)
 {
     if (m_canCaptureCursor && glfwButton == GLFW_MOUSE_BUTTON_LEFT)
@@ -231,12 +226,6 @@ void GlfwWindow::onMouseButton(int glfwButton, int glfwAction, int)
 
 		m_cursorCaptured = action == Action::Press;
     }
-}
-
-void GlfwWindow::cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) noexcept
-{
-	if (auto app = ::getAppFromWindow(window))
-		app->onCursorPosition(xpos, ypos);
 }
 
 void GlfwWindow::onCursorPosition(double xpos, double ypos)

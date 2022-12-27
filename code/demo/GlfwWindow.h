@@ -89,19 +89,13 @@ public:
 
 private:
     void createWindow(char const* title);
+    void setupCallbacks();
     void queryRequiredInstanceExtensions();
     void createCursors();
 
-    static void framebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept;
     void onFramebufferResized(int width, int height);
-
-    static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) noexcept;
     void onKey(int key, int scancode, int action, int mods);
-
-    static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) noexcept;
     void onMouseButton(int button, int action, int mods);
-
-    static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) noexcept;
     void onCursorPosition(double xpos, double ypos);
 
     bool shouldClose() const;
