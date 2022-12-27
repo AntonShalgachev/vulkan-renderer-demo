@@ -42,6 +42,39 @@ namespace
 
         return modifiers;
     }
+
+    auto translateCursorType(MouseCursorType type)
+    {
+        // TODO implement new cursors
+        switch (type)
+        {
+            case MouseCursorType::Arrow:
+                return GLFW_ARROW_CURSOR;
+            case MouseCursorType::TextInput:
+                return GLFW_IBEAM_CURSOR;
+            case MouseCursorType::ResizeAll:
+//                 return GLFW_RESIZE_ALL_CURSOR;
+                return GLFW_ARROW_CURSOR;
+            case MouseCursorType::ResizeNS:
+                return GLFW_VRESIZE_CURSOR;
+            case MouseCursorType::ResizeEW:
+                return GLFW_HRESIZE_CURSOR;
+            case MouseCursorType::ResizeNESW:
+//                 return GLFW_RESIZE_NESW_CURSOR;
+                return GLFW_ARROW_CURSOR;
+            case MouseCursorType::ResizeNWSE:
+//                 return GLFW_RESIZE_NWSE_CURSOR;
+                return GLFW_ARROW_CURSOR;
+            case MouseCursorType::NotAllowed:
+//                 return GLFW_NOT_ALLOWED_CURSOR;
+                return GLFW_ARROW_CURSOR;
+            case MouseCursorType::Hand:
+                return GLFW_HAND_CURSOR;
+        }
+
+        assert(false);
+        return -1;
+    }
 }
 
 GlfwWindow::GlfwWindow(int width, int height, char const* title)
@@ -57,6 +90,7 @@ GlfwWindow::GlfwWindow(int width, int height, char const* title)
     glfwSetMouseButtonCallback(m_handle, GlfwWindow::mouseButtonCallback);
     glfwSetCursorPosCallback(m_handle, GlfwWindow::cursorPositionCallback);
     queryRequiredInstanceExtensions();
+    createCursors();
 }
 
 void GlfwWindow::resize(int width, int height)
@@ -100,6 +134,11 @@ void GlfwWindow::waitUntilInForeground() const
     }
 }
 
+void GlfwWindow::setCursor(MouseCursorType type)
+{
+    glfwSetCursor(m_handle, m_cursors[static_cast<size_t>(type)]);
+}
+
 GlfwWindow::~GlfwWindow()
 {
     glfwDestroyWindow(m_handle);
@@ -120,6 +159,16 @@ void GlfwWindow::queryRequiredInstanceExtensions()
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
     m_requiredInstanceExtensions = nstl::vector<char const*>(glfwExtensions, glfwExtensions + glfwExtensionCount); // TODO use std::span?
+}
+
+void GlfwWindow::createCursors()
+{
+    for (size_t i = 0; i < m_cursors.size(); i++)
+    {
+        auto glfwCursorType = translateCursorType(static_cast<MouseCursorType>(i));
+        m_cursors[i] = glfwCreateStandardCursor(glfwCursorType);
+        assert(m_cursors[i]);
+    }
 }
 
 void GlfwWindow::framebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept

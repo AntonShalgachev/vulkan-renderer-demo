@@ -4,8 +4,25 @@
 
 #include "nstl/vector.h"
 #include "nstl/function.h"
+#include "nstl/array.h"
 
 struct GLFWwindow;
+struct GLFWcursor;
+
+enum class MouseCursorType
+{
+    Arrow = 0,
+    TextInput,
+    ResizeAll,
+    ResizeNS,
+    ResizeEW,
+    ResizeNESW,
+    ResizeNWSE,
+    NotAllowed,
+    Hand,
+
+    COUNT,
+};
 
 class GlfwWindow : public vko::Window
 {
@@ -68,9 +85,12 @@ public:
 
     void waitUntilInForeground() const override;
 
+    void setCursor(MouseCursorType type);
+
 private:
     void createWindow(char const* title);
     void queryRequiredInstanceExtensions();
+    void createCursors();
 
     static void framebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept;
     void onFramebufferResized(int width, int height);
@@ -103,6 +123,8 @@ private:
     nstl::vector<nstl::function<void(int, int)>> m_resizeCallbacks;
     nstl::vector<nstl::function<void(Action, Key, char, Modifiers)>> m_keyCallbacks;
     nstl::vector<nstl::function<void(float deltaX, float deltaY)>> m_mouseMoveCallbacks;
+
+    nstl::array<GLFWcursor*, static_cast<size_t>(MouseCursorType::COUNT)> m_cursors;
 };
 
 inline GlfwWindow::Modifiers operator|(GlfwWindow::Modifiers lhs, GlfwWindow::Modifiers rhs)
