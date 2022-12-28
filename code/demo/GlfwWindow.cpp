@@ -268,6 +268,9 @@ void GlfwWindow::setCursorMode(MouseCursorMode mode)
         case MouseCursorMode::Hidden: return GLFW_CURSOR_HIDDEN;
         case MouseCursorMode::Disabled: return GLFW_CURSOR_DISABLED;
         }
+
+        assert(false);
+        return GLFW_CURSOR_NORMAL;
     };
 
     glfwSetInputMode(m_handle, GLFW_CURSOR, covnert(mode));
