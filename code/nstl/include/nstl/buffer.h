@@ -8,16 +8,16 @@
 
 namespace nstl
 {
-    class Buffer
+    class buffer
     {
     public:
-        Buffer(size_t capacity = 0, size_t chunkSize = 1);
-        Buffer(Buffer const& rhs);
-        Buffer(Buffer&& rhs);
-        ~Buffer();
+        buffer(size_t capacity = 0, size_t chunkSize = 1);
+        buffer(buffer const& rhs);
+        buffer(buffer&& rhs);
+        ~buffer();
 
-        Buffer& operator=(Buffer const& rhs);
-        Buffer& operator=(Buffer&& rhs);
+        buffer& operator=(buffer const& rhs);
+        buffer& operator=(buffer&& rhs);
 
         char* data();
         char const* data() const;
@@ -77,7 +77,7 @@ namespace nstl
         }
 
     private:
-        void swap(Buffer& rhs) noexcept;
+        void swap(buffer& rhs) noexcept;
 
     private:
         char* m_ptr = nullptr;

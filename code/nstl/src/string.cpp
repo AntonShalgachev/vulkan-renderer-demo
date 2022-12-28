@@ -60,7 +60,7 @@ void nstl::string::reserve(size_t capacity)
 
     if (requiredBufferSize > m_buffer.capacity())
     {
-        Buffer buffer{ requiredBufferSize, sizeof(char) };
+        buffer buffer{ requiredBufferSize, sizeof(char) };
         buffer.copy(m_buffer.data(), length());
         *buffer.get(length()) = '\0';
         buffer.resize(m_buffer.size());

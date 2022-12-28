@@ -56,7 +56,7 @@ namespace nstl
         void validateIsNullTerminated();
 
     private:
-        Buffer m_buffer;
+        buffer m_buffer;
     };
 
     string operator+(string lhs, char rhs);

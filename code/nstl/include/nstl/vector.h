@@ -85,7 +85,7 @@ namespace nstl
         void grow(size_t newCapacity);
 
     private:
-        Buffer m_buffer{ 0, sizeof(T) };
+        buffer m_buffer{ 0, sizeof(T) };
     };
 }
 
@@ -437,24 +437,24 @@ nstl::vector<T>::operator nstl::span<T const>() const
 template<typename T>
 void nstl::vector<T>::grow(size_t newCapacity)
 {
-    Buffer buffer{ newCapacity, sizeof(T) };
+    buffer newBuffer{ newCapacity, sizeof(T) };
 
     if constexpr (nstl::is_trivial_v<T>)
     {
-        buffer.resize(m_buffer.size());
-        buffer.copy(m_buffer.data(), m_buffer.size());
+        newBuffer.resize(m_buffer.size());
+        newBuffer.copy(m_buffer.data(), m_buffer.size());
     }
     else
     {
         for (size_t i = 0; i < m_buffer.size(); i++)
-            buffer.constructNext<T>(nstl::move(*m_buffer.get<T>(i)));
+            newBuffer.constructNext<T>(nstl::move(*m_buffer.get<T>(i)));
     }
 
-    NSTL_ASSERT(m_buffer.size() == buffer.size());
+    NSTL_ASSERT(m_buffer.size() == newBuffer.size());
 
     clear();
 
-    m_buffer = nstl::move(buffer);
+    m_buffer = nstl::move(newBuffer);
 
     NSTL_ASSERT(m_buffer.capacity() == newCapacity);
 }

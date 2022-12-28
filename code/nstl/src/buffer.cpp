@@ -4,12 +4,12 @@
 
 #include <string.h>
 
-nstl::Buffer::Buffer(size_t capacity, size_t chunkSize) : m_ptr(capacity* chunkSize > 0 ? new char[capacity * chunkSize] : nullptr), m_capacity(capacity), m_chunkSize(chunkSize)
+nstl::buffer::buffer(size_t capacity, size_t chunkSize) : m_ptr(capacity* chunkSize > 0 ? new char[capacity * chunkSize] : nullptr), m_capacity(capacity), m_chunkSize(chunkSize)
 {
     NSTL_ASSERT(chunkSize > 0);
 }
 
-nstl::Buffer::Buffer(Buffer const& rhs) : Buffer(rhs.m_capacity, rhs.m_chunkSize)
+nstl::buffer::buffer(buffer const& rhs) : buffer(rhs.m_capacity, rhs.m_chunkSize)
 {
     NSTL_ASSERT(rhs.m_constructedObjectsCount == 0);
 
@@ -18,12 +18,12 @@ nstl::Buffer::Buffer(Buffer const& rhs) : Buffer(rhs.m_capacity, rhs.m_chunkSize
     m_size = rhs.m_size;
 }
 
-nstl::Buffer::Buffer(Buffer&& rhs)
+nstl::buffer::buffer(buffer&& rhs)
 {
     rhs.swap(*this);
 }
 
-nstl::Buffer::~Buffer()
+nstl::buffer::~buffer()
 {
     NSTL_ASSERT(m_constructedObjectsCount == 0);
 
@@ -32,63 +32,63 @@ nstl::Buffer::~Buffer()
     m_ptr = nullptr;
 }
 
-nstl::Buffer& nstl::Buffer::operator=(Buffer const& rhs)
+nstl::buffer& nstl::buffer::operator=(buffer const& rhs)
 {
     NSTL_ASSERT(rhs.m_constructedObjectsCount == 0);
 
-    Buffer temp{ rhs };
+    buffer temp{ rhs };
     temp.swap(*this);
     return *this;
 }
 
-nstl::Buffer& nstl::Buffer::operator=(Buffer&& rhs)
+nstl::buffer& nstl::buffer::operator=(buffer&& rhs)
 {
     rhs.swap(*this);
     return *this;
 }
 
-char* nstl::Buffer::data()
+char* nstl::buffer::data()
 {
     return m_ptr;
 }
 
-char const* nstl::Buffer::data() const
+char const* nstl::buffer::data() const
 {
     return m_ptr;
 }
 
-size_t nstl::Buffer::capacity() const
+size_t nstl::buffer::capacity() const
 {
     return m_capacity;
 }
 
-size_t nstl::Buffer::capacityBytes() const
+size_t nstl::buffer::capacityBytes() const
 {
     return m_capacity * m_chunkSize;
 }
 
-size_t nstl::Buffer::size() const
+size_t nstl::buffer::size() const
 {
     return m_size;
 }
 
-void nstl::Buffer::resize(size_t newSize)
+void nstl::buffer::resize(size_t newSize)
 {
     NSTL_ASSERT(newSize <= m_capacity);
     m_size = newSize;
 }
 
-char* nstl::Buffer::get(size_t index)
+char* nstl::buffer::get(size_t index)
 {
     return m_ptr + index;
 }
 
-char const* nstl::Buffer::get(size_t index) const
+char const* nstl::buffer::get(size_t index) const
 {
     return m_ptr + index;
 }
 
-void nstl::Buffer::copy(void const* ptr, size_t size)
+void nstl::buffer::copy(void const* ptr, size_t size)
 {
     if (size == 0)
         return;
@@ -99,7 +99,7 @@ void nstl::Buffer::copy(void const* ptr, size_t size)
     memcpy(m_ptr, ptr, size * m_chunkSize);
 }
 
-void nstl::Buffer::swap(Buffer& rhs) noexcept
+void nstl::buffer::swap(buffer& rhs) noexcept
 {
     nstl::exchange(m_ptr, rhs.m_ptr);
     nstl::exchange(m_capacity, rhs.m_capacity);
