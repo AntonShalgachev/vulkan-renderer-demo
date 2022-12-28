@@ -37,6 +37,7 @@ struct nstl::hash<T> \
     size_t operator()(T const& value); \
 };
 
+DECLARE_POD_HASH(void*);
 DECLARE_POD_HASH(bool);
 DECLARE_POD_HASH(char);
 DECLARE_POD_HASH(signed char);

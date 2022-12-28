@@ -23,6 +23,7 @@ void nstl::hash_combine(size_t& hash, size_t hash2)
         return hash_string(reinterpret_cast<char const*>(&value), sizeof(value)); \
     }
 
+DEFINE_POS_HASH(void*);
 DEFINE_POS_HASH(bool);
 DEFINE_POS_HASH(char);
 DEFINE_POS_HASH(signed char);
