@@ -302,6 +302,8 @@ void GlfwWindow::setClipboardText(char const* text)
 
 GlfwWindow::~GlfwWindow()
 {
+    destroyCursors();
+
     glfwDestroyWindow(m_handle);
     glfwTerminate();
 }
@@ -337,11 +339,21 @@ void GlfwWindow::queryRequiredInstanceExtensions()
 
 void GlfwWindow::createCursors()
 {
-    for (size_t i = 0; i < m_cursors.size(); i++)
+    for (MouseCursorIcon icon : charming_enum::enum_values<MouseCursorIcon>())
     {
-        auto glfwCursorType = translateCursorType(static_cast<MouseCursorIcon>(i));
-        m_cursors[i] = glfwCreateStandardCursor(glfwCursorType);
-        assert(m_cursors[i]);
+        size_t index = static_cast<size_t>(icon);
+        m_cursors[index] = glfwCreateStandardCursor(translateCursorType(icon));
+        assert(m_cursors[index]);
+    }
+}
+
+void GlfwWindow::destroyCursors()
+{
+    for (GLFWcursor*& cursor : m_cursors)
+    {
+        if (cursor)
+            glfwDestroyCursor(cursor);
+        cursor = nullptr;
     }
 }
 

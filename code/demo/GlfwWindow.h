@@ -2,6 +2,8 @@
 
 #include "vko/Window.h"
 
+#include "common/charming_enum.h"
+
 #include "nstl/vector.h"
 #include "nstl/function.h"
 #include "nstl/array.h"
@@ -43,7 +45,7 @@ enum class MouseCursorMode
 
 enum class MouseCursorIcon
 {
-    Arrow = 0,
+    Arrow,
     TextInput,
     ResizeAll,
     ResizeNS,
@@ -52,8 +54,12 @@ enum class MouseCursorIcon
     ResizeNWSE,
     NotAllowed,
     Hand,
+};
 
-    COUNT, // TODO remove
+template <>
+struct charming_enum::customize::enum_range<MouseCursorIcon> {
+    static constexpr int min = 0;
+    static constexpr int max = 10;
 };
 
 class GlfwWindow : public vko::Window
@@ -183,6 +189,8 @@ private:
     void setupCallbacks();
     void queryRequiredInstanceExtensions();
     void createCursors();
+
+    void destroyCursors();
     
     void onWindowResized(int width, int height);
     void onFramebufferResized(int width, int height);
@@ -227,7 +235,7 @@ private:
     temp::event<float, float> m_onScroll;
     temp::event<char> m_onChar;
 
-    nstl::array<GLFWcursor*, static_cast<size_t>(MouseCursorIcon::COUNT)> m_cursors;
+    nstl::array<GLFWcursor*, charming_enum::enum_count<MouseCursorIcon>()> m_cursors;
 };
 
 inline GlfwWindow::Modifiers operator|(GlfwWindow::Modifiers lhs, GlfwWindow::Modifiers rhs)
