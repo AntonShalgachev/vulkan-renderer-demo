@@ -10,6 +10,8 @@ set(ALL_FILES
 
     "ImGuiDrawer.h"
     "ImGuiDrawer.cpp"
+    "ImGuiPlatform.h"
+    "ImGuiPlatform.cpp"
 
     "ScopedDebugCommands.h"
     "ScopedDebugCommands.cpp"

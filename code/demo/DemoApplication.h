@@ -20,6 +20,7 @@
 #include "nstl/unique_ptr.h"
 
 class CommandLineService;
+class ImGuiPlatform;
 class ImGuiDrawer;
 class ShaderPackage;
 
@@ -120,7 +121,7 @@ private:
     void loadImgui();
     void unloadImgui();
 
-    void onKey(GlfwWindow::Action action, GlfwWindow::Key key, char c, GlfwWindow::Modifiers mods);
+    void onKey(GlfwWindow::Action action, GlfwWindow::OldKey key, char c, GlfwWindow::Modifiers mods);
     void onMouseMove(glm::vec2 const& delta);
 
     DemoScene createDemoScene(cgltf_data const& gltfModel, cgltf_scene const& gltfScene) const;
@@ -144,6 +145,7 @@ private:
 
     nstl::unique_ptr<GlfwWindow> m_window;
 
+    nstl::unique_ptr<ImGuiPlatform> m_imGuiPlatform;
     nstl::unique_ptr<ImGuiDrawer> m_imGuiDrawer;
 
     nstl::unique_ptr<GltfResources> m_gltfResources;

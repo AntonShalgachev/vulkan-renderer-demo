@@ -12,11 +12,11 @@ namespace vko
     {
     public:
         virtual Surface createSurface(vko::Instance const& instance) const = 0;
-        virtual std::size_t getWidth() const = 0;
-        virtual std::size_t getHeight() const = 0;
+        virtual std::size_t getFramebufferWidth() const = 0;
+        virtual std::size_t getFramebufferHeight() const = 0;
         virtual nstl::vector<char const*> const& getRequiredInstanceExtensions() const = 0;
 
         virtual void waitUntilInForeground() const = 0;
-        virtual void addResizeCallback(nstl::function<void(int, int)> callback) = 0;
+        virtual void addFramebufferResizeCallback(nstl::function<void(int, int)> callback) = 0;
     };
 }

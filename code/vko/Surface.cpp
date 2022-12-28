@@ -18,10 +18,10 @@ vko::Surface::~Surface()
 
 int vko::Surface::getWidth() const
 {
-    return m_window.getWidth();
+    return m_window.getFramebufferWidth();
 }
 
 int vko::Surface::getHeight() const
 {
-    return m_window.getHeight();
+    return m_window.getFramebufferHeight();
 }

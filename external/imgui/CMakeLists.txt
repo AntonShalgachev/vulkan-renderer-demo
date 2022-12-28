@@ -17,9 +17,6 @@ add_library(imgui
     ${imgui_SOURCE_DIR}/imstb_rectpack.h
     ${imgui_SOURCE_DIR}/imstb_textedit.h
     ${imgui_SOURCE_DIR}/imstb_truetype.h
-
-    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
-    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.h
 )
 
 target_include_directories(imgui PUBLIC

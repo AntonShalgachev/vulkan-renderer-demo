@@ -230,7 +230,7 @@ namespace vkgfx
 
 vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Window& window, nstl::function<void(vko::DebugMessage)> onDebugMessage) : m_window(window)
 {
-    m_window.addResizeCallback([this](int, int) { onWindowResized(); });
+    m_window.addFramebufferResizeCallback([this](int, int) { onWindowResized(); });
 
     m_context = nstl::make_unique<Context>(name, enableValidationLayers, false, window, nstl::move(onDebugMessage));
 

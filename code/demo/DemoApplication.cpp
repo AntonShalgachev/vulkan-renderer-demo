@@ -6,11 +6,12 @@
 #include "cgltf.h"
 
 #include "imgui.h"
-#include "backends/imgui_impl_glfw.h"
 
 #include "vko/SamplerProperties.h"
 #include "vko/DebugMessage.h"
 #include "vko/ShaderModuleProperties.h"
+
+#include "ImGuiPlatform.h"
 #include "ImGuiDrawer.h"
 
 #include "ShaderPackage.h"
@@ -44,7 +45,7 @@
 
 // TODO find a better solution
 template <>
-struct charming_enum::customize::enum_range<GlfwWindow::Key> {
+struct charming_enum::customize::enum_range<GlfwWindow::OldKey> {
     static constexpr int min = 0;
     static constexpr int max = 10;
 };
@@ -428,8 +429,8 @@ void DemoApplication::init()
     m_keyState.resize(1 << 8 * sizeof(char), false);
 
     m_window = nstl::make_unique<GlfwWindow>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
-    m_window->addKeyCallback([this](GlfwWindow::Action action, GlfwWindow::Key key, char c, GlfwWindow::Modifiers modifiers) { onKey(action, key, c, modifiers); });
-    m_window->addMouseMoveCallback([this](float deltaX, float deltaY) { onMouseMove({ deltaX, deltaY }); });
+    m_window->addOldKeyCallback([this](GlfwWindow::Action action, GlfwWindow::OldKey key, char c, GlfwWindow::Modifiers modifiers) { onKey(action, key, c, modifiers); });
+    m_window->addOldMouseDeltaCallback([this](float deltaX, float deltaY) { onMouseMove({ deltaX, deltaY }); });
 
     auto messageCallback = [](vko::DebugMessage m)
     {
@@ -451,8 +452,8 @@ void DemoApplication::init()
     loadImgui();
 
     m_commands["window.resize"].arguments("width", "height") = coil::bind(&GlfwWindow::resize, m_window.get());
-    m_commands["window.width"] = coil::bindProperty(&GlfwWindow::getWidth, m_window.get());
-    m_commands["window.height"] = coil::bindProperty(&GlfwWindow::getHeight, m_window.get());
+    m_commands["window.width"] = coil::bindProperty(&GlfwWindow::getWindowWidth, m_window.get());
+    m_commands["window.height"] = coil::bindProperty(&GlfwWindow::getWindowHeight, m_window.get());
 
     m_commands["scene.load"].description("Load scene from a GLTF model").arguments("path") = [this](coil::Context context, nstl::string_view path) {
         if (!loadScene(nstl::string{ path }))
@@ -521,10 +522,8 @@ void DemoApplication::loadImgui()
 
     io.Fonts->AddFontDefault();
 
+    m_imGuiPlatform = nstl::make_unique<ImGuiPlatform>(*m_window);
     m_imGuiDrawer = nstl::make_unique<ImGuiDrawer>(*m_renderer);
-
-    // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForVulkan(m_window->getHandle(), true);
 }
 
 void DemoApplication::unloadImgui()
@@ -532,12 +531,16 @@ void DemoApplication::unloadImgui()
     if (!ImGui::GetCurrentContext())
         return;
 
-    ImGui_ImplGlfw_Shutdown();
+    m_imGuiPlatform = nullptr;
+    m_imGuiDrawer = nullptr;
     ImGui::DestroyContext();
 }
 
-void DemoApplication::onKey(GlfwWindow::Action action, GlfwWindow::Key key, char c, GlfwWindow::Modifiers mods)
+void DemoApplication::onKey(GlfwWindow::Action action, GlfwWindow::OldKey key, char c, GlfwWindow::Modifiers mods)
 {
+    if (action != GlfwWindow::Action::Press && action != GlfwWindow::Action::Release)
+        return;
+
     char const* separator = "";
 
     nstl::string_builder builder;
@@ -1179,7 +1182,8 @@ void DemoApplication::updateUI(float frameTime)
 
     ImGuiIO& io = ImGui::GetIO();
 
-    ImGui_ImplGlfw_NewFrame();
+    m_imGuiPlatform->update(frameTime);
+
     ImGui::NewFrame();
 
     if (m_drawImguiDemo)
