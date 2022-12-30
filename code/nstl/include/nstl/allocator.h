@@ -2,6 +2,8 @@
 
 #include "assert.h"
 #include "type_traits.h"
+#include "new.h"
+#include "utility.h"
 
 #include <stddef.h>
 
@@ -16,7 +18,8 @@ namespace nstl
         template<typename Alloc>
         any_allocator(Alloc allocator)
         {
-            static_assert(alignof(Alloc) <= alignof(max_align_t));
+            // TODO
+//             static_assert(alignof(Alloc) <= alignof(max_align_t));
 
             static_assert(nstl::is_same_v<decltype(allocator.allocate(0)), void*>);
             static_assert(nstl::is_same_v<decltype(allocator.deallocate(nullptr)), void>);
