@@ -1,15 +1,20 @@
 #include "nstl/buffer.h"
 
 #include "nstl/algorithm.h"
+#include "nstl/malloc_allocator.h"
 
 #include <string.h>
 
-nstl::buffer::buffer(size_t capacity, size_t chunkSize) : m_ptr(capacity* chunkSize > 0 ? new char[capacity * chunkSize] : nullptr), m_capacity(capacity), m_chunkSize(chunkSize)
+nstl::buffer::buffer(size_t capacity, size_t chunkSize, any_allocator alloc)
+    : m_allocator(alloc ? nstl::move(alloc) : malloc_allocator{})
+    , m_ptr(capacity*chunkSize > 0 ? static_cast<char*>(m_allocator.allocate(capacity * chunkSize)) : nullptr)
+    , m_capacity(capacity)
+    , m_chunkSize(chunkSize)
 {
     NSTL_ASSERT(chunkSize > 0);
 }
 
-nstl::buffer::buffer(buffer const& rhs) : buffer(rhs.m_capacity, rhs.m_chunkSize)
+nstl::buffer::buffer(buffer const& rhs) : buffer(rhs.m_capacity, rhs.m_chunkSize, rhs.m_allocator)
 {
     NSTL_ASSERT(rhs.m_constructedObjectsCount == 0);
 
@@ -28,7 +33,7 @@ nstl::buffer::~buffer()
     NSTL_ASSERT(m_constructedObjectsCount == 0);
 
     if (m_ptr)
-        delete[] m_ptr;
+        m_allocator.deallocate(m_ptr);
     m_ptr = nullptr;
 }
 
@@ -99,8 +104,14 @@ void nstl::buffer::copy(void const* ptr, size_t size)
     memcpy(m_ptr, ptr, size * m_chunkSize);
 }
 
+nstl::any_allocator const& nstl::buffer::get_allocator() const
+{
+    return m_allocator;
+}
+
 void nstl::buffer::swap(buffer& rhs) noexcept
 {
+    nstl::exchange(m_allocator, rhs.m_allocator);
     nstl::exchange(m_ptr, rhs.m_ptr);
     nstl::exchange(m_capacity, rhs.m_capacity);
     nstl::exchange(m_chunkSize, rhs.m_chunkSize);

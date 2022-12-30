@@ -3,6 +3,7 @@
 #include "buffer.h"
 
 #include "hash.h"
+#include "allocator.h"
 
 #include <stddef.h>
 
@@ -13,9 +14,10 @@ namespace nstl
     class string
     {
     public:
-        string(char const* str = "");
-        string(string_view str);
-        string(char const* str, size_t length);
+        string(any_allocator alloc = {});
+        string(char const* str, any_allocator alloc = {});
+        string(string_view str, any_allocator alloc = {});
+        string(char const* str, size_t length, any_allocator alloc = {});
 
         size_t length() const;
         size_t size() const;

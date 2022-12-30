@@ -3,6 +3,7 @@
 #include "assert.h"
 #include "new.h"
 #include "utility.h"
+#include "allocator.h"
 
 #include <stddef.h>
 
@@ -11,7 +12,7 @@ namespace nstl
     class buffer
     {
     public:
-        buffer(size_t capacity = 0, size_t chunkSize = 1);
+        buffer(size_t capacity, size_t chunkSize, any_allocator alloc);
         buffer(buffer const& rhs);
         buffer(buffer&& rhs);
         ~buffer();
@@ -76,10 +77,14 @@ namespace nstl
             return reinterpret_cast<T const*>(get(index * sizeof(T)));
         }
 
+        any_allocator const& get_allocator() const;
+
     private:
         void swap(buffer& rhs) noexcept;
 
     private:
+        any_allocator m_allocator;
+
         char* m_ptr = nullptr;
         size_t m_capacity = 0;
         size_t m_chunkSize = 0;

@@ -27,6 +27,8 @@ add_library(nstl # non-standard template library
     "include/nstl/function.h"
     "include/nstl/sprintf.h"
     "include/nstl/string_builder.h"
+    "include/nstl/allocator.h"
+    "include/nstl/malloc_allocator.h"
 
     "src/string.cpp"
     "src/string_view.cpp"
@@ -35,6 +37,8 @@ add_library(nstl # non-standard template library
     "src/hash.cpp"
     "src/sprintf.cpp"
     "src/string_builder.cpp"
+    "src/allocator.cpp"
+    "src/malloc_allocator.cpp"
 
     "nstl.natvis"
 )

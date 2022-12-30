@@ -8,6 +8,7 @@
 #include "type_traits.h"
 #include "algorithm.h"
 #include "lexicographical_compare.h"
+#include "allocator.h"
 
 #include <stddef.h>
 
@@ -22,11 +23,11 @@ namespace nstl
     class vector
     {
     public:
-        vector() = default;
-        vector(size_t size);
+        vector(any_allocator alloc = {});
+        vector(size_t size, any_allocator alloc = {});
         template<typename Iterator>
-        vector(Iterator begin, Iterator end); // TODO remove?
-        vector(std::initializer_list<T> list);
+        vector(Iterator begin, Iterator end, any_allocator alloc = {}); // TODO remove?
+        vector(std::initializer_list<T> list, any_allocator alloc = {});
 
         vector(vector const& rhs);
         vector(vector&& rhs);
@@ -85,21 +86,27 @@ namespace nstl
         void grow(size_t newCapacity);
 
     private:
-        buffer m_buffer{ 0, sizeof(T) };
+        buffer m_buffer;
     };
 }
 
 //////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-nstl::vector<T>::vector(size_t size) : m_buffer(size, sizeof(T))
+nstl::vector<T>::vector(any_allocator alloc) : m_buffer(0, sizeof(T), nstl::move(alloc))
+{
+
+}
+
+template<typename T>
+nstl::vector<T>::vector(size_t size, any_allocator alloc) : m_buffer(size, sizeof(T), nstl::move(alloc))
 {
     resize(size);
 }
 
 template<typename T>
 template<typename Iterator>
-nstl::vector<T>::vector(Iterator begin, Iterator end) : m_buffer(end - begin, sizeof(T))
+nstl::vector<T>::vector(Iterator begin, Iterator end, any_allocator alloc) : m_buffer(end - begin, sizeof(T), nstl::move(alloc))
 {
     NSTL_ASSERT(capacity() >= static_cast<size_t>((end - begin)));
     NSTL_ASSERT(empty());
@@ -118,14 +125,15 @@ nstl::vector<T>::vector(Iterator begin, Iterator end) : m_buffer(end - begin, si
 }
 
 template<typename T>
-nstl::vector<T>::vector(std::initializer_list<T> list) : vector(list.begin(), list.end())
+nstl::vector<T>::vector(std::initializer_list<T> list, any_allocator alloc) : vector(list.begin(), list.end(), nstl::move(alloc))
 {
 
 }
 
 template<typename T>
-nstl::vector<T>::vector(vector const& rhs) : vector(rhs.begin(), rhs.end())
+nstl::vector<T>::vector(vector const& rhs) : vector(rhs.begin(), rhs.end(), rhs.m_buffer.get_allocator())
 {
+
 }
 
 template<typename T>
@@ -437,7 +445,8 @@ nstl::vector<T>::operator nstl::span<T const>() const
 template<typename T>
 void nstl::vector<T>::grow(size_t newCapacity)
 {
-    buffer newBuffer{ newCapacity, sizeof(T) };
+    // TODO don't copy allocator
+    buffer newBuffer{ newCapacity, sizeof(T), m_buffer.get_allocator() };
 
     if constexpr (nstl::is_trivial_v<T>)
     {
