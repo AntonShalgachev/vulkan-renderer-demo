@@ -220,6 +220,12 @@ namespace nstl
                     m_buckets[lastNode.bucket] = nodeIndex;
                 }
 
+                if (lastNode.next != invalidIndex)
+                {
+                    NSTL_ASSERT(lastNode.next < m_nodes.size());
+                    m_nodes[lastNode.next].prev = nodeIndex;
+                }
+
                 nstl::exchange(erasedNode, lastNode);
             }
 
