@@ -10,7 +10,11 @@ nstl::any_allocator::any_allocator(any_allocator const& rhs)
     , m_allocate(rhs.m_allocate)
     , m_deallocate(rhs.m_deallocate)
 {
-    m_copy(&rhs, this);
+    if (rhs)
+    {
+        NSTL_ASSERT(m_copy);
+        m_copy(&rhs, this);
+    }
 }
 
 nstl::any_allocator::any_allocator(any_allocator&& rhs)
