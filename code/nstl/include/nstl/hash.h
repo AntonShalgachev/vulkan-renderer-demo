@@ -55,3 +55,19 @@ DECLARE_POD_HASH(double);
 DECLARE_POD_HASH(long double);
 
 #undef DECLARE_POD_HASH
+
+template<>
+struct nstl::hash<char const*>
+{
+    size_t operator()(char const* value) const;
+};
+
+template<size_t N>
+struct nstl::hash<char[N]>
+{
+    using T = char[N];
+    size_t operator()(T const& value) const
+    {
+        return hash_string(value, N);
+    }
+};

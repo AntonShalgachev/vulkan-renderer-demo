@@ -1,5 +1,7 @@
 #include "nstl/hash.h"
 
+#include <string.h>
+
 size_t nstl::hash_string(char const* bytes, size_t size)
 {
     // djb2 from http://www.cse.yorku.ca/~oz/hash.html
@@ -41,3 +43,11 @@ DEFINE_POS_HASH(double);
 DEFINE_POS_HASH(long double);
 
 #undef DEFINE_POS_HASH
+
+namespace nstl
+{
+    size_t hash<char const*>::operator()(char const* value) const
+    {
+        return hash_string(value, strlen(value));
+    }
+}
