@@ -4,6 +4,15 @@
 #include "hash.h"
 #include "vector.h"
 #include "utility.h"
+#include "allocator.h"
+
+#define NSTL_UNORDERED_MAP_VALIDATIONS 0
+
+#if NSTL_UNORDERED_MAP_VALIDATIONS
+#define NSTL_UNORDERED_MAP_VALIDATE() validate()
+#else
+#define NSTL_UNORDERED_MAP_VALIDATE() ((void)0)
+#endif
 
 namespace nstl
 {
@@ -117,9 +126,18 @@ namespace nstl
             node const* m_node = nullptr;
         };
 
-        unordered_map(size_t bucketsCount = 1, float maxLoadFactor = 1.0f) : m_maxLoadFactor(maxLoadFactor)
+        unordered_map(any_allocator alloc = {}) : unordered_map(1, 1.0f, nstl::move(alloc))
+        {
+
+        }
+
+        unordered_map(size_t bucketsCount, float maxLoadFactor, any_allocator alloc = {})
+            : m_buckets(alloc)
+            , m_nodes(alloc)
+            , m_maxLoadFactor(maxLoadFactor)
         {
             rehash(bucketsCount);
+            NSTL_UNORDERED_MAP_VALIDATE();
         }
 
         const_iterator begin() const
@@ -151,6 +169,8 @@ namespace nstl
 
         iterator insert_or_assign(K key, V value)
         {
+            NSTL_UNORDERED_MAP_VALIDATE();
+
             if (iterator it = find(key); it != end())
             {
                 it->m_value = nstl::move(value);
@@ -167,12 +187,16 @@ namespace nstl
 
             insert_node(newNodeIndex);
 
+            NSTL_UNORDERED_MAP_VALIDATE();
+
             return iterator{ &m_nodes[newNodeIndex] };
         }
 
         template<typename T>
         void erase(T const& key)
         {
+            NSTL_UNORDERED_MAP_VALIDATE();
+
             size_t nodeIndex = find_node_index(key);
             if (nodeIndex == invalidIndex)
                 return;
@@ -233,12 +257,18 @@ namespace nstl
             NSTL_ASSERT(m_nodes.back().next == invalidIndex);
 
             m_nodes.pop_back();
+
+            NSTL_UNORDERED_MAP_VALIDATE();
         }
 
         void clear()
         {
+            NSTL_UNORDERED_MAP_VALIDATE();
+
             m_nodes.clear();
             reset_buckets();
+
+            NSTL_UNORDERED_MAP_VALIDATE();
         }
 
         template<typename T>
@@ -333,11 +363,15 @@ namespace nstl
 
         void rehash(size_t buckets)
         {
+            NSTL_UNORDERED_MAP_VALIDATE();
+
             m_buckets.resize(buckets);
             reset_buckets();
 
             for (size_t nodeIndex = 0; nodeIndex < m_nodes.size(); nodeIndex++)
                 insert_node(nodeIndex);
+
+            NSTL_UNORDERED_MAP_VALIDATE();
         }
 
         template<typename T>
@@ -360,6 +394,56 @@ namespace nstl
 
             return invalidIndex;
         }
+
+#if NSTL_UNORDERED_MAP_VALIDATIONS
+        void validate()
+        {
+            for (size_t bucket_index = 0; bucket_index < m_buckets.size(); bucket_index++)
+            {
+                size_t first_node_index = m_buckets[bucket_index];
+
+                if (first_node_index == invalidIndex)
+                    continue;
+
+                NSTL_ASSERT(m_nodes[first_node_index].prev == invalidIndex);
+
+                size_t node_index = first_node_index;
+
+                while (node_index != invalidIndex)
+                {
+                    node const& this_node = m_nodes[node_index];
+                    NSTL_ASSERT(this_node.bucket == bucket_index);
+                    
+                    size_t next_node_index = this_node.next;
+                    if (next_node_index != invalidIndex)
+                        NSTL_ASSERT(m_nodes[next_node_index].prev == node_index);
+
+                    node_index = next_node_index;
+                }
+            }
+
+            for (size_t node_index = 0; node_index < m_nodes.size(); node_index++)
+            {
+                node const& n = m_nodes[node_index];
+                size_t bucket_index = n.bucket;
+
+                if (n.prev != invalidIndex)
+                {
+                    NSTL_ASSERT(n.prev < m_nodes.size());
+                    NSTL_ASSERT(m_nodes[n.prev].bucket == n.bucket);
+                }
+
+                if (n.next != invalidIndex)
+                {
+                    NSTL_ASSERT(n.next < m_nodes.size());
+                    NSTL_ASSERT(m_nodes[n.next].bucket == n.bucket);
+                }
+
+                if (n.prev == invalidIndex)
+                    NSTL_ASSERT(m_buckets[bucket_index] == node_index);
+            }
+        }
+#endif
 
     private:
         inline static constexpr size_t invalidIndex = static_cast<size_t>(-1);
