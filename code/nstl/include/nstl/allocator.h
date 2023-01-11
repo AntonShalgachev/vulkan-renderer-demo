@@ -21,8 +21,9 @@ namespace nstl
             // TODO
 //             static_assert(alignof(Alloc) <= alignof(max_align_t));
 
-            static_assert(nstl::is_same_v<decltype(allocator.allocate(0)), void*>);
-            static_assert(nstl::is_same_v<decltype(allocator.deallocate(nullptr)), void>);
+            static_assert(nstl::is_same_v<decltype(allocator.allocate(0)), void*>, "");
+            static_assert(nstl::is_same_v<decltype(allocator.deallocate(nullptr)), void>, "");
+            static_assert(nstl::is_same_v<decltype(allocator == allocator), bool>, "");
 
             m_allocator = allocator.allocate(sizeof(Alloc));
             new(nstl::NewTag{}, m_allocator) Alloc(nstl::move(allocator));
@@ -42,6 +43,14 @@ namespace nstl
                 // 3. deallocate memory for the allocator
                 local_allocator.deallocate(self->m_allocator);
                 self->m_allocator = nullptr;
+            };
+
+            m_compare = [](any_allocator const& lhs, any_allocator const& rhs)
+            {
+                NSTL_ASSERT(lhs.m_allocator != nullptr);
+                NSTL_ASSERT(rhs.m_allocator != nullptr);
+
+                return *static_cast<Alloc const*>(lhs.m_allocator) == *static_cast<Alloc const*>(rhs.m_allocator);
             };
 
             m_copy = [](any_allocator const* source, any_allocator* destination)
@@ -69,13 +78,16 @@ namespace nstl
         void* allocate(size_t size);
         void deallocate(void* ptr);
 
-        operator bool() const { return m_allocator != nullptr; }
+        operator bool() const;
+
+        bool operator==(any_allocator const& rhs) const;
 
     private:
         static void swap(any_allocator& lhs, any_allocator& rhs);
 
     private:
         using CopyFunc = void(*)(any_allocator const* source, any_allocator* destination);
+        using CompareFunc = bool(*)(any_allocator const& lhs, any_allocator const& rhs);
         using DestructStorageFunc = void(*)(any_allocator*);
 
         using AllocFunc = void* (*)(void* allocator, size_t size);
@@ -83,6 +95,7 @@ namespace nstl
 
         void* m_allocator = nullptr;
         DestructStorageFunc m_destructStorage = nullptr;
+        CompareFunc m_compare = nullptr;
         CopyFunc m_copy = nullptr;
 
         AllocFunc m_allocate = nullptr;

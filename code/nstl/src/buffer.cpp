@@ -40,6 +40,7 @@ nstl::buffer::~buffer()
 nstl::buffer& nstl::buffer::operator=(buffer const& rhs)
 {
     NSTL_ASSERT(rhs.m_constructedObjectsCount == 0);
+    NSTL_ASSERT(m_allocator == rhs.m_allocator);
 
     buffer temp{ rhs };
     temp.swap(*this);
