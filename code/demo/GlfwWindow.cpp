@@ -55,6 +55,9 @@ namespace
 
     GlfwWindow::Key getKey(int key)
     {
+        if (key == -1)
+            return GlfwWindow::Key::Unknown;
+
         switch (key)
         {
         case GLFW_KEY_TAB: return GlfwWindow::Key::Tab;

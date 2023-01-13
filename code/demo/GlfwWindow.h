@@ -74,6 +74,7 @@ public:
     // TODO compat some entries
     enum class Key
     {
+        Unknown,
         Tab,
         LeftArrow, RightArrow, UpArrow, DownArrow,
         PageUp, PageDown, Home, End, Insert, Delete,
