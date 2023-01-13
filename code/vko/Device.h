@@ -3,6 +3,7 @@
 #include "vko/UniqueHandle.h"
 
 #include "nstl/vector.h"
+#include "nstl/span.h"
 
 #include <vulkan/vulkan.h>
 
@@ -16,7 +17,7 @@ namespace vko
     {
     public:
         // TODO use std::span for extensions
-        explicit Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily const& graphics, vko::QueueFamily const& present, nstl::vector<const char*> const& extensions);
+        explicit Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily const& graphics, vko::QueueFamily const& present, nstl::span<const char* const> extensions);
     	~Device();
 
         Device(Device const&) = default;
@@ -28,7 +29,7 @@ namespace vko
 
         VkDevice getHandle() const { return m_handle; }
 
-		nstl::vector<Queue> const& getQueues() const { return m_queues; }
+		nstl::vector<Queue> const& getQueues() const { return m_queues; } // TODO use span
         Queue const& getGraphicsQueue() const { return *m_graphicsQueue; }
         Queue const& getPresentQueue() const { return *m_presentQueue; }
 

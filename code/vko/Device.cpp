@@ -4,7 +4,7 @@
 #include "vko/PhysicalDevice.h"
 #include "vko/Queue.h"
 
-vko::Device::Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily const& graphics, vko::QueueFamily const& present, nstl::vector<const char*> const& extensions)
+vko::Device::Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily const& graphics, vko::QueueFamily const& present, nstl::span<const char* const> extensions)
 {
     nstl::vector<QueueFamily const*> uniqueQueueFamilies = { &graphics };
     if (&present != &graphics)

@@ -13,13 +13,18 @@
 
 namespace
 {
-    const nstl::vector<const char*> DEVICE_EXTENSIONS = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-    };
+    nstl::span<char const* const> getDeviceExtensions()
+    {
+        static nstl::vector<char const*> extensions = {
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        };
+
+        return extensions;
+    }
 
     bool isDeviceSuitable(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
     {
-        if (!physicalDevice.areExtensionsSupported(DEVICE_EXTENSIONS))
+        if (!physicalDevice.areExtensionsSupported(getDeviceExtensions()))
             return false;
 
         if (!physicalDevice.getFeatures().samplerAnisotropy)
@@ -32,7 +37,7 @@ namespace
     nstl::vector<const char*> createInstanceExtensions(bool enableValidation, vko::Window const& window)
     {
         nstl::vector<const char*> extensions = window.getRequiredInstanceExtensions();
-        
+
         if (enableValidation)
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
@@ -42,7 +47,7 @@ namespace
     vko::PhysicalDevice findPhysicalDevice(vko::Instance const& instance, vko::Surface const& surface)
     {
         nstl::vector<vko::PhysicalDevice> physicalDevices = instance.findPhysicalDevices();
-        
+
         for (vko::PhysicalDevice& physicalDevice : physicalDevices)
             if (isDeviceSuitable(physicalDevice, surface))
                 return nstl::move(physicalDevice);
@@ -62,7 +67,7 @@ namespace vkgfx
             , surface(window.createSurface(instance))
             , physicalDevice(findPhysicalDevice(instance, surface))
             , params(vko::queryPhysicalDeviceSurfaceParameters(physicalDevice, surface))
-            , device(physicalDevice, *params.graphicsQueueFamily, *params.presentQueueFamily, DEVICE_EXTENSIONS)
+            , device(physicalDevice, *params.graphicsQueueFamily, *params.presentQueueFamily, getDeviceExtensions())
         {
 
         }
