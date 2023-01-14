@@ -317,6 +317,7 @@ DemoApplication::~DemoApplication()
     unloadImgui();
 
     // TODO come up with a better way to destroy objects with captured services
+    m_memoryViewer = {};
     m_debugConsole = {};
     m_notifications = {};
     m_commands.clear();
@@ -375,6 +376,7 @@ bool DemoApplication::init(int argc, char** argv)
 
     m_notifications = ui::NotificationManager{ m_services };
     m_debugConsole = ui::DebugConsoleWidget{ m_services };
+    m_memoryViewer = ui::MemoryViewerWindow{ m_services };
 
     init();
 
@@ -1229,6 +1231,7 @@ void DemoApplication::updateUI(float frameTime)
 
     m_notifications->draw();
     m_debugConsole->draw();
+    m_memoryViewer->draw();
 
     // TODO fix this logic
     m_window->setCanCaptureCursor(!io.WantCaptureMouse);

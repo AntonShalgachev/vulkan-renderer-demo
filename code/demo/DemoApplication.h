@@ -5,6 +5,7 @@
 
 #include "ui/DebugConsoleWidget.h"
 #include "ui/NotificationManager.h"
+#include "ui/MemoryViewerWindow.h"
 
 #include "vkgfx/Handles.h"
 #include "vkgfx/PipelineKey.h"
@@ -179,6 +180,7 @@ private:
 
     nstl::optional<ui::NotificationManager> m_notifications;
     nstl::optional<ui::DebugConsoleWidget> m_debugConsole;
+    nstl::optional<ui::MemoryViewerWindow> m_memoryViewer;
 
     bool m_drawImguiDemo = false;
     bool m_drawImguiDebugger = false;

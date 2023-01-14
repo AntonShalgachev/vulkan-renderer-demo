@@ -42,6 +42,8 @@ set(ALL_FILES
     "ui/NotificationManager.cpp"
     "ui/DebugConsoleWidget.h"
     "ui/DebugConsoleWidget.cpp"
+    "ui/MemoryViewerWindow.h"
+    "ui/MemoryViewerWindow.cpp"
 )
 
 add_executable(${PROJECT_NAME} ${ALL_FILES})
@@ -70,4 +72,5 @@ target_link_libraries(${PROJECT_NAME}
     yyjson
     dds-ktx::dds-ktx
     cgltf
+    memory
 )
