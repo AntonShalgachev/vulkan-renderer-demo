@@ -6,14 +6,21 @@
 
 void* operator new(size_t size)
 {
+    assert(size > 0);
+
     void* ptr = platform::allocate(size);
+    assert(ptr);
+
     memory::tracking::track_allocation(ptr, size);
+
     return ptr;
 }
 
 void operator delete(void* ptr) noexcept
 {
-    memory::tracking::track_deallocation(ptr);
+    if (ptr)
+        memory::tracking::track_deallocation(ptr);
+
     return platform::deallocate(ptr);
 }
 
