@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vko/UniqueHandle.h"
+#include "vko/Allocator.h"
 
 #include "nstl/vector.h"
 #include "nstl/string.h"
@@ -30,7 +31,8 @@ namespace vko
 
 #define SET_DEBUG_NAME_FUNC(T, ObjectType) \
     void setDebugName(VkDevice device, T handle, char const* name) const { return setDebugName(device, reinterpret_cast<uint64_t>(handle), ObjectType, name); } \
-    void setDebugName(VkDevice device, T handle, nstl::string const& name) const { return setDebugName(device, reinterpret_cast<uint64_t>(handle), ObjectType, name.c_str()); }
+    void setDebugName(VkDevice device, T handle, nstl::string const& name) const { return setDebugName(device, reinterpret_cast<uint64_t>(handle), ObjectType, name.c_str()); } \
+    void clearDebugName(VkDevice device, T handle) const { return setDebugName(device, reinterpret_cast<uint64_t>(handle), ObjectType, nullptr); }
 
         SET_DEBUG_NAME_FUNC(VkDevice, VK_OBJECT_TYPE_DEVICE);
         SET_DEBUG_NAME_FUNC(VkQueue, VK_OBJECT_TYPE_QUEUE);
@@ -56,6 +58,8 @@ namespace vko
         void setDebugName(VkDevice device, uint64_t handle, VkObjectType type, char const* name) const;
 
     private:
+        Allocator m_allocator{ AllocatorScope::Instance };
+        Allocator m_debugAllocator{ AllocatorScope::Debug };
     	UniqueHandle<VkInstance> m_handle;
 
         UniqueHandle<VkDebugUtilsMessengerEXT> m_debugMessenger;

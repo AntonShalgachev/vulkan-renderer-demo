@@ -46,10 +46,11 @@ vko::DescriptorSetLayout::DescriptorSetLayout(Device const& device, DescriptorSe
     descriptorSetLayoutCreateInfo.bindingCount = static_cast<uint32_t>(bindings.size());
     descriptorSetLayoutCreateInfo.pBindings = bindings.data();
 
-    VKO_VERIFY(vkCreateDescriptorSetLayout(m_device.getHandle(), &descriptorSetLayoutCreateInfo, nullptr, &m_handle.get()));
+    VKO_VERIFY(vkCreateDescriptorSetLayout(m_device.getHandle(), &descriptorSetLayoutCreateInfo, m_allocator, &m_handle.get()));
 }
 
 vko::DescriptorSetLayout::~DescriptorSetLayout()
 {
-    vkDestroyDescriptorSetLayout(m_device.getHandle(), m_handle, nullptr);
+    if (m_handle)
+        vkDestroyDescriptorSetLayout(m_device.getHandle(), m_handle, m_allocator);
 }

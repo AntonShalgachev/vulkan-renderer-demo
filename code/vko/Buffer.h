@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vko/UniqueHandle.h"
+#include "vko/Allocator.h"
 
 #include <vulkan/vulkan.h>
 
@@ -32,6 +33,7 @@ namespace vko
         static void copy(VkCommandBuffer commandBuffer, Buffer const& source, std::size_t sourceOffset, Buffer const& destination, std::size_t destinationOffset, std::size_t size);
 
     private:
+        Allocator m_allocator{ AllocatorScope::Buffer };
         VkDevice m_device = VK_NULL_HANDLE;
         UniqueHandle<VkBuffer> m_handle;
         VkDeviceSize m_size;

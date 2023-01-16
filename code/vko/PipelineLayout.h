@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vko/UniqueHandle.h"
+#include "vko/Allocator.h"
 
 #include "nstl/vector.h"
 #include "nstl/span.h"
@@ -26,6 +27,7 @@ namespace vko
         nstl::span<VkDescriptorSetLayout const> getDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
 
     private:
+        Allocator m_allocator{ AllocatorScope::PipelineLayout };
         Device const& m_device;
     	UniqueHandle<VkPipelineLayout> m_handle;
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vko/UniqueHandle.h"
+#include "vko/Allocator.h"
 
 #include <vulkan/vulkan.h>
 
@@ -30,6 +31,7 @@ namespace vko
         void reset() const;
 
     private:
+        Allocator m_allocator{ AllocatorScope::CommandPool };
         Device const& m_device;
 
         UniqueHandle<VkCommandPool> m_handle;

@@ -2,6 +2,7 @@
 
 #include "vko/UniqueHandle.h"
 #include "vko/DescriptorSets.h" // TODO remove if possible
+#include "vko/Allocator.h"
 
 #include "nstl/span.h"
 #include "nstl/optional.h"
@@ -32,6 +33,7 @@ namespace vko
         VkDescriptorPool getHandle() const { return m_handle; }
 
     private:
+        Allocator m_allocator{ AllocatorScope::DescriptorPool };
         Device const& m_device;
 
         UniqueHandle<VkDescriptorPool> m_handle;

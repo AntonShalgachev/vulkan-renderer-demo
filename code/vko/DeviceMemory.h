@@ -1,5 +1,7 @@
 #pragma once
+
 #include "vko/UniqueHandle.h"
+#include "vko/Allocator.h"
 
 #include "nstl/vector.h"
 
@@ -36,6 +38,7 @@ namespace vko
         VkMemoryPropertyFlags const& getProperties() const { return m_properties; }
 
     private:
+        Allocator m_allocator{ AllocatorScope::DeviceMemory };
         VkDevice m_device;
         UniqueHandle<VkDeviceMemory> m_handle;
         void* m_data = nullptr;

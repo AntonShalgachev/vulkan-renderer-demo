@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vko/UniqueHandle.h"
+#include "vko/Allocator.h"
 
 #include <vulkan/vulkan.h>
 
@@ -26,6 +27,7 @@ namespace vko
         VkFence getHandle() const { return m_handle; }
 
     private:
+        Allocator m_allocator{ AllocatorScope::Fence };
         Device const& m_device;
     	UniqueHandle<VkFence> m_handle;
     };

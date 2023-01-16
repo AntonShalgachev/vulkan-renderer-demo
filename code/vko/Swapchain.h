@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vko/UniqueHandle.h"
+#include "vko/Allocator.h"
 
 #include "nstl/vector.h"
 
@@ -46,6 +47,7 @@ namespace vko
         void retrieveImages();
 
     private:
+        Allocator m_allocator{ AllocatorScope::Swapchain };
         Device const& m_device;
 
         UniqueHandle<VkSwapchainKHR> m_handle;

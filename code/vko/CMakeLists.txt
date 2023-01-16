@@ -57,7 +57,7 @@ add_library(vko
     "Swapchain.cpp"
     "UniqueHandle.h"
     "Window.h"
-)
+ "Allocator.h" "Allocator.cpp")
 
 target_include_directories(vko PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/.."
@@ -76,4 +76,5 @@ endif()
 target_link_libraries(vko
     Vulkan::Vulkan
     nstl
+    memory
 )

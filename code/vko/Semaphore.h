@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vko/UniqueHandle.h"
+#include "vko/Allocator.h"
 
 #include <vulkan/vulkan.h>
 
@@ -22,6 +23,7 @@ namespace vko
         VkSemaphore getHandle() const { return m_handle; }
 
     private:
+        Allocator m_allocator{ AllocatorScope::Semaphore };
         Device const& m_device;
     	UniqueHandle<VkSemaphore> m_handle;
     };

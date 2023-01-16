@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vko/UniqueHandle.h"
+#include "vko/Allocator.h"
 
 #include "nstl/span.h"
 #include "nstl/string.h"
@@ -27,6 +28,7 @@ namespace vko
         VkShaderModule getHandle() const { return m_handle; }
 
     private:
+        Allocator m_allocator{ AllocatorScope::ShaderModule };
         VkDevice m_device;
         ShaderModuleType m_type;
         nstl::string m_entryPoint;

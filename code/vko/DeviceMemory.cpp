@@ -39,7 +39,7 @@ vko::DeviceMemory::DeviceMemory(Device const& device, PhysicalDevice const& phys
     allocInfo.allocationSize = memoryRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, memoryProperties);
 
-    VKO_VERIFY(vkAllocateMemory(m_device, &allocInfo, nullptr, &m_handle.get()));
+    VKO_VERIFY(vkAllocateMemory(m_device, &allocInfo, m_allocator, &m_handle.get()));
 
     if ((memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
         VKO_VERIFY(vkMapMemory(m_device, m_handle, 0, memoryRequirements.size, 0, &m_data));
@@ -53,7 +53,7 @@ vko::DeviceMemory::~DeviceMemory()
     if (m_data)
         vkUnmapMemory(m_device, m_handle);
 
-    vkFreeMemory(m_device, m_handle, nullptr);
+    vkFreeMemory(m_device, m_handle, m_allocator);
 }
 
 void vko::DeviceMemory::copyFrom(void const* sourcePointer, std::size_t sourceSize, std::size_t offset) const

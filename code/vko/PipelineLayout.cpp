@@ -13,12 +13,13 @@ vko::PipelineLayout::PipelineLayout(Device const& device, nstl::span<VkDescripto
     pipelineLayoutCreateInfo.pushConstantRangeCount = static_cast<uint32_t>(pushConstantRanges.size());
     pipelineLayoutCreateInfo.pPushConstantRanges = pushConstantRanges.data();
 
-    VKO_VERIFY(vkCreatePipelineLayout(m_device.getHandle(), &pipelineLayoutCreateInfo, nullptr, &m_handle.get()));
+    VKO_VERIFY(vkCreatePipelineLayout(m_device.getHandle(), &pipelineLayoutCreateInfo, m_allocator, &m_handle.get()));
 
     m_descriptorSetLayouts = nstl::vector<VkDescriptorSetLayout>(setLayouts.begin(), setLayouts.end());
 }
 
 vko::PipelineLayout::~PipelineLayout()
 {
-    vkDestroyPipelineLayout(m_device.getHandle(), m_handle, nullptr);
+    if (m_handle)
+        vkDestroyPipelineLayout(m_device.getHandle(), m_handle, m_allocator);
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vko/UniqueHandle.h"
+#include "vko/Allocator.h"
 
 #include <vulkan/vulkan.h>
 
@@ -29,6 +30,7 @@ namespace vko
         VkFormat getFormat() const { return m_format; }
 
     private:
+        Allocator m_allocator{ AllocatorScope::Image };
         VkDevice m_device = VK_NULL_HANDLE;
         bool m_isOwned = true;
         UniqueHandle<VkImage> m_handle;

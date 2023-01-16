@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vko/UniqueHandle.h"
+#include "vko/Allocator.h"
 
 #include <vulkan/vulkan.h>
 
@@ -24,6 +25,7 @@ namespace vko
         VkFramebuffer getHandle() const { return m_handle; }
 
     private:
+        Allocator m_allocator{ AllocatorScope::Framebuffer };
         Device const& m_device;
         UniqueHandle<VkFramebuffer> m_handle;
     };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vko/UniqueHandle.h"
+#include "vko/Allocator.h"
 
 #include <vulkan/vulkan.h>
 
@@ -22,7 +23,8 @@ namespace vko
 
         VkImageView getHandle() const { return m_handle; }
 
-	private:
+    private:
+        Allocator m_allocator{ AllocatorScope::ImageView };
 		VkDevice m_device = VK_NULL_HANDLE;
 		UniqueHandle<VkImageView> m_handle;
 	};

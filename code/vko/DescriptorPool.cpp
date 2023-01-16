@@ -33,12 +33,13 @@ vko::DescriptorPool::DescriptorPool(Device const& device)
     poolCreateInfo.pPoolSizes = poolSizes.data();
     poolCreateInfo.maxSets = N;
 
-    VKO_VERIFY(vkCreateDescriptorPool(m_device.getHandle(), &poolCreateInfo, nullptr, &m_handle.get()));
+    VKO_VERIFY(vkCreateDescriptorPool(m_device.getHandle(), &poolCreateInfo, m_allocator, &m_handle.get()));
 }
 
 vko::DescriptorPool::~DescriptorPool()
 {
-    vkDestroyDescriptorPool(m_device.getHandle(), m_handle, nullptr);
+    if (m_handle)
+        vkDestroyDescriptorPool(m_device.getHandle(), m_handle, m_allocator);
 }
 
 nstl::optional<vko::DescriptorSets> vko::DescriptorPool::allocate(nstl::span<VkDescriptorSetLayout const> layouts)

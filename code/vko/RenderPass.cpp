@@ -60,10 +60,10 @@ vko::RenderPass::RenderPass(Device const& device, VkFormat colorFormat, VkFormat
     renderPassCreateInfo.dependencyCount = 1;
     renderPassCreateInfo.pDependencies = &dependency;
 
-    VKO_VERIFY(vkCreateRenderPass(m_device.getHandle(), &renderPassCreateInfo, nullptr, &m_handle.get()));
+    VKO_VERIFY(vkCreateRenderPass(m_device.getHandle(), &renderPassCreateInfo, m_allocator, &m_handle.get()));
 }
 
 vko::RenderPass::~RenderPass()
 {
-    vkDestroyRenderPass(m_device.getHandle(), m_handle, nullptr);
+    vkDestroyRenderPass(m_device.getHandle(), m_handle, m_allocator);
 }

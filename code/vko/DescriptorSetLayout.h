@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vko/UniqueHandle.h"
+#include "vko/Allocator.h"
 
 #include <vulkan/vulkan.h>
 
@@ -35,6 +36,7 @@ namespace vko
         DescriptorSetConfiguration getConfiguration() const { return m_configuration; }
 
     private:
+        Allocator m_allocator{ AllocatorScope::DescriptorSetLayout };
         Device const& m_device;
 
     	UniqueHandle<VkDescriptorSetLayout> m_handle;

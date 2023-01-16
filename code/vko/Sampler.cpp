@@ -60,10 +60,11 @@ vko::Sampler::Sampler(Device const& device, SamplerFilterMode magFilter, Sampler
     samplerCreateInfo.minLod = 0.0f;
     samplerCreateInfo.maxLod = 0.0f;
 
-    VKO_VERIFY(vkCreateSampler(m_device, &samplerCreateInfo, nullptr, &m_handle.get()));
+    VKO_VERIFY(vkCreateSampler(m_device, &samplerCreateInfo, m_allocator, &m_handle.get()));
 }
 
 vko::Sampler::~Sampler()
 {
-    vkDestroySampler(m_device, m_handle, nullptr);
+    if (m_handle)
+        vkDestroySampler(m_device, m_handle, m_allocator);
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vko/UniqueHandle.h"
+#include "vko/Allocator.h"
 
 #include "nstl/vector.h"
 #include "nstl/span.h"
@@ -34,6 +35,10 @@ namespace vko
         Queue const& getPresentQueue() const { return *m_presentQueue; }
 
     private:
+        void createAllocator();
+
+    private:
+        Allocator m_allocator{ AllocatorScope::Device };
     	UniqueHandle<VkDevice> m_handle;
 
         nstl::vector<Queue> m_queues;
