@@ -1,6 +1,8 @@
 add_library(vko
     "pch.h"
-
+    
+    "Allocator.h"
+    "Allocator.cpp"
     "Assert.h"
     "Buffer.h"
     "Buffer.cpp"
@@ -57,7 +59,7 @@ add_library(vko
     "Swapchain.cpp"
     "UniqueHandle.h"
     "Window.h"
- "Allocator.h" "Allocator.cpp")
+)
 
 target_include_directories(vko PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/.."
