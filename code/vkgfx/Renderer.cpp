@@ -274,14 +274,13 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
             .commandBuffers{std::move(commandBuffers)},
         };
 
-        // TODO remove this ugly .c_str()
-        instance.setDebugName(device.getHandle(), resources.imageAvailableSemaphore.getHandle(), nstl::sprintf("Image available %d", i).c_str());
-        instance.setDebugName(device.getHandle(), resources.renderFinishedSemaphore.getHandle(), nstl::sprintf("Render finished %d", i).c_str());
-        instance.setDebugName(device.getHandle(), resources.inFlightFence.getHandle(), nstl::sprintf("In-flight fence %d", i).c_str());
-        instance.setDebugName(device.getHandle(), resources.commandPool.getHandle(), nstl::sprintf("Main %d", i).c_str());
+        instance.setDebugName(device.getHandle(), resources.imageAvailableSemaphore.getHandle(), nstl::sprintf("Image available %d", i));
+        instance.setDebugName(device.getHandle(), resources.renderFinishedSemaphore.getHandle(), nstl::sprintf("Render finished %d", i));
+        instance.setDebugName(device.getHandle(), resources.inFlightFence.getHandle(), nstl::sprintf("In-flight fence %d", i));
+        instance.setDebugName(device.getHandle(), resources.commandPool.getHandle(), nstl::sprintf("Main %d", i));
 
         for (std::size_t index = 0; index < resources.commandBuffers.getSize(); index++)
-            instance.setDebugName(device.getHandle(), resources.commandBuffers.getHandle(index), nstl::sprintf("Buffer%zu %d", index, i).c_str());
+            instance.setDebugName(device.getHandle(), resources.commandBuffers.getHandle(index), nstl::sprintf("Buffer%zu %d", index, i));
 
         m_frameResources.push_back(std::move(resources));
     }
@@ -723,9 +722,8 @@ void vkgfx::Renderer::createSwapchain()
         vko::Image const& image = images[i];
         m_swapchainImageViews.push_back(nstl::make_unique<vko::ImageView>(device, image, VK_IMAGE_ASPECT_COLOR_BIT));
 
-        // TODO remove this ugly .c_str()
-        instance.setDebugName(device.getHandle(), image.getHandle(), nstl::sprintf("Swapchain %zu", i).c_str());
-        instance.setDebugName(device.getHandle(), m_swapchainImageViews.back()->getHandle(), nstl::sprintf("Swapchain %zu", i).c_str());
+        instance.setDebugName(device.getHandle(), image.getHandle(), nstl::sprintf("Swapchain %zu", i));
+        instance.setDebugName(device.getHandle(), m_swapchainImageViews.back()->getHandle(), nstl::sprintf("Swapchain %zu", i));
     }
 
     VkExtent2D swapchainExtent = m_swapchain->getExtent();
@@ -745,8 +743,7 @@ void vkgfx::Renderer::createSwapchain()
         nstl::unique_ptr<vko::ImageView> const& colorImageView = m_swapchainImageViews[i];
         m_swapchainFramebuffers.push_back(nstl::make_unique<vko::Framebuffer>(device, *colorImageView, *m_depthImageView, *m_renderPass, m_swapchain->getExtent()));
 
-        // TODO remove this ugly .c_str()
-        instance.setDebugName(device.getHandle(), m_swapchainFramebuffers.back()->getHandle(), nstl::sprintf("Main %zu", i).c_str());
+        instance.setDebugName(device.getHandle(), m_swapchainFramebuffers.back()->getHandle(), nstl::sprintf("Main %zu", i));
     }
 
     m_width = extent.width;
