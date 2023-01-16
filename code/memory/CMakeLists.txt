@@ -1,10 +1,12 @@
 add_library(memory
     "include/memory/untracked_allocator.h"
     "include/memory/tracking.h"
+    "include/memory/memory.h"
     
     "src/untracked_allocator.cpp"
     "src/tracking.cpp"
     "src/new.cpp"
+    "src/memory.cpp"
 )
 
 target_compile_features(memory PUBLIC cxx_std_20)

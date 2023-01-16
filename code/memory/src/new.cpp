@@ -1,27 +1,15 @@
 #include <stdlib.h>
 
-#include "platform/memory.h"
-
-#include "memory/tracking.h"
+#include "memory/memory.h"
 
 void* operator new(size_t size)
 {
-    assert(size > 0);
-
-    void* ptr = platform::allocate(size);
-    assert(ptr);
-
-    memory::tracking::track_allocation(ptr, size);
-
-    return ptr;
+    return memory::allocate(size);
 }
 
 void operator delete(void* ptr) noexcept
 {
-    if (ptr)
-        memory::tracking::track_deallocation(ptr);
-
-    return platform::deallocate(ptr);
+    return memory::deallocate(ptr);
 }
 
 void* operator new[](size_t size)
