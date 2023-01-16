@@ -1,10 +1,11 @@
 #pragma once
 
 #include "stddef.h"
+#include "type_traits.h"
 
 namespace nstl
 {
-    template<typename T>
+    template<typename T, typename = void>
     struct hash
     {
         static_assert(sizeof(T) < 0, "No specialization of hash for type T");
@@ -69,5 +70,15 @@ struct nstl::hash<char[N]>
     size_t operator()(T const& value) const
     {
         return hash_string(value, N);
+    }
+};
+
+template<typename E>
+struct nstl::hash<E, nstl::enable_if_t<nstl::is_enum_v<E>>>
+{
+    size_t operator()(E const& value) const
+    {
+        using T = nstl::underlying_type_t<E>;
+        return nstl::hash<T>{}(static_cast<T>(value));
     }
 };
