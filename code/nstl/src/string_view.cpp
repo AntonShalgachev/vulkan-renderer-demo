@@ -128,6 +128,9 @@ std::strong_ordering nstl::string_view::operator<=>(string_view const& rhs) cons
 
 bool nstl::operator==(string_view const& lhs, string_view const& rhs)
 {
+    if (lhs.empty() && rhs.empty())
+        return true;
+
     if (lhs.length() != rhs.length())
         return false;
 
