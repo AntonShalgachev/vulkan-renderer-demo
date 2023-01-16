@@ -2,6 +2,7 @@
 
 #include "nstl/unordered_map.h"
 
+#include "memory/memory.h"
 #include "memory/tracking.h"
 
 #include "logging/logging.h"
@@ -75,6 +76,26 @@ namespace
 
         return it->value();
     }
+
+    void* createUserData(memory::tracking::scope_id scopeId)
+    {
+        void* userData = nullptr;
+        static_assert(sizeof(userData) >= sizeof(scopeId));
+        memcpy(&userData, &scopeId, sizeof(scopeId));
+
+        return userData;
+    }
+
+    memory::tracking::scope_id parseUserData(void* userData)
+    {
+        assert(userData);
+
+        memory::tracking::scope_id scopeId;
+        static_assert(sizeof(userData) >= sizeof(scopeId));
+        memcpy(&scopeId, &userData, sizeof(scopeId));
+
+        return scopeId;
+    }
 }
 
 vko::Allocator::Allocator(AllocatorScope scope)
@@ -82,12 +103,9 @@ vko::Allocator::Allocator(AllocatorScope scope)
     memory::tracking::scope_id scopeId = getScopeId(scope);
 
     // TODO find a less hacky way to pass scopeId to the callback. Can't save `this` because the object can be "moved"
-    static_assert(sizeof(m_callbacks.pUserData) >= sizeof(scopeId));
-    void* userData = nullptr;
-    memcpy(&userData, &scopeId, sizeof(scopeId));
 
     m_callbacks = {
-        .pUserData = userData,
+        .pUserData = createUserData(scopeId),
         .pfnAllocation = &allocate,
         .pfnReallocation = &reallocate,
         .pfnFree = &deallocate,
@@ -101,53 +119,27 @@ vko::Allocator::operator VkAllocationCallbacks const* () const
 
 void* vko::Allocator::allocate(void* userData, size_t size, size_t alignment, VkSystemAllocationScope allocationScope)
 {
-    // TODO don't allocate more memory just for size
-
-    assert(userData);
-    memory::tracking::scope_id scopeId;
-    static_assert(sizeof(userData) >= sizeof(scopeId));
-    memcpy(&scopeId, &userData, sizeof(scopeId));
-
+    auto scopeId = parseUserData(userData);
     MEMORY_TRACKING_SCOPE(scopeId);
 
     // TODO make use of alignment
     assert(alignment <= alignof(max_align_t));
 
-    void* originalPtr = ::operator new(size + sizeof(size_t));
-    *static_cast<size_t*>(originalPtr) = size;
-
-    void* ptr = static_cast<unsigned char*>(originalPtr) + sizeof(size_t);
-
-    return ptr;
+    return memory::allocate(size);
 }
 
 void* vko::Allocator::reallocate(void* userData, void* ptr, size_t size, size_t alignment, VkSystemAllocationScope allocationScope)
 {
-    // TODO implement properly
+    auto scopeId = parseUserData(userData);
+    MEMORY_TRACKING_SCOPE(scopeId);
 
-    assert(ptr);
+    // TODO make use of alignment
+    assert(alignment <= alignof(max_align_t));
 
-    void* originalPtr = static_cast<unsigned char*>(ptr) - sizeof(size_t);
-    size_t oldSize = *static_cast<size_t*>(originalPtr);
-
-    if (size <= oldSize)
-        return ptr;
-
-    void* newPtr = allocate(userData, size, alignment, allocationScope);
-
-    ::memcpy(newPtr, ptr, oldSize);
-
-    deallocate(userData, ptr);
-
-    return newPtr;
+    return memory::reallocate(ptr, size);
 }
 
 void vko::Allocator::deallocate(void* userData, void* ptr)
 {
-    if (!ptr)
-        return;
-
-    void* originalPtr = static_cast<unsigned char*>(ptr) - sizeof(size_t);
-
-    return operator delete(originalPtr);
+    return memory::deallocate(ptr);
 }
