@@ -41,7 +41,8 @@ namespace memory
         struct scope_stat
         {
             memory::tracking::scope_id id;
-            size_t bytes = 0;
+            size_t active_bytes = 0;
+            size_t total_bytes = 0;
             size_t active_allocations = 0;
             size_t total_allocations = 0;
         };

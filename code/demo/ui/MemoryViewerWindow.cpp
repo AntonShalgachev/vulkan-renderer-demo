@@ -27,11 +27,12 @@ void ui::MemoryViewerWindow::drawTable()
 {
     ImGuiTableFlags flags = ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_NoBordersInBody;
 
-    if (!ImGui::BeginTable("allocations", 4, flags))
+    if (!ImGui::BeginTable("allocations", 5, flags))
         return;
 
     ImGui::TableSetupColumn("Scope");
-    ImGui::TableSetupColumn("Memory");
+    ImGui::TableSetupColumn("Bytes");
+    ImGui::TableSetupColumn("Bytes ever");
     ImGui::TableSetupColumn("Allocations");
     ImGui::TableSetupColumn("Allocations ever");
     ImGui::TableHeadersRow();
@@ -57,9 +58,15 @@ void ui::MemoryViewerWindow::drawTable()
 
         ImGui::TableNextColumn();
         if (m_convertToMb)
-            ImGui::Text("%.2f MB", 1.0f * entry.bytes / 1024 / 1024);
+            ImGui::Text("%.2f MB", 1.0f * entry.active_bytes / 1024 / 1024);
         else
-            ImGui::Text("%zu", entry.bytes);
+            ImGui::Text("%zu", entry.active_bytes);
+
+        ImGui::TableNextColumn();
+        if (m_convertToMb)
+            ImGui::Text("%.2f MB", 1.0f * entry.total_bytes / 1024 / 1024);
+        else
+            ImGui::Text("%zu", entry.total_bytes);
 
         ImGui::TableNextColumn();
         ImGui::Text("%zu", entry.active_allocations);

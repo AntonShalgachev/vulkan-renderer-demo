@@ -58,7 +58,7 @@ namespace
                 if (params.type == memory::tracking::scope_type::external)
                     continue;
 
-                assert(entry.bytes == 0);
+                assert(entry.active_bytes == 0);
                 assert(entry.active_allocations == 0);
             }
 
@@ -80,7 +80,8 @@ namespace
             assert(id.index < entries.size());
             memory::tracking::scope_stat& entry = entries[id.index];
 
-            entry.bytes += bytes;
+            entry.active_bytes += bytes;
+            entry.total_bytes += bytes;
             entry.active_allocations++;
             entry.total_allocations++;
         }
@@ -92,8 +93,8 @@ namespace
             assert(id.index < entries.size());
             memory::tracking::scope_stat& entry = entries[id.index];
 
-            assert(entry.bytes >= bytes);
-            entry.bytes -= bytes;
+            assert(entry.active_bytes >= bytes);
+            entry.active_bytes -= bytes;
 
             assert(entry.active_allocations > 0);
             entry.active_allocations--;
