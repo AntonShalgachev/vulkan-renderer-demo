@@ -153,6 +153,7 @@ void memory::tracking::track_allocation(void* ptr, size_t size)
 {
     assert(ptr);
     assert(size > 0);
+    assert(get_allocation_metadata().find(ptr) == get_allocation_metadata().end());
 
     scope_id scope_id = get_current_scope_id();
     get_allocation_metadata()[ptr] = allocation_metadata{ size, scope_id };
@@ -163,6 +164,7 @@ void memory::tracking::track_allocation(void* ptr, size_t size)
 void memory::tracking::track_deallocation(void* ptr)
 {
     assert(ptr);
+    assert(get_allocation_metadata().find(ptr) != get_allocation_metadata().end());
 
     allocation_metadata const& metadata = get_allocation_metadata()[ptr];
 
