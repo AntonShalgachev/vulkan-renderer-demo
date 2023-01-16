@@ -38,6 +38,8 @@
 
 #include "logging/logging.h"
 
+#include "memory/tracking.h"
+
 #include "nstl/array.h"
 #include "nstl/span.h"
 #include "nstl/optional.h"
@@ -514,6 +516,9 @@ void DemoApplication::createResources()
 
 void DemoApplication::loadImgui()
 {
+    static auto scopeId = memory::tracking::create_scope_id("UI/ImGui");
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     if (ImGui::GetCurrentContext())
         return;
 

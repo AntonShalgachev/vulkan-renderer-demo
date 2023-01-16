@@ -13,14 +13,17 @@
 #include "vko/ShaderModuleProperties.h"
 
 #include "common/Utils.h"
-
 #include "common/glm.h"
+
+#include "memory/tracking.h"
 
 #include "nstl/array.h"
 #include "nstl/vector.h"
 
 namespace
 {
+    auto scopeId = memory::tracking::create_scope_id("Rendering/DebugDraw");
+
     // normals: offset 0, stride 24, type vec3, count 24
     // position: offset 12, stride 24, type vec3, count 24
     // indices: offset 576, type unsigned short, count 36
@@ -71,6 +74,8 @@ namespace
 
 DebugDrawService::DebugDrawService(vkgfx::Renderer& renderer)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     vkgfx::ResourceManager& resources = renderer.getResourceManager();
 
     {
@@ -180,11 +185,13 @@ DebugDrawService::~DebugDrawService() = default;
 
 void DebugDrawService::sphere(glm::vec3 const& center, glm::vec3 const& scale, glm::vec3 const& color, float duration)
 {
-
+    MEMORY_TRACKING_SCOPE(scopeId);
 }
 
 void DebugDrawService::box(glm::vec3 const& center, glm::quat const& rotation, glm::vec3 const& scale, glm::vec3 const& color, float duration)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     auto matrix = glm::identity<glm::mat4>();
 
     matrix = glm::translate(matrix, center);
@@ -203,6 +210,8 @@ void DebugDrawService::box(glm::vec3 const& center, glm::quat const& rotation, g
 
 void DebugDrawService::queueGeometry(vkgfx::Renderer& renderer)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     for (auto&& object : m_objects)
         renderer.addOneFrameTestObject(std::move(object));
     m_objects.clear();

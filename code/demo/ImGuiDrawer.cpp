@@ -22,10 +22,14 @@
 
 #include "nstl/vector.h"
 
+#include "memory/tracking.h"
+
 #include "imgui.h"
 
 namespace
 {
+    auto scopeId = memory::tracking::create_scope_id("UI/ImGui/Drawer");
+
     // TODO move somewhere
     auto imageToTextureId(vkgfx::ImageHandle image)
     {
@@ -104,6 +108,8 @@ namespace
 
 ImGuiDrawer::ImGuiDrawer(vkgfx::Renderer& renderer)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     ImGuiIO& io = ImGui::GetIO();
 
     io.BackendRendererUserData = nullptr;
@@ -120,6 +126,8 @@ ImGuiDrawer::ImGuiDrawer(vkgfx::Renderer& renderer)
 
 void ImGuiDrawer::queueGeometry(vkgfx::Renderer& renderer)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     if (!ImGui::GetCurrentContext())
         return;
 

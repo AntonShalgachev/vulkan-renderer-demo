@@ -40,6 +40,8 @@
 #include "nstl/sprintf.h"
 #include "nstl/span.h"
 
+#include "memory/tracking.h"
+
 #include <vulkan/vulkan.h>
 
 namespace
@@ -348,6 +350,9 @@ void vkgfx::Renderer::waitIdle()
 
 void vkgfx::Renderer::draw()
 {
+    static auto scopeId = memory::tracking::create_scope_id("Rendering/Draw");
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     RendererFrameResources& frameResources = m_frameResources[m_nextFrameResourcesIndex];
 
     frameResources.inFlightFence.wait();

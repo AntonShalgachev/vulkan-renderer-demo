@@ -2,6 +2,8 @@
 
 #include "GlfwWindow.h"
 
+#include "memory/tracking.h"
+
 #include "imgui.h"
 
 namespace
@@ -168,6 +170,9 @@ namespace
 
 ImGuiPlatform::ImGuiPlatform(GlfwWindow& window) : m_window(window)
 {
+    static auto scopeId = memory::tracking::create_scope_id("UI/ImGui/Platform");
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     ImGuiIO& io = ImGui::GetIO();
     io.BackendPlatformName = "vulkan_renderer_demo";
     io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
