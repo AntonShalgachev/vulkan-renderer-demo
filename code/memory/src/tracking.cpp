@@ -9,17 +9,34 @@
 
 namespace
 {
-    // TODO use static_vector
-    nstl::vector<nstl::string_view>& get_scope_stack()
+    struct scope_parameters
     {
-        static nstl::vector<nstl::string_view> names{ memory::untracked_allocator{} };
+        nstl::string_view name;
+        memory::tracking::scope_type type = memory::tracking::scope_type::internal;
+    };
+
+    nstl::vector<scope_parameters>& get_scope_parameters_container()
+    {
+        static nstl::vector<scope_parameters> params{ memory::untracked_allocator{} };
+        return params;
+    }
+
+    scope_parameters const& get_scope_parameters(memory::tracking::scope_id id)
+    {
+        return get_scope_parameters_container()[id.index];
+    }
+
+    // TODO use static_vector
+    nstl::vector<memory::tracking::scope_id>& get_scope_stack()
+    {
+        static nstl::vector<memory::tracking::scope_id> names{ memory::untracked_allocator{} };
         return names;
     }
 
     struct allocation_metadata
     {
         size_t size = 0;
-        nstl::string_view scope_name;
+        memory::tracking::scope_id scope_id;
         // TODO callstack id, etc.
     };
 
@@ -37,11 +54,14 @@ namespace
         {
             for (memory::tracking::scope_stat const& entry : entries)
             {
+                scope_parameters const& params = get_scope_parameters(entry.id);
+                if (params.type == memory::tracking::scope_type::external)
+                    continue;
+
                 assert(entry.bytes == 0);
                 assert(entry.active_allocations == 0);
             }
 
-            // TODO
             logging::info("No memory leaks detected");
         }
 
@@ -50,35 +70,33 @@ namespace
             return entries;
         }
 
-        void track_allocation(nstl::string_view name, size_t bytes)
+        void track_allocation(memory::tracking::scope_id id, size_t bytes)
         {
-            memory::tracking::scope_stat* entry = find_entry(name);
+            assert(bytes > 0);
 
-            if (!entry)
-                entry = &entries.emplace_back(memory::tracking::scope_stat{ name });
+            for (size_t index = entries.size(); index <= id.index; index++)
+                entries.push_back(memory::tracking::scope_stat{ .id = memory::tracking::scope_id{index} });
 
-            entry->bytes += bytes;
-            entry->active_allocations++;
-            entry->total_allocations++;
+            assert(id.index < entries.size());
+            memory::tracking::scope_stat& entry = entries[id.index];
+
+            entry.bytes += bytes;
+            entry.active_allocations++;
+            entry.total_allocations++;
         }
 
-        void track_deallocation(nstl::string_view name, size_t bytes)
+        void track_deallocation(memory::tracking::scope_id id, size_t bytes)
         {
-            memory::tracking::scope_stat* entry = find_entry(name);
-            assert(entry);
+            assert(bytes > 0);
 
-            assert(entry->bytes >= bytes);
-            entry->bytes -= bytes;
-            entry->active_allocations--;
-        }
+            assert(id.index < entries.size());
+            memory::tracking::scope_stat& entry = entries[id.index];
 
-    private:
-        memory::tracking::scope_stat* find_entry(nstl::string_view name)
-        {
-            for (auto& entry : entries)
-                if (entry.name == name)
-                    return &entry;
-            return nullptr;
+            assert(entry.bytes >= bytes);
+            entry.bytes -= bytes;
+
+            assert(entry.active_allocations > 0);
+            entry.active_allocations--;
         }
 
     private:
@@ -92,9 +110,28 @@ namespace
     }
 }
 
-void memory::tracking::on_scope_enter(nstl::string_view name)
+memory::tracking::scope_id memory::tracking::create_scope_id(nstl::string_view name, scope_type type)
 {
-    get_scope_stack().push_back(name);
+    scope_id id = {
+        .index = get_scope_parameters_container().size()
+    };
+
+    get_scope_parameters_container().push_back(scope_parameters{
+        .name = name,
+        .type = type,
+    });
+
+    return id;
+}
+
+nstl::string_view memory::tracking::get_scope_name(scope_id id)
+{
+    return get_scope_parameters(id).name;
+}
+
+void memory::tracking::on_scope_enter(scope_id id)
+{
+    get_scope_stack().push_back(id);
 }
 
 void memory::tracking::on_scope_exit()
@@ -102,27 +139,36 @@ void memory::tracking::on_scope_exit()
     get_scope_stack().pop_back();
 }
 
-nstl::string_view memory::tracking::get_current_scope_name()
+memory::tracking::scope_id memory::tracking::get_current_scope_id()
 {
+    static scope_id const root_scope_id = create_scope_id("");
+
     if (get_scope_stack().empty())
-        return {};
+        return root_scope_id;
 
     return get_scope_stack().back();
 }
 
 void memory::tracking::track_allocation(void* ptr, size_t size)
 {
-    nstl::string_view scope_name = get_current_scope_name();
-    get_allocation_metadata()[ptr] = allocation_metadata{ size, scope_name };
+    assert(ptr);
+    assert(size > 0);
 
-    ::get_scope_stats().track_allocation(scope_name, size);
+    scope_id scope_id = get_current_scope_id();
+    get_allocation_metadata()[ptr] = allocation_metadata{ size, scope_id };
+
+    ::get_scope_stats().track_allocation(scope_id, size);
 }
 
 void memory::tracking::track_deallocation(void* ptr)
 {
+    assert(ptr);
+
     allocation_metadata const& metadata = get_allocation_metadata()[ptr];
 
-    ::get_scope_stats().track_deallocation(metadata.scope_name, metadata.size);
+    assert(metadata.size > 0);
+
+    ::get_scope_stats().track_deallocation(metadata.scope_id, metadata.size);
 
     get_allocation_metadata().erase(ptr);
 }

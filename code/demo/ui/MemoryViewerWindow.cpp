@@ -42,9 +42,9 @@ void ui::MemoryViewerWindow::drawTable()
     {
         memory::tracking::scope_stat const& entry = entries[i];
 
-        nstl::string_view scopeName = entry.name;
+        nstl::string_view scopeName = memory::tracking::get_scope_name(entry.id);
         if (scopeName.empty())
-            scopeName = "Unsorted";
+            scopeName = "Root";
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();

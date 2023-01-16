@@ -7,15 +7,29 @@ namespace memory
 {
     namespace tracking
     {
-        void on_scope_enter(nstl::string_view name);
+        struct scope_id
+        {
+            size_t index = static_cast<size_t>(-1);
+        };
+
+        enum class scope_type
+        {
+            internal,
+            external,
+        };
+
+        scope_id create_scope_id(nstl::string_view name, scope_type type = scope_type::internal);
+        nstl::string_view get_scope_name(scope_id id);
+
+        void on_scope_enter(scope_id id);
         void on_scope_exit();
-        nstl::string_view get_current_scope_name();
+        scope_id get_current_scope_id();
 
         struct scope_guard
         {
-            scope_guard(nstl::string_view name)
+            scope_guard(scope_id id)
             {
-                memory::tracking::on_scope_enter(name);
+                memory::tracking::on_scope_enter(id);
             }
 
             ~scope_guard()
@@ -26,7 +40,7 @@ namespace memory
 
         struct scope_stat
         {
-            nstl::string_view name;
+            memory::tracking::scope_id id;
             size_t bytes = 0;
             size_t active_allocations = 0;
             size_t total_allocations = 0;
@@ -39,4 +53,4 @@ namespace memory
     }
 }
 
-#define MEMORY_TRACKING_SCOPE(name) memory::tracking::scope_guard memory_tracking_scope_guard{name}
+#define MEMORY_TRACKING_SCOPE(id) memory::tracking::scope_guard memory_tracking_scope_guard{id}
