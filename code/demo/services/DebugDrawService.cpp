@@ -198,7 +198,7 @@ void DebugDrawService::box(glm::vec3 const& center, glm::quat const& rotation, g
     matrix = matrix * glm::mat4_cast(rotation);
     matrix = glm::scale(matrix, scale);
 
-    nstl::vector<unsigned char> pushConstants;
+    nstl::static_vector<unsigned char, vkgfx::MaxPushConstantsSize> pushConstants;
     pushConstants.resize(sizeof(matrix));
     memcpy(pushConstants.data(), &matrix, sizeof(matrix));
 

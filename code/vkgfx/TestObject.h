@@ -4,10 +4,12 @@
 
 #include "common/glm.h"
 
-#include "nstl/vector.h"
+#include "nstl/static_vector.h"
 
 namespace vkgfx
 {
+    constexpr size_t MaxPushConstantsSize = 64;
+
     // TODO
     struct TestObject
     {
@@ -17,7 +19,7 @@ namespace vkgfx
         vkgfx::MaterialHandle material;
 
         vkgfx::BufferHandle uniformBuffer;
-        nstl::vector<unsigned char> pushConstants; // TODO have a reference to the buffer instead
+        nstl::static_vector<unsigned char, MaxPushConstantsSize> pushConstants; // TODO have a reference to the buffer instead
 
         bool hasScissors = false;
         glm::uvec2 scissorOffset = { 0, 0 };

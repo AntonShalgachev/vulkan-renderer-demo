@@ -51,7 +51,7 @@ namespace
         return image;
     };
 
-    nstl::vector<unsigned char> createPushConstants(ImDrawData const* drawData)
+    nstl::static_vector<unsigned char, vkgfx::MaxPushConstantsSize> createPushConstants(ImDrawData const* drawData)
     {
         struct PushConstants
         {
@@ -70,7 +70,7 @@ namespace
             -1.0f - drawData->DisplayPos.y * pushConstants.scale.y,
         };
 
-        nstl::vector<unsigned char> bytes;
+        nstl::static_vector<unsigned char, vkgfx::MaxPushConstantsSize> bytes;
         bytes.resize(sizeof(PushConstants));
         memcpy(bytes.data(), &pushConstants, sizeof(pushConstants));
 
@@ -143,7 +143,7 @@ void ImGuiDrawer::queueGeometry(vkgfx::Renderer& renderer)
 
     uploadBuffers(resourceManager, drawData);
 
-    nstl::vector<unsigned char> pushConstantsBytes = createPushConstants(drawData);
+    auto pushConstantsBytes = createPushConstants(drawData);
 
     std::size_t nextResourceIndex = 0;
     std::size_t vertexOffset = 0;
