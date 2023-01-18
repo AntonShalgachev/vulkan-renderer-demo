@@ -29,6 +29,8 @@ add_library(nstl # non-standard template library
     "include/nstl/string_builder.h"
     "include/nstl/allocator.h"
     "include/nstl/malloc_allocator.h"
+    "include/nstl/aligned_storage.h"
+    "include/nstl/static_vector.h"
 
     "src/string.cpp"
     "src/string_view.cpp"

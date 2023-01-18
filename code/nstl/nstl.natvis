@@ -13,6 +13,18 @@
     </Expand>
   </Type>
 
+  <Type Name="nstl::static_vector&lt;*, *&gt;">
+    <DisplayString>size={m_size} capacity={$T2}</DisplayString>
+    <Expand>
+      <Item Name="[size]]">m_size</Item>
+      <Item Name="[capacity]">$T2</Item>
+      <ArrayItems>
+        <Size>m_size</Size>
+        <ValuePointer>(value_type*)(&amp;m_storage[0])</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
   <Type Name="nstl::span&lt;*&gt;">
     <DisplayString>size={m_size}</DisplayString>
     <Expand>
