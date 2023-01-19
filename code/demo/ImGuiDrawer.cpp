@@ -360,23 +360,29 @@ void ImGuiDrawer::updateMesh(vkgfx::ResourceManager& resourceManager, std::size_
 {
     static_assert(sizeof(ImDrawIdx) == 2);
 
-    vkgfx::Mesh mesh = {
-        .vertexBuffers = { {m_vertexBuffer, 0} },
-        .indexBuffer = { m_indexBuffer, 0 },
-        .indexCount = indexCount,
-        .indexType = vkgfx::IndexType::UnsignedShort,
-        .indexOffset = indexOffset,
-        .vertexOffset = vertexOffset,
-    };
-
+    vkgfx::MeshHandle handle;
     if (index < m_meshes.size())
     {
-        resourceManager.updateMesh(m_meshes[index], std::move(mesh));
+        handle = m_meshes[index];
     }
     else
     {
-        m_meshes.push_back(resourceManager.createMesh(std::move(mesh)));
+        assert(index == m_meshes.size());
+        handle = resourceManager.createMesh({});
+        m_meshes.push_back(handle);
     }
+
+    vkgfx::Mesh* mesh = resourceManager.getMesh(handle);
+    assert(mesh);
+
+    mesh->vertexBuffers.resize(1);
+    mesh->vertexBuffers[0] = { m_vertexBuffer, 0 };
+
+    mesh->indexBuffer = { m_indexBuffer, 0 };
+    mesh->indexCount = indexCount;
+    mesh->indexType = vkgfx::IndexType::UnsignedShort;
+    mesh->indexOffset = indexOffset;
+    mesh->vertexOffset = vertexOffset;
 }
 
 void ImGuiDrawer::updateMaterial(vkgfx::ResourceManager& resourceManager, std::size_t index, vkgfx::ImageHandle image)
