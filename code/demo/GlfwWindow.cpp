@@ -27,16 +27,15 @@ namespace
 
     GlfwWindow::Action getAction(int glfwAction)
     {
-        static nstl::vector<GlfwWindow::Action> const actions = []() {
-            nstl::vector<GlfwWindow::Action> result;
-            result.resize(3);
-            result[GLFW_RELEASE] = GlfwWindow::Action::Release;
-            result[GLFW_PRESS] = GlfwWindow::Action::Press;
-            result[GLFW_REPEAT] = GlfwWindow::Action::Repeat;
-            return result;
-        }();
+        if (glfwAction == GLFW_PRESS)
+            return GlfwWindow::Action::Press;
+        if (glfwAction == GLFW_RELEASE)
+            return GlfwWindow::Action::Release;
+        if (glfwAction == GLFW_REPEAT)
+            return GlfwWindow::Action::Repeat;
 
-        return actions[static_cast<std::size_t>(glfwAction)];
+        assert(false);
+        return GlfwWindow::Action::Press;
     }
 
     GlfwWindow::Modifiers getModifiers(int mods)
