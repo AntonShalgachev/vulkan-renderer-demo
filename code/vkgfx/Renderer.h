@@ -27,6 +27,8 @@ namespace vkgfx
     class ResourceManager;
     struct TestObject;
 
+    struct RendererCache;
+
     class Renderer
     {
     public:
@@ -59,6 +61,9 @@ namespace vkgfx
         void recreateSwapchain();
 
     private:
+        struct Cache;
+
+    private:
         vko::Window& m_window;
 
         // TODO don't use unique_ptrs
@@ -89,5 +94,7 @@ namespace vkgfx
         DescriptorSetLayoutHandle m_frameDescriptorSetLayout;
 
         nstl::vector<TestObject> m_oneFrameTestObjects;
+
+        nstl::unique_ptr<RendererCache> m_cache;
     };
 }

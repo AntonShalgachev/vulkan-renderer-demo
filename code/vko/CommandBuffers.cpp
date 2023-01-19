@@ -8,6 +8,8 @@
 #include "vko/QueueFamily.h"
 #include "vko/Queue.h"
 
+#include "nstl/static_vector.h"
+
 vko::CommandBuffers::CommandBuffers(Device const& device, CommandPool const& commandPool, std::size_t size)
     : m_device(device.getHandle())
     , m_commandPool(commandPool.getHandle())
@@ -71,14 +73,14 @@ void vko::CommandBuffers::submit(std::size_t index, Queue const& queue, Semaphor
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &m_handles[index].get();
 
-    nstl::vector<VkSemaphore> signalSemaphores;
+    nstl::static_vector<VkSemaphore, 1> signalSemaphores;
     if (signalSemaphore)
         signalSemaphores.push_back(signalSemaphore->getHandle());
     submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
     submitInfo.pSignalSemaphores = signalSemaphores.data();
 
-    nstl::vector<VkSemaphore> waitSemaphores;
-    nstl::vector<VkPipelineStageFlags> waitStages;
+    nstl::static_vector<VkSemaphore, 1> waitSemaphores;
+    nstl::static_vector<VkPipelineStageFlags, 1> waitStages;
     if (waitSemaphore)
     {
         waitSemaphores.push_back(waitSemaphore->getHandle());

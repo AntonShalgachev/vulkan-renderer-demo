@@ -149,60 +149,13 @@ namespace
 
         nstl::vector<SampledImage> images;
         nstl::vector<Buffer> buffers;
+
+        void clear()
+        {
+            images.clear();
+            buffers.clear();
+        }
     };
-
-    void updateDescriptorSet(VkDevice device, VkDescriptorSet set, DescriptorSetUpdateConfig const& config)
-    {
-        nstl::vector<VkDescriptorBufferInfo> bufferInfos;
-        bufferInfos.reserve(config.buffers.size());
-
-        nstl::vector<VkDescriptorImageInfo> imageInfos;
-        imageInfos.reserve(config.images.size());
-
-        nstl::vector<VkWriteDescriptorSet> descriptorWrites;
-        descriptorWrites.reserve(bufferInfos.capacity() + imageInfos.capacity());
-
-        for (DescriptorSetUpdateConfig::Buffer const& buffer : config.buffers)
-        {
-            VkWriteDescriptorSet& descriptorWrite = descriptorWrites.emplace_back();
-
-            assert(bufferInfos.size() < bufferInfos.capacity());
-            VkDescriptorBufferInfo& bufferInfo = bufferInfos.emplace_back();
-            bufferInfo.buffer = buffer.buffer;
-            bufferInfo.offset = buffer.offset;
-            bufferInfo.range = buffer.size;
-
-            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrite.dstSet = set;
-            descriptorWrite.dstBinding = buffer.binding;
-            descriptorWrite.dstArrayElement = 0;
-            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-            descriptorWrite.descriptorCount = 1;
-            descriptorWrite.pBufferInfo = &bufferInfo;
-        }
-
-        for (DescriptorSetUpdateConfig::SampledImage const& image : config.images)
-        {
-            assert(descriptorWrites.size() < descriptorWrites.capacity());
-            VkWriteDescriptorSet& descriptorWrite = descriptorWrites.emplace_back();
-
-            assert(imageInfos.size() < imageInfos.capacity());
-            VkDescriptorImageInfo& imageInfo = imageInfos.emplace_back();
-            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfo.imageView = image.imageView;
-            imageInfo.sampler = image.sampler;
-
-            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrite.dstSet = set;
-            descriptorWrite.dstBinding = image.binding;
-            descriptorWrite.dstArrayElement = 0;
-            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            descriptorWrite.descriptorCount = 1;
-            descriptorWrite.pImageInfo = &imageInfo;
-        }
-
-        vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-    }
 }
 
 namespace vkgfx
@@ -228,10 +181,86 @@ namespace vkgfx
 
         nstl::vector<vko::DescriptorPool> descriptorPools;
     };
+
+    struct RendererCache
+    {
+        nstl::vector<VkBuffer> vertexBuffers;
+        nstl::vector<VkDeviceSize> vertexBuffersOffsets;
+        nstl::vector<VkDescriptorSet> descriptorSets;
+
+        DescriptorSetUpdateConfig config1;
+        DescriptorSetUpdateConfig config2;
+        nstl::vector<uint32_t> dynamicBufferOffsets12;
+
+        nstl::vector<VkDescriptorBufferInfo> bufferInfos;
+        nstl::vector<VkDescriptorImageInfo> imageInfos;
+        nstl::vector<VkWriteDescriptorSet> descriptorWrites;
+    };
+}
+
+namespace
+{
+    void updateDescriptorSet(VkDevice device, VkDescriptorSet set, DescriptorSetUpdateConfig const& config, vkgfx::RendererCache& cache)
+    {
+        static auto scopeId = memory::tracking::create_scope_id("Rendering/Draw/UpdateDescriptorSet");
+        MEMORY_TRACKING_SCOPE(scopeId);
+
+        cache.bufferInfos.clear();
+        cache.bufferInfos.reserve(config.buffers.size());
+
+        cache.imageInfos.clear();
+        cache.imageInfos.reserve(config.images.size());
+
+        cache.descriptorWrites.clear();
+        cache.descriptorWrites.reserve(cache.bufferInfos.capacity() + cache.imageInfos.capacity());
+
+        for (DescriptorSetUpdateConfig::Buffer const& buffer : config.buffers)
+        {
+            VkWriteDescriptorSet& descriptorWrite = cache.descriptorWrites.emplace_back();
+
+            assert(cache.bufferInfos.size() < cache.bufferInfos.capacity());
+            VkDescriptorBufferInfo& bufferInfo = cache.bufferInfos.emplace_back();
+            bufferInfo.buffer = buffer.buffer;
+            bufferInfo.offset = buffer.offset;
+            bufferInfo.range = buffer.size;
+
+            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrite.dstSet = set;
+            descriptorWrite.dstBinding = buffer.binding;
+            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+            descriptorWrite.descriptorCount = 1;
+            descriptorWrite.pBufferInfo = &bufferInfo;
+        }
+
+        for (DescriptorSetUpdateConfig::SampledImage const& image : config.images)
+        {
+            assert(cache.descriptorWrites.size() < cache.descriptorWrites.capacity());
+            VkWriteDescriptorSet& descriptorWrite = cache.descriptorWrites.emplace_back();
+
+            assert(cache.imageInfos.size() < cache.imageInfos.capacity());
+            VkDescriptorImageInfo& imageInfo = cache.imageInfos.emplace_back();
+            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfo.imageView = image.imageView;
+            imageInfo.sampler = image.sampler;
+
+            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrite.dstSet = set;
+            descriptorWrite.dstBinding = image.binding;
+            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorWrite.descriptorCount = 1;
+            descriptorWrite.pImageInfo = &imageInfo;
+        }
+
+        vkUpdateDescriptorSets(device, static_cast<uint32_t>(cache.descriptorWrites.size()), cache.descriptorWrites.data(), 0, nullptr);
+    }
 }
 
 vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Window& window, nstl::function<void(vko::DebugMessage)> onDebugMessage) : m_window(window)
 {
+    m_cache = nstl::make_unique<RendererCache>();
+
     m_window.addFramebufferResizeCallback([this](int, int) { onWindowResized(); });
 
     m_context = nstl::make_unique<Context>(name, enableValidationLayers, false, window, nstl::move(onDebugMessage));
@@ -431,7 +460,7 @@ void vkgfx::Renderer::createCameraResources()
 
     m_frameDescriptorSetLayout = m_resourceManager->getOrCreateDescriptorSetLayout(key);
     m_data->frameDescriptorSetLayout = m_resourceManager->getDescriptorSetLayout(m_frameDescriptorSetLayout).getHandle();
-    m_data->frameDescriptorSet = m_data->frameDescriptorPool.allocateRaw({ &m_data->frameDescriptorSetLayout, 1 })[0];
+    m_data->frameDescriptorPool.allocateRaw({ &m_data->frameDescriptorSetLayout, 1 }, { &m_data->frameDescriptorSet, 1 });
 
     {
         Buffer const* frameUniformBuffer = m_resourceManager->getBuffer(m_cameraBuffer);
@@ -448,7 +477,7 @@ void vkgfx::Renderer::createCameraResources()
             },
         };
 
-        updateDescriptorSet(m_context->getDevice().getHandle(), m_data->frameDescriptorSet, config);
+        updateDescriptorSet(m_context->getDevice().getHandle(), m_data->frameDescriptorSet, config, *m_cache);
     }
 }
 
@@ -530,39 +559,42 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
 
             nstl::vector<vko::DescriptorPool>& descriptorPools = frameResources.descriptorPools;
 
-            nstl::vector<VkDescriptorSet> descriptorSets;
+            m_cache->descriptorSets.resize(descriptorSetLayouts.size());
+            bool descriptorSetsInitialized = false;
             do
             {
                 if (!descriptorPools.empty())
-                    descriptorSets = descriptorPools.back().allocateRaw(descriptorSetLayouts);
+                    descriptorSetsInitialized = descriptorPools.back().allocateRaw(descriptorSetLayouts, m_cache->descriptorSets);
 
-                if (descriptorSets.empty())
+                if (!descriptorSetsInitialized)
                     descriptorPools.emplace_back(m_context->getDevice());
-            } while (descriptorSets.empty());
+            } while (!descriptorSetsInitialized);
 
             Material const* material = m_resourceManager->getMaterial(object.material);
             assert(material);
 
-            DescriptorSetUpdateConfig config1;
-            config1.buffers.reserve(1);
-            config1.images.reserve(2);
-            DescriptorSetUpdateConfig config2;
-            config2.buffers.reserve(1);
-            nstl::vector<uint32_t> dynamicBufferOffsets12;
+            // TODO refactor this hack
+            m_cache->config1.clear();
+            m_cache->config2.clear();
+            m_cache->dynamicBufferOffsets12.clear();
+
+            m_cache->config1.buffers.reserve(1);
+            m_cache->config1.images.reserve(2);
+            m_cache->config2.buffers.reserve(1);
 
             if (material->uniformBuffer)
             {
                 Buffer const* materialUniformBuffer = m_resourceManager->getBuffer(material->uniformBuffer);
                 assert(materialUniformBuffer);
 
-                config1.buffers.push_back({
+                m_cache->config1.buffers.push_back({
                     .binding = 0,
                     .buffer = materialUniformBuffer->buffer.getHandle(),
                     .offset = 0,
                     .size = materialUniformBuffer->size,
                 });
 
-                dynamicBufferOffsets12.push_back(static_cast<uint32_t>(materialUniformBuffer->getDynamicOffset(m_nextFrameResourcesIndex)));
+                m_cache->dynamicBufferOffsets12.push_back(static_cast<uint32_t>(materialUniformBuffer->getDynamicOffset(m_nextFrameResourcesIndex)));
             }
 
             if (object.uniformBuffer)
@@ -570,14 +602,14 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
                 Buffer const* objectUniformBuffer = m_resourceManager->getBuffer(object.uniformBuffer);
                 assert(objectUniformBuffer);
 
-                config2.buffers.push_back({
+                m_cache->config2.buffers.push_back({
                     .binding = 0,
                     .buffer = objectUniformBuffer->buffer.getHandle(),
                     .offset = 0,
                     .size = objectUniformBuffer->size,
                 });
 
-                dynamicBufferOffsets12.push_back(static_cast<uint32_t>(objectUniformBuffer->getDynamicOffset(m_nextFrameResourcesIndex)));
+                m_cache->dynamicBufferOffsets12.push_back(static_cast<uint32_t>(objectUniformBuffer->getDynamicOffset(m_nextFrameResourcesIndex)));
             }
 
             if (material->albedo)
@@ -589,7 +621,7 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
                 vko::Sampler const* albedoSampler = m_resourceManager->getSampler(albedoTexture->sampler);
                 assert(albedoSampler);
 
-                config1.images.push_back({
+                m_cache->config1.images.push_back({
                     .binding = 1,
                     .imageView = albedoImage->imageView.getHandle(),
                     .sampler = albedoSampler->getHandle(),
@@ -605,17 +637,17 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
                 vko::Sampler const* normalMapSampler = m_resourceManager->getSampler(normalMapTexture->sampler);
                 assert(normalMapSampler);
 
-                config1.images.push_back({
+                m_cache->config1.images.push_back({
                     .binding = 2,
                     .imageView = normalMapImage->imageView.getHandle(),
                     .sampler = normalMapSampler->getHandle(),
                 });
             }
 
-            updateDescriptorSet(m_context->getDevice().getHandle(), descriptorSets[0], config1);
-            updateDescriptorSet(m_context->getDevice().getHandle(), descriptorSets[1], config2);
+            updateDescriptorSet(m_context->getDevice().getHandle(), m_cache->descriptorSets[0], m_cache->config1, *m_cache);
+            updateDescriptorSet(m_context->getDevice().getHandle(), m_cache->descriptorSets[1], m_cache->config2, *m_cache);
 
-            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 1, descriptorSets.size(), descriptorSets.data(), dynamicBufferOffsets12.size(), dynamicBufferOffsets12.data());
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 1, m_cache->descriptorSets.size(), m_cache->descriptorSets.data(), m_cache->dynamicBufferOffsets12.size(), m_cache->dynamicBufferOffsets12.data());
 
             boundMaterial = object.material;
         }
@@ -623,16 +655,16 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
         Mesh const* mesh = m_resourceManager->getMesh(object.mesh);
         assert(mesh);
 
-        nstl::vector<VkBuffer> vertexBuffers;
-        nstl::vector<VkDeviceSize> vertexBuffersOffsets;
-        vertexBuffers.reserve(mesh->vertexBuffers.size());
-        vertexBuffersOffsets.reserve(mesh->vertexBuffers.size());
+        m_cache->vertexBuffers.clear();
+        m_cache->vertexBuffersOffsets.clear();
+        m_cache->vertexBuffers.reserve(mesh->vertexBuffers.size());
+        m_cache->vertexBuffersOffsets.reserve(mesh->vertexBuffers.size());
         for (BufferWithOffset const& bufferWithOffset : mesh->vertexBuffers)
         {
             Buffer const* vertexBuffer = m_resourceManager->getBuffer(bufferWithOffset.buffer);
             assert(vertexBuffer);
-            vertexBuffers.push_back(vertexBuffer->buffer.getHandle());
-            vertexBuffersOffsets.push_back(vertexBuffer->getDynamicOffset(m_nextFrameResourcesIndex) + bufferWithOffset.offset);
+            m_cache->vertexBuffers.push_back(vertexBuffer->buffer.getHandle());
+            m_cache->vertexBuffersOffsets.push_back(vertexBuffer->getDynamicOffset(m_nextFrameResourcesIndex) + bufferWithOffset.offset);
         }
 
         Buffer const* indexBuffer = m_resourceManager->getBuffer(mesh->indexBuffer.buffer);
@@ -656,7 +688,7 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
         }
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-        vkCmdBindVertexBuffers(commandBuffer, 0, static_cast<uint32_t>(vertexBuffersOffsets.size()), vertexBuffers.data(), vertexBuffersOffsets.data());
+        vkCmdBindVertexBuffers(commandBuffer, 0, static_cast<uint32_t>(m_cache->vertexBuffersOffsets.size()), m_cache->vertexBuffers.data(), m_cache->vertexBuffersOffsets.data());
         vkCmdBindIndexBuffer(commandBuffer, indexBuffer->buffer.getHandle(), indexBufferOffset, vulkanizeIndexType(mesh->indexType));
 
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh->indexCount), 1, static_cast<uint32_t>(mesh->indexOffset), static_cast<uint32_t>(mesh->vertexOffset), 0);

@@ -27,7 +27,7 @@ namespace vko
         DescriptorPool& operator=(DescriptorPool&&) = default;
 
         nstl::optional<DescriptorSets> allocate(nstl::span<VkDescriptorSetLayout const> layouts);
-        nstl::vector<VkDescriptorSet> allocateRaw(nstl::span<VkDescriptorSetLayout const> layouts);
+        bool allocateRaw(nstl::span<VkDescriptorSetLayout const> layouts, nstl::span<VkDescriptorSet> descriptorSetHandles);
         void reset();
 
         VkDescriptorPool getHandle() const { return m_handle; }

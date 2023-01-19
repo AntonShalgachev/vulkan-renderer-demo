@@ -44,33 +44,32 @@ vko::DescriptorPool::~DescriptorPool()
 
 nstl::optional<vko::DescriptorSets> vko::DescriptorPool::allocate(nstl::span<VkDescriptorSetLayout const> layouts)
 {
-    nstl::vector<VkDescriptorSet> descriptorSetHandles = allocateRaw(layouts);
+    nstl::vector<VkDescriptorSet> descriptorSetHandles;
+    descriptorSetHandles.resize(layouts.size());
 
-    if (descriptorSetHandles.empty())
-        return {};
+    if (allocateRaw(layouts, descriptorSetHandles))
+        return vko::DescriptorSets{ m_device, nstl::move(descriptorSetHandles) };
 
-    return vko::DescriptorSets{ m_device, nstl::move(descriptorSetHandles) };
+    return {};
 }
 
-nstl::vector<VkDescriptorSet> vko::DescriptorPool::allocateRaw(nstl::span<VkDescriptorSetLayout const> layouts)
+bool vko::DescriptorPool::allocateRaw(nstl::span<VkDescriptorSetLayout const> layouts, nstl::span<VkDescriptorSet> descriptorSetHandles)
 {
+    assert(layouts.size() == descriptorSetHandles.size());
+
     VkDescriptorSetAllocateInfo descriptorSetAllocInfo{};
     descriptorSetAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     descriptorSetAllocInfo.descriptorPool = m_handle;
     descriptorSetAllocInfo.descriptorSetCount = static_cast<uint32_t>(layouts.size());
     descriptorSetAllocInfo.pSetLayouts = layouts.data();
 
-    nstl::vector<VkDescriptorSet> descriptorSetHandles;
-    descriptorSetHandles.resize(layouts.size());
-
     VkResult result = vkAllocateDescriptorSets(m_device.getHandle(), &descriptorSetAllocInfo, descriptorSetHandles.data());
 
     if (result == VK_ERROR_OUT_OF_POOL_MEMORY)
-        return {};
+        return false;
 
     assert(result == VK_SUCCESS);
-
-    return descriptorSetHandles;
+    return true;
 }
 
 void vko::DescriptorPool::reset()
