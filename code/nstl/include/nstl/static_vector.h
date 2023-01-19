@@ -26,6 +26,9 @@ namespace nstl
         void resize(size_t new_size);
         void resize(size_t new_size, T const& value);
 
+        void push_back(T item);
+        void pop_back();
+
         T* data();
         T const* data() const;
         size_t size() const;
@@ -109,6 +112,22 @@ void nstl::static_vector<T, N>::resize(size_t new_size, T const& value)
         for (size_t i = 0; i < m_size; i++)
             new (nstl::NewTag{}, &m_storage[i]) T{ value };
     }
+}
+
+template<typename T, size_t N>
+void nstl::static_vector<T, N>::push_back(T item)
+{
+    NSTL_ASSERT(m_size < N);
+    new (nstl::NewTag{}, &m_storage[m_size]) T{nstl::move(item)};
+    m_size++;
+}
+
+template<typename T, size_t N>
+void nstl::static_vector<T, N>::pop_back()
+{
+    m_size--;
+    if constexpr (!nstl::is_trivial_v<T>)
+        reinterpret_cast<T*>(&m_storage[m_size])->~T();
 }
 
 template<typename T, size_t N>
