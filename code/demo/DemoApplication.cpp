@@ -39,6 +39,7 @@
 #include "logging/logging.h"
 
 #include "memory/tracking.h"
+#include "memory/memory.h"
 
 #include "nstl/array.h"
 #include "nstl/span.h"
@@ -518,6 +519,19 @@ void DemoApplication::loadImgui()
 {
     static auto scopeId = memory::tracking::create_scope_id("UI/ImGui");
     MEMORY_TRACKING_SCOPE(scopeId);
+
+    {
+        ImGui::SetAllocatorFunctions([](size_t size, void*)
+        {
+            static auto scopeId = memory::tracking::create_scope_id("UI/ImGui/Internal");
+            MEMORY_TRACKING_SCOPE(scopeId);
+
+            return memory::allocate(size);
+        }, [](void* ptr, void*)
+        {
+            return memory::deallocate(ptr);
+        }, nullptr);
+    }
 
     if (ImGui::GetCurrentContext())
         return;
