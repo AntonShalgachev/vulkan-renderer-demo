@@ -142,10 +142,10 @@ void memory::tracking::on_scope_exit()
 
 memory::tracking::scope_id memory::tracking::get_current_scope_id()
 {
-    static scope_id const root_scope_id = create_scope_id("");
+    static scope_id const unsorted_scope_id = create_scope_id("Unsorted");
 
     if (get_scope_stack().empty())
-        return root_scope_id;
+        return unsorted_scope_id;
 
     return get_scope_stack().back();
 }
