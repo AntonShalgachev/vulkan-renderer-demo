@@ -23,6 +23,9 @@ namespace nstl
     class vector
     {
     public:
+        using value_type = T;
+
+    public:
         vector(any_allocator alloc = {});
         vector(size_t size, any_allocator alloc = {});
         template<typename Iterator>

@@ -8,7 +8,7 @@
       <Item Name="[capacity]">m_buffer.m_capacity</Item>
       <ArrayItems>
         <Size>m_buffer.m_size</Size>
-        <ValuePointer>($T1*)m_buffer.m_ptr</ValuePointer>
+        <ValuePointer>(value_type*)m_buffer.m_ptr</ValuePointer>
       </ArrayItems>
     </Expand>
   </Type>
