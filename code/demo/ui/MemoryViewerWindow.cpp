@@ -5,7 +5,15 @@
 
 #include "memory/tracking.h"
 
+#include "common/charming_enum.h"
+
 #include "imgui.h"
+
+template <>
+struct charming_enum::customize::enum_range<ui::MemoryViewerWindow::SizeUnit> {
+    static constexpr int min = 0;
+    static constexpr int max = 10;
+};
 
 ui::MemoryViewerWindow::MemoryViewerWindow(Services& services) : ServiceContainer(services)
 {
@@ -16,7 +24,33 @@ void ui::MemoryViewerWindow::draw()
 {
     ImGui::Begin("Memory Viewer");
 
-    ImGui::Checkbox("Convert to MB", &m_convertToMb);
+    auto unitPrettyName = [](SizeUnit unit) -> char const*
+    {
+        switch (unit)
+        {
+        case SizeUnit::Bytes:
+            return "Bytes";
+        case SizeUnit::Kilobytes:
+            return "Kilobytes";
+        case SizeUnit::Megabytes:
+            return "Megabytes";
+        }
+    };
+
+    if (ImGui::BeginCombo("Size units", unitPrettyName(m_sizeUnits)))
+    {
+        for (SizeUnit unit : charming_enum::enum_values<SizeUnit>())
+        {
+            bool isSelected = m_sizeUnits == unit;
+            if (ImGui::Selectable(unitPrettyName(unit), isSelected))
+                m_sizeUnits = unit;
+
+            if (isSelected)
+                ImGui::SetItemDefaultFocus();
+        }
+
+        ImGui::EndCombo();
+    }
 
     drawTable();
 
@@ -56,17 +90,40 @@ void ui::MemoryViewerWindow::drawTable()
         ImGui::TreeNodeEx("", ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth, "%.*s", scopeName.slength(), scopeName.data());
         ImGui::PopID();
 
-        ImGui::TableNextColumn();
-        if (m_convertToMb)
-            ImGui::Text("%.2f MB", 1.0f * entry.active_bytes / 1024 / 1024);
-        else
-            ImGui::Text("%zu", entry.active_bytes);
+        char const* suffix = nullptr;
+        size_t sizeDenominator = 0;
+
+        switch (m_sizeUnits)
+        {
+        case SizeUnit::Bytes:
+            suffix = "";
+            sizeDenominator = 1;
+            break;
+        case SizeUnit::Kilobytes:
+            suffix = " KB";
+            sizeDenominator = 1024;
+            break;
+        case SizeUnit::Megabytes:
+            suffix = " MB";
+            sizeDenominator = 1024 * 1024;
+            break;
+        default:
+            assert(false);
+            break;
+        }
+
+        auto addSizeText = [suffix, sizeDenominator](size_t size) {
+            if (sizeDenominator == 1)
+                ImGui::Text("%zu%s", size, suffix);
+            else
+                ImGui::Text("%.2f%s", 1.0f * size / sizeDenominator, suffix);
+        };
 
         ImGui::TableNextColumn();
-        if (m_convertToMb)
-            ImGui::Text("%.2f MB", 1.0f * entry.total_bytes / 1024 / 1024);
-        else
-            ImGui::Text("%zu", entry.total_bytes);
+        addSizeText(entry.active_bytes);
+
+        ImGui::TableNextColumn();
+        addSizeText(entry.total_bytes);
 
         ImGui::TableNextColumn();
         ImGui::Text("%zu", entry.active_allocations);

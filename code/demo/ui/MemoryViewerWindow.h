@@ -12,9 +12,17 @@ namespace ui
         void draw();
 
     private:
+        enum class SizeUnit
+        {
+            Bytes,
+            Kilobytes,
+            Megabytes,
+        };
+
+    private:
         void drawTable();
 
     private:
-        bool m_convertToMb = false;
+        SizeUnit m_sizeUnits = SizeUnit::Bytes;
     };
 }
