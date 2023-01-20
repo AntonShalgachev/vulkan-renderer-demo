@@ -211,7 +211,7 @@ DebugConsoleService::DebugConsoleService(Services& services) : ServiceContainer(
     commands["help"].description("Print global/command help").arguments({ {}, {"command_name"} }) = coil::overloaded(std::move(globalHelp), std::move(commandHelp));
 }
 
-void DebugConsoleService::execute(nstl::string_view command)
+bool DebugConsoleService::execute(nstl::string_view command)
 {
     for (nstl::string_view subcommand : CommandsList{ command })
     {
@@ -241,8 +241,12 @@ void DebugConsoleService::execute(nstl::string_view command)
             nstl::string commandHelp = builder.build();
             for (nstl::string_view line : vkc::utils::split(commandHelp))
                 addLine("    " + nstl::string{ line }, Line::Type::CommandHelp);
+
+            return false;
         }
     }
+
+    return true;
 }
 
 nstl::vector<DebugConsoleService::Suggestion> DebugConsoleService::getSuggestions(nstl::string_view input) const

@@ -114,7 +114,7 @@ public:
 
     DebugConsoleService(Services& services);
 
-    void execute(nstl::string_view command);
+    bool execute(nstl::string_view command);
     nstl::vector<Suggestion> getSuggestions(nstl::string_view input) const;
     nstl::optional<nstl::string_view> autoComplete(nstl::string_view input) const;
     void clear();

@@ -390,7 +390,10 @@ void DemoApplication::run()
 {
     auto const& lines = m_services.commandLine().get("--exec-before-run");
     for (auto const& line : lines)
-        m_services.debugConsole().execute(line);
+    {
+        bool success = m_services.debugConsole().execute(line);
+        assert(success);
+    }
 
     m_frameTimer.start();
     m_window->startEventLoop([this]() { drawFrame(); });
@@ -429,7 +432,10 @@ void DemoApplication::init()
     // TODO find a proper place for these commands
     auto const& lines = m_services.commandLine().get("--exec-before-init");
     for (auto const& line : lines)
-        m_services.debugConsole().execute(line);
+    {
+        bool success = m_services.debugConsole().execute(line);
+        assert(success);
+    }
 
     m_keyState.resize(1 << 8 * sizeof(char), false);
 
