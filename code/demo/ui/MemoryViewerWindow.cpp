@@ -93,70 +93,6 @@ namespace
     private:
         nstl::string_view m_fullPath;
     };
-
-    void drawTreeNode(size_t index, nstl::span<ui::MemoryViewerWindow::TreeNode const> nodes, ui::MemoryViewerWindow::SizeUnit sizeUnit)
-    {
-        ui::MemoryViewerWindow::TreeNode const& self = nodes[index];
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-
-        ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DefaultOpen;
-        if (self.childrenIndices.empty())
-            treeNodeFlags = treeNodeFlags | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet;
-
-        ImGui::PushID(self.path.begin(), self.path.end());
-        bool open = ImGui::TreeNodeEx("", treeNodeFlags, "%.*s", self.name.slength(), self.name.data());
-        ImGui::PopID();
-
-        char const* suffix = nullptr;
-        size_t sizeDenominator = 0;
-
-        switch (sizeUnit)
-        {
-        case ui::MemoryViewerWindow::SizeUnit::Bytes:
-            suffix = "";
-            sizeDenominator = 1;
-            break;
-        case ui::MemoryViewerWindow::SizeUnit::Kilobytes:
-            suffix = " KB";
-            sizeDenominator = 1024;
-            break;
-        case ui::MemoryViewerWindow::SizeUnit::Megabytes:
-            suffix = " MB";
-            sizeDenominator = 1024 * 1024;
-            break;
-        default:
-            assert(false);
-            break;
-        }
-
-        auto addSizeText = [suffix, sizeDenominator](size_t size) {
-            if (sizeDenominator == 1)
-                ImGui::Text("%zu%s", size, suffix);
-            else
-                ImGui::Text("%.2f%s", 1.0f * size / sizeDenominator, suffix);
-        };
-
-        ImGui::TableNextColumn();
-        addSizeText(self.activeBytes);
-
-        ImGui::TableNextColumn();
-        addSizeText(self.totalBytes);
-
-        ImGui::TableNextColumn();
-        ImGui::Text("%zu", self.activeAllocations);
-        ImGui::TableNextColumn();
-        ImGui::Text("%zu", self.totalAllocations);
-
-        if (open)
-        {
-            for (size_t childIndex : self.childrenIndices)
-                drawTreeNode(childIndex, nodes, sizeUnit);
-
-            ImGui::TreePop();
-        }
-    }
 }
 
 ui::MemoryViewerWindow::MemoryViewerWindow(Services& services) : ServiceContainer(services)
@@ -252,7 +188,72 @@ void ui::MemoryViewerWindow::drawTable()
     }
 
     assert(m_nodes[0].path == "");
-    drawTreeNode(0, m_nodes, m_sizeUnits);
+    drawTreeNode(0);
 
     ImGui::EndTable();
+}
+
+void ui::MemoryViewerWindow::drawTreeNode(size_t index)
+{
+    TreeNode const& self = m_nodes[index];
+
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+
+    ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DefaultOpen;
+    if (self.childrenIndices.empty())
+        treeNodeFlags = treeNodeFlags | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet;
+
+    ImGui::PushID(self.path.begin(), self.path.end());
+    bool open = ImGui::TreeNodeEx("", treeNodeFlags, "%.*s", self.name.slength(), self.name.data());
+    ImGui::PopID();
+
+    char const* unitName = nullptr;
+    size_t sizeDenominator = 0;
+
+    switch (m_sizeUnits)
+    {
+    case SizeUnit::Bytes:
+        unitName = "B";
+        sizeDenominator = 1;
+        break;
+    case SizeUnit::Kilobytes:
+        unitName = "KB";
+        sizeDenominator = 1024;
+        break;
+    case SizeUnit::Megabytes:
+        unitName = "MB";
+        sizeDenominator = 1024 * 1024;
+        break;
+    default:
+        assert(false);
+        break;
+    }
+
+    auto addSizeText = [unitName, sizeDenominator](size_t size)
+    {
+        if (sizeDenominator == 1)
+            ImGui::Text("%zu %s", size, unitName);
+        else
+            ImGui::Text("%.2f %s", 1.0f * size / sizeDenominator, unitName);
+    };
+
+    ImGui::TableNextColumn();
+    addSizeText(self.activeBytes);
+
+    ImGui::TableNextColumn();
+    addSizeText(self.totalBytes);
+
+    ImGui::TableNextColumn();
+    ImGui::Text("%zu", self.activeAllocations);
+    ImGui::TableNextColumn();
+    ImGui::Text("%zu", self.totalAllocations);
+
+    if (open)
+    {
+        for (size_t childIndex : self.childrenIndices)
+            drawTreeNode(childIndex);
+
+        ImGui::TreePop();
+    }
 }

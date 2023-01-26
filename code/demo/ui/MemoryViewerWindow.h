@@ -46,6 +46,7 @@ namespace ui
 
     private:
         void drawTable();
+        void drawTreeNode(size_t index);
 
     private:
         SizeUnit m_sizeUnits = SizeUnit::Bytes;
