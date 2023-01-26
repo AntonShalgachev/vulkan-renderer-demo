@@ -18,6 +18,8 @@
 #include "vkgfx/Mesh.h"
 #include "vkgfx/PipelineKey.h"
 
+#include "memory/tracking.h"
+
 #include "nstl/optional.h"
 #include "nstl/algorithm.h"
 
@@ -25,6 +27,8 @@
 
 namespace
 {
+    auto scopeId = memory::tracking::create_scope_id("Rendering/Resources");
+
     class OneTimeCommandBuffer
     {
     public:
@@ -199,6 +203,8 @@ vkgfx::ResourceManager::ResourceManager(vko::Device const& device, vko::Physical
     , m_renderPass(renderPass)
     , m_resourceCount(resourceCount)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     m_uploadCommandPool = nstl::make_unique<vko::CommandPool>(device, uploadQueue.getFamily()); // TODO set debug name for it
 }
 
@@ -206,6 +212,8 @@ vkgfx::ResourceManager::~ResourceManager() = default;
 
 vkgfx::ImageHandle vkgfx::ResourceManager::createImage(ImageMetadata metadata)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     assert(metadata.width > 0);
     assert(metadata.height > 0);
     assert(metadata.byteSize > 0);
@@ -250,6 +258,8 @@ vkgfx::ImageHandle vkgfx::ResourceManager::createImage(ImageMetadata metadata)
 
 void vkgfx::ResourceManager::uploadImage(ImageHandle handle, void const* data, std::size_t dataSize)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     assert(handle);
     Image const* image = getImage(handle);
     assert(image);
@@ -259,31 +269,43 @@ void vkgfx::ResourceManager::uploadImage(ImageHandle handle, void const* data, s
 
 void vkgfx::ResourceManager::uploadImage(ImageHandle handle, nstl::span<unsigned char const> bytes)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return uploadImage(handle, bytes.data(), bytes.size());
 }
 
 vkgfx::Image* vkgfx::ResourceManager::getImage(ImageHandle handle)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return m_images.get(handle);
 }
 
 void vkgfx::ResourceManager::removeImage(ImageHandle handle)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     m_images.remove(handle);
 }
 
 vkgfx::Image const* vkgfx::ResourceManager::getImage(ImageHandle handle) const
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return m_images.get(handle);
 }
 
 void vkgfx::ResourceManager::reserveMoreBuffers(std::size_t size)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     m_buffers.reserve(m_buffers.size() + size);
 }
 
 vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(std::size_t size, BufferMetadata metadata)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     VkBufferUsageFlags bufferUsageFlags = 0;
     VkMemoryPropertyFlags memoryPropertiesFlags = 0;
 
@@ -337,6 +359,8 @@ vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(std::size_t size, Buffe
 
 void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, void const* data, std::size_t dataSize)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     assert(handle);
 
     Buffer const* buffer = getBuffer(handle);
@@ -349,16 +373,22 @@ void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, void const* data,
 
 void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, nstl::span<std::byte const> bytes)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return uploadBuffer(handle, bytes.data(), bytes.size());
 }
 
 void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, nstl::span<unsigned char const> bytes)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return uploadBuffer(handle, bytes.data(), bytes.size());
 }
 
 void vkgfx::ResourceManager::uploadDynamicBufferToStaging(BufferHandle handle, void const* data, std::size_t dataSize, std::size_t offset)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     assert(handle);
 
     Buffer* buffer = getBuffer(handle);
@@ -378,6 +408,8 @@ void vkgfx::ResourceManager::uploadDynamicBufferToStaging(BufferHandle handle, v
 
 void vkgfx::ResourceManager::transferDynamicBuffersFromStaging(std::size_t resourceIndex)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     assert(resourceIndex < m_resourceCount);
 
     for (Buffer& buffer : m_buffers)
@@ -405,6 +437,8 @@ void vkgfx::ResourceManager::transferDynamicBuffersFromStaging(std::size_t resou
 
 std::size_t vkgfx::ResourceManager::getBufferSize(BufferHandle handle) const
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     assert(handle);
     auto buffer = getBuffer(handle);
     assert(buffer);
@@ -413,56 +447,78 @@ std::size_t vkgfx::ResourceManager::getBufferSize(BufferHandle handle) const
 
 vkgfx::Buffer* vkgfx::ResourceManager::getBuffer(BufferHandle handle)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return m_buffers.get(handle);
 }
 
 void vkgfx::ResourceManager::removeBuffer(BufferHandle handle)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     m_buffers.remove(handle);
 }
 
 vkgfx::Buffer const* vkgfx::ResourceManager::getBuffer(BufferHandle handle) const
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return m_buffers.get(handle);
 }
 
 vkgfx::ShaderModuleHandle vkgfx::ResourceManager::createShaderModule(nstl::span<unsigned char const> bytes, vko::ShaderModuleType type, nstl::string entryPoint)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return { m_shaderModules.add(vko::ShaderModule{ m_device, bytes, type, std::move(entryPoint) }) };
 }
 
 void vkgfx::ResourceManager::removeShaderModule(ShaderModuleHandle handle)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     m_shaderModules.remove(handle);
 }
 
 vkgfx::SamplerHandle vkgfx::ResourceManager::createSampler(vko::SamplerFilterMode magFilter, vko::SamplerFilterMode minFilter, vko::SamplerWrapMode wrapU, vko::SamplerWrapMode wrapV)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return { m_samplers.add(vko::Sampler{ m_device, magFilter, minFilter, wrapU, wrapV }) };
 }
 
 vko::Sampler* vkgfx::ResourceManager::getSampler(SamplerHandle handle)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return m_samplers.get(handle);
 }
 
 void vkgfx::ResourceManager::removeSampler(SamplerHandle handle)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     m_samplers.remove(handle);
 }
 
 vko::Sampler const* vkgfx::ResourceManager::getSampler(SamplerHandle handle) const
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return m_samplers.get(handle);
 }
 
 vkgfx::TextureHandle vkgfx::ResourceManager::createTexture(Texture texture)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return { m_textures.add(std::move(texture)) };
 }
 
 void vkgfx::ResourceManager::updateTexture(TextureHandle handle, Texture texture)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     assert(handle);
     auto item = getTexture(handle);
     assert(item);
@@ -471,26 +527,36 @@ void vkgfx::ResourceManager::updateTexture(TextureHandle handle, Texture texture
 
 vkgfx::Texture* vkgfx::ResourceManager::getTexture(TextureHandle handle)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return m_textures.get(handle);
 }
 
 void vkgfx::ResourceManager::removeTexture(TextureHandle handle)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     m_textures.remove(handle);
 }
 
 vkgfx::Texture const* vkgfx::ResourceManager::getTexture(TextureHandle handle) const
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return m_textures.get(handle);
 }
 
 vkgfx::MaterialHandle vkgfx::ResourceManager::createMaterial(Material material)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return { m_materials.add(std::move(material)) };
 }
 
 void vkgfx::ResourceManager::updateMaterial(MaterialHandle handle, Material material)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     assert(handle);
     auto item = getMaterial(handle);
     assert(item);
@@ -499,31 +565,43 @@ void vkgfx::ResourceManager::updateMaterial(MaterialHandle handle, Material mate
 
 vkgfx::Material* vkgfx::ResourceManager::getMaterial(MaterialHandle handle)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return m_materials.get(handle);
 }
 
 void vkgfx::ResourceManager::removeMaterial(MaterialHandle handle)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     m_materials.remove(handle);
 }
 
 vkgfx::Material const* vkgfx::ResourceManager::getMaterial(MaterialHandle handle) const
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return m_materials.get(handle);
 }
 
 void vkgfx::ResourceManager::reserveMoreMeshes(std::size_t size)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     m_meshes.reserve(m_meshes.size() + size);
 }
 
 vkgfx::MeshHandle vkgfx::ResourceManager::createMesh(Mesh mesh)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return { m_meshes.add(std::move(mesh)) };
 }
 
 void vkgfx::ResourceManager::updateMesh(MeshHandle handle, Mesh mesh)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     assert(handle);
     auto item = getMesh(handle);
     assert(item);
@@ -532,21 +610,29 @@ void vkgfx::ResourceManager::updateMesh(MeshHandle handle, Mesh mesh)
 
 vkgfx::Mesh* vkgfx::ResourceManager::getMesh(MeshHandle handle)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return m_meshes.get(handle);
 }
 
 void vkgfx::ResourceManager::removeMesh(MeshHandle handle)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     m_meshes.remove(handle);
 }
 
 vkgfx::Mesh const* vkgfx::ResourceManager::getMesh(MeshHandle handle) const
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return m_meshes.get(handle);
 }
 
 vkgfx::DescriptorSetLayoutHandle vkgfx::ResourceManager::getOrCreateDescriptorSetLayout(DescriptorSetLayoutKey const& key)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     if (auto it = m_descriptorSetLayoutHandles.find(key); it != m_descriptorSetLayoutHandles.end())
         return it->value();
 
@@ -555,11 +641,15 @@ vkgfx::DescriptorSetLayoutHandle vkgfx::ResourceManager::getOrCreateDescriptorSe
 
 vko::DescriptorSetLayout const& vkgfx::ResourceManager::getDescriptorSetLayout(DescriptorSetLayoutHandle handle) const
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return m_descriptorSetLayouts[handle.index];
 }
 
 vkgfx::PipelineLayoutHandle vkgfx::ResourceManager::getOrCreatePipelineLayout(PipelineLayoutKey const& key)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     if (auto it = m_pipelineLayoutHandles.find(key); it != m_pipelineLayoutHandles.end())
         return it->value();
 
@@ -568,11 +658,15 @@ vkgfx::PipelineLayoutHandle vkgfx::ResourceManager::getOrCreatePipelineLayout(Pi
 
 vko::PipelineLayout const& vkgfx::ResourceManager::getPipelineLayout(PipelineLayoutHandle handle) const
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return m_pipelineLayouts[handle.index];
 }
 
 vkgfx::PipelineHandle vkgfx::ResourceManager::getOrCreatePipeline(PipelineKey const& key)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     if (auto it = m_pipelineHandles.find(key); it != m_pipelineHandles.end())
         return it->value();
 
@@ -581,11 +675,15 @@ vkgfx::PipelineHandle vkgfx::ResourceManager::getOrCreatePipeline(PipelineKey co
 
 vko::Pipeline const& vkgfx::ResourceManager::getPipeline(PipelineHandle handle) const
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return m_pipelines[handle.index];
 }
 
 void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, void const* data, std::size_t dataSize, std::size_t offset)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     assert(buffer.realSize - offset >= dataSize);
 
     if (buffer.metadata.location == BufferLocation::DeviceLocal)
@@ -605,11 +703,15 @@ void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, void const* data
 
 void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, nstl::span<unsigned char const> bytes, std::size_t offset)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return uploadBuffer(buffer, bytes.data(), bytes.size(), offset);
 }
 
 void vkgfx::ResourceManager::uploadImage(Image const& image, void const* data, std::size_t dataSize)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     assert(image.metadata.byteSize == dataSize);
 
     auto width = static_cast<uint32_t>(image.metadata.width);
@@ -628,6 +730,8 @@ void vkgfx::ResourceManager::uploadImage(Image const& image, void const* data, s
 
 vkgfx::DescriptorSetLayoutHandle vkgfx::ResourceManager::createDescriptorSetLayout(DescriptorSetLayoutKey const& key)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     DescriptorSetLayoutHandle handle;
     handle.index = m_descriptorSetLayoutHandles.size();
 
@@ -645,6 +749,8 @@ vkgfx::DescriptorSetLayoutHandle vkgfx::ResourceManager::createDescriptorSetLayo
 
 vkgfx::PipelineLayoutHandle vkgfx::ResourceManager::createPipelineLayout(PipelineLayoutKey const& key)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     PipelineLayoutHandle handle;
     handle.index = m_pipelineLayouts.size();
 
@@ -674,6 +780,8 @@ vkgfx::PipelineLayoutHandle vkgfx::ResourceManager::createPipelineLayout(Pipelin
 
 vkgfx::PipelineHandle vkgfx::ResourceManager::createPipeline(PipelineKey const& key)
 {
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     PipelineHandle handle;
     handle.index = m_pipelines.size();
 

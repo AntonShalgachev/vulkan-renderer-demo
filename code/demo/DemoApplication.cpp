@@ -138,6 +138,9 @@ namespace
 
     nstl::optional<ImageData> loadWithStbImage(nstl::span<unsigned char const> bytes)
     {
+        static auto scopeId = memory::tracking::create_scope_id("Image/Load/STBI");
+        MEMORY_TRACKING_SCOPE(scopeId);
+
         int w = 0, h = 0, comp = 0, req_comp = 4;
         unsigned char* data = stbi_load_from_memory(bytes.data(), bytes.size(), &w, &h, &comp, req_comp);
         int bits = 8;
@@ -183,6 +186,9 @@ namespace
 
     nstl::optional<ImageData> loadWithDdspp(nstl::span<unsigned char const> bytes)
     {
+        static auto scopeId = memory::tracking::create_scope_id("Image/Load/DDS");
+        MEMORY_TRACKING_SCOPE(scopeId);
+
         ddsktx_texture_info info{};
         if (!ddsktx_parse(&info, bytes.data(), bytes.size(), nullptr))
             return {};
@@ -232,6 +238,9 @@ namespace
 
     nstl::optional<ImageData> loadImage(nstl::span<unsigned char const> bytes)
     {
+        static auto scopeId = memory::tracking::create_scope_id("Image/Load");
+        MEMORY_TRACKING_SCOPE(scopeId);
+
         if (auto data = loadWithDdspp(bytes))
             return data;
 
@@ -602,6 +611,9 @@ void DemoApplication::onMouseMove(glm::vec2 const& delta)
 
 DemoScene DemoApplication::createDemoScene(cgltf_data const& gltfModel, cgltf_scene const& gltfScene) const
 {
+    static auto scopeId = memory::tracking::create_scope_id("Scene/Load/GLTF/Hierarchy");
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     DemoScene scene;
 
     for (size_t i = 0; i < gltfScene.nodes_count; i++)
@@ -774,6 +786,9 @@ void DemoApplication::clearScene()
 
 bool DemoApplication::loadScene(nstl::string const& gltfPath)
 {
+    static auto scopeId = memory::tracking::create_scope_id("Scene/Load");
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     clearScene();
 
     if (gltfPath.empty())
@@ -805,6 +820,18 @@ bool DemoApplication::loadScene(nstl::string const& gltfPath)
 
 bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const& model)
 {
+    static auto scopeId = memory::tracking::create_scope_id("Scene/Load/GLTF");
+    static auto shadersScopeId = memory::tracking::create_scope_id("Scene/Load/GLTF/Shaders");
+    static auto buffersScopeId = memory::tracking::create_scope_id("Scene/Load/GLTF/Buffers");
+    static auto samplersScopeId = memory::tracking::create_scope_id("Scene/Load/GLTF/Samplers");
+    static auto imagesScopeId = memory::tracking::create_scope_id("Scene/Load/GLTF/Images");
+    static auto texturesScopeId = memory::tracking::create_scope_id("Scene/Load/GLTF/Textures");
+    static auto materialsScopeId = memory::tracking::create_scope_id("Scene/Load/GLTF/Materials");
+    static auto meshesScopeId = memory::tracking::create_scope_id("Scene/Load/GLTF/Meshes");
+    static auto camerasScopeId = memory::tracking::create_scope_id("Scene/Load/GLTF/Cameras");
+
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
 
     m_gltfResources = nstl::make_unique<GltfResources>();
@@ -834,6 +861,8 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 //     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
     for (auto const& pair : m_defaultVertexShader->getAll())
     {
+        MEMORY_TRACKING_SCOPE(shadersScopeId);
+
         auto const& configuration = pair.key();
         auto const& modulePath = pair.value();
         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath.c_str()), vko::ShaderModuleType::Vertex, "main");
@@ -843,6 +872,8 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 //     for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
     for (auto const& pair : m_defaultFragmentShader->getAll())
     {
+        MEMORY_TRACKING_SCOPE(shadersScopeId);
+
         auto const& configuration = pair.key();
         auto const& modulePath = pair.value();
         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath.c_str()), vko::ShaderModuleType::Fragment, "main");
@@ -852,6 +883,8 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     m_gltfResources->buffers.reserve(model.buffers_count);
     for (auto i = 0; i < model.buffers_count; i++)
     {
+        MEMORY_TRACKING_SCOPE(buffersScopeId);
+
         cgltf_buffer const& gltfBuffer = model.buffers[i];
 
         assert(gltfBuffer.data);
@@ -872,6 +905,8 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
     for (auto i = 0; i < model.samplers_count; i++)
     {
+        MEMORY_TRACKING_SCOPE(samplersScopeId);
+
         cgltf_sampler const& gltfSampler = model.samplers[i];
 
         auto convertFilterMode = [](int gltfMode)
@@ -926,6 +961,8 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     m_gltfResources->images.reserve(model.images_count);
     for (auto i = 0; i < model.images_count; i++)
     {
+        MEMORY_TRACKING_SCOPE(imagesScopeId);
+
         cgltf_image const& gltfImage = model.images[i];
         assert(gltfImage.uri && !gltfImage.buffer_view);
 
@@ -958,6 +995,8 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
     for (auto i = 0; i < model.textures_count; i++)
     {
+        MEMORY_TRACKING_SCOPE(texturesScopeId);
+
         cgltf_texture const& gltfTexture = model.textures[i];
 
         size_t imageIndex = findIndex(gltfTexture.image, model.images, model.images_count);
@@ -981,6 +1020,8 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
     for (auto i = 0; i < model.materials_count; i++)
     {
+        MEMORY_TRACKING_SCOPE(materialsScopeId);
+
         cgltf_material const& gltfMaterial = model.materials[i];
 
         cgltf_pbr_metallic_roughness const& gltfRoughness = gltfMaterial.pbr_metallic_roughness;
@@ -1038,6 +1079,8 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     m_gltfResources->meshes.reserve(model.meshes_count);
     for (auto meshIndex = 0; meshIndex < model.meshes_count; meshIndex++)
     {
+        MEMORY_TRACKING_SCOPE(meshesScopeId);
+
         cgltf_mesh const& gltfMesh = model.meshes[meshIndex];
 
         nstl::vector<DemoMesh>& demoMeshes = m_gltfResources->meshes.emplace_back();
@@ -1144,6 +1187,8 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
     for (size_t i = 0; i < model.cameras_count; i++)
     {
+        MEMORY_TRACKING_SCOPE(camerasScopeId);
+
         cgltf_camera const& gltfCamera = model.cameras[i];
 
         if (gltfCamera.type == cgltf_camera_type_perspective)

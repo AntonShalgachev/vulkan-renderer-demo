@@ -32,4 +32,5 @@ target_link_libraries(${PROJECT_NAME}
     nstl
     charming_enum
     fmt::fmt
+    memory
 )
