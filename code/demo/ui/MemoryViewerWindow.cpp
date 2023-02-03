@@ -115,6 +115,9 @@ void ui::MemoryViewerWindow::draw()
         case SizeUnit::Megabytes:
             return "Megabytes";
         }
+
+        assert(false);
+        return "";
     };
 
     if (ImGui::BeginCombo("Size units", unitPrettyName(m_sizeUnits)))
