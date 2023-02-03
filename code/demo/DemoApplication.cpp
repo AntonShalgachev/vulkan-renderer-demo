@@ -438,6 +438,8 @@ void DemoApplication::init()
 
     m_commands["vulkan.enable-validation"].description("Enable Vulkan validation layers") = coil::variable(&m_validationEnabled);
 
+    m_commands["window.memory-viewer"].description("Memory viewer window") = [this]() { m_memoryViewer->toggle(); };
+
     // TODO find a proper place for these commands
     auto const& lines = m_services.commandLine().get("--exec-before-init");
     for (auto const& line : lines)

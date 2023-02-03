@@ -102,7 +102,10 @@ ui::MemoryViewerWindow::MemoryViewerWindow(Services& services) : ServiceContaine
 
 void ui::MemoryViewerWindow::draw()
 {
-    ImGui::Begin("Memory Viewer");
+    if (!m_opened)
+        return;
+
+    ImGui::Begin("Memory Viewer", &m_opened);
 
     auto unitPrettyName = [](SizeUnit unit) -> char const*
     {

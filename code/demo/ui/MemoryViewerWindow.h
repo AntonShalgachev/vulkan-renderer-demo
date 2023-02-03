@@ -43,12 +43,14 @@ namespace ui
         MemoryViewerWindow(Services& services);
 
         void draw();
+        void toggle() { m_opened = !m_opened; }
 
     private:
         void drawTable();
         void drawTreeNode(size_t index);
 
     private:
+        bool m_opened = false;
         SizeUnit m_sizeUnits = SizeUnit::Bytes;
 
         nstl::vector<TreeNode> m_nodes;
