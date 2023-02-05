@@ -129,7 +129,7 @@ private:
     void createDemoObjectRecursive(cgltf_data const& gltfModel, std::size_t nodeIndex, glm::mat4 parentTransform, DemoScene& scene) const;
 
     void clearScene();
-    bool loadScene(nstl::string const& gltfPath);
+    bool loadScene(nstl::string_view gltfPath);
     bool loadGltfModel(nstl::string_view basePath, cgltf_data const& model);
 
     void updateUI(float frameTime);

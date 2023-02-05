@@ -478,7 +478,7 @@ void DemoApplication::init()
     m_commands["window.height"] = coil::bindProperty(&GlfwWindow::getWindowHeight, m_window.get());
 
     m_commands["scene.load"].description("Load scene from a GLTF model").arguments("path") = [this](coil::Context context, nstl::string_view path) {
-        if (!loadScene(nstl::string{ path }))
+        if (!loadScene(path))
             context.reportError("Failed to load the scene '" + coil::fromNstlStringView(path) + "'");
     };
     m_commands["scene.reload"] = [this]() { loadScene(m_currentScenePath); };
@@ -786,7 +786,7 @@ void DemoApplication::clearScene()
     }
 }
 
-bool DemoApplication::loadScene(nstl::string const& gltfPath)
+bool DemoApplication::loadScene(nstl::string_view gltfPath)
 {
     static auto scopeId = memory::tracking::create_scope_id("Scene/Load");
     MEMORY_TRACKING_SCOPE(scopeId);
@@ -798,7 +798,7 @@ bool DemoApplication::loadScene(nstl::string const& gltfPath)
 
     m_currentScenePath = gltfPath;
 
-    auto buffer = vkc::utils::readBinaryFile(gltfPath.c_str());
+    auto buffer = vkc::utils::readBinaryFile(gltfPath);
 
     cgltf_options options = {};
     cgltf_data* data = nullptr;
@@ -867,7 +867,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
         auto const& configuration = pair.key();
         auto const& modulePath = pair.value();
-        auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath.c_str()), vko::ShaderModuleType::Vertex, "main");
+        auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
         m_gltfResources->shaderModules.insert_or_assign(modulePath, handle);
     }
     // TODO implement
@@ -878,7 +878,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
         auto const& configuration = pair.key();
         auto const& modulePath = pair.value();
-        auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath.c_str()), vko::ShaderModuleType::Fragment, "main");
+        auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Fragment, "main");
         m_gltfResources->shaderModules.insert_or_assign(modulePath, handle);
     }
 
@@ -971,7 +971,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
         nstl::string imagePath = basePath + gltfImage.uri;
 
         // TODO leads to unnecessary data copy; change that
-        nstl::optional<ImageData> imageData = loadImage(vkc::utils::readBinaryFile(imagePath.c_str()));
+        nstl::optional<ImageData> imageData = loadImage(vkc::utils::readBinaryFile(imagePath));
         assert(imageData);
 
         assert(!imageData->bytes.empty());

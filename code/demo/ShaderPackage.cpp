@@ -14,7 +14,7 @@ ShaderPackage::ShaderPackage(nstl::string_view path)
         yyjson_doc* doc = nullptr;
 
         {
-            auto contents = vkc::utils::readTextFile(packageMetadataPath.c_str());
+            auto contents = vkc::utils::readTextFile(packageMetadataPath);
 
             yyjson_read_err error{};
             doc = yyjson_read_opts(contents.data(), contents.size(), 0, nullptr, &error);

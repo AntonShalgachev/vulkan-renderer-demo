@@ -110,7 +110,7 @@ DebugDrawService::DebugDrawService(vkgfx::Renderer& renderer)
         nstl::string const* path = package.get({});
         assert(path);
         if (path)
-            vertexShaderModule = resources.createShaderModule(vkc::utils::readBinaryFile(path->c_str()), vko::ShaderModuleType::Vertex, "main");
+            vertexShaderModule = resources.createShaderModule(vkc::utils::readBinaryFile(*path), vko::ShaderModuleType::Vertex, "main");
     }
 
     {
@@ -118,7 +118,7 @@ DebugDrawService::DebugDrawService(vkgfx::Renderer& renderer)
         nstl::string const* path = package.get({});
         assert(path);
         if (path)
-            fragmentShaderModule = resources.createShaderModule(vkc::utils::readBinaryFile(path->c_str()), vko::ShaderModuleType::Fragment, "main");
+            fragmentShaderModule = resources.createShaderModule(vkc::utils::readBinaryFile(*path), vko::ShaderModuleType::Fragment, "main");
     }
 
     {

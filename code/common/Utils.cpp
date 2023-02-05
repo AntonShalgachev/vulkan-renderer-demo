@@ -9,11 +9,12 @@ namespace
     auto fileScopeId = memory::tracking::create_scope_id("IO/ReadFile");
 }
 
-nstl::vector<unsigned char> vkc::utils::readBinaryFile(char const* filename)
+nstl::vector<unsigned char> vkc::utils::readBinaryFile(nstl::string_view filename)
 {
     MEMORY_TRACKING_SCOPE(fileScopeId);
 
-    FILE* fp = fopen(filename, "rb");
+    nstl::string filenameCopy = filename;
+    FILE* fp = fopen(filenameCopy.c_str(), "rb");
 
     assert(fp);
 
@@ -31,11 +32,12 @@ nstl::vector<unsigned char> vkc::utils::readBinaryFile(char const* filename)
     return buffer;
 }
 
-nstl::string vkc::utils::readTextFile(char const* filename)
+nstl::string vkc::utils::readTextFile(nstl::string_view filename)
 {
     MEMORY_TRACKING_SCOPE(fileScopeId);
 
-    FILE* fp = fopen(filename, "rt");
+    nstl::string filenameCopy = filename;
+    FILE* fp = fopen(filenameCopy.c_str(), "rt");
 
     assert(fp);
 
