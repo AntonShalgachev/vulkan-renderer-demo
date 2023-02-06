@@ -905,6 +905,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
         m_gltfResources->buffers.push_back(handle);
     }
 
+    m_gltfResources->samplers.reserve(model.samplers_count);
     for (auto i = 0; i < model.samplers_count; i++)
     {
         MEMORY_TRACKING_SCOPE(samplersScopeId);
@@ -995,6 +996,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
         m_gltfResources->images.push_back(handle);
     }
 
+    m_gltfResources->textures.reserve(model.textures_count);
     for (auto i = 0; i < model.textures_count; i++)
     {
         MEMORY_TRACKING_SCOPE(texturesScopeId);
@@ -1020,6 +1022,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
         m_gltfResources->textures.push_back(handle);
     }
 
+    m_gltfResources->materials.reserve(model.materials_count);
     for (auto i = 0; i < model.materials_count; i++)
     {
         MEMORY_TRACKING_SCOPE(materialsScopeId);
@@ -1187,6 +1190,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
         }
     }
 
+    m_gltfResources->cameraParameters.reserve(model.cameras_count);
     for (size_t i = 0; i < model.cameras_count; i++)
     {
         MEMORY_TRACKING_SCOPE(camerasScopeId);
