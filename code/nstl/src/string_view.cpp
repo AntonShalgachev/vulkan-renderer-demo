@@ -103,6 +103,15 @@ bool nstl::string_view::starts_with(string_view str) const
     return substr(0, str.length()) == str;
 }
 
+bool nstl::string_view::ends_with(string_view str) const
+{
+    if (str.length() > m_length)
+        return false;
+
+    size_t offset = m_length - str.length();
+    return substr(offset, str.length()) == str;
+}
+
 char const* nstl::string_view::begin() const
 {
     NSTL_ASSERT(m_str);

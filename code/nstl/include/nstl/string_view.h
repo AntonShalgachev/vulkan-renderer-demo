@@ -29,6 +29,7 @@ namespace nstl
         size_t find_last_of(string_view chars) const;
         string_view substr(size_t offset, size_t length = npos) const;
         bool starts_with(string_view str) const;
+        bool ends_with(string_view str) const;
 
         char const* begin() const;
         char const* end() const;
