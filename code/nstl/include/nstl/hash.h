@@ -16,6 +16,15 @@ namespace nstl
     void hash_combine(size_t& hash, size_t hash2);
 
     template<typename T>
+    size_t hash_array(T* values, size_t size)
+    {
+        size_t hash = 0;
+        for (size_t i = 0; i < size; i++)
+            hash_combine(hash, values[i]);
+        return hash;
+    }
+
+    template<typename T>
     void hash_combine(size_t& hash, T const& v)
     {
         nstl::hash<T> hasher;
@@ -25,9 +34,9 @@ namespace nstl
     template<typename... Ts>
     size_t hash_values(Ts const&... values)
     {
-        size_t seed = 0;
-        (hash_combine(seed, values), ...);
-        return seed;
+        size_t hash = 0;
+        (hash_combine(hash, values), ...);
+        return hash;
     }
 }
 
@@ -61,6 +70,16 @@ template<>
 struct nstl::hash<char const*>
 {
     size_t operator()(char const* value) const;
+};
+
+template<typename U, size_t N>
+struct nstl::hash<U[N]>
+{
+    using T = U[N];
+    size_t operator()(T const& value) const
+    {
+        return hash_array(value, N);
+    }
 };
 
 template<size_t N>
