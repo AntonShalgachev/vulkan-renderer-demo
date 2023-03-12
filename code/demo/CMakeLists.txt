@@ -69,7 +69,7 @@ target_link_libraries(${PROJECT_NAME}
     stb
     coil::coil
     logging
-    yyjson
+    yyjsoncpp
     dds-ktx::dds-ktx
     cgltf
     memory
