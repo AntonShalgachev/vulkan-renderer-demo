@@ -23,10 +23,10 @@ ShaderPackage::ShaderPackage(nstl::string_view path)
     {
         ShaderConfiguration configuration;
 
-        for (json::pair const& p : variant["configuration"].get_object())
+        for (auto [k, v] : variant["configuration"].get_object())
         {
-            nstl::string_view key = p.key.get<nstl::string_view>();
-            nstl::string_view value = p.value.get<nstl::string_view>();
+            nstl::string_view key = k.get<nstl::string_view>();
+            nstl::string_view value = v.get<nstl::string_view>();
 
             if (key == "HAS_VERTEX_COLOR")
                 configuration.hasColor = (value == "");
