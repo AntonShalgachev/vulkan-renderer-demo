@@ -31,6 +31,68 @@ namespace
         assert(false);
         return yyjsoncpp::read_code::unknown;
     }
+
+    class string_allocator
+    {
+    public:
+        string_allocator(yyjsoncpp::string& str) : m_str(str) {}
+
+        static string_allocator& get(void* ctx)
+        {
+            assert(ctx);
+            return *static_cast<string_allocator*>(ctx);
+        }
+
+        yyjson_alc get_allocator()
+        {
+            yyjson_alc allocator;
+
+            allocator.malloc = [](void* ctx, size_t size) { return get(ctx).malloc(size); };
+            allocator.realloc = [](void* ctx, void* ptr, size_t size) { return get(ctx).realloc(ptr, size); };
+            allocator.free = [](void* ctx, void* ptr) { return get(ctx).free(ptr); };
+            allocator.ctx = this;
+
+            return allocator;
+        }
+
+        void* malloc(size_t size)
+        {
+            if (m_ptr)
+            {
+                assert(false);
+                return nullptr;
+            }
+
+            m_str.resize(size);
+            m_ptr = m_str.data();
+            return m_ptr;
+        }
+
+        void* realloc(void* ptr, size_t size)
+        {
+            if (ptr != m_ptr)
+            {
+                assert(false);
+                return nullptr;
+            }
+
+            m_str.resize(size);
+            m_ptr = m_str.data();
+            return m_ptr;
+        }
+
+        void free(void* ptr)
+        {
+            assert(ptr == m_ptr);
+
+            m_str.resize(0);
+            m_ptr = nullptr;
+        }
+
+    private:
+        void* m_ptr = nullptr;
+        yyjsoncpp::string& m_str;
+    };
 }
 
 yyjsoncpp::read_result::operator bool() const
@@ -153,15 +215,21 @@ yyjsoncpp::string yyjsoncpp::mutable_doc::write(write_flags flags)
 
     assert(is_valid());
 
+    string str;
+    string_allocator allocator{ str };
+    yyjson_alc alc = allocator.get_allocator();
+
     size_t length = 0;
-    char* str = yyjson_mut_write(m_handle, yyflags, &length);
-    assert(str);
+    yyjson_write_err result;
+    char* str_ptr = yyjson_mut_write_opts(m_handle, yyflags, &alc, &length, &result);
+    assert(str_ptr);
+    assert(result.code == YYJSON_WRITE_SUCCESS);
 
-    string result{ str, length };
+    assert(str_ptr == str.data());
+    assert(length <= str.size());
+    str.resize(length);
 
-    free(str);
-
-    return result;
+    return str;
 }
 
 bool yyjsoncpp::mutable_doc::is_valid() const
