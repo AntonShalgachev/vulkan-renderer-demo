@@ -5,6 +5,9 @@ set(ALL_FILES
     "glm-fwd.h"
     "charming_enum.h"
     "fmt.h"
+
+    "json-nstl.h"
+    "json-nstl.cpp"
     
     "Timer.cpp"
     "Timer.h"
@@ -33,4 +36,5 @@ target_link_libraries(${PROJECT_NAME}
     charming_enum
     fmt::fmt
     memory
+    yyjsoncpp
 )

@@ -7,7 +7,7 @@
 
 size_t nstl::string_view::npos = static_cast<size_t>(-1);
 
-nstl::string_view::string_view(char const* str) : string_view(str, strlen(str)) {}
+nstl::string_view::string_view(char const* str) : string_view(str, str ? strlen(str) : 0) {}
 
 size_t nstl::string_view::length() const
 {

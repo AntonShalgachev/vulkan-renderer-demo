@@ -13,10 +13,7 @@ namespace nstl
     {
     public:
         string_view(char const* str = "");
-        constexpr string_view(char const* str, size_t length) : m_str(str), m_length(length)
-        {
-            NSTL_ASSERT(m_str);
-        }
+        constexpr string_view(char const* str, size_t length) : m_str(str), m_length(length) {}
 
         size_t length() const;
         size_t size() const;

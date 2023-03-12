@@ -1,67 +1,50 @@
 #include "ShaderPackage.h"
 
 #include "common/Utils.h"
+#include "common/json-nstl.h"
 
-#include "yyjson.h"
+#include "yyjsoncpp/yyjsoncpp.h"
 
 ShaderPackage::ShaderPackage(nstl::string_view path)
 {
+    namespace json = yyjsoncpp;
+
     auto packageMetadataPath = nstl::string{ path } + "/package.json";
 
+    auto contents = vkc::utils::readTextFile(packageMetadataPath);
+
+    json::doc doc;
+    if (!doc.read(contents.data(), contents.size()))
+        assert(false);
+
+    json::value_ref root = doc.get_root();
+
+    for (json::value_ref variant : root["variants"].get_array())
     {
-        // TODO make a nice wrapper around yyjson
+        ShaderConfiguration configuration;
 
-        yyjson_doc* doc = nullptr;
-
+        for (json::pair const& p : variant["configuration"].get_object())
         {
-            auto contents = vkc::utils::readTextFile(packageMetadataPath);
+            nstl::string_view key = p.key.get<nstl::string_view>();
+            nstl::string_view value = p.value.get<nstl::string_view>();
 
-            yyjson_read_err error{};
-            doc = yyjson_read_opts(contents.data(), contents.size(), 0, nullptr, &error);
+            if (key == "HAS_VERTEX_COLOR")
+                configuration.hasColor = (value == "");
+            if (key == "HAS_TEX_COORD")
+                configuration.hasTexCoord = (value == "");
+            if (key == "HAS_NORMAL")
+                configuration.hasNormal = (value == "");
+            if (key == "HAS_TANGENT")
+                configuration.hasTangent = (value == "");
+            if (key == "HAS_TEXTURE")
+                configuration.hasTexture = (value == "");
+            if (key == "HAS_NORMAL_MAP")
+                configuration.hasNormalMap = (value == "");
         }
 
-        yyjson_val* jRoot = yyjson_doc_get_root(doc);
+        nstl::string_view variantPath = variant["path"].get<nstl::string_view>();
 
-        yyjson_val* jVariants = yyjson_obj_get(jRoot, "variants");
-        size_t idx, max;
-        yyjson_val* jVariant;
-        yyjson_arr_foreach(jVariants, idx, max, jVariant)
-        {
-            ShaderConfiguration configuration;
-
-            yyjson_val* jConfiguration = yyjson_obj_get(jVariant, "configuration");
-
-            yyjson_val* jKey = nullptr;
-            yyjson_val* jValue = nullptr;
-            yyjson_obj_iter iter;
-            yyjson_obj_iter_init(jConfiguration, &iter);
-            while ((jKey = yyjson_obj_iter_next(&iter)))
-            {
-                jValue = yyjson_obj_iter_get_val(jKey);
-
-                nstl::string_view key = yyjson_get_str(jKey);
-                nstl::string_view value = yyjson_get_str(jValue);
-
-                if (key == "HAS_VERTEX_COLOR")
-                    configuration.hasColor = (value == "");
-                if (key == "HAS_TEX_COORD")
-                    configuration.hasTexCoord = (value == "");
-                if (key == "HAS_NORMAL")
-                    configuration.hasNormal = (value == "");
-                if (key == "HAS_TANGENT")
-                    configuration.hasTangent = (value == "");
-                if (key == "HAS_TEXTURE")
-                    configuration.hasTexture = (value == "");
-                if (key == "HAS_NORMAL_MAP")
-                    configuration.hasNormalMap = (value == "");
-            }
-
-            yyjson_val* jPath = yyjson_obj_get(jVariant, "path");
-
-            m_shaders.insert_or_assign(configuration, nstl::string{ path } + "/" + nstl::string{ yyjson_get_str(jPath) });
-        }
-
-        yyjson_doc_free(doc);
+        m_shaders.insert_or_assign(configuration, nstl::string{ path } + "/" + variantPath);
     }
 }
 
