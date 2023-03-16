@@ -17,4 +17,5 @@ target_include_directories(platform PUBLIC
 target_link_libraries(platform
     nstl
     "Rpcrt4.lib"
+    fs
 )
