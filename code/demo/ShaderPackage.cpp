@@ -3,6 +3,8 @@
 #include "common/Utils.h"
 #include "common/json-nstl.h"
 
+#include "fs/file.h"
+
 #include "yyjsoncpp/yyjsoncpp.h"
 
 ShaderPackage::ShaderPackage(nstl::string_view path)
@@ -11,10 +13,13 @@ ShaderPackage::ShaderPackage(nstl::string_view path)
 
     auto packageMetadataPath = nstl::string{ path } + "/package.json";
 
-    auto contents = vkc::utils::readTextFile(packageMetadataPath);
+    fs::file f{ packageMetadataPath, fs::open_mode::read };
+    nstl::blob content{ f.size() };
+    f.read(content.data(), content.size());
+    f.close();
 
     json::doc doc;
-    if (!doc.read(contents.data(), contents.size()))
+    if (!doc.read(content.cdata(), content.size()))
         assert(false);
 
     json::value_ref root = doc.get_root();

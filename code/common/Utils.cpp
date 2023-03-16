@@ -2,6 +2,10 @@
 
 #include "memory/tracking.h"
 
+#include "nstl/blob.h"
+
+#include "fs/file.h"
+
 #include <assert.h>
 
 namespace
@@ -9,53 +13,16 @@ namespace
     auto fileScopeId = memory::tracking::create_scope_id("IO/ReadFile");
 }
 
-nstl::vector<unsigned char> vkc::utils::readBinaryFile(nstl::string_view filename)
+nstl::blob vkc::utils::readBinaryFile(nstl::string_view filename)
 {
     MEMORY_TRACKING_SCOPE(fileScopeId);
 
-    nstl::string filenameCopy = filename;
-    FILE* fp = fopen(filenameCopy.c_str(), "rb");
+    fs::file f{ filename, fs::open_mode::read };
 
-    assert(fp);
-
-    fseek(fp, 0L, SEEK_END);
-    size_t fileSize = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
-
-    nstl::vector<unsigned char> buffer(fileSize);
-
-    size_t readBytes = fread(buffer.data(), 1, buffer.size(), fp);
-    assert(readBytes == fileSize);
-
-    fclose(fp);
+    nstl::blob buffer{ f.size() };
+    f.read(buffer.data(), buffer.size());
 
     return buffer;
-}
-
-nstl::string vkc::utils::readTextFile(nstl::string_view filename)
-{
-    MEMORY_TRACKING_SCOPE(fileScopeId);
-
-    nstl::string filenameCopy = filename;
-    FILE* fp = fopen(filenameCopy.c_str(), "rt");
-
-    assert(fp);
-
-    fseek(fp, 0L, SEEK_END);
-    size_t fileSize = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
-
-    nstl::string contents;
-    contents.resize(fileSize);
-
-    size_t readChars = fread(contents.data(), 1, contents.size(), fp);
-    assert(readChars <= fileSize);
-
-    fclose(fp);
-
-    contents.resize(readChars);
-
-    return contents;
 }
 
 nstl::vector<nstl::string_view> vkc::utils::split(nstl::string_view str)
@@ -65,14 +32,24 @@ nstl::vector<nstl::string_view> vkc::utils::split(nstl::string_view str)
     
     while (!rest.empty())
     {
-        auto pos = rest.find('\n');
+        auto pos = rest.find_first_of("\n\r");
+        if (pos == nstl::string_view::npos)
+            break;
+
         result.push_back(rest.substr(0, pos));
 
-        if (pos != nstl::string_view::npos)
-            rest = rest.substr(pos + 1);
-        else
-            rest = {};
+        bool hasMoreChars = pos < rest.size() - 1;
+        bool isNextCR = hasMoreChars && rest[pos] == '\n' && rest[pos + 1] == '\r';
+        bool isNextLF = hasMoreChars && rest[pos] == '\r' && rest[pos + 1] == '\n';
+
+        auto charsToSkip = 1;
+        if (isNextCR || isNextLF)
+            charsToSkip++;
+
+        rest = rest.substr(pos + charsToSkip);
     }
+
+    result.push_back(rest);
 
     return result;
 }

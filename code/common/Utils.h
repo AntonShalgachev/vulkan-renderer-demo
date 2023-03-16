@@ -2,8 +2,10 @@
 
 #include "nstl/vector.h"
 #include "nstl/string_view.h"
+#include "nstl/span.h"
 #include "nstl/string.h"
 #include "nstl/algorithm.h"
+#include "nstl/blob.h"
 
 namespace vkc
 {
@@ -27,9 +29,9 @@ namespace vkc
         }
 
         // TODO implement asset manager instead
-        nstl::vector<unsigned char> readBinaryFile(nstl::string_view filename);
-        nstl::string readTextFile(nstl::string_view filename);
+        nstl::blob readBinaryFile(nstl::string_view filename);
 
+        // TODO implement as an interator
         nstl::vector<nstl::string_view> split(nstl::string_view str);
     }
 }

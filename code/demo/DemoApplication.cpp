@@ -41,10 +41,13 @@
 #include "memory/tracking.h"
 #include "memory/memory.h"
 
+#include "fs/file.h"
+
 #include "nstl/array.h"
 #include "nstl/span.h"
 #include "nstl/optional.h"
 #include "nstl/string_builder.h"
+#include "nstl/scope_exit.h"
 
 // TODO find a better solution
 template <>
@@ -367,7 +370,11 @@ bool DemoApplication::init(int argc, char** argv)
     commandLine.add(argc, argv);
 
     {
-        nstl::string contents = vkc::utils::readTextFile("data/cmdline.ini");
+        nstl::string contents;
+        fs::file f{ "data/cmdline.ini", fs::open_mode::read};
+        contents.resize(f.size());
+        f.read(contents.data(), contents.size());
+
         for (nstl::string_view line : vkc::utils::split(contents))
             commandLine.addLine(line);
     }
@@ -798,11 +805,20 @@ bool DemoApplication::loadScene(nstl::string_view gltfPath)
 
     m_currentScenePath = gltfPath;
 
-    auto buffer = vkc::utils::readBinaryFile(gltfPath);
+    nstl::string buffer;
+
+    {
+        fs::file f{ gltfPath, fs::open_mode::read };
+        buffer.resize(f.size());
+        f.read(buffer.data(), buffer.size());
+    }
 
     cgltf_options options = {};
     cgltf_data* data = nullptr;
+
     cgltf_result result = cgltf_parse(&options, buffer.data(), buffer.size(), &data);
+    nstl::scope_exit freeCgltf = [&data]() { cgltf_free(data); data = nullptr; };
+
     if (result != cgltf_result_success)
         return false;
 
@@ -814,8 +830,6 @@ bool DemoApplication::loadScene(nstl::string_view gltfPath)
 
     assert(data);
     loadGltfModel(basePath, *data);
-
-    cgltf_free(data);
 
     return true;
 }
