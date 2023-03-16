@@ -23,6 +23,7 @@ namespace nstl
 
         size_t find(char c, size_t pos = 0) const;
         size_t find(string_view str, size_t pos = 0) const;
+        size_t find_first_of(string_view chars) const;
         size_t find_last_of(string_view chars) const;
         string_view substr(size_t offset, size_t length = npos) const;
         bool starts_with(string_view str) const;

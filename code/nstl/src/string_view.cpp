@@ -74,6 +74,18 @@ size_t nstl::string_view::find(string_view str, size_t pos) const
     return string_view::npos;
 }
 
+size_t nstl::string_view::find_first_of(string_view chars) const
+{
+    for (size_t i = 0; i < m_length; i++)
+    {
+        char c = m_str[i];
+        if (chars.find(c) != string_view::npos)
+            return i;
+    }
+
+    return npos;
+}
+
 size_t nstl::string_view::find_last_of(string_view chars) const
 {
     for (size_t i = 0; i < m_length; i++)
