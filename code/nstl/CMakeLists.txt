@@ -31,6 +31,8 @@ add_library(nstl # non-standard template library
     "include/nstl/malloc_allocator.h"
     "include/nstl/aligned_storage.h"
     "include/nstl/static_vector.h"
+    "include/nstl/scope_exit.h"
+    "include/nstl/blob.h"
 
     "src/string.cpp"
     "src/string_view.cpp"
@@ -41,6 +43,7 @@ add_library(nstl # non-standard template library
     "src/string_builder.cpp"
     "src/allocator.cpp"
     "src/malloc_allocator.cpp"
+    "src/blob.cpp"
 
     "nstl.natvis"
 )
