@@ -1,57 +1,12 @@
 #include "platform/filesystem.h"
 
-// TODO including fs doesn't seem right because "fs" depends on "platform"
+#include "windows_common.h"
+
 #include "fs/file.h"
 
 #include "nstl/string.h"
 
 #include <Windows.h>
-
-namespace
-{
-    HANDLE get_handle(platform::file_handle handle)
-    {
-        HANDLE h;
-
-        static_assert(sizeof(handle) >= sizeof(h));
-        memcpy(&h, &handle, sizeof(h));
-
-        assert(h != INVALID_HANDLE_VALUE);
-
-        return h;
-    }
-
-    struct error
-    {
-        DWORD code;
-        nstl::string message;
-    };
-
-    error get_last_error()
-    {
-        auto code = GetLastError();
-
-        char* buffer = nullptr;
-
-        FormatMessage(
-            FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            nullptr,
-            code,
-            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-            (char*)&buffer,
-            0,
-            nullptr
-        );
-
-        error e;
-        e.code = code;
-        e.message = buffer;
-
-        LocalFree(buffer);
-
-        return e;
-    }
-}
 
 void platform::create_directory(nstl::string_view path)
 {
@@ -92,23 +47,19 @@ nstl::optional<platform::file_handle> platform::open_file(nstl::string_view file
     HANDLE h = CreateFileA(filenameCopy.c_str(), desiredAccess, shareMode, nullptr, creationDisposition, flagsAndAttributes, nullptr);
     if (h == INVALID_HANDLE_VALUE)
     {
-        auto e = get_last_error(); // TODO make use of it
+        auto e = platform_win32::get_last_error(); // TODO make use of it
         assert(false);
         return {};
     }
 
-    file_handle handle;
-    static_assert(sizeof(handle) >= sizeof(h));
-    memcpy(&handle, &h, sizeof(h));
-
-    return handle;
+    return platform_win32::create_handle(h);
 }
 
 void platform::close_file(file_handle handle)
 {
-    if (!CloseHandle(get_handle(handle)))
+    if (!CloseHandle(platform_win32::get_handle(handle)))
     {
-        auto e = get_last_error(); // TODO make use of it
+        auto e = platform_win32::get_last_error(); // TODO make use of it
         assert(false);
     }
 }
@@ -116,9 +67,9 @@ void platform::close_file(file_handle handle)
 size_t platform::get_file_size(file_handle handle)
 {
     LARGE_INTEGER size;
-    if (!GetFileSizeEx(get_handle(handle), &size))
+    if (!GetFileSizeEx(platform_win32::get_handle(handle), &size))
     {
-        auto e = get_last_error(); // TODO make use of it
+        auto e = platform_win32::get_last_error(); // TODO make use of it
         assert(false);
     }
 
@@ -132,9 +83,9 @@ bool platform::read_file(file_handle handle, void* data, size_t size, size_t off
     o.Offset = offset;
 
     DWORD bytesRead = 0;
-    if (!ReadFile(get_handle(handle), data, size, &bytesRead, &o))
+    if (!ReadFile(platform_win32::get_handle(handle), data, size, &bytesRead, &o))
     {
-        auto e = get_last_error(); // TODO make use of it
+        auto e = platform_win32::get_last_error(); // TODO make use of it
         assert(false);
         return false;
     }
@@ -148,9 +99,9 @@ bool platform::write_file(file_handle handle, void const* data, size_t size, siz
     o.Offset = offset;
 
     DWORD bytesWritten = 0;
-    if (!WriteFile(get_handle(handle), data, size, &bytesWritten, &o))
+    if (!WriteFile(platform_win32::get_handle(handle), data, size, &bytesWritten, &o))
     {
-        auto e = get_last_error(); // TODO make use of it
+        auto e = platform_win32::get_last_error(); // TODO make use of it
         assert(false);
         return false;
     }
