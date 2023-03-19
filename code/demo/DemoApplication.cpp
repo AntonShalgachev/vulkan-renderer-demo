@@ -33,6 +33,8 @@
 #include "demo/console/GlmSerializer.h"
 #include "demo/console/EnumSerializer.h"
 
+#include "editor/assets/AssetDatabase.h"
+
 #include "common/Utils.h"
 #include "common/charming_enum.h"
 
@@ -397,6 +399,8 @@ bool DemoApplication::init(int argc, char** argv)
     m_debugConsole = ui::DebugConsoleWidget{ m_services };
     m_memoryViewer = ui::MemoryViewerWindow{ m_services };
 
+    m_assetDatabase = nstl::make_unique<editor::assets::AssetDatabase>();
+
     init();
 
     return true;
@@ -446,6 +450,8 @@ void DemoApplication::init()
     m_commands["vulkan.enable-validation"].description("Enable Vulkan validation layers") = coil::variable(&m_validationEnabled);
 
     m_commands["window.memory-viewer"].description("Memory viewer window") = [this]() { m_memoryViewer->toggle(); };
+
+    m_commands["assets.import"] = [this](nstl::string_view path) { m_assetDatabase->importAsset(path); };
 
     // TODO find a proper place for these commands
     auto const& lines = m_services.commandLine().get("--exec-before-init");

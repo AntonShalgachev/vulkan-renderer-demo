@@ -25,6 +25,11 @@ class ImGuiPlatform;
 class ImGuiDrawer;
 class ShaderPackage;
 
+namespace editor::assets
+{
+    class AssetDatabase;
+}
+
 namespace vkgfx
 {
     class Renderer;
@@ -198,4 +203,6 @@ private:
     vkgfx::TestCameraTransform m_cameraTransform;
     vkgfx::TestCameraParameters m_cameraParameters;
     vkgfx::TestLightParameters m_lightParameters;
+
+    nstl::unique_ptr<editor::assets::AssetDatabase> m_assetDatabase;
 };

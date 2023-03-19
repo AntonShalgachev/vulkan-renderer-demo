@@ -73,4 +73,6 @@ target_link_libraries(${PROJECT_NAME}
     dds-ktx::dds-ktx
     cgltf
     memory
+    editor::assets
+    mt
 )
