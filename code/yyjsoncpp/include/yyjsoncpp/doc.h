@@ -84,10 +84,25 @@ namespace yyjsoncpp
         ~mutable_doc();
 
         mutable_array_ref create_array();
+
+        template<typename... T>
+        mutable_array_ref create_array(T&&... args)
+        {
+            static_assert(sizeof...(args) > 0, "This function shouldn't be used to create an empty array");
+
+            mutable_array_ref root = create_array();
+            (root.push_back(args), ...);
+            return root;
+        }
+
         mutable_object_ref create_object();
 
         mutable_value_ref create_null();
-        mutable_value_ref create_string(string_view const& str);
+        mutable_value_ref create_string(string_view str);
+        mutable_value_ref create_number(double value);
+        mutable_value_ref create_number(int64_t value);
+        mutable_value_ref create_number(uint64_t value);
+        mutable_value_ref create_boolean(bool value);
 
         template<typename T>
         mutable_value_ref create_value(T const& value)

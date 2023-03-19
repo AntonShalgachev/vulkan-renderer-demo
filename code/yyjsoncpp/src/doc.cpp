@@ -184,10 +184,34 @@ yyjsoncpp::mutable_value_ref yyjsoncpp::mutable_doc::create_null()
     return mutable_object_ref{ this, yyjson_mut_null(m_handle) };
 }
 
-yyjsoncpp::mutable_value_ref yyjsoncpp::mutable_doc::create_string(string_view const& str)
+yyjsoncpp::mutable_value_ref yyjsoncpp::mutable_doc::create_string(string_view str)
 {
     assert(is_valid());
     return mutable_object_ref{ this, yyjson_mut_strncpy(m_handle, str.data(), str.length()) }; // TODO should we copy a string?
+}
+
+yyjsoncpp::mutable_value_ref yyjsoncpp::mutable_doc::create_number(double value)
+{
+    assert(is_valid());
+    return mutable_object_ref{ this, yyjson_mut_real(m_handle, value) };
+}
+
+yyjsoncpp::mutable_value_ref yyjsoncpp::mutable_doc::create_boolean(bool value)
+{
+    assert(is_valid());
+    return mutable_object_ref{ this, yyjson_mut_bool(m_handle, value) };
+}
+
+yyjsoncpp::mutable_value_ref yyjsoncpp::mutable_doc::create_number(int64_t value)
+{
+    assert(is_valid());
+    return mutable_object_ref{ this, yyjson_mut_sint(m_handle, value) };
+}
+
+yyjsoncpp::mutable_value_ref yyjsoncpp::mutable_doc::create_number(uint64_t value)
+{
+    assert(is_valid());
+    return mutable_object_ref{ this, yyjson_mut_uint(m_handle, value) };
 }
 
 void yyjsoncpp::mutable_doc::set_root(mutable_value_ref value)

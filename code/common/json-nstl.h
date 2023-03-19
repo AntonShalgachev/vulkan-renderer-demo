@@ -4,6 +4,7 @@
 #include "yyjsoncpp/doc.h"
 #include "yyjsoncpp/value_ref.h"
 #include "yyjsoncpp/type.h"
+#include "yyjsoncpp/default_serializer.h"
 
 #include "nstl/string.h"
 #include "nstl/vector.h"
@@ -15,13 +16,6 @@ namespace yyjsoncpp
     {
         static optional<nstl::string> from_json(value_ref obj);
         static mutable_value_ref to_json(mutable_doc& doc, nstl::string const& obj);
-    };
-
-    template<>
-    struct serializer<nstl::string_view>
-    {
-        static optional<nstl::string_view> from_json(value_ref obj);
-        static mutable_value_ref to_json(mutable_doc& doc, nstl::string_view const& obj);
     };
 
     template<typename T>

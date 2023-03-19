@@ -16,16 +16,3 @@ yyjsoncpp::mutable_value_ref yyjsoncpp::serializer<nstl::string>::to_json(mutabl
 {
     return doc.create_string(obj);
 }
-
-yyjsoncpp::optional<nstl::string_view> yyjsoncpp::serializer<nstl::string_view>::from_json(value_ref obj)
-{
-    if (obj.get_type() != type::string)
-        return {};
-
-    return obj.get_string();
-}
-
-yyjsoncpp::mutable_value_ref yyjsoncpp::serializer<nstl::string_view>::to_json(mutable_doc& doc, nstl::string_view const& obj)
-{
-    return doc.create_string(obj);
-}

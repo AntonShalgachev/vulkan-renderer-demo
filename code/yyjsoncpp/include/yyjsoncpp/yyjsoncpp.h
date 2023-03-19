@@ -6,3 +6,5 @@
 #include "yyjsoncpp/value_ref.h"
 #include "yyjsoncpp/array_ref.h"
 #include "yyjsoncpp/object_ref.h"
+#include "yyjsoncpp/serializer.h"
+#include "yyjsoncpp/default_serializer.h"

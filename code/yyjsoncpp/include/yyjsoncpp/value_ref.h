@@ -36,10 +36,16 @@ namespace yyjsoncpp
             return *val;
         }
 
-        string_view get_string() const;
-
         array_ref get_array() const;
         object_ref get_object() const;
+
+        char const* get_cstring() const;
+        string_view get_string() const;
+        int64_t get_sint() const;
+        uint64_t get_uint() const;
+        double get_real() const;
+        bool get_boolean() const;
+
 
     protected:
         yyjson_val* m_handle = nullptr;

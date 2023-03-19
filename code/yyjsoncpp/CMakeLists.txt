@@ -8,11 +8,13 @@ add_library(yyjsoncpp
     "include/yyjsoncpp/value_ref.h"
     "include/yyjsoncpp/write_flags.h"
     "include/yyjsoncpp/yyjsoncpp.h"
+    "include/yyjsoncpp/default_serializer.h"
     
     "src/array_ref.cpp"
     "src/doc.cpp"
     "src/object_ref.cpp"
     "src/value_ref.cpp"
+    "src/default_serializer.cpp"
 )
 
 target_compile_features(yyjsoncpp PUBLIC cxx_std_20)
