@@ -4,6 +4,7 @@ set(ALL_FILES
     "glm.h"
     "glm-fwd.h"
     "charming_enum.h"
+    "tiny_ctti.h"
     "fmt.h"
 
     "json-nstl.h"
@@ -38,4 +39,5 @@ target_link_libraries(${PROJECT_NAME}
     memory
     yyjsoncpp
     fs
+    tiny_ctti
 )
