@@ -29,4 +29,7 @@ namespace nstl
         lhs = nstl::move(rhs);
         rhs = nstl::move(temp);
     }
+
+    template<typename T, typename U = T&&> U declval_impl();
+    template<typename T> auto declval() noexcept -> decltype(declval_impl<T>());
 }

@@ -33,6 +33,7 @@ add_library(nstl # non-standard template library
     "include/nstl/static_vector.h"
     "include/nstl/scope_exit.h"
     "include/nstl/blob.h"
+    "include/nstl/tuple.h"
 
     "src/string.cpp"
     "src/string_view.cpp"
