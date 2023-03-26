@@ -6,6 +6,7 @@
 #include "memory/tracking.h"
 #include "common/Utils.h"
 #include "common/glm.h"
+#include "common/tiny_ctti.h"
 #include "logging/logging.h"
 #include "path/path.h"
 
@@ -58,6 +59,26 @@ namespace
         Blend,
     };
 
+    struct MaterialData
+    {
+        AlphaMode alphaMode;
+        float alphaCutoff;
+        bool doubleSided;
+
+        nstl::optional<glm::vec4> baseColor;
+        nstl::optional<TextureData> baseColorTexture;
+        nstl::optional<TextureData> metallicRoughnessTexture;
+        nstl::optional<TextureData> normalTexture;
+    };
+}
+
+TINY_CTTI_DESCRIBE_STRUCT(SamplerData, magFilter, minFilter, wrapU, wrapV);
+TINY_CTTI_DESCRIBE_STRUCT(TextureData, image, sampler);
+TINY_CTTI_DESCRIBE_ENUM(AlphaMode, Opaque, Mask, Blend);
+TINY_CTTI_DESCRIBE_STRUCT(MaterialData, alphaMode, alphaCutoff, doubleSided, baseColor, baseColorTexture, metallicRoughnessTexture, normalTexture);
+
+namespace
+{
     AlphaMode getAlphaMode(cgltf_alpha_mode mode)
     {
         switch (mode)
@@ -70,18 +91,6 @@ namespace
         assert(false);
         return AlphaMode::Opaque;
     }
-
-    struct MaterialData
-    {
-        AlphaMode alphaMode;
-        float alphaCutoff;
-        bool doubleSided;
-
-        nstl::optional<glm::vec4> baseColor;
-        nstl::optional<TextureData> baseColorTexture;
-        nstl::optional<TextureData> metallicRoughnessTexture;
-        nstl::optional<TextureData> normalTexture;
-    };
 
     editor::assets::Uuid importImage(cgltf_image const& image, cgltf_data const& data, nstl::string_view parentDirectory, GltfResources const& resources, editor::assets::AssetDatabase& database)
     {
@@ -167,20 +176,32 @@ namespace
 
 namespace yyjsoncpp
 {
-    template<>
-    struct serializer<AlphaMode>
+    template<typename E>
+    struct serializer<E, nstl::enable_if_t<tiny_ctti::is_enum_v<E>>>
     {
-        static mutable_value_ref to_json(mutable_doc& doc, AlphaMode const& mode)
+        static mutable_value_ref to_json(mutable_doc& doc, E const& mode)
         {
-            switch (mode)
-            {
-            case AlphaMode::Opaque: return doc.create_string("opaque");
-            case AlphaMode::Mask: return doc.create_string("mask");
-            case AlphaMode::Blend: return doc.create_string("blend");
-            }
+            nstl::string_view name = tiny_ctti::enum_name(mode);
+            assert(!name.empty());
+            return doc.create_string(name);
+        }
+    };
 
-            assert(false);
-            return doc.create_null();
+    template<typename T>
+    struct serializer<T, nstl::enable_if_t<tiny_ctti::is_struct_v<T>>>
+    {
+        static mutable_value_ref to_json(mutable_doc& doc, T const& data)
+        {
+            mutable_object_ref root = doc.create_object();
+
+            auto fields_to_json = [&data, &root](const auto&... entries)
+            {
+                ((root[entries.name] = data.*(entries.field)), ...);
+            };
+
+            nstl::apply(fields_to_json, tiny_ctti::struct_entries<T>());
+
+            return root;
         }
     };
 
@@ -202,58 +223,15 @@ namespace yyjsoncpp
         }
     };
 
-    template<>
-    struct serializer<SamplerData>
+    template<typename T>
+    struct serializer<nstl::optional<T>>
     {
-        static mutable_value_ref to_json(mutable_doc& doc, SamplerData const& data)
+        static mutable_value_ref to_json(mutable_doc& doc, nstl::optional<T> const& value)
         {
-            mutable_object_ref root = doc.create_object();
-
-            root["mag_filter"] = data.magFilter;
-            root["min_filter"] = data.minFilter;
-            root["wrap_u"] = data.wrapU;
-            root["wrap_v"] = data.wrapV;
-
-            return root;
-        }
-    };
-
-    template<>
-    struct serializer<TextureData>
-    {
-        static mutable_value_ref to_json(mutable_doc& doc, TextureData const& data)
-        {
-            mutable_object_ref root = doc.create_object();
-
-            root["image"] = data.image;
-            root["sampler"] = data.sampler;
-
-            return root;
-        }
-    };
-
-    template<>
-    struct serializer<MaterialData>
-    {
-        static mutable_value_ref to_json(mutable_doc& doc, MaterialData const& data)
-        {
-            mutable_object_ref root = doc.create_object();
-
-            root["alpha_mode"] = data.alphaMode;
-            root["alpha_cutoff"] = data.alphaCutoff;
-            root["double_sided"] = data.doubleSided;
-
-            if (data.baseColor)
-                root["base_color"] = *data.baseColor;
-
-            if (data.baseColorTexture)
-                root["base_color_texture"] = *data.baseColorTexture;
-            if (data.metallicRoughnessTexture)
-                root["metallic_roughness_texture"] = *data.metallicRoughnessTexture;
-            if (data.normalTexture)
-                root["normal_texture"] = *data.normalTexture;
-
-            return root;
+            if (value)
+                return serializer<T>::to_json(doc, *value);
+            else
+                return doc.create_null();
         }
     };
 }
