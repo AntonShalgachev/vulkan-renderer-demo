@@ -7,6 +7,8 @@
 #include "common/Utils.h"
 #include "common/glm.h"
 #include "common/tiny_ctti.h"
+#include "common/json-tiny-ctti.h"
+#include "common/json-nstl.h"
 #include "logging/logging.h"
 #include "path/path.h"
 
@@ -94,8 +96,6 @@ namespace
 
     editor::assets::Uuid importImage(cgltf_image const& image, cgltf_data const& data, nstl::string_view parentDirectory, GltfResources const& resources, editor::assets::AssetDatabase& database)
     {
-        //return {}; // TODO remove
-
         if (image.uri)
         {
             nstl::string_view mimeType = image.mime_type;
@@ -176,35 +176,6 @@ namespace
 
 namespace yyjsoncpp
 {
-    template<typename E>
-    struct serializer<E, nstl::enable_if_t<tiny_ctti::is_enum_v<E>>>
-    {
-        static mutable_value_ref to_json(mutable_doc& doc, E const& mode)
-        {
-            nstl::string_view name = tiny_ctti::enum_name(mode);
-            assert(!name.empty());
-            return doc.create_string(name);
-        }
-    };
-
-    template<typename T>
-    struct serializer<T, nstl::enable_if_t<tiny_ctti::is_struct_v<T>>>
-    {
-        static mutable_value_ref to_json(mutable_doc& doc, T const& data)
-        {
-            mutable_object_ref root = doc.create_object();
-
-            auto fields_to_json = [&data, &root](const auto&... entries)
-            {
-                ((root[entries.name] = data.*(entries.field)), ...);
-            };
-
-            nstl::apply(fields_to_json, tiny_ctti::struct_entries<T>());
-
-            return root;
-        }
-    };
-
     template<>
     struct serializer<glm::vec4>
     {
@@ -220,18 +191,6 @@ namespace yyjsoncpp
         static mutable_value_ref to_json(mutable_doc& doc, editor::assets::Uuid const& value)
         {
             return doc.create_string(value.toString());
-        }
-    };
-
-    template<typename T>
-    struct serializer<nstl::optional<T>>
-    {
-        static mutable_value_ref to_json(mutable_doc& doc, nstl::optional<T> const& value)
-        {
-            if (value)
-                return serializer<T>::to_json(doc, *value);
-            else
-                return doc.create_null();
         }
     };
 }

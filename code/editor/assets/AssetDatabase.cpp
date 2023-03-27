@@ -7,6 +7,7 @@
 
 #include "common/Utils.h"
 #include "common/json-nstl.h"
+#include "common/json-tiny-ctti.h"
 
 #include "fs/directory.h"
 #include "fs/file.h"
@@ -26,42 +27,6 @@ namespace
 
         return path::join(rootPath, filename);
     }
-}
-
-namespace yyjsoncpp
-{
-    template<>
-    struct serializer<editor::assets::AssetType>
-    {
-        static optional<editor::assets::AssetType> from_json(value_ref value)
-        {
-            if (value.get_type() != type::string)
-                return {};
-
-            nstl::string_view str = value.get_string();
-
-            if (str == "image") return editor::assets::AssetType::Image;
-            if (str == "material") return editor::assets::AssetType::Material;
-            if (str == "mesh") return editor::assets::AssetType::Mesh;
-            if (str == "scene") return editor::assets::AssetType::Scene;
-
-            return {};
-        }
-
-        static mutable_value_ref to_json(mutable_doc& doc, editor::assets::AssetType const& type)
-        {
-            switch (type)
-            {
-            case editor::assets::AssetType::Image: return doc.create_string("image");
-            case editor::assets::AssetType::Material: return doc.create_string("material");
-            case editor::assets::AssetType::Mesh: return doc.create_string("mesh");
-            case editor::assets::AssetType::Scene: return doc.create_string("scene");
-            }
-
-            assert(false);
-            return doc.create_null();
-        }
-    };
 }
 
 editor::assets::AssetDatabase::AssetDatabase()
@@ -151,8 +116,6 @@ nstl::optional<editor::assets::AssetMetadata> editor::assets::AssetDatabase::loa
 {
     namespace json = yyjsoncpp;
 
-    AssetMetadata metadata;
-
     nstl::string path = constructAndCreateAssetPath(id, "asset.json");
 
     fs::file f{ path, fs::open_mode::read };
@@ -164,12 +127,7 @@ nstl::optional<editor::assets::AssetMetadata> editor::assets::AssetDatabase::loa
     if (!doc.read(content.cdata(), content.size()))
         return {};
 
-    json::value_ref root = doc.get_root();
-    metadata.name = root["name"].get<nstl::string>();
-    metadata.type = root["type"].get<AssetType>();
-    metadata.files = root["files"].get<nstl::vector<nstl::string>>();
-
-    return metadata;
+    return doc.get_root().get<AssetMetadata>();
 }
 
 void editor::assets::AssetDatabase::saveMetadataFile(Uuid id, AssetMetadata const& metadata)
@@ -177,12 +135,8 @@ void editor::assets::AssetDatabase::saveMetadataFile(Uuid id, AssetMetadata cons
     namespace json = yyjsoncpp;
 
     json::mutable_doc doc;
-    json::mutable_object_ref root = doc.create_object();
+    json::mutable_value_ref root = doc.create_value(metadata);
     doc.set_root(root);
-
-    root["name"] = metadata.name;
-    root["type"] = metadata.type;
-    root["files"] = metadata.files;
 
     nstl::string result = doc.write(json::write_flags::pretty);
     nstl::span<unsigned char const> resultSpan = { reinterpret_cast<unsigned char const*>(result.data()), result.length() }; // TODO fix it somehow

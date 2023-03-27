@@ -4,10 +4,10 @@
 #include "yyjsoncpp/doc.h"
 #include "yyjsoncpp/value_ref.h"
 #include "yyjsoncpp/type.h"
-#include "yyjsoncpp/default_serializer.h"
 
 #include "nstl/string.h"
 #include "nstl/vector.h"
+#include "nstl/optional.h"
 
 namespace yyjsoncpp
 {
@@ -48,6 +48,18 @@ namespace yyjsoncpp
                 root.push_back(serializer<T>::to_json(doc, value));
 
             return root;
+        }
+    };
+
+    template<typename T>
+    struct serializer<nstl::optional<T>>
+    {
+        static mutable_value_ref to_json(mutable_doc& doc, nstl::optional<T> const& value)
+        {
+            if (value)
+                return serializer<T>::to_json(doc, *value);
+            else
+                return doc.create_null();
         }
     };
 }

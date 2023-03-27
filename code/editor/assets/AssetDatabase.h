@@ -2,6 +2,8 @@
 
 #include "Uuid.h"
 
+#include "common/tiny_ctti.h"
+
 #include "nstl/vector.h"
 #include "nstl/string_view.h"
 #include "nstl/unique_ptr.h"
@@ -11,10 +13,6 @@
 
 namespace editor::assets
 {
-    class AssetImporterGltf;
-    class AssetImporterImage;
-    struct ImportDescription;
-
     enum class AssetType
     {
         Image,
@@ -29,6 +27,16 @@ namespace editor::assets
         AssetType type = AssetType::Image;
         nstl::vector<nstl::string> files;
     };
+}
+
+TINY_CTTI_DESCRIBE_ENUM(editor::assets::AssetType, Image, Material, Mesh, Scene);
+TINY_CTTI_DESCRIBE_STRUCT(editor::assets::AssetMetadata, name, type, files);
+
+namespace editor::assets
+{
+    class AssetImporterGltf;
+    class AssetImporterImage;
+    struct ImportDescription;
 
     class AssetDatabase
     {
