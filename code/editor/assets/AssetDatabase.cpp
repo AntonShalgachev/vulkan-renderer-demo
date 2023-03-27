@@ -19,6 +19,8 @@ namespace
 {
     nstl::string_view assetsRoot = "data/assets";
 
+    uint16_t assetMetadataVersion = 1;
+
     // TODO find a better name? It constructs a path and creates directories
     nstl::string constructAndCreateAssetPath(editor::assets::Uuid id, nstl::string_view filename)
     {
@@ -77,6 +79,7 @@ editor::assets::Uuid editor::assets::AssetDatabase::createAsset(AssetType type, 
     Uuid id = Uuid::generate();
 
     AssetMetadata metadata = {
+        .version = assetMetadataVersion,
         .name = name,
         .type = type,
         .files = {},
@@ -97,10 +100,9 @@ void editor::assets::AssetDatabase::addAssetFile(Uuid id, nstl::span<unsigned ch
     }
     
     // TODO avoid loading/saving metadata file for every asset modification
-    nstl::optional<AssetMetadata> metadata = loadMetadataFile(id);
-    assert(metadata);
-    metadata->files.push_back(filename);
-    saveMetadataFile(id, *metadata);
+    AssetMetadata metadata = getMetadata(id);
+    metadata.files.push_back(filename);
+    saveMetadataFile(id, metadata);
 }
 
 void editor::assets::AssetDatabase::addAssetFile(Uuid id, nstl::string_view bytes, nstl::string_view filename)
@@ -112,7 +114,17 @@ void editor::assets::AssetDatabase::addAssetFile(Uuid id, nstl::string_view byte
     return addAssetFile(id, { reinterpret_cast<unsigned char const*>(data), size }, filename);
 }
 
-nstl::optional<editor::assets::AssetMetadata> editor::assets::AssetDatabase::loadMetadataFile(Uuid id)
+editor::assets::AssetMetadata editor::assets::AssetDatabase::getMetadata(Uuid id) const
+{
+    nstl::optional<AssetMetadata> metadata = loadMetadataFile(id);
+
+    assert(metadata);
+    assert(metadata->version == assetMetadataVersion);
+
+    return *metadata;
+}
+
+nstl::optional<editor::assets::AssetMetadata> editor::assets::AssetDatabase::loadMetadataFile(Uuid id) const
 {
     namespace json = yyjsoncpp;
 
@@ -130,8 +142,10 @@ nstl::optional<editor::assets::AssetMetadata> editor::assets::AssetDatabase::loa
     return doc.get_root().get<AssetMetadata>();
 }
 
-void editor::assets::AssetDatabase::saveMetadataFile(Uuid id, AssetMetadata const& metadata)
+void editor::assets::AssetDatabase::saveMetadataFile(Uuid id, AssetMetadata const& metadata) const
 {
+    assert(metadata.version == assetMetadataVersion);
+
     namespace json = yyjsoncpp;
 
     json::mutable_doc doc;

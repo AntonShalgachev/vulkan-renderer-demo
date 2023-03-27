@@ -21,6 +21,8 @@
 
 namespace
 {
+    uint16_t materialAssetVersion = 1; // TODO move somewhere where the material would be also read
+
     struct GltfResources
     {
         nstl::vector<editor::assets::Uuid> images;
@@ -63,6 +65,8 @@ namespace
 
     struct MaterialData
     {
+        uint16_t version = 0;
+
         AlphaMode alphaMode;
         float alphaCutoff;
         bool doubleSided;
@@ -77,7 +81,7 @@ namespace
 TINY_CTTI_DESCRIBE_STRUCT(SamplerData, magFilter, minFilter, wrapU, wrapV);
 TINY_CTTI_DESCRIBE_STRUCT(TextureData, image, sampler);
 TINY_CTTI_DESCRIBE_ENUM(AlphaMode, Opaque, Mask, Blend);
-TINY_CTTI_DESCRIBE_STRUCT(MaterialData, alphaMode, alphaCutoff, doubleSided, baseColor, baseColorTexture, metallicRoughnessTexture, normalTexture);
+TINY_CTTI_DESCRIBE_STRUCT(MaterialData, version, alphaMode, alphaCutoff, doubleSided, baseColor, baseColorTexture, metallicRoughnessTexture, normalTexture);
 
 namespace
 {
@@ -137,6 +141,8 @@ namespace
         };
 
         MaterialData materialData;
+
+        materialData.version = materialAssetVersion;
 
         materialData.alphaMode = getAlphaMode(material.alpha_mode);
         materialData.alphaCutoff = material.alpha_cutoff;

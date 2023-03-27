@@ -23,6 +23,7 @@ namespace editor::assets
 
     struct AssetMetadata
     {
+        uint16_t version = 0;
         nstl::string name;
         AssetType type = AssetType::Image;
         nstl::vector<nstl::string> files;
@@ -30,7 +31,7 @@ namespace editor::assets
 }
 
 TINY_CTTI_DESCRIBE_ENUM(editor::assets::AssetType, Image, Material, Mesh, Scene);
-TINY_CTTI_DESCRIBE_STRUCT(editor::assets::AssetMetadata, name, type, files);
+TINY_CTTI_DESCRIBE_STRUCT(editor::assets::AssetMetadata, version, name, type, files);
 
 namespace editor::assets
 {
@@ -51,8 +52,10 @@ namespace editor::assets
         void addAssetFile(Uuid id, nstl::string_view bytes, nstl::string_view filename);
 
     private:
-        nstl::optional<AssetMetadata> loadMetadataFile(Uuid id);
-        void saveMetadataFile(Uuid id, AssetMetadata const& metadata);
+        AssetMetadata getMetadata(Uuid id) const;
+
+        nstl::optional<AssetMetadata> loadMetadataFile(Uuid id) const;
+        void saveMetadataFile(Uuid id, AssetMetadata const& metadata) const;
 
     private:
         nstl::unique_ptr<AssetImporterGltf> m_assetImporterGltf;
