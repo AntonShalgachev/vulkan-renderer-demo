@@ -785,6 +785,9 @@ vkgfx::PipelineHandle vkgfx::ResourceManager::createPipeline(PipelineKey const& 
     PipelineHandle handle;
     handle.index = m_pipelines.size();
 
+    // TODO make use of key.vertexConfig.topology
+    assert(key.vertexConfig.topology == VertexTopology::Triangles);
+
     vko::Pipeline::Config config;
     // TODO merge these flags with Pipeline::Config
     config.cullBackFaces = key.renderConfig.cullBackfaces;

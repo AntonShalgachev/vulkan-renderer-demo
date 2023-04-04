@@ -39,7 +39,7 @@ namespace
     {
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo{};
 		inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-		inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST; // TODO configure externally
 		inputAssemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
 
         return inputAssemblyCreateInfo;
