@@ -37,6 +37,8 @@ editor::assets::AssetDatabase::AssetDatabase()
     m_assetImporterImage = nstl::make_unique<AssetImporterImage>(*this);
 }
 
+editor::assets::AssetDatabase::~AssetDatabase() = default;
+
 nstl::vector<editor::assets::Uuid> editor::assets::AssetDatabase::importAsset(nstl::string_view path)
 {
     if (path.empty())

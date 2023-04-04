@@ -180,6 +180,9 @@ namespace
         case cgltf_alpha_mode_opaque: return AlphaMode::Opaque;
         case cgltf_alpha_mode_mask: return AlphaMode::Mask;
         case cgltf_alpha_mode_blend: return AlphaMode::Blend;
+
+        default:
+            assert(false);
         }
 
         assert(false);
@@ -281,6 +284,8 @@ namespace
         case cgltf_component_type_r_16u: return DataComponentType::UInt16;
         case cgltf_component_type_r_32u: return DataComponentType::UInt32;
         case cgltf_component_type_r_32f: return DataComponentType::Float;
+        default:
+            assert(false);
         }
 
         assert(false);
@@ -298,6 +303,8 @@ namespace
         case cgltf_type_mat2: return DataType::Mat2;
         case cgltf_type_mat3: return DataType::Mat3;
         case cgltf_type_mat4: return DataType::Mat4;
+        default:
+            assert(false);
         }
 
         assert(false);
@@ -316,6 +323,8 @@ namespace
         case cgltf_primitive_type_points:
         case cgltf_primitive_type_line_loop:
         case cgltf_primitive_type_line_strip:
+            assert(false);
+        default:
             assert(false);
         }
 
@@ -370,6 +379,9 @@ namespace
         case cgltf_attribute_type_weights:
         case cgltf_attribute_type_custom:
             assert(false); // Not implemented yet
+
+        default:
+            assert(false);
         }
 
         assert(false);

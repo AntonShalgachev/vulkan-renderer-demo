@@ -48,6 +48,7 @@ namespace editor::assets
     {
     public:
         AssetDatabase();
+        ~AssetDatabase();
 
         nstl::vector<Uuid> importAsset(nstl::string_view path);
         nstl::vector<Uuid> importAsset(ImportDescription const& desc);
