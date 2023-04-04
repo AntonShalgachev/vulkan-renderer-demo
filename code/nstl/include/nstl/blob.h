@@ -24,6 +24,7 @@ namespace nstl
         unsigned char const* ucdata() const;
 
         operator string_view() const;
+        operator span<unsigned char>();
         operator span<unsigned char const>() const;
 
     private:

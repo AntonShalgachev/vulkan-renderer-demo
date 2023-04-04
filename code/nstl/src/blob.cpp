@@ -48,6 +48,11 @@ nstl::blob::operator nstl::string_view() const
     return { cdata(), size() };
 }
 
+nstl::blob::operator nstl::span<unsigned char>()
+{
+    return { ucdata(), size() };
+}
+
 nstl::blob::operator nstl::span<unsigned char const>() const
 {
     return { ucdata(), size() };
