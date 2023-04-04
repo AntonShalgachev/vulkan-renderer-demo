@@ -43,7 +43,7 @@ namespace yyjsoncpp
 
             auto json_to_field = [&obj, &value, &found_errors]<typename FieldType>(tiny_ctti::struct_entry<T, FieldType> const& entry)
             {
-                nstl::optional<FieldType> field_value = value[entry.name].try_get<FieldType>();
+                nstl::optional<FieldType> field_value = value[entry.name].template try_get<FieldType>();
 
                 if (!field_value)
                 {

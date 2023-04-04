@@ -218,20 +218,20 @@ namespace tiny_ctti
 #define TINY_CTTI_DESCRIBE_ENUM(E, ...)                                                                                                                          \
 namespace tiny_ctti                                                                                                                                              \
 {                                                                                                                                                                \
-    template<> constexpr bool is_described_v<E> = true;                                                                                                          \
-    template<> constexpr bool is_enum_v<E> = true;                                                                                                               \
-    template<> constexpr string_view type_name_v<E> = string_view{ #E, sizeof(#E) - 1 };                                                                         \
-    template<> constexpr size_t enum_size_v<E> = TCTTI_ARGS_COUNT(__VA_ARGS__);                                                                                  \
-    template<> constexpr simple_array<enum_entry<E>, enum_size_v<E>> enum_entries_v<E> = { TCTTI_FOR_EACH(TCTTI_CREATE_ENUM_ENTRY, E, __VA_ARGS__) };            \
+    template<> inline constexpr bool is_described_v<E> = true;                                                                                                          \
+    template<> inline constexpr bool is_enum_v<E> = true;                                                                                                               \
+    template<> inline constexpr string_view type_name_v<E> = string_view{ #E, sizeof(#E) - 1 };                                                                         \
+    template<> inline constexpr size_t enum_size_v<E> = TCTTI_ARGS_COUNT(__VA_ARGS__);                                                                                  \
+    template<> inline constexpr simple_array<enum_entry<E>, enum_size_v<E>> enum_entries_v<E> = { TCTTI_FOR_EACH(TCTTI_CREATE_ENUM_ENTRY, E, __VA_ARGS__) };            \
 }
 
 #define TINY_CTTI_DESCRIBE_STRUCT(T, ...)                                                                                                                        \
 namespace tiny_ctti                                                                                                                                              \
 {                                                                                                                                                                \
-    template<> constexpr bool is_described_v<T> = true;                                                                                                          \
-    template<> constexpr bool is_struct_v<T> = true;                                                                                                             \
-    template<> constexpr string_view type_name_v<T> = string_view{ #T, sizeof(#T) - 1 };                                                                         \
-    template<> constexpr size_t struct_size_v<T> = TCTTI_ARGS_COUNT(__VA_ARGS__);                                                                                \
+    template<> inline constexpr bool is_described_v<T> = true;                                                                                                          \
+    template<> inline constexpr bool is_struct_v<T> = true;                                                                                                             \
+    template<> inline constexpr string_view type_name_v<T> = string_view{ #T, sizeof(#T) - 1 };                                                                         \
+    template<> inline constexpr size_t struct_size_v<T> = TCTTI_ARGS_COUNT(__VA_ARGS__);                                                                                \
     TCTTI_FOR_EACH(TCTTI_CREATE_STRUCT_FIELD, T, __VA_ARGS__);                                                                                                   \
 }
 
@@ -239,7 +239,7 @@ namespace tiny_ctti                                                             
 
 #define TCTTI_CREATE_ENUM_ENTRY(T, I, X) enum_entry<T>{T::X, string_view{ #X, sizeof(#X) - 1 }},
 #define TCTTI_CREATE_STRUCT_ENTRY(T, I, X) struct_entry{&T::X, string_view{ #X, sizeof(#X) - 1 }},
-#define TCTTI_CREATE_STRUCT_FIELD(T, I, X) template<> struct_entry constexpr struct_fields_v<T, I> = { &T::X, string_view{ #X, sizeof(#X) - 1 } };
+#define TCTTI_CREATE_STRUCT_FIELD(T, I, X) template<> inline constexpr struct_entry struct_fields_v<T, I> = { &T::X, string_view{ #X, sizeof(#X) - 1 } };
 
 //////////////////////////////////////////////////////////////////////////
 
