@@ -12,8 +12,11 @@
 #include "logging/logging.h"
 #include "path/path.h"
 
+#include "fs/file.h"
+
 #include "nstl/span.h"
 #include "nstl/scope_exit.h"
+#include "nstl/sprintf.h"
 
 #include "yyjsoncpp/yyjsoncpp.h"
 
@@ -21,12 +24,16 @@
 
 namespace
 {
-    uint16_t materialAssetVersion = 1; // TODO move somewhere where the material would be also read
+    constexpr uint16_t materialAssetVersion = 1; // TODO move somewhere where the material would be also read
+    constexpr uint16_t meshAssetVersion = 1; // TODO move somewhere where the mesh would be also read
 
     struct GltfResources
     {
+        nstl::vector<nstl::blob> bufferData;
+
         nstl::vector<editor::assets::Uuid> images;
         nstl::vector<editor::assets::Uuid> materials;
+        nstl::vector<editor::assets::Uuid> meshes;
     };
 
     template<typename T>
@@ -44,10 +51,10 @@ namespace
     struct SamplerData
     {
         // TODO use enum
-        int magFilter;
-        int minFilter;
-        int wrapU;
-        int wrapV;
+        int magFilter = 0;
+        int minFilter = 0;
+        int wrapU = 0;
+        int wrapV = 0;
     };
 
     struct TextureData
@@ -67,9 +74,9 @@ namespace
     {
         uint16_t version = 0;
 
-        AlphaMode alphaMode;
-        float alphaCutoff;
-        bool doubleSided;
+        AlphaMode alphaMode = AlphaMode::Blend;
+        float alphaCutoff = 0.0f;
+        bool doubleSided = false;
 
         nstl::optional<glm::vec4> baseColor;
         nstl::optional<TextureData> baseColorTexture;
@@ -82,6 +89,87 @@ TINY_CTTI_DESCRIBE_STRUCT(SamplerData, magFilter, minFilter, wrapU, wrapV);
 TINY_CTTI_DESCRIBE_STRUCT(TextureData, image, sampler);
 TINY_CTTI_DESCRIBE_ENUM(AlphaMode, Opaque, Mask, Blend);
 TINY_CTTI_DESCRIBE_STRUCT(MaterialData, version, alphaMode, alphaCutoff, doubleSided, baseColor, baseColorTexture, metallicRoughnessTexture, normalTexture);
+
+namespace
+{
+    // TODO extend?
+    enum class Topology
+    {
+        Lines,
+        Triangles,
+        TriangleStrip,
+        TriangleFan,
+    };
+
+    enum class DataType
+    {
+        Scalar,
+        Vec2,
+        Vec3,
+        Vec4,
+        Mat2,
+        Mat3,
+        Mat4,
+    };
+
+    enum class DataComponentType
+    {
+        Int8,
+        UInt8,
+        Int16,
+        UInt16,
+        UInt32,
+        Float,
+    };
+
+    enum class AttributeSemantic
+    {
+        Position,
+        Normal,
+        Tangent,
+        Texcoord,
+    };
+
+    struct DataAccessorDescription
+    {
+        DataType type = DataType::Scalar;
+        DataComponentType componentType = DataComponentType::Float;
+        size_t count = 0;
+        size_t stride = 0;
+        size_t bufferOffset = 0;
+    };
+
+    struct VertexAttributeDescription
+    {
+        AttributeSemantic semantic;
+        size_t index = 0;
+        DataAccessorDescription accessor;
+    };
+
+    struct PrimitiveDescription
+    {
+        editor::assets::Uuid material;
+        Topology topology = Topology::Triangles;
+
+        DataAccessorDescription indices;
+        nstl::vector<VertexAttributeDescription> vertexAttributes;
+    };
+
+    struct MeshData
+    {
+        uint16_t version = 0;
+        nstl::vector<PrimitiveDescription> primitives;
+    };
+}
+
+TINY_CTTI_DESCRIBE_ENUM(Topology, Lines, Triangles, TriangleStrip, TriangleFan);
+TINY_CTTI_DESCRIBE_ENUM(DataType, Scalar, Vec2, Vec3, Vec4, Mat2, Mat3, Mat4);
+TINY_CTTI_DESCRIBE_ENUM(DataComponentType, Int8, UInt8, Int16, UInt16, UInt32, Float);
+TINY_CTTI_DESCRIBE_ENUM(AttributeSemantic, Position, Normal, Tangent, Texcoord);
+TINY_CTTI_DESCRIBE_STRUCT(DataAccessorDescription, type, componentType, count, stride, bufferOffset);
+TINY_CTTI_DESCRIBE_STRUCT(VertexAttributeDescription, semantic, index, accessor);
+TINY_CTTI_DESCRIBE_STRUCT(PrimitiveDescription, material, topology, indices, vertexAttributes);
+TINY_CTTI_DESCRIBE_STRUCT(MeshData, version, primitives);
 
 namespace
 {
@@ -98,8 +186,10 @@ namespace
         return AlphaMode::Opaque;
     }
 
-    editor::assets::Uuid importImage(cgltf_image const& image, cgltf_data const& data, nstl::string_view parentDirectory, GltfResources const& resources, editor::assets::AssetDatabase& database)
+    editor::assets::Uuid importImage(size_t i, cgltf_data const& data, editor::assets::ImportDescription const& desc, GltfResources const& resources, editor::assets::AssetDatabase& database)
     {
+        cgltf_image const& image = data.images[i];
+
         if (image.uri)
         {
             nstl::string_view mimeType = image.mime_type;
@@ -107,7 +197,7 @@ namespace
             nstl::string_view uri = image.uri;
             assert(!uri.starts_with("data:")); // TODO implement
 
-            nstl::vector<editor::assets::Uuid> importedImages = database.importAsset(path::join(parentDirectory, uri));
+            nstl::vector<editor::assets::Uuid> importedImages = database.importAsset(path::join(desc.parentDirectory, uri));
             assert(importedImages.size() == 1);
             return importedImages[0];
         }
@@ -121,8 +211,10 @@ namespace
         return {};
     }
 
-    editor::assets::Uuid importMaterial(cgltf_material const& material, cgltf_data const& data, nstl::string_view parentDirectory, GltfResources const& resources, editor::assets::AssetDatabase& database)
+    editor::assets::Uuid importMaterial(size_t i, cgltf_data const& data, editor::assets::ImportDescription const& desc, GltfResources const& resources, editor::assets::AssetDatabase& database)
     {
+        cgltf_material const& material = data.materials[i];
+
         auto createTextureData = [&resources, &data](cgltf_texture const& texture)
         {
             TextureData textureData;
@@ -172,9 +264,312 @@ namespace
             serializedMaterial = doc.write(json::write_flags::pretty);
         }
 
-        nstl::string_view name = material.name ? material.name : "Gltf Material";
+        nstl::string name = material.name ? material.name : nstl::sprintf("%.*s material %zu", desc.name.slength(), desc.name.data(), i);
         editor::assets::Uuid id = database.createAsset(editor::assets::AssetType::Material, name);
         database.addAssetFile(id, serializedMaterial, "material.json");
+
+        return id;
+    }
+
+    DataComponentType getDataComponentType(cgltf_component_type componentType)
+    {
+        switch (componentType)
+        {
+        case cgltf_component_type_r_8: return DataComponentType::Int8;
+        case cgltf_component_type_r_8u: return DataComponentType::UInt8;
+        case cgltf_component_type_r_16: return DataComponentType::Int16;
+        case cgltf_component_type_r_16u: return DataComponentType::UInt16;
+        case cgltf_component_type_r_32u: return DataComponentType::UInt32;
+        case cgltf_component_type_r_32f: return DataComponentType::Float;
+        }
+
+        assert(false);
+        return DataComponentType::Float;
+    }
+
+    DataType getDataType(cgltf_type attributeType)
+    {
+        switch (attributeType)
+        {
+        case cgltf_type_scalar: return DataType::Scalar;
+        case cgltf_type_vec2: return DataType::Vec2;
+        case cgltf_type_vec3: return DataType::Vec3;
+        case cgltf_type_vec4: return DataType::Vec4;
+        case cgltf_type_mat2: return DataType::Mat2;
+        case cgltf_type_mat3: return DataType::Mat3;
+        case cgltf_type_mat4: return DataType::Mat4;
+        }
+
+        assert(false);
+        return DataType::Scalar;
+    }
+
+    Topology getTopology(cgltf_primitive_type type)
+    {
+        switch (type)
+        {
+        case cgltf_primitive_type_lines: return Topology::Lines;
+        case cgltf_primitive_type_triangles: return Topology::Triangles;
+        case cgltf_primitive_type_triangle_strip: return Topology::TriangleStrip;
+        case cgltf_primitive_type_triangle_fan: return Topology::TriangleFan;
+
+        case cgltf_primitive_type_points:
+        case cgltf_primitive_type_line_loop:
+        case cgltf_primitive_type_line_strip:
+            assert(false);
+        }
+
+        assert(false);
+        return Topology::Triangles;
+    }
+
+    size_t getComponentSize(DataComponentType type)
+    {
+        switch (type)
+        {
+        case DataComponentType::Int8: return 1;
+        case DataComponentType::UInt8: return 1;
+        case DataComponentType::Int16: return 2;
+        case DataComponentType::UInt16: return 2;
+        case DataComponentType::UInt32: return 4;
+        case DataComponentType::Float: return 4;
+        }
+
+        assert(false);
+        return 0;
+    }
+
+    size_t getComponentsCount(DataType type)
+    {
+        switch (type)
+        {
+        case DataType::Scalar: return 1;
+        case DataType::Vec2: return 2;
+        case DataType::Vec3: return 3;
+        case DataType::Vec4: return 4;
+        case DataType::Mat2: return 4;
+        case DataType::Mat3: return 9;
+        case DataType::Mat4: return 16;
+        }
+
+        assert(false);
+        return 0;
+    }
+
+    AttributeSemantic getAttributeSemantic(cgltf_attribute_type type)
+    {
+        switch (type)
+        {
+        case cgltf_attribute_type_position: return AttributeSemantic::Position;
+        case cgltf_attribute_type_normal: return AttributeSemantic::Normal;
+        case cgltf_attribute_type_tangent: return AttributeSemantic::Tangent;
+        case cgltf_attribute_type_texcoord: return AttributeSemantic::Texcoord;
+
+        case cgltf_attribute_type_color:
+        case cgltf_attribute_type_joints:
+        case cgltf_attribute_type_weights:
+        case cgltf_attribute_type_custom:
+            assert(false); // Not implemented yet
+        }
+
+        assert(false);
+        return AttributeSemantic::Position;
+    }
+
+    void* memcpy_stride(void* destination, void const* source, size_t count, size_t chunk_size, size_t dst_stride, size_t src_stride)
+    {
+        if (dst_stride == chunk_size && src_stride == chunk_size)
+            memcpy(destination, source, count * chunk_size);
+
+        assert(dst_stride > 0);
+        assert(src_stride > 0);
+
+        char* dst = static_cast<char*>(destination);
+        char const* src = static_cast<char const*>(source);
+
+        for (size_t i = 0; i < count; i++)
+        {
+            memcpy(dst, src, chunk_size);
+
+            dst += dst_stride;
+            src += src_stride;
+        }
+
+        return destination;
+    }
+
+    struct DataLayout
+    {
+        size_t bufferIndex = 0;
+
+        DataType type = DataType::Scalar;
+        DataComponentType componentType = DataComponentType::Float;
+
+        size_t count = 0;
+        size_t elementSize = 0;
+        size_t byteSize = 0;
+        
+        size_t offset = 0;
+        size_t stride = 0;
+    };
+
+    DataLayout calculateDataLayout(cgltf_accessor const& accessor, cgltf_data const& data)
+    {
+        DataLayout layout{};
+
+        cgltf_buffer_view const& bufferView = *accessor.buffer_view;
+        layout.bufferIndex = findIndex(bufferView.buffer, data.buffers, data.buffers_count);
+
+        layout.type = getDataType(accessor.type);
+        layout.componentType = getDataComponentType(accessor.component_type);
+
+        layout.count = accessor.count;
+        layout.elementSize = getComponentSize(layout.componentType) * getComponentsCount(layout.type);
+        layout.byteSize = layout.count * layout.elementSize;
+
+        layout.offset = bufferView.offset + accessor.offset;
+        layout.stride = bufferView.stride > 0 ? bufferView.stride : layout.elementSize;
+
+        return layout;
+    }
+
+    struct PrimitiveParams
+    {
+        size_t totalByteSize = 0;
+        size_t vertexElementByteSize = 0;
+
+        DataLayout indexLayout;
+        nstl::vector<DataLayout> attributeLayouts;
+    };
+
+    PrimitiveParams calculatePrimitiveParameters(cgltf_primitive const& primitive, cgltf_data const& data)
+    {
+        PrimitiveParams params{};
+
+        params.indexLayout = calculateDataLayout(*primitive.indices, data);
+        params.totalByteSize += params.indexLayout.byteSize;
+
+        params.attributeLayouts.reserve(primitive.attributes_count);
+        for (size_t i = 0; i < primitive.attributes_count; i++)
+        {
+            DataLayout layout = calculateDataLayout(*primitive.attributes[i].data, data);
+            params.totalByteSize += layout.byteSize;
+            params.vertexElementByteSize += layout.elementSize;
+
+            params.attributeLayouts.push_back(layout);
+        }
+
+        return params;
+    }
+
+    PrimitiveDescription appendPrimitive(cgltf_primitive const& primitive, nstl::span<unsigned char> destinationData, cgltf_data const& data, GltfResources const& resources, PrimitiveParams const& params)
+    {
+        auto appendChunk = [&data, &resources, &destinationData](cgltf_accessor const& accessor, DataLayout const& layout, size_t offset, size_t stride)
+        {
+            nstl::blob const& sourceData = resources.bufferData[layout.bufferIndex];
+
+            size_t count = layout.count;
+            size_t elementSize = layout.elementSize;
+            size_t sourceOffset = layout.offset;
+            size_t sourceStride = layout.stride;
+
+            size_t destinationOffset = offset;
+            size_t destinationStride = stride > 0 ? stride : elementSize;
+
+            assert(sourceOffset + sourceStride * (count - 1) + elementSize <= sourceData.size());
+            assert(destinationOffset + destinationStride * (count - 1) + elementSize <= destinationData.size());
+            memcpy_stride(destinationData.data() + destinationOffset, sourceData.cdata() + sourceOffset, count, elementSize, destinationStride, sourceStride);
+
+            DataAccessorDescription result;
+
+            result.type = layout.type;
+            result.componentType = layout.componentType;
+            result.count = layout.count;
+            result.stride = destinationStride;
+            result.bufferOffset = destinationOffset;
+
+            return result;
+        };
+
+        PrimitiveDescription description;
+
+        size_t materialIndex = findIndex(primitive.material, data.materials, data.materials_count);
+
+        description.material = resources.materials[materialIndex];
+        description.topology = getTopology(primitive.type);
+
+        size_t indexOffset = 0;
+        size_t indexStride = 0;
+
+        assert(params.indexLayout.type == DataType::Scalar);
+        description.indices = appendChunk(*primitive.indices, params.indexLayout, indexOffset, indexStride);
+
+        size_t verticesOffset = params.indexLayout.byteSize;
+        size_t verticesStride = params.vertexElementByteSize;
+
+        assert(params.attributeLayouts.size() == primitive.attributes_count);
+        for (size_t i = 0; i < primitive.attributes_count; i++)
+        {
+            cgltf_attribute const& attribute = primitive.attributes[i];
+
+            DataLayout const& layout = params.attributeLayouts[i];
+
+            VertexAttributeDescription& vertexAttributeDescription = description.vertexAttributes.emplace_back();
+            vertexAttributeDescription.semantic = getAttributeSemantic(attribute.type);
+            vertexAttributeDescription.index = attribute.index;
+
+            vertexAttributeDescription.accessor = appendChunk(*attribute.data, layout, verticesOffset, verticesStride);
+
+            verticesOffset += layout.elementSize;
+        }
+
+        return description;
+    }
+
+    editor::assets::Uuid importMesh(size_t i, cgltf_data const& data, editor::assets::ImportDescription const& desc, GltfResources const& resources, editor::assets::AssetDatabase& database)
+    {
+        cgltf_mesh const& mesh = data.meshes[i];
+
+        nstl::vector<PrimitiveParams> primitiveParams;
+        size_t meshByteSize = 0;
+
+        primitiveParams.reserve(mesh.primitives_count);
+        for (size_t i = 0; i < mesh.primitives_count; i++)
+        {
+            PrimitiveParams params = calculatePrimitiveParameters(mesh.primitives[i], data);
+            meshByteSize += params.totalByteSize;
+            primitiveParams.push_back(params);
+        }
+
+        nstl::blob destinationData{ meshByteSize };
+
+        nstl::vector<PrimitiveDescription> primitives;
+        primitives.reserve(mesh.primitives_count);
+        assert(primitiveParams.size() == mesh.primitives_count);
+
+        for (size_t i = 0; i < mesh.primitives_count; i++)
+            primitives.push_back(appendPrimitive(mesh.primitives[i], destinationData, data, resources, primitiveParams[i]));
+
+        MeshData meshData = {
+            .version = meshAssetVersion,
+            .primitives = nstl::move(primitives),
+        };
+
+        nstl::string serializedMesh;
+        {
+            namespace json = yyjsoncpp;
+
+            json::mutable_doc doc;
+            json::mutable_value_ref root = doc.create_value(meshData);
+            doc.set_root(root);
+
+            serializedMesh = doc.write(json::write_flags::pretty);
+        }
+
+        nstl::string name = mesh.name ? mesh.name : nstl::sprintf("%.*s mesh %zu", desc.name.slength(), desc.name.data(), i);
+        editor::assets::Uuid id = database.createAsset(editor::assets::AssetType::Mesh, name);
+        database.addAssetFile(id, serializedMesh, "mesh.json");
+        database.addAssetFile(id, destinationData, "buffer.bin");
 
         return id;
     }
@@ -223,10 +618,10 @@ nstl::vector<editor::assets::Uuid> editor::assets::AssetImporterGltf::importAsse
     if (!data)
         return {};
 
-    return parseGltfData(*data, desc.parentDirectory);
+    return parseGltfData(*data, desc);
 }
 
-nstl::vector<editor::assets::Uuid> editor::assets::AssetImporterGltf::parseGltfData(cgltf_data const& data, nstl::string_view parentDirectory) const
+nstl::vector<editor::assets::Uuid> editor::assets::AssetImporterGltf::parseGltfData(cgltf_data const& data, ImportDescription const& desc) const
 {
     nstl::vector<Uuid> result;
 
@@ -235,191 +630,52 @@ nstl::vector<editor::assets::Uuid> editor::assets::AssetImporterGltf::parseGltfD
     for (size_t i = 0; i < data.extensions_required_count; i++)
         logging::warn("GLTF requires extension '{}'", data.extensions_required[i]);
 
-    //for (size_t i = 0; i < data.buffers_count; i++)
-    //{
-    //    cgltf_buffer const& gltfBuffer = data.buffers[i];
+    for (size_t i = 0; i < data.buffers_count; i++)
+    {
+       cgltf_buffer const& buffer = data.buffers[i];
 
-    //     assert(gltfBuffer.data);
-    //     assert(gltfBuffer.size > 0);
- 
-    //     nstl::span<unsigned char const> data{ static_cast<unsigned char const*>(gltfBuffer.data), gltfBuffer.size };
-    //}
+       nstl::string_view uri = buffer.uri;
 
-    //for (size_t i = 0; i < data.samplers_count; i++)
-    //{
-    //    cgltf_sampler const& gltfSampler = data.samplers[i];
+       bool isDataUri = uri.starts_with("data:");
+       bool hasSchema = uri.find("://") != nstl::string_view::npos;
 
-    //    auto convertFilterMode = [](int gltfMode)
-    //    {
-    //        // TODO remove magic numbers
+       assert(!isDataUri); // TODO implement
+       assert(!hasSchema); // TODO implement?
 
-    //        switch (gltfMode)
-    //        {
-    //        case 9728: // NEAREST:
-    //        case 9984: // NEAREST_MIPMAP_NEAREST:
-    //        case 9986: // NEAREST_MIPMAP_LINEAR:
-    //            return vko::SamplerFilterMode::Nearest;
+       nstl::string path = path::join(desc.parentDirectory, uri);
 
-    //        case 0:
-    //        case 9729: // LINEAR:
-    //        case 9985: // LINEAR_MIPMAP_NEAREST:
-    //        case 9987: // LINEAR_MIPMAP_LINEAR:
-    //            return vko::SamplerFilterMode::Linear;
-    //        }
+       fs::file f;
+       f.open(path, fs::open_mode::read);
+       assert(f.is_open());
 
-    //        assert(false);
-    //        return vko::SamplerFilterMode::Nearest;
-    //    };
+       nstl::blob data{ f.size() };
+       f.read(data.data(), data.size());
+       f.close();
 
-    //    auto convertWrapMode = [](int gltfMode)
-    //    {
-    //        // TODO remove magic numbers
-
-    //        switch (gltfMode)
-    //        {
-    //        case 10497: // REPEAT:
-    //            return vko::SamplerWrapMode::Repeat;
-    //        case 33071: // CLAMP_TO_EDGE:
-    //            return vko::SamplerWrapMode::ClampToEdge;
-    //        case 33648: // MIRRORED_REPEAT:
-    //            return vko::SamplerWrapMode::Mirror;
-    //        }
-
-    //        assert(false);
-    //        return vko::SamplerWrapMode::Repeat;
-    //    };
-
-    //    auto magFilter = convertFilterMode(gltfSampler.mag_filter);
-    //    auto minFilter = convertFilterMode(gltfSampler.min_filter);
-    //    auto wrapU = convertWrapMode(gltfSampler.wrap_s);
-    //    auto wrapV = convertWrapMode(gltfSampler.wrap_t);
-    //}
+       resources.bufferData.push_back(nstl::move(data));
+    }
 
     result.reserve(result.size() + data.images_count);
     for (size_t i = 0; i < data.images_count; i++)
     {
-        Uuid asset = importImage(data.images[i], data, parentDirectory, resources, m_database);
+        Uuid asset = importImage(i, data, desc, resources, m_database);
         resources.images.push_back(asset);
         result.push_back(asset);
     }
 
-    //for (size_t i = 0; i < data.textures_count; i++)
-    //{
-    //    cgltf_texture const& gltfTexture = data.textures[i];
-
-    //    size_t imageIndex = findIndex(gltfTexture.image, data.images, data.images_count);
-    //}
-
     for (size_t i = 0; i < data.materials_count; i++)
     {
-        Uuid asset = importMaterial(data.materials[i], data, parentDirectory, resources, m_database);
+        Uuid asset = importMaterial(i, data, desc, resources, m_database);
         resources.materials.push_back(asset);
         result.push_back(asset);
     }
 
-//     for (auto meshIndex = 0; meshIndex < data.meshes_count; meshIndex++)
-//     {
-//         cgltf_mesh const& gltfMesh = data.meshes[meshIndex];
-// 
-//         nstl::vector<DemoMesh>& demoMeshes = m_gltfResources->meshes.emplace_back();
-//         demoMeshes.reserve(gltfMesh.primitives_count);
-//         for (auto primitiveIndex = 0; primitiveIndex < gltfMesh.primitives_count; primitiveIndex++)
-//         {
-//             cgltf_primitive const& gltfPrimitive = gltfMesh.primitives[primitiveIndex];
-// 
-//             DemoMesh& demoMesh = demoMeshes.emplace_back();
-// 
-//             vkgfx::Mesh mesh;
-// 
-//             {
-//                 auto findIndexType = [](int gltfComponentType)
-//                 {
-//                     switch (gltfComponentType)
-//                     {
-//                     case cgltf_component_type_r_8u:
-//                         return vkgfx::IndexType::UnsignedByte;
-//                     case cgltf_component_type_r_16u:
-//                         return vkgfx::IndexType::UnsignedShort;
-//                     case cgltf_component_type_r_32u:
-//                         return vkgfx::IndexType::UnsignedInt;
-//                     }
-// 
-//                     assert(false);
-//                     return vkgfx::IndexType::UnsignedShort;
-//                 };
-// 
-//                 cgltf_accessor const* gltfAccessor = gltfPrimitive.indices;
-//                 assert(gltfAccessor);
-//                 cgltf_buffer_view const* gltfBufferView = gltfAccessor->buffer_view;
-//                 assert(gltfBufferView);
-// 
-//                 mesh.indexBuffer.buffer = m_gltfResources->buffers[findIndex(gltfBufferView->buffer, data.buffers, data.buffers_count)];
-//                 mesh.indexBuffer.offset = gltfBufferView->offset + gltfAccessor->offset;
-//                 mesh.indexCount = gltfAccessor->count;
-//                 mesh.indexType = findIndexType(gltfAccessor->component_type);
-//             }
-// 
-//             mesh.vertexBuffers.reserve(gltfPrimitive.attributes_count);
-//             demoMesh.metadata.vertexConfig.bindings.reserve(gltfPrimitive.attributes_count);
-//             demoMesh.metadata.vertexConfig.attributes.reserve(gltfPrimitive.attributes_count);
-// 
-//             for (size_t attributeIndex = 0; attributeIndex < gltfPrimitive.attributes_count; attributeIndex++)
-//             {
-//                 cgltf_attribute const& gltfAttribute = gltfPrimitive.attributes[attributeIndex];
-// 
-//                 nstl::string_view name = gltfAttribute.name;
-// 
-//                 nstl::optional<std::size_t> location = findAttributeLocation(name);
-// 
-//                 if (!location)
-//                 {
-//                     logging::warn("Skipping attribute '{}'", name);
-//                     continue;
-//                 }
-// 
-//                 cgltf_accessor const* gltfAccessor = gltfAttribute.data;
-//                 assert(gltfAccessor);
-//                 cgltf_buffer_view const* gltfBufferView = gltfAccessor->buffer_view;
-//                 assert(gltfBufferView);
-// 
-//                 size_t bufferIndex = findIndex(gltfBufferView->buffer, data.buffers, data.buffers_count);
-// 
-//                 vkgfx::BufferWithOffset& attributeBuffer = mesh.vertexBuffers.emplace_back();
-//                 attributeBuffer.buffer = m_gltfResources->buffers[bufferIndex];
-//                 attributeBuffer.offset = gltfBufferView->offset + gltfAccessor->offset; // TODO can be improved
-// 
-//                 if (name == "COLOR_0")
-//                     demoMesh.metadata.attributeSemanticsConfig.hasColor = true;
-//                 if (name == "TEXCOORD_0")
-//                     demoMesh.metadata.attributeSemanticsConfig.hasUv = true;
-//                 if (name == "NORMAL")
-//                     demoMesh.metadata.attributeSemanticsConfig.hasNormal = true;
-//                 if (name == "TANGENT")
-//                     demoMesh.metadata.attributeSemanticsConfig.hasTangent = true;
-// 
-//                 vkgfx::AttributeType attributeType = findAttributeType(gltfAccessor->type, gltfAccessor->component_type);
-// 
-//                 std::size_t stride = gltfBufferView->stride;
-//                 if (stride == 0)
-//                     stride = getAttributeByteSize(attributeType);
-// 
-//                 vkgfx::VertexConfiguration::Binding& bindingConfig = demoMesh.metadata.vertexConfig.bindings.emplace_back();
-//                 bindingConfig.stride = stride;
-// 
-//                 vkgfx::VertexConfiguration::Attribute& attributeConfig = demoMesh.metadata.vertexConfig.attributes.emplace_back();
-//                 attributeConfig.binding = attributeIndex;
-//                 attributeConfig.location = *location;
-//                 attributeConfig.offset = 0; // TODO can be improved
-//                 attributeConfig.type = attributeType;
-// 
-//                 // TODO implement
-//                 assert(gltfPrimitive.type == cgltf_primitive_type_triangles);
-//                 demoMesh.metadata.vertexConfig.topology = vkgfx::VertexTopology::Triangles;
-// 
-//                 demoMesh.metadata.materialIndex = findIndex(gltfPrimitive.material, data.materials, data.materials_count); // TODO check
-//             }
-//         }
-//     }
+    for (auto i = 0; i < data.meshes_count; i++)
+    {
+        Uuid asset = importMesh(i, data, desc, resources, m_database);
+        resources.meshes.push_back(asset);
+        result.push_back(asset);
+    }
 // 
 //     for (size_t i = 0; i < data.cameras_count; i++)
 //     {

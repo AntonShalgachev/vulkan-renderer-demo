@@ -19,7 +19,7 @@ namespace editor::assets
         nstl::vector<Uuid> importAsset(ImportDescription const& desc) const;
 
     private:
-        nstl::vector<Uuid> parseGltfData(cgltf_data const& data, nstl::string_view parentDirectory) const;
+        nstl::vector<Uuid> parseGltfData(cgltf_data const& data, ImportDescription const& desc) const;
 
         AssetDatabase& m_database;
     };

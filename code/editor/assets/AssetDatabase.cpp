@@ -12,8 +12,8 @@
 #include "fs/directory.h"
 #include "fs/file.h"
 #include "path/path.h"
-
 #include "yyjsoncpp/yyjsoncpp.h"
+#include "logging/logging.h"
 
 namespace
 {
@@ -61,6 +61,8 @@ nstl::vector<editor::assets::Uuid> editor::assets::AssetDatabase::importAsset(ns
 
 nstl::vector<editor::assets::Uuid> editor::assets::AssetDatabase::importAsset(ImportDescription const& desc)
 {
+    logging::info("Importing {} ({})", desc.name, desc.extension);
+
     // TODO implement properly
     // TODO make sure uppercase extension also works
 
@@ -112,6 +114,11 @@ void editor::assets::AssetDatabase::addAssetFile(Uuid id, nstl::string_view byte
 
     // TODO don't use reinterpret_cast
     return addAssetFile(id, { reinterpret_cast<unsigned char const*>(data), size }, filename);
+}
+
+void editor::assets::AssetDatabase::addAssetFile(Uuid id, nstl::blob const& bytes, nstl::string_view filename)
+{
+    return addAssetFile(id, static_cast<nstl::span<unsigned char const>>(bytes), filename);
 }
 
 editor::assets::AssetMetadata editor::assets::AssetDatabase::getMetadata(Uuid id) const

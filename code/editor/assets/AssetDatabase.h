@@ -11,6 +11,11 @@
 #include "nstl/unordered_map.h"
 #include "nstl/optional.h"
 
+namespace nstl
+{
+    class blob;
+}
+
 namespace editor::assets
 {
     enum class AssetType
@@ -50,6 +55,7 @@ namespace editor::assets
         Uuid createAsset(AssetType type, nstl::string_view name);
         void addAssetFile(Uuid id, nstl::span<unsigned char const> bytes, nstl::string_view filename);
         void addAssetFile(Uuid id, nstl::string_view bytes, nstl::string_view filename);
+        void addAssetFile(Uuid id, nstl::blob const& bytes, nstl::string_view filename);
 
     private:
         AssetMetadata getMetadata(Uuid id) const;

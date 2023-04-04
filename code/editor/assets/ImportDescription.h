@@ -10,6 +10,6 @@ namespace editor::assets
         nstl::span<unsigned char const> content;
         nstl::string_view parentDirectory;
         nstl::string_view name;
-        nstl::string_view extension;
+        nstl::string_view extension; // TODO change to "typeId"?
     };
 }
