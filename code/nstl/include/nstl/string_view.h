@@ -12,7 +12,8 @@ namespace nstl
     class string_view
     {
     public:
-        string_view(char const* str = "");
+        constexpr string_view() = default;
+        string_view(char const* str);
         constexpr string_view(char const* str, size_t length) : m_str(str), m_length(length) {}
 
         size_t length() const;
