@@ -7,6 +7,23 @@
 
 #include "common/tiny_ctti.h"
 
+#include "nstl/sequence.h"
+
+namespace common
+{
+    template<typename T, typename F, size_t... Is>
+    constexpr void for_each_struct_entry_impl(F const& func, nstl::index_sequence<Is...>)
+    {
+        (func(tiny_ctti::struct_field_v<T, Is>), ...);
+    }
+
+    template<typename T, typename F>
+    constexpr void for_each_struct_entry(F const& func)
+    {
+        return for_each_struct_entry_impl<T>(func, nstl::make_index_sequence<tiny_ctti::struct_size_v<T>>{});
+    }
+}
+
 namespace yyjsoncpp
 {
     template<typename E>
@@ -54,9 +71,7 @@ namespace yyjsoncpp
                 obj.*(entry.field) = *nstl::move(field_value);
             };
 
-            auto json_to_fields = [&json_to_field](auto const&... entries) { (json_to_field(entries), ...); };
-
-            nstl::apply(json_to_fields, tiny_ctti::struct_entries<T>());
+            common::for_each_struct_entry<T>(json_to_field);
 
             if (found_errors)
                 return {};
@@ -73,9 +88,7 @@ namespace yyjsoncpp
                 root[entry.name] = obj.*(entry.field);
             };
 
-            auto fields_to_json = [&field_to_json](auto const&... entries) { (field_to_json(entries), ...); };
-
-            nstl::apply(fields_to_json, tiny_ctti::struct_entries<T>());
+            common::for_each_struct_entry<T>(field_to_json);
 
             return root;
         }

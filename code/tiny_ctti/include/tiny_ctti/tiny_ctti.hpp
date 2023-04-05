@@ -15,21 +15,6 @@
 #define TINY_CTTI_CUSTOM_OPTIONAL std::optional
 #endif
 
-#if !defined(TINY_CTTI_CUSTOM_TUPLE)
-#include <tuple>
-#define TINY_CTTI_CUSTOM_TUPLE std::tuple
-#endif
-
-#if !defined(TINY_CTTI_CUSTOM_INDEX_SEQUENCE)
-#include <utility>
-#define TINY_CTTI_CUSTOM_INDEX_SEQUENCE std::index_sequence
-#endif
-
-#if !defined(TINY_CTTI_CUSTOM_MAKE_INDEX_SEQUENCE)
-#include <utility>
-#define TINY_CTTI_CUSTOM_MAKE_INDEX_SEQUENCE std::make_index_sequence
-#endif
-
 // TODO: support empty enums/structs
 
 // Common
@@ -38,9 +23,6 @@ namespace tiny_ctti
     using string_view = TINY_CTTI_CUSTOM_STRING_VIEW;
     template<typename T> using span = TINY_CTTI_CUSTOM_SPAN<T>;
     template<typename T> using optional = TINY_CTTI_CUSTOM_OPTIONAL<T>;
-    template<typename... Ts> using tuple = TINY_CTTI_CUSTOM_TUPLE<Ts...>;
-    template<size_t... Is> using index_sequence = TINY_CTTI_CUSTOM_INDEX_SEQUENCE<Is...>;
-    template<size_t Size> using make_index_sequence = TINY_CTTI_CUSTOM_MAKE_INDEX_SEQUENCE<Size>;
 
     template<typename T, size_t N>
     struct simple_array
@@ -150,7 +132,7 @@ namespace tiny_ctti
     }
 
     template<typename E>
-    constexpr size_t enum_count() noexcept
+    constexpr size_t enum_size() noexcept
     {
         static_assert(is_enum_v<E>, "Enum E is not described");
         return enum_size_v<E>;
@@ -233,17 +215,6 @@ namespace tiny_ctti
     template<typename T> constexpr size_t struct_size_v = tiny_ctti_get_struct_size(type_tag<T>{});
     template<typename T, size_t I> constexpr auto struct_field_v = tiny_ctti_get_struct_field(type_tag<T>{}, index_tag<I>{});
 
-    namespace detail
-    {
-        template<typename T, size_t... Is>
-        constexpr auto create_struct_entries(index_sequence<Is...>)
-        {
-            return tuple<decltype(struct_field_v<T, Is>)...>{ struct_field_v<T, Is>... };
-        }
-    }
-
-    template<typename T> constexpr auto struct_entries_v = detail::create_struct_entries<T>(make_index_sequence<struct_size_v<T>>{});
-
     template<typename T>
     constexpr size_t struct_size() noexcept
     {
@@ -251,11 +222,11 @@ namespace tiny_ctti
         return struct_size_v<T>;
     }
 
-    template<typename T>
-    constexpr auto const& struct_entries() noexcept
+    template<typename T, size_t I>
+    constexpr auto const& struct_field() noexcept
     {
         static_assert(is_struct_v<T>, "Struct T is not described");
-        return struct_entries_v<T>;
+        return struct_field_v<T, I>;
     }
 }
 
