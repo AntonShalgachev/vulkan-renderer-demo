@@ -56,12 +56,14 @@ namespace
         int wrapU = 0;
         int wrapV = 0;
     };
+    TINY_CTTI_DESCRIBE_STRUCT(SamplerData, magFilter, minFilter, wrapU, wrapV);
 
     struct TextureData
     {
         editor::assets::Uuid image;
         SamplerData sampler;
     };
+    TINY_CTTI_DESCRIBE_STRUCT(TextureData, image, sampler);
 
     enum class AlphaMode
     {
@@ -69,6 +71,7 @@ namespace
         Mask,
         Blend,
     };
+    TINY_CTTI_DESCRIBE_ENUM(AlphaMode, Opaque, Mask, Blend);
 
     struct MaterialData
     {
@@ -83,12 +86,8 @@ namespace
         nstl::optional<TextureData> metallicRoughnessTexture;
         nstl::optional<TextureData> normalTexture;
     };
+    TINY_CTTI_DESCRIBE_STRUCT(MaterialData, version, alphaMode, alphaCutoff, doubleSided, baseColor, baseColorTexture, metallicRoughnessTexture, normalTexture);
 }
-
-TINY_CTTI_DESCRIBE_STRUCT(SamplerData, magFilter, minFilter, wrapU, wrapV);
-TINY_CTTI_DESCRIBE_STRUCT(TextureData, image, sampler);
-TINY_CTTI_DESCRIBE_ENUM(AlphaMode, Opaque, Mask, Blend);
-TINY_CTTI_DESCRIBE_STRUCT(MaterialData, version, alphaMode, alphaCutoff, doubleSided, baseColor, baseColorTexture, metallicRoughnessTexture, normalTexture);
 
 namespace
 {
@@ -100,6 +99,7 @@ namespace
         TriangleStrip,
         TriangleFan,
     };
+    TINY_CTTI_DESCRIBE_ENUM(Topology, Lines, Triangles, TriangleStrip, TriangleFan);
 
     enum class DataType
     {
@@ -111,6 +111,7 @@ namespace
         Mat3,
         Mat4,
     };
+    TINY_CTTI_DESCRIBE_ENUM(DataType, Scalar, Vec2, Vec3, Vec4, Mat2, Mat3, Mat4);
 
     enum class DataComponentType
     {
@@ -121,6 +122,7 @@ namespace
         UInt32,
         Float,
     };
+    TINY_CTTI_DESCRIBE_ENUM(DataComponentType, Int8, UInt8, Int16, UInt16, UInt32, Float);
 
     enum class AttributeSemantic
     {
@@ -129,6 +131,7 @@ namespace
         Tangent,
         Texcoord,
     };
+    TINY_CTTI_DESCRIBE_ENUM(AttributeSemantic, Position, Normal, Tangent, Texcoord);
 
     struct DataAccessorDescription
     {
@@ -138,6 +141,7 @@ namespace
         size_t stride = 0;
         size_t bufferOffset = 0;
     };
+    TINY_CTTI_DESCRIBE_STRUCT(DataAccessorDescription, type, componentType, count, stride, bufferOffset);
 
     struct VertexAttributeDescription
     {
@@ -145,6 +149,7 @@ namespace
         size_t index = 0;
         DataAccessorDescription accessor;
     };
+    TINY_CTTI_DESCRIBE_STRUCT(VertexAttributeDescription, semantic, index, accessor);
 
     struct PrimitiveDescription
     {
@@ -154,22 +159,16 @@ namespace
         DataAccessorDescription indices;
         nstl::vector<VertexAttributeDescription> vertexAttributes;
     };
+    TINY_CTTI_DESCRIBE_STRUCT(PrimitiveDescription, material, topology, indices, vertexAttributes);
 
     struct MeshData
     {
         uint16_t version = 0;
         nstl::vector<PrimitiveDescription> primitives;
     };
+    TINY_CTTI_DESCRIBE_STRUCT(MeshData, version, primitives);
 }
 
-TINY_CTTI_DESCRIBE_ENUM(Topology, Lines, Triangles, TriangleStrip, TriangleFan);
-TINY_CTTI_DESCRIBE_ENUM(DataType, Scalar, Vec2, Vec3, Vec4, Mat2, Mat3, Mat4);
-TINY_CTTI_DESCRIBE_ENUM(DataComponentType, Int8, UInt8, Int16, UInt16, UInt32, Float);
-TINY_CTTI_DESCRIBE_ENUM(AttributeSemantic, Position, Normal, Tangent, Texcoord);
-TINY_CTTI_DESCRIBE_STRUCT(DataAccessorDescription, type, componentType, count, stride, bufferOffset);
-TINY_CTTI_DESCRIBE_STRUCT(VertexAttributeDescription, semantic, index, accessor);
-TINY_CTTI_DESCRIBE_STRUCT(PrimitiveDescription, material, topology, indices, vertexAttributes);
-TINY_CTTI_DESCRIBE_STRUCT(MeshData, version, primitives);
 
 namespace
 {

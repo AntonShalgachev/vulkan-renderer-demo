@@ -30,11 +30,7 @@
 #define TINY_CTTI_CUSTOM_MAKE_INDEX_SEQUENCE std::make_index_sequence
 #endif
 
-#if defined(TINY_CTTI_NO_CONSTEXPR)
-#define TINY_CTTI_CONSTEXPR
-#else
-#define TINY_CTTI_CONSTEXPR constexpr
-#endif
+// TODO: support empty enums/structs
 
 // Common
 namespace tiny_ctti
@@ -53,20 +49,38 @@ namespace tiny_ctti
         static constexpr size_t size = N;
     };
 
-    template<typename T> constexpr bool is_described_v = false;
-    template<typename T> constexpr string_view type_name_v = {};
+    struct dummy {};
+    simple_array()->simple_array<dummy, 0>;
+    template<typename T, typename... Ts>
+    simple_array(T, Ts...) -> simple_array<T, sizeof...(Ts) + 1>;
+
+    template<typename T> struct type_tag {};
+    template<size_t I> struct index_tag {};
+
+    namespace default_impl
+    {
+        template<typename T>
+        constexpr bool tiny_ctti_is_described(type_tag<T>)
+        {
+            return false;
+        }
+    }
 
     template<typename T>
     constexpr bool is_described()
     {
-        return is_described_v<T>;
+        using namespace default_impl;
+        return tiny_ctti_is_described(type_tag<T>{});
     }
+
+    template<typename T> constexpr bool is_described_v = is_described<T>();
+    template<typename T> constexpr string_view type_name_v = tiny_ctti_get_type_name<T>();
 
     template<typename T>
     constexpr string_view type_name()
     {
         static_assert(is_described_v<T>, "Type T is not described");
-        return type_name_v<T>;
+        return tiny_ctti_get_type_name(type_tag<T>{});
     }
 }
 
@@ -80,9 +94,25 @@ namespace tiny_ctti
         string_view name;
     };
 
-    template<typename T> constexpr bool is_enum_v = false;
-    template<typename E> constexpr size_t enum_size_v = 0;
-    template<typename E> constexpr simple_array<enum_entry<E>, 0> enum_entries_v = {};
+    namespace default_impl
+    {
+        template<typename E>
+        constexpr bool tiny_ctti_is_enum(type_tag<E>)
+        {
+            return false;
+        }
+    }
+
+    template<typename E>
+    constexpr bool is_enum()
+    {
+        using namespace default_impl;
+        return tiny_ctti_is_enum(type_tag<E>{});
+    }
+
+    template<typename E> constexpr bool is_enum_v = is_enum<E>();
+    template<typename E> constexpr auto enum_entries_v = tiny_ctti_get_enum_entries(type_tag<E>{});
+    template<typename E> constexpr size_t enum_size_v = enum_entries_v<E>.size;
 
     namespace detail
     {
@@ -115,28 +145,28 @@ namespace tiny_ctti
     template<typename E>
     constexpr span<enum_entry<E> const> enum_entries()
     {
-        static_assert(is_described_v<E>, "Enum E is not described");
+        static_assert(is_enum_v<E>, "Enum E is not described");
         return { enum_entries_v<E>.data, enum_entries_v<E>.size };
     }
 
     template<typename E>
     constexpr size_t enum_count() noexcept
     {
-        static_assert(is_described_v<E>, "Enum E is not described");
+        static_assert(is_enum_v<E>, "Enum E is not described");
         return enum_size_v<E>;
     }
 
     template<typename E>
     constexpr span<string_view const> enum_names()
     {
-        static_assert(is_described_v<E>, "Enum E is not described");
+        static_assert(is_enum_v<E>, "Enum E is not described");
         return { enum_names_v<E>.data, enum_names_v<E>.size };
     }
 
     template<typename E>
     constexpr span<E const> enum_values()
     {
-        static_assert(is_described_v<E>, "Enum E is not described");
+        static_assert(is_enum_v<E>, "Enum E is not described");
         return { enum_values_v<E>.data, enum_values_v<E>.size };
     }
 
@@ -146,9 +176,9 @@ namespace tiny_ctti
     };
 
     template<typename E, typename Pred = DefaultPredicate>
-    TINY_CTTI_CONSTEXPR optional<E> enum_cast(string_view name, Pred const& pred = {})
+    constexpr optional<E> enum_cast(string_view name, Pred const& pred = {})
     {
-        static_assert(is_described_v<E>, "Enum E is not described");
+        static_assert(is_enum_v<E>, "Enum E is not described");
         auto const& entries = enum_entries_v<E>;
         for (size_t i = 0; i < entries.size; i++)
             if (pred(entries.data[i].name, name))
@@ -158,9 +188,9 @@ namespace tiny_ctti
     }
 
     template<typename E>
-    TINY_CTTI_CONSTEXPR string_view enum_name(E value)
+    constexpr string_view enum_name(E value)
     {
-        static_assert(is_described_v<E>, "Enum E is not described");
+        static_assert(is_enum_v<E>, "Enum E is not described");
         auto const& entries = enum_entries_v<E>;
         for (size_t i = 0; i < entries.size; i++)
             if (entries.data[i].value == value)
@@ -183,16 +213,32 @@ namespace tiny_ctti
     template<typename O, typename T>
     struct_entry(T O::*, string_view) -> struct_entry<O, T>;
 
-    template<typename T> constexpr bool is_struct_v = false;
-    template<typename T> constexpr size_t struct_size_v = 0;
-    template<typename T, size_t I> constexpr struct_entry<T, void*> struct_fields_v = {};
+    namespace default_impl
+    {
+        template<typename T>
+        constexpr bool tiny_ctti_is_struct(type_tag<T>)
+        {
+            return false;
+        }
+    }
+
+    template<typename T>
+    constexpr bool is_struct()
+    {
+        using namespace default_impl;
+        return tiny_ctti_is_struct(type_tag<T>{});
+    }
+
+    template<typename T> constexpr bool is_struct_v = is_struct<T>();
+    template<typename T> constexpr size_t struct_size_v = tiny_ctti_get_struct_size(type_tag<T>{});
+    template<typename T, size_t I> constexpr auto struct_field_v = tiny_ctti_get_struct_field(type_tag<T>{}, index_tag<I>{});
 
     namespace detail
     {
         template<typename T, size_t... Is>
         constexpr auto create_struct_entries(index_sequence<Is...>)
         {
-            return tuple<decltype(struct_fields_v<T, Is>)...>{ struct_fields_v<T, Is>... };
+            return tuple<decltype(struct_field_v<T, Is>)...>{ struct_field_v<T, Is>... };
         }
     }
 
@@ -201,45 +247,37 @@ namespace tiny_ctti
     template<typename T>
     constexpr size_t struct_size() noexcept
     {
-        static_assert(is_described_v<T>, "Struct T is not described");
+        static_assert(is_struct_v<T>, "Struct T is not described");
         return struct_size_v<T>;
     }
 
     template<typename T>
-    constexpr auto struct_entries() noexcept
+    constexpr auto const& struct_entries() noexcept
     {
-        static_assert(is_described_v<T>, "Struct T is not described");
+        static_assert(is_struct_v<T>, "Struct T is not described");
         return struct_entries_v<T>;
     }
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-#define TINY_CTTI_DESCRIBE_ENUM(E, ...)                                                                                                                          \
-namespace tiny_ctti                                                                                                                                              \
-{                                                                                                                                                                \
-    template<> inline constexpr bool is_described_v<E> = true;                                                                                                          \
-    template<> inline constexpr bool is_enum_v<E> = true;                                                                                                               \
-    template<> inline constexpr string_view type_name_v<E> = string_view{ #E, sizeof(#E) - 1 };                                                                         \
-    template<> inline constexpr size_t enum_size_v<E> = TCTTI_ARGS_COUNT(__VA_ARGS__);                                                                                  \
-    template<> inline constexpr simple_array<enum_entry<E>, enum_size_v<E>> enum_entries_v<E> = { TCTTI_FOR_EACH(TCTTI_CREATE_ENUM_ENTRY, E, __VA_ARGS__) };            \
-}
+#define TINY_CTTI_DESCRIBE_ENUM(E, ...)                                                                                                                                            \
+constexpr bool tiny_ctti_is_described(tiny_ctti::type_tag<E>) { return true; }                                                                                                     \
+constexpr bool tiny_ctti_is_enum(tiny_ctti::type_tag<E>) { return true; }                                                                                                          \
+constexpr tiny_ctti::string_view tiny_ctti_get_type_name(tiny_ctti::type_tag<E>) { return { #E, sizeof(#E) - 1 }; }                                                                \
+constexpr auto tiny_ctti_get_enum_entries(tiny_ctti::type_tag<E>) { return tiny_ctti::simple_array{ TCTTI_FOR_EACH(TCTTI_CREATE_ENUM_ENTRY, E, __VA_ARGS__) }; }
 
-#define TINY_CTTI_DESCRIBE_STRUCT(T, ...)                                                                                                                        \
-namespace tiny_ctti                                                                                                                                              \
-{                                                                                                                                                                \
-    template<> inline constexpr bool is_described_v<T> = true;                                                                                                          \
-    template<> inline constexpr bool is_struct_v<T> = true;                                                                                                             \
-    template<> inline constexpr string_view type_name_v<T> = string_view{ #T, sizeof(#T) - 1 };                                                                         \
-    template<> inline constexpr size_t struct_size_v<T> = TCTTI_ARGS_COUNT(__VA_ARGS__);                                                                                \
-    TCTTI_FOR_EACH(TCTTI_CREATE_STRUCT_FIELD, T, __VA_ARGS__);                                                                                                   \
-}
+#define TINY_CTTI_DESCRIBE_STRUCT(T, ...)                                                                                                                                          \
+constexpr bool tiny_ctti_is_described(tiny_ctti::type_tag<T>) { return true; }                                                                                                     \
+constexpr bool tiny_ctti_is_struct(tiny_ctti::type_tag<T>) { return true; }                                                                                                        \
+constexpr tiny_ctti::string_view tiny_ctti_get_type_name(tiny_ctti::type_tag<T>) { return { #T, sizeof(#T) - 1 }; }                                                                \
+constexpr size_t tiny_ctti_get_struct_size(tiny_ctti::type_tag<T>) { return TCTTI_ARGS_COUNT(__VA_ARGS__); }                                                                       \
+TCTTI_FOR_EACH(TCTTI_CREATE_STRUCT_FIELD, T, __VA_ARGS__)
 
 //////////////////////////////////////////////////////////////////////////
 
-#define TCTTI_CREATE_ENUM_ENTRY(T, I, X) enum_entry<T>{T::X, string_view{ #X, sizeof(#X) - 1 }},
-#define TCTTI_CREATE_STRUCT_ENTRY(T, I, X) struct_entry{&T::X, string_view{ #X, sizeof(#X) - 1 }},
-#define TCTTI_CREATE_STRUCT_FIELD(T, I, X) template<> inline constexpr struct_entry struct_fields_v<T, I> = { &T::X, string_view{ #X, sizeof(#X) - 1 } };
+#define TCTTI_CREATE_ENUM_ENTRY(T, I, X) tiny_ctti::enum_entry<T>{T::X, tiny_ctti::string_view{ #X, sizeof(#X) - 1 }},
+#define TCTTI_CREATE_STRUCT_FIELD(T, I, X) constexpr auto tiny_ctti_get_struct_field(tiny_ctti::type_tag<T>, tiny_ctti::index_tag<I>) { return tiny_ctti::struct_entry{ &T::X, tiny_ctti::string_view{ #X, sizeof(#X) - 1 } }; }
 
 //////////////////////////////////////////////////////////////////////////
 

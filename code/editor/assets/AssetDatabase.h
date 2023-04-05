@@ -25,6 +25,7 @@ namespace editor::assets
         Mesh,
         Scene,
     };
+    TINY_CTTI_DESCRIBE_ENUM(AssetType, Image, Material, Mesh, Scene);
 
     struct AssetMetadata
     {
@@ -33,10 +34,8 @@ namespace editor::assets
         AssetType type = AssetType::Image;
         nstl::vector<nstl::string> files;
     };
+    TINY_CTTI_DESCRIBE_STRUCT(AssetMetadata, version, name, type, files);
 }
-
-TINY_CTTI_DESCRIBE_ENUM(editor::assets::AssetType, Image, Material, Mesh, Scene);
-TINY_CTTI_DESCRIBE_STRUCT(editor::assets::AssetMetadata, version, name, type, files);
 
 namespace editor::assets
 {
