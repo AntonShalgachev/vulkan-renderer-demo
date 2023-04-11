@@ -48,13 +48,27 @@ namespace
 
 namespace
 {
+    enum class SamplerFilterMode
+    {
+        Nearest,
+        Linear,
+    };
+    TINY_CTTI_DESCRIBE_ENUM(SamplerFilterMode, Nearest, Linear);
+
+    enum class SamplerWrapMode
+    {
+        Repeat,
+        Mirror,
+        ClampToEdge,
+    };
+    TINY_CTTI_DESCRIBE_ENUM(SamplerWrapMode, Repeat, Mirror, ClampToEdge);
+
     struct SamplerData
     {
-        // TODO use enum
-        int magFilter = 0;
-        int minFilter = 0;
-        int wrapU = 0;
-        int wrapV = 0;
+        SamplerFilterMode magFilter = SamplerFilterMode::Linear;
+        SamplerFilterMode minFilter = SamplerFilterMode::Linear;
+        SamplerWrapMode wrapU = SamplerWrapMode::Repeat;
+        SamplerWrapMode wrapV = SamplerWrapMode::Repeat;
     };
     TINY_CTTI_DESCRIBE_STRUCT(SamplerData, magFilter, minFilter, wrapU, wrapV);
 
@@ -213,6 +227,46 @@ namespace
         return {};
     }
 
+    SamplerFilterMode getFilterMode(cgltf_int mode)
+    {
+        // TODO remove magic numbers
+
+        switch (mode)
+        {
+        case 9728: // NEAREST:
+        case 9984: // NEAREST_MIPMAP_NEAREST:
+        case 9986: // NEAREST_MIPMAP_LINEAR:
+            return SamplerFilterMode::Nearest;
+
+        case 0:
+        case 9729: // LINEAR:
+        case 9985: // LINEAR_MIPMAP_NEAREST:
+        case 9987: // LINEAR_MIPMAP_LINEAR:
+            return SamplerFilterMode::Linear;
+        }
+
+        assert(false);
+        return SamplerFilterMode::Nearest;
+    };
+
+    SamplerWrapMode getWrapMode(cgltf_int mode)
+    {
+        // TODO remove magic numbers
+
+        switch (mode)
+        {
+        case 10497: // REPEAT:
+            return SamplerWrapMode::Repeat;
+        case 33071: // CLAMP_TO_EDGE:
+            return SamplerWrapMode::ClampToEdge;
+        case 33648: // MIRRORED_REPEAT:
+            return SamplerWrapMode::Mirror;
+        }
+
+        assert(false);
+        return SamplerWrapMode::Repeat;
+    };
+
     editor::assets::Uuid importMaterial(size_t i, cgltf_data const& data, editor::assets::ImportDescription const& desc, GltfResources const& resources, editor::assets::AssetDatabase& database)
     {
         cgltf_material const& material = data.materials[i];
@@ -224,12 +278,14 @@ namespace
             size_t imageIndex = findIndex(texture.image, data.images, data.images_count);
             textureData.image = resources.images[imageIndex];
 
-            assert(texture.sampler);
-            cgltf_sampler const& sampler = *texture.sampler;
-            textureData.sampler.magFilter = sampler.mag_filter;
-            textureData.sampler.minFilter = sampler.min_filter;
-            textureData.sampler.wrapU = sampler.wrap_s;
-            textureData.sampler.wrapV = sampler.wrap_t;
+            if (texture.sampler)
+            {
+                cgltf_sampler const& sampler = *texture.sampler;
+                textureData.sampler.magFilter = getFilterMode(sampler.mag_filter);
+                textureData.sampler.minFilter = getFilterMode(sampler.min_filter);
+                textureData.sampler.wrapU = getWrapMode(sampler.wrap_s);
+                textureData.sampler.wrapV = getWrapMode(sampler.wrap_t);
+            }
 
             return textureData;
         };
@@ -244,6 +300,7 @@ namespace
 
         if (material.has_pbr_metallic_roughness)
         {
+            static_assert(sizeof(material.pbr_metallic_roughness.base_color_factor) == sizeof(glm::vec4));
             materialData.baseColor = glm::make_vec4(material.pbr_metallic_roughness.base_color_factor);
 
             if (auto texture = material.pbr_metallic_roughness.base_color_texture.texture)
