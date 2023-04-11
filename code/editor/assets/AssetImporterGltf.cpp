@@ -46,8 +46,46 @@ namespace
     }
 }
 
+// Textures
 namespace
 {
+    editor::assets::Uuid importImage(size_t i, cgltf_data const& data, editor::assets::ImportDescription const& desc, GltfResources const& resources, editor::assets::AssetDatabase& database)
+    {
+        cgltf_image const& image = data.images[i];
+
+        if (image.uri)
+        {
+            nstl::string_view mimeType = image.mime_type;
+
+            nstl::string_view uri = image.uri;
+            assert(!uri.starts_with("data:")); // TODO implement
+
+            nstl::vector<editor::assets::Uuid> importedImages = database.importAsset(path::join(desc.parentDirectory, uri));
+            assert(importedImages.size() == 1);
+            return importedImages[0];
+        }
+        else if (image.buffer_view)
+        {
+            assert(false); // TODO implement
+            return {};
+        }
+
+        assert(false);
+        return {};
+    }
+}
+
+// Materials
+namespace
+{
+    enum class AlphaMode
+    {
+        Opaque,
+        Mask,
+        Blend,
+    };
+    TINY_CTTI_DESCRIBE_ENUM(AlphaMode, Opaque, Mask, Blend);
+
     enum class SamplerFilterMode
     {
         Nearest,
@@ -79,14 +117,6 @@ namespace
     };
     TINY_CTTI_DESCRIBE_STRUCT(TextureData, image, sampler);
 
-    enum class AlphaMode
-    {
-        Opaque,
-        Mask,
-        Blend,
-    };
-    TINY_CTTI_DESCRIBE_ENUM(AlphaMode, Opaque, Mask, Blend);
-
     struct MaterialData
     {
         uint16_t version = 0;
@@ -101,91 +131,7 @@ namespace
         nstl::optional<TextureData> normalTexture;
     };
     TINY_CTTI_DESCRIBE_STRUCT(MaterialData, version, alphaMode, alphaCutoff, doubleSided, baseColor, baseColorTexture, metallicRoughnessTexture, normalTexture);
-}
 
-namespace
-{
-    // TODO extend?
-    enum class Topology
-    {
-        Lines,
-        Triangles,
-        TriangleStrip,
-        TriangleFan,
-    };
-    TINY_CTTI_DESCRIBE_ENUM(Topology, Lines, Triangles, TriangleStrip, TriangleFan);
-
-    enum class DataType
-    {
-        Scalar,
-        Vec2,
-        Vec3,
-        Vec4,
-        Mat2,
-        Mat3,
-        Mat4,
-    };
-    TINY_CTTI_DESCRIBE_ENUM(DataType, Scalar, Vec2, Vec3, Vec4, Mat2, Mat3, Mat4);
-
-    enum class DataComponentType
-    {
-        Int8,
-        UInt8,
-        Int16,
-        UInt16,
-        UInt32,
-        Float,
-    };
-    TINY_CTTI_DESCRIBE_ENUM(DataComponentType, Int8, UInt8, Int16, UInt16, UInt32, Float);
-
-    enum class AttributeSemantic
-    {
-        Position,
-        Normal,
-        Tangent,
-        Texcoord,
-    };
-    TINY_CTTI_DESCRIBE_ENUM(AttributeSemantic, Position, Normal, Tangent, Texcoord);
-
-    struct DataAccessorDescription
-    {
-        DataType type = DataType::Scalar;
-        DataComponentType componentType = DataComponentType::Float;
-        size_t count = 0;
-        size_t stride = 0;
-        size_t bufferOffset = 0;
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(DataAccessorDescription, type, componentType, count, stride, bufferOffset);
-
-    struct VertexAttributeDescription
-    {
-        AttributeSemantic semantic;
-        size_t index = 0;
-        DataAccessorDescription accessor;
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(VertexAttributeDescription, semantic, index, accessor);
-
-    struct PrimitiveDescription
-    {
-        editor::assets::Uuid material;
-        Topology topology = Topology::Triangles;
-
-        DataAccessorDescription indices;
-        nstl::vector<VertexAttributeDescription> vertexAttributes;
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(PrimitiveDescription, material, topology, indices, vertexAttributes);
-
-    struct MeshData
-    {
-        uint16_t version = 0;
-        nstl::vector<PrimitiveDescription> primitives;
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(MeshData, version, primitives);
-}
-
-
-namespace
-{
     AlphaMode getAlphaMode(cgltf_alpha_mode mode)
     {
         switch (mode)
@@ -200,31 +146,6 @@ namespace
 
         assert(false);
         return AlphaMode::Opaque;
-    }
-
-    editor::assets::Uuid importImage(size_t i, cgltf_data const& data, editor::assets::ImportDescription const& desc, GltfResources const& resources, editor::assets::AssetDatabase& database)
-    {
-        cgltf_image const& image = data.images[i];
-
-        if (image.uri)
-        {
-            nstl::string_view mimeType = image.mime_type;
-
-            nstl::string_view uri = image.uri;
-            assert(!uri.starts_with("data:")); // TODO implement
-
-            nstl::vector<editor::assets::Uuid> importedImages = database.importAsset(path::join(desc.parentDirectory, uri));
-            assert(importedImages.size() == 1);
-            return importedImages[0];
-        }
-        else if (image.buffer_view)
-        {
-            assert(false); // TODO implement
-            return {};
-        }
-
-        assert(false);
-        return {};
     }
 
     SamplerFilterMode getFilterMode(cgltf_int mode)
@@ -329,6 +250,87 @@ namespace
 
         return id;
     }
+}
+
+// Meshes
+namespace
+{
+    // TODO extend?
+    enum class Topology
+    {
+        Lines,
+        Triangles,
+        TriangleStrip,
+        TriangleFan,
+    };
+    TINY_CTTI_DESCRIBE_ENUM(Topology, Lines, Triangles, TriangleStrip, TriangleFan);
+
+    enum class DataType
+    {
+        Scalar,
+        Vec2,
+        Vec3,
+        Vec4,
+        Mat2,
+        Mat3,
+        Mat4,
+    };
+    TINY_CTTI_DESCRIBE_ENUM(DataType, Scalar, Vec2, Vec3, Vec4, Mat2, Mat3, Mat4);
+
+    enum class DataComponentType
+    {
+        Int8,
+        UInt8,
+        Int16,
+        UInt16,
+        UInt32,
+        Float,
+    };
+    TINY_CTTI_DESCRIBE_ENUM(DataComponentType, Int8, UInt8, Int16, UInt16, UInt32, Float);
+
+    enum class AttributeSemantic
+    {
+        Position,
+        Normal,
+        Tangent,
+        Texcoord,
+    };
+    TINY_CTTI_DESCRIBE_ENUM(AttributeSemantic, Position, Normal, Tangent, Texcoord);
+
+    struct DataAccessorDescription
+    {
+        DataType type = DataType::Scalar;
+        DataComponentType componentType = DataComponentType::Float;
+        size_t count = 0;
+        size_t stride = 0;
+        size_t bufferOffset = 0;
+    };
+    TINY_CTTI_DESCRIBE_STRUCT(DataAccessorDescription, type, componentType, count, stride, bufferOffset);
+
+    struct VertexAttributeDescription
+    {
+        AttributeSemantic semantic;
+        size_t index = 0;
+        DataAccessorDescription accessor;
+    };
+    TINY_CTTI_DESCRIBE_STRUCT(VertexAttributeDescription, semantic, index, accessor);
+
+    struct PrimitiveDescription
+    {
+        editor::assets::Uuid material;
+        Topology topology = Topology::Triangles;
+
+        DataAccessorDescription indices;
+        nstl::vector<VertexAttributeDescription> vertexAttributes;
+    };
+    TINY_CTTI_DESCRIBE_STRUCT(PrimitiveDescription, material, topology, indices, vertexAttributes);
+
+    struct MeshData
+    {
+        uint16_t version = 0;
+        nstl::vector<PrimitiveDescription> primitives;
+    };
+    TINY_CTTI_DESCRIBE_STRUCT(MeshData, version, primitives);
 
     DataComponentType getDataComponentType(cgltf_component_type componentType)
     {
