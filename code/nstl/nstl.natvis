@@ -61,4 +61,12 @@
     </Expand>
   </Type>
 
+  <Type Name="nstl::optional&lt;*&gt;">
+    <DisplayString Condition="!m_hasValue">null</DisplayString>
+    <DisplayString Condition="m_hasValue">{m_value}</DisplayString>
+    <Expand>
+      <Item Condition="m_hasValue" Name="value">m_value</Item>
+    </Expand>
+  </Type>
+
 </AutoVisualizer>
