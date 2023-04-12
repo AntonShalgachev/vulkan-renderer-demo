@@ -18,6 +18,7 @@ namespace editor::assets
         uint8_t bytes[16] = {};
 
         bool operator==(Uuid const&) const = default;
+        operator bool() const { return *this != Uuid{}; }
 
         static Uuid generate();
         nstl::string toString() const;

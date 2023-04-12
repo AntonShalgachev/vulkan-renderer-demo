@@ -26,6 +26,7 @@ namespace
 {
     constexpr uint16_t materialAssetVersion = 1; // TODO move somewhere where the material would be also read
     constexpr uint16_t meshAssetVersion = 1; // TODO move somewhere where the mesh would be also read
+    constexpr uint16_t sceneAssetVersion = 1; // TODO move somewhere where the mesh would be also read
 
     struct GltfResources
     {
@@ -34,6 +35,7 @@ namespace
         nstl::vector<editor::assets::Uuid> images;
         nstl::vector<editor::assets::Uuid> materials;
         nstl::vector<editor::assets::Uuid> meshes;
+        nstl::vector<editor::assets::Uuid> scenes;
     };
 
     template<typename T>
@@ -645,8 +647,233 @@ namespace
     }
 }
 
+// Scenes
+namespace
+{
+    // TODO generalize; these are basically "components"
+    struct TransformParams
+    {
+        glm::vec3 position = { 0, 0, 0 };
+        glm::vec3 scale = { 1, 1, 1 };
+        glm::quat rotation = glm::identity<glm::quat>(); // TODO or euler angles?
+    };
+    TINY_CTTI_DESCRIBE_STRUCT(TransformParams, position, scale, rotation);
+
+    struct MeshParams
+    {
+        editor::assets::Uuid id;
+    };
+    TINY_CTTI_DESCRIBE_STRUCT(MeshParams, id);
+
+    enum class CameraType
+    {
+        Perspective,
+        Orthographic,
+    };
+    TINY_CTTI_DESCRIBE_ENUM(CameraType, Perspective, Orthographic);
+
+    struct PerspectiveCameraParams
+    {
+        float fov = 0.0f;
+        nstl::optional<float> farZ;
+        float nearZ = 0.0f;
+    };
+    TINY_CTTI_DESCRIBE_STRUCT(PerspectiveCameraParams, fov, farZ, nearZ);
+
+    struct OrthographicCameraParams
+    {
+        float magX = 0.0f;
+        float magY = 0.0f;
+        float farZ = 0.0f;
+        float nearZ = 0.0f;
+    };
+    TINY_CTTI_DESCRIBE_STRUCT(OrthographicCameraParams, magX, magY, farZ, nearZ);
+
+    struct CameraParams
+    {
+        // TODO feels like std::variant
+        CameraType type;
+        nstl::optional<PerspectiveCameraParams> perspective;
+        nstl::optional<OrthographicCameraParams> orthographic;
+    };
+    TINY_CTTI_DESCRIBE_STRUCT(CameraParams, type, perspective, orthographic);
+
+    struct ObjectDescription
+    {
+        nstl::string name;
+
+        nstl::optional<size_t> parentIndex;
+        nstl::vector<size_t> childrenIndices;
+
+        nstl::optional<TransformParams> transform;
+        nstl::optional<MeshParams> mesh;
+        nstl::optional<CameraParams> camera;
+    };
+    TINY_CTTI_DESCRIBE_STRUCT(ObjectDescription, name, parentIndex, childrenIndices, transform, mesh, camera);
+
+    struct SceneData
+    {
+        uint16_t version = 0;
+        nstl::vector<ObjectDescription> objects;
+    };
+    TINY_CTTI_DESCRIBE_STRUCT(SceneData, version, objects);
+
+    TransformParams createTransform(cgltf_node const& node)
+    {
+        if (node.has_matrix)
+        {
+            glm::vec3 position;
+            glm::vec3 scale;
+            glm::quat rotation;
+            glm::vec3 skew;
+            glm::vec4 perspective;
+            glm::decompose(glm::make_mat4(node.matrix), scale, rotation, position, skew, perspective);
+
+            return TransformParams{ position, scale, rotation };
+        }
+
+        TransformParams transform;
+
+        if (node.has_translation)
+            transform.position = glm::make_vec3(node.translation);
+
+        if (node.has_scale)
+            transform.scale = glm::make_vec3(node.scale);
+
+        if (node.has_rotation)
+            transform.rotation = glm::make_quat(node.rotation);
+
+        return transform;
+    }
+
+    size_t addObjectsRecursive(cgltf_node const& node, cgltf_data const& data, SceneData& sceneData, GltfResources const& resources)
+    {
+        size_t objectDataIndex = sceneData.objects.size();
+
+        // A reference to objectData might become invalid if sceneData.objects would relocate its items
+        {
+            ObjectDescription& objectData = sceneData.objects.emplace_back();
+
+            if (node.name)
+                objectData.name = node.name;
+            else if (node.mesh && node.mesh->name)
+                objectData.name = node.mesh->name;
+            else if (node.camera && node.camera->name)
+                objectData.name = node.camera->name;
+            else if (node.light && node.light->name)
+                objectData.name = node.light->name;
+            else if (node.skin && node.skin->name)
+                objectData.name = node.skin->name;
+            else
+                objectData.name = "Unnamed object";
+
+            objectData.transform = createTransform(node);
+
+            if (node.mesh)
+            {
+                size_t meshIndex = findIndex(node.mesh, data.meshes, data.meshes_count);
+                objectData.mesh = MeshParams{ .id = resources.meshes[meshIndex], };
+            }
+
+            if (node.camera)
+            {
+                cgltf_camera const& camera = *node.camera;
+
+                CameraParams cameraParams;
+
+                if (camera.type == cgltf_camera_type_orthographic)
+                {
+                    cgltf_camera_orthographic const& params = camera.data.orthographic;
+
+                    cameraParams.type = CameraType::Orthographic;
+                    cameraParams.orthographic = OrthographicCameraParams{
+                        .magX = params.xmag,
+                        .magY = params.ymag,
+                        .farZ = params.zfar,
+                        .nearZ = params.znear,
+                    };
+                }
+                else if (camera.type == cgltf_camera_type_perspective)
+                {
+                    cgltf_camera_perspective const& params = camera.data.perspective;
+
+                    cameraParams.type = CameraType::Perspective;
+                    cameraParams.perspective = PerspectiveCameraParams{
+                        .fov = params.yfov,
+                        .farZ = params.has_zfar ? params.zfar : nstl::optional<float>{},
+                        .nearZ = params.znear,
+                    };
+                }
+                else
+                {
+                    assert(false);
+                }
+
+                objectData.camera = cameraParams;
+            }
+        }
+
+        sceneData.objects.reserve(sceneData.objects.size() + node.children_count);
+        for (size_t i = 0; i < node.children_count; i++)
+        {
+            size_t childDataIndex = addObjectsRecursive(*node.children[i], data, sceneData, resources);
+
+            ObjectDescription& childData = sceneData.objects[childDataIndex];
+            ObjectDescription& objectData = sceneData.objects[objectDataIndex];
+
+            assert(!childData.parentIndex);
+            childData.parentIndex = childDataIndex;
+            objectData.childrenIndices.push_back(childDataIndex);
+        }
+
+        return objectDataIndex;
+    }
+
+    editor::assets::Uuid importScene(size_t i, cgltf_data const& data, editor::assets::ImportDescription const& desc, GltfResources const& resources, editor::assets::AssetDatabase& database)
+    {
+        assert(i < data.scenes_count);
+        cgltf_scene const& scene = data.scenes[i];
+
+        SceneData sceneData = {
+            .version = sceneAssetVersion,
+            .objects = {},
+        };
+
+        sceneData.objects.reserve(sceneData.objects.size() + scene.nodes_count);
+        for (size_t index = 0; index < scene.nodes_count; index++)
+            addObjectsRecursive(*scene.nodes[index], data, sceneData, resources);
+
+        nstl::string serializedScene;
+        {
+            namespace json = yyjsoncpp;
+
+            json::mutable_doc doc;
+            json::mutable_value_ref root = doc.create_value(sceneData);
+            doc.set_root(root);
+
+            serializedScene = doc.write(json::write_flags::pretty);
+        }
+
+        nstl::string name = scene.name ? scene.name : nstl::sprintf("%.*s scene %zu", desc.name.slength(), desc.name.data(), i);
+        editor::assets::Uuid id = database.createAsset(editor::assets::AssetType::Scene, name);
+        database.addAssetFile(id, serializedScene, "scene.json");
+
+        return id;
+    }
+}
+
+// TODO move somewhere
 namespace yyjsoncpp
 {
+    template<>
+    struct serializer<glm::vec3>
+    {
+        static mutable_value_ref to_json(mutable_doc& doc, glm::vec3 const& value)
+        {
+            return doc.create_array(value.x, value.y, value.z);
+        }
+    };
+
     template<>
     struct serializer<glm::vec4>
     {
@@ -657,10 +884,22 @@ namespace yyjsoncpp
     };
 
     template<>
+    struct serializer<glm::quat>
+    {
+        static mutable_value_ref to_json(mutable_doc& doc, glm::quat const& value)
+        {
+            return doc.create_array(value.x, value.y, value.z, value.w);
+        }
+    };
+
+    template<>
     struct serializer<editor::assets::Uuid>
     {
         static mutable_value_ref to_json(mutable_doc& doc, editor::assets::Uuid const& value)
         {
+            if (!value)
+                return doc.create_null();
+
             return doc.create_string(value.toString());
         }
     };
@@ -746,50 +985,13 @@ nstl::vector<editor::assets::Uuid> editor::assets::AssetImporterGltf::parseGltfD
         resources.meshes.push_back(asset);
         result.push_back(asset);
     }
-// 
-//     for (size_t i = 0; i < data.cameras_count; i++)
-//     {
-//         cgltf_camera const& gltfCamera = data.cameras[i];
-// 
-//         if (gltfCamera.type == cgltf_camera_type_perspective)
-//         {
-//             cgltf_camera_perspective const& gltfParams = gltfCamera.data.perspective;
-// 
-//             assert(gltfParams.has_zfar);
-//         }
-//         else
-//         {
-//             assert(false);
-//         }
-//     }
-// 
-//     {
-//         assert(data.scene);
-//         m_demoScene = createDemoScene(model, *data.scene);
-// 
-//         qsort(m_demoScene.objects.data(), m_demoScene.objects.size(), sizeof(vkgfx::TestObject), [](void const* p1, void const* p2) -> int
-//         {
-//             vkgfx::TestObject const& lhs = *static_cast<vkgfx::TestObject const*>(p1);
-//         vkgfx::TestObject const& rhs = *static_cast<vkgfx::TestObject const*>(p2);
-// 
-//         auto cmp = [](auto const& lhs, auto const& rhs) -> int
-//         {
-//             return (lhs > rhs) - (lhs < rhs);
-//         };
-// 
-//         if (lhs.pipeline != rhs.pipeline)
-//             return cmp(lhs.pipeline, rhs.pipeline);
-// 
-//         return cmp(lhs.material, rhs.material);
-//         });
-// 
-//         if (!m_demoScene.cameras.empty())
-//         {
-//             DemoCamera const& camera = m_demoScene.cameras[0];
-//             m_cameraTransform = camera.transform;
-//             m_cameraParameters = m_gltfResources->cameraParameters[camera.parametersIndex];
-//         }
-//     }
+
+    for (auto i = 0; i < data.scenes_count; i++)
+    {
+        Uuid asset = importScene(i, data, desc, resources, m_database);
+        resources.scenes.push_back(asset);
+        result.push_back(asset);
+    }
 
     return result;
 }
