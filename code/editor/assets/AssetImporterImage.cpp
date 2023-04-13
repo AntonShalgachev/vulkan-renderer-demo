@@ -125,9 +125,13 @@ namespace
 
     nstl::vector<unsigned char> createImage(nstl::span<unsigned char const> content)
     {
+        int req_comp = 4; // TODO remove this? GPU doesn't support RGB format
         int w = 0, h = 0, comp = 0;
-        unsigned char* data = stbi_load_from_memory(content.data(), content.size(), &w, &h, &comp, 0);
+        unsigned char* data = stbi_load_from_memory(content.data(), content.size(), &w, &h, &comp, req_comp);
         int bits = 8;
+
+        if (req_comp != 0)
+            comp = req_comp;
 
         assert(data);
         assert(w > 0 && h > 0);
