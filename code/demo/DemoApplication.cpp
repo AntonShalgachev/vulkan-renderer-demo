@@ -4,8 +4,11 @@
 #include "glm.h"
 #include "dds-ktx.h"
 #include "cgltf.h"
+#include "ktx.h"
 
 #include "imgui.h"
+
+#include <vulkan/vulkan.h>
 
 #include "vko/SamplerProperties.h"
 #include "vko/DebugMessage.h"
@@ -224,6 +227,7 @@ namespace
             return vkgfx::ImageFormat::BC1_UNORM;
         }(info.format);
 
+        // TODO don't include the header
         imageData.bytes.resize(bytes.size());
         memcpy(imageData.bytes.data(), bytes.data(), bytes.size());
 
@@ -241,6 +245,66 @@ namespace
         return imageData;
     }
 
+    nstl::optional<ImageData> loadWithKtx(nstl::span<unsigned char const> bytes)
+    {
+        static auto scopeId = memory::tracking::create_scope_id("Image/Load/KTX");
+        MEMORY_TRACKING_SCOPE(scopeId);
+
+        ktxTexture2* texture = nullptr;
+        KTX_error_code result = ktxTexture2_CreateFromMemory(bytes.data(), bytes.size(), 0, &texture);
+
+        if (result != KTX_SUCCESS)
+            return {};
+
+        assert(texture);
+
+        assert(texture->numLayers == 1);
+        assert(texture->numFaces == 1);
+        assert(texture->numDimensions == 2);
+
+        ImageData imageData;
+
+        imageData.width = texture->baseWidth;
+        imageData.height = texture->baseHeight;
+
+        imageData.format = [](VkFormat format)
+        {
+            switch (format)
+            {
+            case VK_FORMAT_R8G8B8_UNORM:
+                return vkgfx::ImageFormat::R8G8B8;
+            case VK_FORMAT_R8G8B8A8_UNORM:
+                return vkgfx::ImageFormat::R8G8B8A8;
+            default: // TODO implement other formats
+                assert(false);
+            }
+
+            assert(false);
+            return vkgfx::ImageFormat::R8G8B8A8;
+        }(static_cast<VkFormat>(texture->vkFormat));
+
+        size_t dataSize = ktxTexture_GetDataSize(ktxTexture(texture));
+        imageData.bytes.resize(dataSize);
+
+        result = ktxTexture_LoadImageData(ktxTexture(texture), imageData.bytes.data(), imageData.bytes.size());
+        assert(result == KTX_SUCCESS);
+
+        for (size_t i = 0; i < texture->numLevels; i++)
+        {
+            size_t mipOffset = 0;
+            KTX_error_code result = ktxTexture_GetImageOffset(ktxTexture(texture), i, 0, 0, &mipOffset);
+            assert(result == KTX_SUCCESS);
+
+            size_t mipSize = ktxTexture_GetImageSize(ktxTexture(texture), i);
+
+            imageData.mips.push_back({ mipOffset, mipSize });
+        }
+
+        ktxTexture_Destroy(ktxTexture(texture));
+
+        return imageData;
+    }
+
     nstl::optional<ImageData> loadImage(nstl::span<unsigned char const> bytes)
     {
         static auto scopeId = memory::tracking::create_scope_id("Image/Load");
@@ -250,6 +314,9 @@ namespace
             return data;
 
         if (auto data = loadWithStbImage(bytes))
+            return data;
+
+        if (auto data = loadWithKtx(bytes))
             return data;
 
         return {};
