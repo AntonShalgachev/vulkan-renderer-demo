@@ -20,7 +20,7 @@ public:
         // TODO move it somewhere, preferably coil
         static_assert(coil::detail::FuncTraits<Functor>::isFunc, "Func should be a functor object");
         using FunctionWrapper = typename coil::detail::FuncTraits<Functor>::FunctionWrapperType;
-        return std::move(*this).operator=(coil::AnyFunctor{ FunctionWrapper{coil::move(functor)} });
+        return nstl::move(*this).operator=(coil::AnyFunctor{ FunctionWrapper{coil::move(functor)} });
     }
 
     CommandProxy& operator=(coil::AnyFunctor anyFunctor)&&;
@@ -33,7 +33,7 @@ public:
     template<typename... T>
     CommandProxy&& arguments(T... names)&&
     {
-        return std::move(*this).arguments({ {std::move(names)...} });
+        return nstl::move(*this).arguments({ {nstl::move(names)...} });
     }
 
 private:
@@ -52,14 +52,14 @@ template<typename CommandsContainer>
 CommandProxy<CommandsContainer>& CommandProxy<CommandsContainer>::operator=(coil::AnyFunctor anyFunctor)&&
 {
     coil::Vector<coil::AnyFunctor> functors;
-    functors.pushBack(std::move(anyFunctor));
-    return std::move(*this).operator=(std::move(functors));
+    functors.pushBack(nstl::move(anyFunctor));
+    return nstl::move(*this).operator=(nstl::move(functors));
 }
 
 template<typename CommandsContainer>
 CommandProxy<CommandsContainer>& CommandProxy<CommandsContainer>::operator=(coil::Vector<coil::AnyFunctor> anyFunctors)&&
 {
-    m_commands.add(m_name, std::move(m_metadata), std::move(anyFunctors));
+    m_commands.add(m_name, nstl::move(m_metadata), nstl::move(anyFunctors));
     return *this;
 }
 
@@ -73,8 +73,8 @@ CommandProxy<CommandsContainer>& CommandProxy<CommandsContainer>::operator=(std:
 template<typename CommandsContainer>
 CommandProxy<CommandsContainer>&& CommandProxy<CommandsContainer>::description(nstl::string value)&&
 {
-    m_metadata.description = std::move(value);
-    return std::move(*this);
+    m_metadata.description = nstl::move(value);
+    return nstl::move(*this);
 }
 
 template<typename CommandsContainer>
@@ -98,5 +98,5 @@ CommandProxy<CommandsContainer>&& CommandProxy<CommandsContainer>::arguments(nst
         }
     }
 
-    return std::move(*this);
+    return nstl::move(*this);
 }

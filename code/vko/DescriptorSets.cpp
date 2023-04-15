@@ -4,7 +4,7 @@
 
 vko::DescriptorSets::DescriptorSets(Device const& device, nstl::vector<VkDescriptorSet> handles)
     : m_device(&device)
-    , m_handles(std::move(handles))
+    , m_handles(nstl::move(handles))
 {
 
 }

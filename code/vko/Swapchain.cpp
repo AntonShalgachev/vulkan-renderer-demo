@@ -8,7 +8,7 @@
 
 vko::Swapchain::Swapchain(Device const& device, Surface const& surface, QueueFamily const& graphics, QueueFamily const& presentation, Config config)
     : m_device(device)
-    , m_config(std::move(config))
+    , m_config(nstl::move(config))
 {
     VkSwapchainCreateInfoKHR swapchainCreateInfo{};
     swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -61,7 +61,7 @@ VkSurfaceFormatKHR vko::Swapchain::getSurfaceFormat() const
     return m_config.surfaceFormat;
 }
 
-std::size_t vko::Swapchain::getImageCount() const
+size_t vko::Swapchain::getImageCount() const
 {
     return m_images.size();
 }

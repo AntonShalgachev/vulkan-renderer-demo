@@ -118,7 +118,7 @@ void vko::Instance::findFunctions(bool enableValidation)
 {
     auto findFunction = [this](auto& destination, char const* name)
     {
-        destination = reinterpret_cast<std::decay_t<decltype(destination)>>(vkGetInstanceProcAddr(m_handle.get(), name));
+        destination = reinterpret_cast<nstl::simple_decay_t<decltype(destination)>>(vkGetInstanceProcAddr(m_handle.get(), name));
         assert(destination);
     };
 

@@ -8,6 +8,8 @@
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
+#include <limits.h>
+
 namespace
 {
     GlfwWindow* getWindowFromHandle(GLFWwindow* handle) noexcept
@@ -384,7 +386,7 @@ void GlfwWindow::onKey(int glfwKey, int gltfScancode, int glfwAction, int glfwMo
 
     char c = '\0';
     OldKey key = OldKey::Unknown;
-    if (glfwKey >= 0 && glfwKey < std::numeric_limits<char>::max())
+    if (glfwKey >= 0 && glfwKey < CHAR_MAX)
     {
         key = OldKey::Char;
         c = static_cast<char>(glfwKey);

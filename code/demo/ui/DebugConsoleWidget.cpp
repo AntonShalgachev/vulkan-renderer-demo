@@ -216,12 +216,12 @@ void ui::DebugConsoleWidget::onInputChanged(nstl::string_view input)
     for (DebugConsoleService::Suggestion& candidate : services().debugConsole().getSuggestions(input))
     {
         Suggestion suggestion;
-        suggestion.suggestion = std::move(candidate);
+        suggestion.suggestion = nstl::move(candidate);
 
         if (CommandMetadata const* metadata = services().debugConsole().getMetadata(suggestion.suggestion.command); metadata && !metadata->description.empty())
             suggestion.description = metadata->description;
 
-        m_suggestions.push_back(std::move(suggestion));
+        m_suggestions.push_back(nstl::move(suggestion));
     }
 
     auto const linesCount = nstl::min(m_suggestions.size(), suggestionsLinesCountMax);

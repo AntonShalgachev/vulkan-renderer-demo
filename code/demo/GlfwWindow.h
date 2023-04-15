@@ -143,10 +143,10 @@ public:
     void resize(int width, int height);
 
     vko::Surface createSurface(vko::Instance const& instance) const override;
-    std::size_t getWindowWidth() const { return m_windowWidth; }
-    std::size_t getWindowHeight() const { return m_windowHeight; }
-    std::size_t getFramebufferWidth() const override { return m_framebufferWidth; }
-    std::size_t getFramebufferHeight() const override { return m_framebufferHeight; }
+    size_t getWindowWidth() const { return m_windowWidth; }
+    size_t getWindowHeight() const { return m_windowHeight; }
+    size_t getFramebufferWidth() const override { return m_framebufferWidth; }
+    size_t getFramebufferHeight() const override { return m_framebufferHeight; }
     nstl::vector<char const*> const& getRequiredInstanceExtensions() const override { return m_requiredInstanceExtensions; }
 
     bool getCanCaptureCursor() const { return m_canCaptureCursor; }
@@ -241,7 +241,7 @@ private:
 
 inline GlfwWindow::Modifiers operator|(GlfwWindow::Modifiers lhs, GlfwWindow::Modifiers rhs)
 {
-    using T = std::underlying_type_t<GlfwWindow::Modifiers>;
+    using T = nstl::underlying_type_t<GlfwWindow::Modifiers>;
     return static_cast<GlfwWindow::Modifiers>(static_cast<T>(lhs) | static_cast<T>(rhs));
 }
 
@@ -253,6 +253,6 @@ inline GlfwWindow::Modifiers& operator|=(GlfwWindow::Modifiers& lhs, GlfwWindow:
 
 inline auto operator&(GlfwWindow::Modifiers lhs, GlfwWindow::Modifiers rhs)
 {
-    using T = std::underlying_type_t<GlfwWindow::Modifiers>;
+    using T = nstl::underlying_type_t<GlfwWindow::Modifiers>;
     return static_cast<T>(lhs) & static_cast<T>(rhs);
 }
