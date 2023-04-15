@@ -130,7 +130,7 @@ public:
         // TODO move it somewhere, preferably coil
         static_assert(coil::detail::FuncTraits<Functor>::isFunc, "Func should be a functor object");
         using FunctionWrapper = typename coil::detail::FuncTraits<Functor>::FunctionWrapperType;
-        return add(name, std::move(metadata), coil::AnyFunctor{ FunctionWrapper{coil::move(functor)} });
+        return add(name, nstl::move(metadata), coil::AnyFunctor{ FunctionWrapper{coil::move(functor)} });
     }
     void add(nstl::string_view name, CommandMetadata metadata, coil::AnyFunctor anyFunctor);
     void add(nstl::string_view name, CommandMetadata metadata, coil::Vector<coil::AnyFunctor> anyFunctors);
