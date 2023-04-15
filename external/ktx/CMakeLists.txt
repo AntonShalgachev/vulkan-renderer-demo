@@ -52,6 +52,7 @@ foreach(ASTC_TARGET ${ASTC_TARGETS})
     set_source_files_properties(
         ${ktx_SOURCE_DIR}/lib/astc-encoder/Source/astcenc_color_unquantize.cpp
         ${ktx_SOURCE_DIR}/lib/astc-encoder/Source/astcenc_symbolic_physical.cpp
+        ${ktx_SOURCE_DIR}/lib/astc-encoder/Source/astcenc_weight_align.cpp
 
         TARGET_DIRECTORY ${ASTC_TARGET}
         PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
