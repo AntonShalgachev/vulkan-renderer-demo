@@ -9,4 +9,8 @@ set(GLFW_INSTALL OFF CACHE INTERNAL "")
 set(GLFW_VULKAN_STATIC ON CACHE INTERNAL "")
 FetchDependency(glfw)
 
-target_precompile_headers(glfw PRIVATE "pch.h")
+set_target_properties(glfw
+    PROPERTIES
+    UNITY_BUILD ON
+    UNITY_BUILD_BATCH_SIZE 64
+)

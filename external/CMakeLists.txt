@@ -36,12 +36,6 @@ FetchContent_Declare(
 FetchDependency(fmt)
 
 FetchContent_Declare(
-    vma
-    URL https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/refs/tags/v3.0.1.tar.gz # 3.0.1
-)
-FetchDependency(vma)
-
-FetchContent_Declare(
     yyjson
     URL https://github.com/ibireme/yyjson/archive/refs/tags/0.6.0.tar.gz # 0.6.0
 )

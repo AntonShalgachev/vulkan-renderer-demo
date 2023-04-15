@@ -26,3 +26,9 @@ target_include_directories(imgui PUBLIC
 target_link_libraries(imgui
     glfw
 )
+
+set_target_properties(imgui
+    PROPERTIES
+    UNITY_BUILD ON
+    UNITY_BUILD_BATCH_SIZE 64
+)
