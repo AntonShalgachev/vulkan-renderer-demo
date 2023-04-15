@@ -3,6 +3,8 @@
 #include "yyjsoncpp/config.h"
 #include "yyjsoncpp/serializer.h"
 
+#include <stdint.h>
+
 struct yyjson_val;
 struct yyjson_mut_val;
 
