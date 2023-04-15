@@ -35,7 +35,7 @@ nstl::string_builder& nstl::string_builder::append(string_view str)
         chunk += charsLeftToCopy;
         charsLeftToCopy = {};
 
-        m_chunks.push_back(std::move(chunk));
+        m_chunks.push_back(nstl::move(chunk));
     }
 
     NSTL_ASSERT(charsLeftToCopy.empty());

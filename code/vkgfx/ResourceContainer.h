@@ -5,6 +5,8 @@
 #include "nstl/hash.h"
 #include "nstl/utility.h"
 
+#include <compare> // TODO avoid including this header?
+
 #include <cstdint>
 #include <assert.h>
 

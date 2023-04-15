@@ -1,7 +1,6 @@
 #include "nstl/string_view.h"
 
 #include "nstl/assert.h"
-#include "nstl/lexicographical_compare.h"
 
 #include <string.h>
 
@@ -142,27 +141,32 @@ char const& nstl::string_view::operator[](size_t index) const
     return m_str[index];
 }
 
-std::strong_ordering nstl::string_view::operator<=>(string_view const& rhs) const
-{
-    return nstl::lexicographical_compare_three_way(m_str, m_str + m_length, rhs.m_str, rhs.m_str + rhs.m_length);
-}
-
 bool nstl::operator==(string_view const& lhs, string_view const& rhs)
 {
     if (lhs.empty() && rhs.empty())
         return true;
 
-    if (lhs.length() != rhs.length())
+    if (lhs.m_length != rhs.m_length)
         return false;
 
-    size_t size = lhs.length();
+    size_t size = lhs.m_length;
 
-    return memcmp(lhs.data(), rhs.data(), size) == 0;
+    return memcmp(lhs.m_str, rhs.m_str, size) == 0;
 }
 
 bool nstl::operator!=(string_view const& lhs, string_view const& rhs)
 {
     return !(lhs == rhs);
+}
+
+bool nstl::operator<(string_view const& lhs, string_view const& rhs)
+{
+    size_t common_length = lhs.size() < rhs.size() ? lhs.size() : rhs.size();
+    int cmp = strncmp(lhs.data(), rhs.data(), common_length);
+    if (cmp != 0)
+        return cmp < 0;
+
+    return lhs.size() < rhs.size();
 }
 
 size_t nstl::hash<nstl::string_view>::operator()(string_view const& value)

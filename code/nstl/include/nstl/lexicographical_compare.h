@@ -1,5 +1,7 @@
 #pragma once
 
+#error TODO: reimplement this file without compare
+
 #include <compare> // TODO avoid including this header?
 
 namespace nstl

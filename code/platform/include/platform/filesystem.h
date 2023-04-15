@@ -3,6 +3,8 @@
 #include "nstl/string_view.h"
 #include "nstl/optional.h"
 
+#include <stdint.h>
+
 namespace fs
 {
     enum class open_mode;

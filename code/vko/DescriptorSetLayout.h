@@ -5,7 +5,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include <compare>
+#include <compare> // TODO avoid including this header?
 
 namespace vko
 {

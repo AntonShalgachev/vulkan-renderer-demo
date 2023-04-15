@@ -7,13 +7,11 @@
 #include "span.h"
 #include "type_traits.h"
 #include "algorithm.h"
-#include "lexicographical_compare.h"
 #include "allocator.h"
 
 #include <stddef.h>
 
 #include <initializer_list> // TODO avoid including this header?
-#include <compare> // TODO avoid including this header?
 
 // TODO distinguish between internal asserts and validations (e.g. index-out-of-bounds check should probably be active)
 
@@ -80,7 +78,6 @@ namespace nstl
         T& operator[](size_t index);
 
         bool operator==(vector const& rhs) const;
-        auto operator<=>(vector const& rhs) const;
 
         operator span<T>();
         operator span<T const>() const;
@@ -425,12 +422,6 @@ bool nstl::vector<T>::operator==(vector const& rhs) const
             return false;
 
     return true;
-}
-
-template<typename T>
-auto nstl::vector<T>::operator<=>(vector const& rhs) const
-{
-    return lexicographical_compare_three_way(begin(), end(), rhs.begin(), rhs.end());
 }
 
 template<typename T>
