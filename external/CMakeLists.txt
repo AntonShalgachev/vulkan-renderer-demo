@@ -14,6 +14,7 @@ add_subdirectory(dds-ktx)
 add_subdirectory(cgltf)
 add_subdirectory(stb)
 add_subdirectory(glfw)
+add_subdirectory(ktx)
 
 FetchContent_Declare(
     glm
@@ -45,14 +46,3 @@ FetchContent_Declare(
     URL https://github.com/ibireme/yyjson/archive/refs/tags/0.6.0.tar.gz # 0.6.0
 )
 FetchDependency(yyjson)
-
-FetchContent_Declare(
-    ktx
-    URL https://github.com/KhronosGroup/KTX-Software/archive/f47d1a2e73f93c9433298c5de0a616419b567a4b.zip # Remove note about branch renaming
-)
-set(KTX_FEATURE_TOOLS OFF CACHE INTERNAL "")
-set(KTX_FEATURE_TESTS OFF CACHE INTERNAL "")
-set(KTX_FEATURE_VULKAN OFF CACHE INTERNAL "")
-set(KTX_FEATURE_GL_UPLOAD OFF CACHE INTERNAL "")
-set(KTX_FEATURE_STATIC_LIBRARY ON CACHE INTERNAL "")
-FetchDependency(ktx)
