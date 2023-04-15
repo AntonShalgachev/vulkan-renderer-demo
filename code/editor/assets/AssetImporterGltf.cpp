@@ -2,11 +2,11 @@
 
 #include "AssetDatabase.h"
 #include "ImportDescription.h"
+#include "AssetData.h"
 
 #include "memory/tracking.h"
 #include "common/Utils.h"
 #include "common/glm.h"
-#include "common/tiny_ctti.h"
 #include "common/json-tiny-ctti.h"
 #include "common/json-nstl.h"
 #include "logging/logging.h"
@@ -46,6 +46,18 @@ namespace
         assert(index < count);
         return static_cast<size_t>(index);
     }
+
+    template<typename T>
+    nstl::string serializeToJson(T const& object)
+    {
+        namespace json = yyjsoncpp;
+
+        json::mutable_doc doc;
+        json::mutable_value_ref root = doc.create_value(object);
+        doc.set_root(root);
+
+        return doc.write(json::write_flags::pretty);
+    }
 }
 
 // Textures
@@ -80,77 +92,23 @@ namespace
 // Materials
 namespace
 {
-    enum class AlphaMode
-    {
-        Opaque,
-        Mask,
-        Blend,
-    };
-    TINY_CTTI_DESCRIBE_ENUM(AlphaMode, Opaque, Mask, Blend);
-
-    enum class SamplerFilterMode
-    {
-        Nearest,
-        Linear,
-    };
-    TINY_CTTI_DESCRIBE_ENUM(SamplerFilterMode, Nearest, Linear);
-
-    enum class SamplerWrapMode
-    {
-        Repeat,
-        Mirror,
-        ClampToEdge,
-    };
-    TINY_CTTI_DESCRIBE_ENUM(SamplerWrapMode, Repeat, Mirror, ClampToEdge);
-
-    struct SamplerData
-    {
-        SamplerFilterMode magFilter = SamplerFilterMode::Linear;
-        SamplerFilterMode minFilter = SamplerFilterMode::Linear;
-        SamplerWrapMode wrapU = SamplerWrapMode::Repeat;
-        SamplerWrapMode wrapV = SamplerWrapMode::Repeat;
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(SamplerData, magFilter, minFilter, wrapU, wrapV);
-
-    struct TextureData
-    {
-        editor::assets::Uuid image;
-        SamplerData sampler;
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(TextureData, image, sampler);
-
-    struct MaterialData
-    {
-        uint16_t version = 0;
-
-        AlphaMode alphaMode = AlphaMode::Blend;
-        float alphaCutoff = 0.0f;
-        bool doubleSided = false;
-
-        nstl::optional<glm::vec4> baseColor;
-        nstl::optional<TextureData> baseColorTexture;
-        nstl::optional<TextureData> metallicRoughnessTexture;
-        nstl::optional<TextureData> normalTexture;
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(MaterialData, version, alphaMode, alphaCutoff, doubleSided, baseColor, baseColorTexture, metallicRoughnessTexture, normalTexture);
-
-    AlphaMode getAlphaMode(cgltf_alpha_mode mode)
+    editor::assets::AlphaMode getAlphaMode(cgltf_alpha_mode mode)
     {
         switch (mode)
         {
-        case cgltf_alpha_mode_opaque: return AlphaMode::Opaque;
-        case cgltf_alpha_mode_mask: return AlphaMode::Mask;
-        case cgltf_alpha_mode_blend: return AlphaMode::Blend;
+        case cgltf_alpha_mode_opaque: return editor::assets::AlphaMode::Opaque;
+        case cgltf_alpha_mode_mask: return editor::assets::AlphaMode::Mask;
+        case cgltf_alpha_mode_blend: return editor::assets::AlphaMode::Blend;
 
         default:
             assert(false);
         }
 
         assert(false);
-        return AlphaMode::Opaque;
+        return editor::assets::AlphaMode::Opaque;
     }
 
-    SamplerFilterMode getFilterMode(cgltf_int mode)
+    editor::assets::SamplerFilterMode getFilterMode(cgltf_int mode)
     {
         // TODO remove magic numbers
 
@@ -159,35 +117,35 @@ namespace
         case 9728: // NEAREST:
         case 9984: // NEAREST_MIPMAP_NEAREST:
         case 9986: // NEAREST_MIPMAP_LINEAR:
-            return SamplerFilterMode::Nearest;
+            return editor::assets::SamplerFilterMode::Nearest;
 
         case 0:
         case 9729: // LINEAR:
         case 9985: // LINEAR_MIPMAP_NEAREST:
         case 9987: // LINEAR_MIPMAP_LINEAR:
-            return SamplerFilterMode::Linear;
+            return editor::assets::SamplerFilterMode::Linear;
         }
 
         assert(false);
-        return SamplerFilterMode::Nearest;
+        return editor::assets::SamplerFilterMode::Nearest;
     };
 
-    SamplerWrapMode getWrapMode(cgltf_int mode)
+    editor::assets::SamplerWrapMode getWrapMode(cgltf_int mode)
     {
         // TODO remove magic numbers
 
         switch (mode)
         {
         case 10497: // REPEAT:
-            return SamplerWrapMode::Repeat;
+            return editor::assets::SamplerWrapMode::Repeat;
         case 33071: // CLAMP_TO_EDGE:
-            return SamplerWrapMode::ClampToEdge;
+            return editor::assets::SamplerWrapMode::ClampToEdge;
         case 33648: // MIRRORED_REPEAT:
-            return SamplerWrapMode::Mirror;
+            return editor::assets::SamplerWrapMode::Mirror;
         }
 
         assert(false);
-        return SamplerWrapMode::Repeat;
+        return editor::assets::SamplerWrapMode::Repeat;
     };
 
     editor::assets::Uuid importMaterial(size_t i, cgltf_data const& data, editor::assets::ImportDescription const& desc, GltfResources const& resources, editor::assets::AssetDatabase& database)
@@ -196,7 +154,7 @@ namespace
 
         auto createTextureData = [&resources, &data](cgltf_texture const& texture)
         {
-            TextureData textureData;
+            editor::assets::TextureData textureData;
 
             size_t imageIndex = findIndex(texture.image, data.images, data.images_count);
             textureData.image = resources.images[imageIndex];
@@ -213,7 +171,7 @@ namespace
             return textureData;
         };
 
-        MaterialData materialData;
+        editor::assets::MaterialData materialData;
 
         materialData.version = materialAssetVersion;
 
@@ -235,20 +193,9 @@ namespace
         if (auto texture = material.normal_texture.texture)
             materialData.normalTexture = createTextureData(*texture);
 
-        nstl::string serializedMaterial;
-        {
-            namespace json = yyjsoncpp;
-
-            json::mutable_doc doc;
-            json::mutable_value_ref root = doc.create_value(materialData);
-            doc.set_root(root);
-
-            serializedMaterial = doc.write(json::write_flags::pretty);
-        }
-
         nstl::string name = material.name ? material.name : nstl::sprintf("%.*s material %zu", desc.name.slength(), desc.name.data(), i);
         editor::assets::Uuid id = database.createAsset(editor::assets::AssetType::Material, name);
-        database.addAssetFile(id, serializedMaterial, "material.json");
+        database.addAssetFile(id, serializeToJson(materialData), "material.json");
 
         return id;
     }
@@ -257,128 +204,51 @@ namespace
 // Meshes
 namespace
 {
-    // TODO extend?
-    enum class Topology
-    {
-        Lines,
-        Triangles,
-        TriangleStrip,
-        TriangleFan,
-    };
-    TINY_CTTI_DESCRIBE_ENUM(Topology, Lines, Triangles, TriangleStrip, TriangleFan);
-
-    enum class DataType
-    {
-        Scalar,
-        Vec2,
-        Vec3,
-        Vec4,
-        Mat2,
-        Mat3,
-        Mat4,
-    };
-    TINY_CTTI_DESCRIBE_ENUM(DataType, Scalar, Vec2, Vec3, Vec4, Mat2, Mat3, Mat4);
-
-    enum class DataComponentType
-    {
-        Int8,
-        UInt8,
-        Int16,
-        UInt16,
-        UInt32,
-        Float,
-    };
-    TINY_CTTI_DESCRIBE_ENUM(DataComponentType, Int8, UInt8, Int16, UInt16, UInt32, Float);
-
-    enum class AttributeSemantic
-    {
-        Position,
-        Normal,
-        Tangent,
-        Texcoord,
-    };
-    TINY_CTTI_DESCRIBE_ENUM(AttributeSemantic, Position, Normal, Tangent, Texcoord);
-
-    struct DataAccessorDescription
-    {
-        DataType type = DataType::Scalar;
-        DataComponentType componentType = DataComponentType::Float;
-        size_t count = 0;
-        size_t stride = 0;
-        size_t bufferOffset = 0;
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(DataAccessorDescription, type, componentType, count, stride, bufferOffset);
-
-    struct VertexAttributeDescription
-    {
-        AttributeSemantic semantic;
-        size_t index = 0;
-        DataAccessorDescription accessor;
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(VertexAttributeDescription, semantic, index, accessor);
-
-    struct PrimitiveDescription
-    {
-        editor::assets::Uuid material;
-        Topology topology = Topology::Triangles;
-
-        DataAccessorDescription indices;
-        nstl::vector<VertexAttributeDescription> vertexAttributes;
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(PrimitiveDescription, material, topology, indices, vertexAttributes);
-
-    struct MeshData
-    {
-        uint16_t version = 0;
-        nstl::vector<PrimitiveDescription> primitives;
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(MeshData, version, primitives);
-
-    DataComponentType getDataComponentType(cgltf_component_type componentType)
+    editor::assets::DataComponentType getDataComponentType(cgltf_component_type componentType)
     {
         switch (componentType)
         {
-        case cgltf_component_type_r_8: return DataComponentType::Int8;
-        case cgltf_component_type_r_8u: return DataComponentType::UInt8;
-        case cgltf_component_type_r_16: return DataComponentType::Int16;
-        case cgltf_component_type_r_16u: return DataComponentType::UInt16;
-        case cgltf_component_type_r_32u: return DataComponentType::UInt32;
-        case cgltf_component_type_r_32f: return DataComponentType::Float;
+        case cgltf_component_type_r_8: return editor::assets::DataComponentType::Int8;
+        case cgltf_component_type_r_8u: return editor::assets::DataComponentType::UInt8;
+        case cgltf_component_type_r_16: return editor::assets::DataComponentType::Int16;
+        case cgltf_component_type_r_16u: return editor::assets::DataComponentType::UInt16;
+        case cgltf_component_type_r_32u: return editor::assets::DataComponentType::UInt32;
+        case cgltf_component_type_r_32f: return editor::assets::DataComponentType::Float;
         default:
             assert(false);
         }
 
         assert(false);
-        return DataComponentType::Float;
+        return editor::assets::DataComponentType::Float;
     }
 
-    DataType getDataType(cgltf_type attributeType)
+    editor::assets::DataType getDataType(cgltf_type attributeType)
     {
         switch (attributeType)
         {
-        case cgltf_type_scalar: return DataType::Scalar;
-        case cgltf_type_vec2: return DataType::Vec2;
-        case cgltf_type_vec3: return DataType::Vec3;
-        case cgltf_type_vec4: return DataType::Vec4;
-        case cgltf_type_mat2: return DataType::Mat2;
-        case cgltf_type_mat3: return DataType::Mat3;
-        case cgltf_type_mat4: return DataType::Mat4;
+        case cgltf_type_scalar: return editor::assets::DataType::Scalar;
+        case cgltf_type_vec2: return editor::assets::DataType::Vec2;
+        case cgltf_type_vec3: return editor::assets::DataType::Vec3;
+        case cgltf_type_vec4: return editor::assets::DataType::Vec4;
+        case cgltf_type_mat2: return editor::assets::DataType::Mat2;
+        case cgltf_type_mat3: return editor::assets::DataType::Mat3;
+        case cgltf_type_mat4: return editor::assets::DataType::Mat4;
         default:
             assert(false);
         }
 
         assert(false);
-        return DataType::Scalar;
+        return editor::assets::DataType::Scalar;
     }
 
-    Topology getTopology(cgltf_primitive_type type)
+    editor::assets::Topology getTopology(cgltf_primitive_type type)
     {
         switch (type)
         {
-        case cgltf_primitive_type_lines: return Topology::Lines;
-        case cgltf_primitive_type_triangles: return Topology::Triangles;
-        case cgltf_primitive_type_triangle_strip: return Topology::TriangleStrip;
-        case cgltf_primitive_type_triangle_fan: return Topology::TriangleFan;
+        case cgltf_primitive_type_lines: return editor::assets::Topology::Lines;
+        case cgltf_primitive_type_triangles: return editor::assets::Topology::Triangles;
+        case cgltf_primitive_type_triangle_strip: return editor::assets::Topology::TriangleStrip;
+        case cgltf_primitive_type_triangle_fan: return editor::assets::Topology::TriangleFan;
 
         case cgltf_primitive_type_points:
         case cgltf_primitive_type_line_loop:
@@ -389,50 +259,50 @@ namespace
         }
 
         assert(false);
-        return Topology::Triangles;
+        return editor::assets::Topology::Triangles;
     }
 
-    size_t getComponentSize(DataComponentType type)
+    size_t getComponentSize(editor::assets::DataComponentType type)
     {
         switch (type)
         {
-        case DataComponentType::Int8: return 1;
-        case DataComponentType::UInt8: return 1;
-        case DataComponentType::Int16: return 2;
-        case DataComponentType::UInt16: return 2;
-        case DataComponentType::UInt32: return 4;
-        case DataComponentType::Float: return 4;
+        case editor::assets::DataComponentType::Int8: return 1;
+        case editor::assets::DataComponentType::UInt8: return 1;
+        case editor::assets::DataComponentType::Int16: return 2;
+        case editor::assets::DataComponentType::UInt16: return 2;
+        case editor::assets::DataComponentType::UInt32: return 4;
+        case editor::assets::DataComponentType::Float: return 4;
         }
 
         assert(false);
         return 0;
     }
 
-    size_t getComponentsCount(DataType type)
+    size_t getComponentsCount(editor::assets::DataType type)
     {
         switch (type)
         {
-        case DataType::Scalar: return 1;
-        case DataType::Vec2: return 2;
-        case DataType::Vec3: return 3;
-        case DataType::Vec4: return 4;
-        case DataType::Mat2: return 4;
-        case DataType::Mat3: return 9;
-        case DataType::Mat4: return 16;
+        case editor::assets::DataType::Scalar: return 1;
+        case editor::assets::DataType::Vec2: return 2;
+        case editor::assets::DataType::Vec3: return 3;
+        case editor::assets::DataType::Vec4: return 4;
+        case editor::assets::DataType::Mat2: return 4;
+        case editor::assets::DataType::Mat3: return 9;
+        case editor::assets::DataType::Mat4: return 16;
         }
 
         assert(false);
         return 0;
     }
 
-    AttributeSemantic getAttributeSemantic(cgltf_attribute_type type)
+    editor::assets::AttributeSemantic getAttributeSemantic(cgltf_attribute_type type)
     {
         switch (type)
         {
-        case cgltf_attribute_type_position: return AttributeSemantic::Position;
-        case cgltf_attribute_type_normal: return AttributeSemantic::Normal;
-        case cgltf_attribute_type_tangent: return AttributeSemantic::Tangent;
-        case cgltf_attribute_type_texcoord: return AttributeSemantic::Texcoord;
+        case cgltf_attribute_type_position: return editor::assets::AttributeSemantic::Position;
+        case cgltf_attribute_type_normal: return editor::assets::AttributeSemantic::Normal;
+        case cgltf_attribute_type_tangent: return editor::assets::AttributeSemantic::Tangent;
+        case cgltf_attribute_type_texcoord: return editor::assets::AttributeSemantic::Texcoord;
 
         case cgltf_attribute_type_color:
         case cgltf_attribute_type_joints:
@@ -445,7 +315,7 @@ namespace
         }
 
         assert(false);
-        return AttributeSemantic::Position;
+        return editor::assets::AttributeSemantic::Position;
     }
 
     void* memcpy_stride(void* destination, void const* source, size_t count, size_t chunk_size, size_t dst_stride, size_t src_stride)
@@ -474,8 +344,8 @@ namespace
     {
         size_t bufferIndex = 0;
 
-        DataType type = DataType::Scalar;
-        DataComponentType componentType = DataComponentType::Float;
+        editor::assets::DataType type = editor::assets::DataType::Scalar;
+        editor::assets::DataComponentType componentType = editor::assets::DataComponentType::Float;
 
         size_t count = 0;
         size_t elementSize = 0;
@@ -534,7 +404,7 @@ namespace
         return params;
     }
 
-    PrimitiveDescription appendPrimitive(cgltf_primitive const& primitive, nstl::span<unsigned char> destinationData, cgltf_data const& data, GltfResources const& resources, PrimitiveParams const& params)
+    editor::assets::PrimitiveDescription appendPrimitive(cgltf_primitive const& primitive, nstl::span<unsigned char> destinationData, cgltf_data const& data, GltfResources const& resources, PrimitiveParams const& params)
     {
         auto appendChunk = [&data, &resources, &destinationData](cgltf_accessor const& accessor, DataLayout const& layout, size_t offset, size_t stride)
         {
@@ -552,7 +422,7 @@ namespace
             assert(destinationOffset + destinationStride * (count - 1) + elementSize <= destinationData.size());
             memcpy_stride(destinationData.data() + destinationOffset, sourceData.cdata() + sourceOffset, count, elementSize, destinationStride, sourceStride);
 
-            DataAccessorDescription result;
+            editor::assets::DataAccessorDescription result;
 
             result.type = layout.type;
             result.componentType = layout.componentType;
@@ -563,7 +433,7 @@ namespace
             return result;
         };
 
-        PrimitiveDescription description;
+        editor::assets::PrimitiveDescription description;
 
         size_t materialIndex = findIndex(primitive.material, data.materials, data.materials_count);
 
@@ -573,7 +443,7 @@ namespace
         size_t indexOffset = 0;
         size_t indexStride = 0;
 
-        assert(params.indexLayout.type == DataType::Scalar);
+        assert(params.indexLayout.type == editor::assets::DataType::Scalar);
         description.indices = appendChunk(*primitive.indices, params.indexLayout, indexOffset, indexStride);
 
         size_t verticesOffset = params.indexLayout.byteSize;
@@ -586,7 +456,7 @@ namespace
 
             DataLayout const& layout = params.attributeLayouts[i];
 
-            VertexAttributeDescription& vertexAttributeDescription = description.vertexAttributes.emplace_back();
+            editor::assets::VertexAttributeDescription& vertexAttributeDescription = description.vertexAttributes.emplace_back();
             vertexAttributeDescription.semantic = getAttributeSemantic(attribute.type);
             vertexAttributeDescription.index = attribute.index;
 
@@ -615,32 +485,21 @@ namespace
 
         nstl::blob destinationData{ meshByteSize };
 
-        nstl::vector<PrimitiveDescription> primitives;
+        nstl::vector<editor::assets::PrimitiveDescription> primitives;
         primitives.reserve(mesh.primitives_count);
         assert(primitiveParams.size() == mesh.primitives_count);
 
         for (size_t i = 0; i < mesh.primitives_count; i++)
             primitives.push_back(appendPrimitive(mesh.primitives[i], destinationData, data, resources, primitiveParams[i]));
 
-        MeshData meshData = {
+        editor::assets::MeshData meshData = {
             .version = meshAssetVersion,
             .primitives = nstl::move(primitives),
         };
 
-        nstl::string serializedMesh;
-        {
-            namespace json = yyjsoncpp;
-
-            json::mutable_doc doc;
-            json::mutable_value_ref root = doc.create_value(meshData);
-            doc.set_root(root);
-
-            serializedMesh = doc.write(json::write_flags::pretty);
-        }
-
         nstl::string name = mesh.name ? mesh.name : nstl::sprintf("%.*s mesh %zu", desc.name.slength(), desc.name.data(), i);
         editor::assets::Uuid id = database.createAsset(editor::assets::AssetType::Mesh, name);
-        database.addAssetFile(id, serializedMesh, "mesh.json");
+        database.addAssetFile(id, serializeToJson(meshData), "mesh.json");
         database.addAssetFile(id, destinationData, "buffer.bin");
 
         return id;
@@ -650,75 +509,7 @@ namespace
 // Scenes
 namespace
 {
-    // TODO generalize; these are basically "components"
-    struct TransformParams
-    {
-        glm::vec3 position = { 0, 0, 0 };
-        glm::vec3 scale = { 1, 1, 1 };
-        glm::quat rotation = glm::identity<glm::quat>(); // TODO or euler angles?
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(TransformParams, position, scale, rotation);
-
-    struct MeshParams
-    {
-        editor::assets::Uuid id;
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(MeshParams, id);
-
-    enum class CameraType
-    {
-        Perspective,
-        Orthographic,
-    };
-    TINY_CTTI_DESCRIBE_ENUM(CameraType, Perspective, Orthographic);
-
-    struct PerspectiveCameraParams
-    {
-        float fov = 0.0f;
-        nstl::optional<float> farZ;
-        float nearZ = 0.0f;
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(PerspectiveCameraParams, fov, farZ, nearZ);
-
-    struct OrthographicCameraParams
-    {
-        float magX = 0.0f;
-        float magY = 0.0f;
-        float farZ = 0.0f;
-        float nearZ = 0.0f;
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(OrthographicCameraParams, magX, magY, farZ, nearZ);
-
-    struct CameraParams
-    {
-        // TODO feels like std::variant
-        CameraType type;
-        nstl::optional<PerspectiveCameraParams> perspective;
-        nstl::optional<OrthographicCameraParams> orthographic;
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(CameraParams, type, perspective, orthographic);
-
-    struct ObjectDescription
-    {
-        nstl::string name;
-
-        nstl::optional<size_t> parentIndex;
-        nstl::vector<size_t> childrenIndices;
-
-        nstl::optional<TransformParams> transform;
-        nstl::optional<MeshParams> mesh;
-        nstl::optional<CameraParams> camera;
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(ObjectDescription, name, parentIndex, childrenIndices, transform, mesh, camera);
-
-    struct SceneData
-    {
-        uint16_t version = 0;
-        nstl::vector<ObjectDescription> objects;
-    };
-    TINY_CTTI_DESCRIBE_STRUCT(SceneData, version, objects);
-
-    TransformParams createTransform(cgltf_node const& node)
+    editor::assets::TransformParams createTransform(cgltf_node const& node)
     {
         if (node.has_matrix)
         {
@@ -729,10 +520,10 @@ namespace
             glm::vec4 perspective;
             glm::decompose(glm::make_mat4(node.matrix), scale, rotation, position, skew, perspective);
 
-            return TransformParams{ position, scale, rotation };
+            return editor::assets::TransformParams{ position, scale, rotation };
         }
 
-        TransformParams transform;
+        editor::assets::TransformParams transform;
 
         if (node.has_translation)
             transform.position = glm::make_vec3(node.translation);
@@ -746,13 +537,13 @@ namespace
         return transform;
     }
 
-    size_t addObjectsRecursive(cgltf_node const& node, cgltf_data const& data, SceneData& sceneData, GltfResources const& resources)
+    size_t addObjectsRecursive(cgltf_node const& node, cgltf_data const& data, editor::assets::SceneData& sceneData, GltfResources const& resources)
     {
         size_t objectDataIndex = sceneData.objects.size();
 
         // A reference to objectData might become invalid if sceneData.objects would relocate its items
         {
-            ObjectDescription& objectData = sceneData.objects.emplace_back();
+            editor::assets::ObjectDescription& objectData = sceneData.objects.emplace_back();
 
             if (node.name)
                 objectData.name = node.name;
@@ -772,21 +563,21 @@ namespace
             if (node.mesh)
             {
                 size_t meshIndex = findIndex(node.mesh, data.meshes, data.meshes_count);
-                objectData.mesh = MeshParams{ .id = resources.meshes[meshIndex], };
+                objectData.mesh = editor::assets::MeshParams{ .id = resources.meshes[meshIndex], };
             }
 
             if (node.camera)
             {
                 cgltf_camera const& camera = *node.camera;
 
-                CameraParams cameraParams;
+                editor::assets::CameraParams cameraParams;
 
                 if (camera.type == cgltf_camera_type_orthographic)
                 {
                     cgltf_camera_orthographic const& params = camera.data.orthographic;
 
-                    cameraParams.type = CameraType::Orthographic;
-                    cameraParams.orthographic = OrthographicCameraParams{
+                    cameraParams.type = editor::assets::CameraType::Orthographic;
+                    cameraParams.orthographic = editor::assets::OrthographicCameraParams{
                         .magX = params.xmag,
                         .magY = params.ymag,
                         .farZ = params.zfar,
@@ -797,8 +588,8 @@ namespace
                 {
                     cgltf_camera_perspective const& params = camera.data.perspective;
 
-                    cameraParams.type = CameraType::Perspective;
-                    cameraParams.perspective = PerspectiveCameraParams{
+                    cameraParams.type = editor::assets::CameraType::Perspective;
+                    cameraParams.perspective = editor::assets::PerspectiveCameraParams{
                         .fov = params.yfov,
                         .farZ = params.has_zfar ? params.zfar : nstl::optional<float>{},
                         .nearZ = params.znear,
@@ -818,8 +609,8 @@ namespace
         {
             size_t childDataIndex = addObjectsRecursive(*node.children[i], data, sceneData, resources);
 
-            ObjectDescription& childData = sceneData.objects[childDataIndex];
-            ObjectDescription& objectData = sceneData.objects[objectDataIndex];
+            editor::assets::ObjectDescription& childData = sceneData.objects[childDataIndex];
+            editor::assets::ObjectDescription& objectData = sceneData.objects[objectDataIndex];
 
             assert(!childData.parentIndex);
             childData.parentIndex = childDataIndex;
@@ -834,7 +625,7 @@ namespace
         assert(i < data.scenes_count);
         cgltf_scene const& scene = data.scenes[i];
 
-        SceneData sceneData = {
+        editor::assets::SceneData sceneData = {
             .version = sceneAssetVersion,
             .objects = {},
         };
@@ -843,20 +634,9 @@ namespace
         for (size_t index = 0; index < scene.nodes_count; index++)
             addObjectsRecursive(*scene.nodes[index], data, sceneData, resources);
 
-        nstl::string serializedScene;
-        {
-            namespace json = yyjsoncpp;
-
-            json::mutable_doc doc;
-            json::mutable_value_ref root = doc.create_value(sceneData);
-            doc.set_root(root);
-
-            serializedScene = doc.write(json::write_flags::pretty);
-        }
-
         nstl::string name = scene.name ? scene.name : nstl::sprintf("%.*s scene %zu", desc.name.slength(), desc.name.data(), i);
         editor::assets::Uuid id = database.createAsset(editor::assets::AssetType::Scene, name);
-        database.addAssetFile(id, serializedScene, "scene.json");
+        database.addAssetFile(id, serializeToJson(sceneData), "scene.json");
 
         return id;
     }

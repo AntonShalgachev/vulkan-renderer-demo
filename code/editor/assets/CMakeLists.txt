@@ -10,6 +10,7 @@ add_library(editor_assets
     "Uuid.cpp"
 
     "ImportDescription.h"
+    "AssetData.h"
 )
 add_library(editor::assets ALIAS editor_assets)
 
