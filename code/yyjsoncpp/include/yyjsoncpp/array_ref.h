@@ -13,12 +13,12 @@ namespace yyjsoncpp
         explicit array_iterator(yyjson_val* array);
 
         value_ref operator*() const;
-
         bool operator==(array_iterator const&) const;
-
         array_iterator& operator++();
-
+        array_iterator operator++(int);
         operator bool() const;
+
+        size_t index() const;
 
     private:
         size_t m_size = 0;
@@ -33,6 +33,8 @@ namespace yyjsoncpp
 
         array_iterator begin() const;
         array_iterator end() const;
+
+        size_t size() const;
     };
 
     //////////////////////////////////////////////////////////////////////////

@@ -37,6 +37,7 @@
 #include "demo/console/EnumSerializer.h"
 
 #include "editor/assets/AssetDatabase.h"
+#include "editor/assets/AssetData.h"
 
 #include "common/Utils.h"
 #include "common/charming_enum.h"
@@ -519,6 +520,7 @@ void DemoApplication::init()
     m_commands["window.memory-viewer"].description("Memory viewer window") = [this]() { m_memoryViewer->toggle(); };
 
     m_commands["assets.import"] = [this](nstl::string_view path) { m_assetDatabase->importAsset(path); };
+    m_commands["assets.load-scene"] = [this](nstl::string_view id) { m_assetDatabase->loadScene(id); };
 
     // TODO find a proper place for these commands
     auto const& lines = m_services.commandLine().get("--exec-before-init");

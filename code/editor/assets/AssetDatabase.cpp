@@ -4,10 +4,12 @@
 
 #include "AssetImporterGltf.h"
 #include "AssetImporterImage.h"
+#include "AssetData.h"
 
 #include "common/Utils.h"
 #include "common/json-nstl.h"
 #include "common/json-tiny-ctti.h"
+#include "common/json-glm.h"
 
 #include "fs/directory.h"
 #include "fs/file.h"
@@ -21,6 +23,7 @@ namespace
 
     uint16_t assetMetadataVersion = 1;
 
+    // TODO merge these 2 functions
     // TODO find a better name? It constructs a path and creates directories
     nstl::string constructAndCreateAssetPath(editor::assets::Uuid id, nstl::string_view filename)
     {
@@ -28,6 +31,11 @@ namespace
         fs::create_directories(rootPath);
 
         return path::join(rootPath, filename);
+    }
+
+    nstl::string constructAssetPath(editor::assets::Uuid id, nstl::string_view filename)
+    {
+        return path::join(assetsRoot, id.toString(), filename);
     }
 }
 
@@ -168,4 +176,43 @@ void editor::assets::AssetDatabase::saveMetadataFile(Uuid id, AssetMetadata cons
 
     fs::file f{ path, fs::open_mode::write };
     f.write(resultSpan.data(), resultSpan.size());
+}
+
+editor::assets::SceneData editor::assets::AssetDatabase::loadScene(Uuid id) const
+{
+    auto metadata = loadMetadataFile(id);
+    assert(metadata);
+
+    assert(metadata->type == AssetType::Scene);
+
+    assert(metadata->files.size() == 1);
+
+    nstl::string path = constructAssetPath(id, metadata->files[0]);
+
+    fs::file f{ path, fs::open_mode::read };
+
+    nstl::string contents;
+    contents.resize(f.size());
+    f.read(contents.data(), contents.size());
+
+    namespace json = yyjsoncpp;
+
+    json::doc doc;
+    if (!doc.read(contents.data(), contents.size()))
+        assert(false);
+
+    json::value_ref root = doc.get_root();
+    return root.get<SceneData>();
+}
+
+editor::assets::MeshData editor::assets::AssetDatabase::loadMesh(Uuid id) const
+{
+    assert(false); // TODO implement
+    return {};
+}
+
+editor::assets::MaterialData editor::assets::AssetDatabase::loadMaterial(Uuid id) const
+{
+    assert(false); // TODO implement
+    return {};
 }

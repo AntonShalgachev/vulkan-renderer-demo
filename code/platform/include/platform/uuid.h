@@ -9,6 +9,6 @@
 namespace platform
 {
     bool uuid_generate(nstl::span<uint8_t> bytes);
-//     bool uuid_from_string(nstl::string_view str, nstl::span<uint8_t> bytes); // TODO implement
+    bool uuid_from_string(nstl::string_view str, nstl::span<uint8_t> bytes);
     nstl::string uuid_to_string(nstl::span<uint8_t const> bytes);
 }

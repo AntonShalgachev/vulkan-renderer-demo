@@ -9,6 +9,7 @@
 #include "common/glm.h"
 #include "common/json-tiny-ctti.h"
 #include "common/json-nstl.h"
+#include "common/json-glm.h"
 #include "logging/logging.h"
 #include "path/path.h"
 
@@ -640,49 +641,6 @@ namespace
 
         return id;
     }
-}
-
-// TODO move somewhere
-namespace yyjsoncpp
-{
-    template<>
-    struct serializer<glm::vec3>
-    {
-        static mutable_value_ref to_json(mutable_doc& doc, glm::vec3 const& value)
-        {
-            return doc.create_array(value.x, value.y, value.z);
-        }
-    };
-
-    template<>
-    struct serializer<glm::vec4>
-    {
-        static mutable_value_ref to_json(mutable_doc& doc, glm::vec4 const& value)
-        {
-            return doc.create_array(value.x, value.y, value.z, value.w);
-        }
-    };
-
-    template<>
-    struct serializer<glm::quat>
-    {
-        static mutable_value_ref to_json(mutable_doc& doc, glm::quat const& value)
-        {
-            return doc.create_array(value.x, value.y, value.z, value.w);
-        }
-    };
-
-    template<>
-    struct serializer<editor::assets::Uuid>
-    {
-        static mutable_value_ref to_json(mutable_doc& doc, editor::assets::Uuid const& value)
-        {
-            if (!value)
-                return doc.create_null();
-
-            return doc.create_string(value.toString());
-        }
-    };
 }
 
 editor::assets::AssetImporterGltf::AssetImporterGltf(AssetDatabase& database) : m_database(database)

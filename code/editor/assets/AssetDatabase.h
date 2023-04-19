@@ -43,6 +43,10 @@ namespace editor::assets
     class AssetImporterImage;
     struct ImportDescription;
 
+    struct SceneData;
+    struct MeshData;
+    struct MaterialData;
+
     class AssetDatabase
     {
     public:
@@ -56,6 +60,12 @@ namespace editor::assets
         void addAssetFile(Uuid id, nstl::span<unsigned char const> bytes, nstl::string_view filename);
         void addAssetFile(Uuid id, nstl::string_view bytes, nstl::string_view filename);
         void addAssetFile(Uuid id, nstl::blob const& bytes, nstl::string_view filename);
+
+        // TODO return optional<> if data can't be read
+        // TODO cache the assets?
+        SceneData loadScene(Uuid id) const;
+        MeshData loadMesh(Uuid id) const;
+        MaterialData loadMaterial(Uuid id) const;
 
     private:
         AssetMetadata getMetadata(Uuid id) const;

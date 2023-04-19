@@ -3,6 +3,7 @@
 #include "yyjsoncpp/serializer.h"
 #include "yyjsoncpp/doc.h"
 #include "yyjsoncpp/value_ref.h"
+#include "yyjsoncpp/array_ref.h"
 #include "yyjsoncpp/type.h"
 
 #include "nstl/string.h"
@@ -54,12 +55,20 @@ namespace yyjsoncpp
     template<typename T>
     struct serializer<nstl::optional<T>>
     {
+        static optional<nstl::optional<T>> from_json(value_ref obj)
+        {
+            if (obj.get_type() == yyjsoncpp::type::null)
+                return nstl::optional<T>{};
+
+            return serializer<T>::from_json(obj);
+        }
+
         static mutable_value_ref to_json(mutable_doc& doc, nstl::optional<T> const& value)
         {
-            if (value)
-                return serializer<T>::to_json(doc, *value);
-            else
+            if (!value)
                 return doc.create_null();
+
+            return serializer<T>::to_json(doc, *value);
         }
     };
 }

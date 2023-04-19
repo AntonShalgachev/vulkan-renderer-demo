@@ -10,6 +10,8 @@ set(ALL_FILES
     "json-nstl.h"
     "json-nstl.cpp"
     "json-tiny-ctti.h"
+    "json-glm.h"
+    "json-glm.cpp"
     
     "Timer.cpp"
     "Timer.h"

@@ -36,10 +36,22 @@ yyjsoncpp::array_iterator& yyjsoncpp::array_iterator::operator++()
     return *this;
 }
 
+yyjsoncpp::array_iterator yyjsoncpp::array_iterator::operator++(int)
+{
+    array_iterator old{ *this };
+    operator++();
+    return old;
+}
+
 yyjsoncpp::array_iterator::operator bool() const
 {
     assert(m_index <= m_size);
     return m_index < m_size && m_handle;
+}
+
+size_t yyjsoncpp::array_iterator::index() const
+{
+    return m_index;
 }
 
 yyjsoncpp::array_iterator yyjsoncpp::array_ref::begin() const
@@ -50,6 +62,11 @@ yyjsoncpp::array_iterator yyjsoncpp::array_ref::begin() const
 yyjsoncpp::array_iterator yyjsoncpp::array_ref::end() const
 {
     return array_iterator{};
+}
+
+size_t yyjsoncpp::array_ref::size() const
+{
+    return unsafe_yyjson_get_len(m_handle);
 }
 
 //////////////////////////////////////////////////////////////////////////
