@@ -8,7 +8,7 @@
 
 namespace
 {
-    template<size_t N, typename T, typename Container>
+    template<glm::length_t N, typename T, typename Container>
     bool try_parse_impl(yyjsoncpp::value_ref obj, Container& result)
     {
         if (obj.get_type() != yyjsoncpp::type::array)
@@ -31,7 +31,7 @@ namespace
         return true;
     }
 
-    template<size_t N, typename T, glm::qualifier Q>
+    template<glm::length_t N, typename T, glm::qualifier Q>
     bool try_parse(yyjsoncpp::value_ref obj, glm::vec<N, T, Q>& result)
     {
         return try_parse_impl<N, T>(obj, result);
