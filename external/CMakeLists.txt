@@ -40,3 +40,12 @@ FetchContent_Declare(
     URL https://github.com/ibireme/yyjson/archive/refs/tags/0.6.0.tar.gz # 0.6.0
 )
 FetchDependency(yyjson)
+
+FetchContent_Declare(
+    cglm
+    URL https://github.com/recp/cglm/archive/0b3049dca0c300dbe80e76052569408f49c26c7b.tar.gz # utility to print selected simd path (docs)
+)
+set(CGLM_SHARED OFF)
+set(CGLM_STATIC ON)
+FetchDependency(cglm)
+set_target_properties(cglm PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
