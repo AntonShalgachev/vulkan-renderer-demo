@@ -238,7 +238,7 @@ namespace
             ddsktx_get_sub(&info, &mipInfo, bytes.data(), bytes.size(), 0, 0, mip);
 
             assert(mipInfo.buff > bytes.data());
-            std::size_t offset = static_cast<unsigned char const*>(mipInfo.buff) - bytes.data();
+            size_t offset = static_cast<unsigned char const*>(mipInfo.buff) - bytes.data();
 
             imageData.mips.push_back({ offset, static_cast<size_t>(mipInfo.size_bytes) });
         }
@@ -336,9 +336,9 @@ namespace
         return vkgfx::AttributeType::Vec4f;
     }
 
-    std::size_t getAttributeByteSize(vkgfx::AttributeType type)
+    size_t getAttributeByteSize(vkgfx::AttributeType type)
     {
-        std::size_t gltfFloatSize = 4;
+        size_t gltfFloatSize = 4;
 
         switch (type)
         {
@@ -362,7 +362,7 @@ namespace
         return 0;
     }
 
-    nstl::optional<std::size_t> findAttributeLocation(nstl::string_view name)
+    nstl::optional<size_t> findAttributeLocation(nstl::string_view name)
     {
         static nstl::vector<nstl::string_view> const attributeNames = { "POSITION", "COLOR_0", "TEXCOORD_0", "NORMAL", "TANGENT" }; // TODO move to the shader metadata
 
@@ -384,11 +384,11 @@ namespace
         };
         auto setter = [var](bool val)
         {
-            *var = std::move(val);
+            *var = nstl::move(val);
             return *var;
         };
 
-        return coil::overloaded(std::move(toggler), std::move(setter));
+        return coil::overloaded(nstl::move(toggler), nstl::move(setter));
     }
 }
 
@@ -677,7 +677,7 @@ void DemoApplication::onKey(GlfwWindow::Action action, GlfwWindow::OldKey key, c
 
     logging::info("onKey: {} {} {}: '{}'", charming_enum::enum_name(action), charming_enum::enum_name(key), builder.build(), c);
 
-    std::size_t index = static_cast<std::size_t>(c);
+    size_t index = static_cast<size_t>(c);
     m_keyState[index] = action == GlfwWindow::Action::Press;
     m_modifiers = mods;
 
@@ -706,7 +706,7 @@ DemoScene DemoApplication::createDemoScene(cgltf_data const& gltfModel, cgltf_sc
     return scene;
 }
 
-void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, std::size_t nodeIndex, glm::mat4 parentTransform, DemoScene& scene) const
+void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, size_t nodeIndex, glm::mat4 parentTransform, DemoScene& scene) const
 {
     // TODO is there a better way?
     auto findIndex = [](auto const* object, auto const* firstObject, size_t count) -> size_t
@@ -790,7 +790,7 @@ void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, std
                 .location = vkgfx::BufferLocation::HostVisible,
                 .isMutable = false,
             };
-            vkgfx::BufferHandle uniformBuffer = resourceManager.createBuffer(sizeof(DemoObjectUniformBuffer), std::move(uniformBufferMetadata));
+            vkgfx::BufferHandle uniformBuffer = resourceManager.createBuffer(sizeof(DemoObjectUniformBuffer), nstl::move(uniformBufferMetadata));
             m_gltfResources->additionalBuffers.push_back(uniformBuffer);
 
             DemoObjectUniformBuffer uniformValues;
@@ -989,7 +989,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
             .location = vkgfx::BufferLocation::DeviceLocal,
             .isMutable = false,
         };
-        auto handle = resourceManager.createBuffer(bufferSize, std::move(metadata)); // TODO split buffer into several different parts
+        auto handle = resourceManager.createBuffer(bufferSize, nstl::move(metadata)); // TODO split buffer into several different parts
         resourceManager.uploadBuffer(handle, data);
         m_gltfResources->buffers.push_back(handle);
     }
@@ -1107,7 +1107,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
             texture.sampler = m_gltfResources->samplers[samplerIndex];
         }
 
-        vkgfx::TextureHandle handle = resourceManager.createTexture(std::move(texture));
+        vkgfx::TextureHandle handle = resourceManager.createTexture(nstl::move(texture));
         m_gltfResources->textures.push_back(handle);
     }
 
@@ -1137,7 +1137,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
             .location = vkgfx::BufferLocation::HostVisible,
             .isMutable = false,
         };
-        auto buffer = resourceManager.createBuffer(sizeof(MaterialUniformBuffer), std::move(metadata));
+        auto buffer = resourceManager.createBuffer(sizeof(MaterialUniformBuffer), nstl::move(metadata));
         resourceManager.uploadBuffer(buffer, &values, sizeof(MaterialUniformBuffer));
         m_gltfResources->additionalBuffers.push_back(buffer);
 
@@ -1161,7 +1161,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
         DemoMaterial& demoMaterial = m_gltfResources->materials.emplace_back();
 
-        demoMaterial.handle = resourceManager.createMaterial(std::move(material));
+        demoMaterial.handle = resourceManager.createMaterial(nstl::move(material));
 
         demoMaterial.metadata.renderConfig.wireframe = false;
         demoMaterial.metadata.renderConfig.cullBackfaces = !gltfMaterial.double_sided;
@@ -1225,7 +1225,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
                 nstl::string_view name = gltfAttribute.name;
 
-                nstl::optional<std::size_t> location = findAttributeLocation(name);
+                nstl::optional<size_t> location = findAttributeLocation(name);
 
                 if (!location)
                 {
@@ -1255,7 +1255,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
                 vkgfx::AttributeType attributeType = findAttributeType(gltfAccessor->type, gltfAccessor->component_type);
 
-                std::size_t stride = gltfBufferView->stride;
+                size_t stride = gltfBufferView->stride;
                 if (stride == 0)
                     stride = getAttributeByteSize(attributeType);
 
@@ -1275,7 +1275,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
                 demoMesh.metadata.materialIndex = findIndex(gltfPrimitive.material, model.materials, model.materials_count); // TODO check
             }
 
-            demoMesh.handle = resourceManager.createMesh(std::move(mesh));
+            demoMesh.handle = resourceManager.createMesh(nstl::move(mesh));
         }
     }
 
@@ -1385,7 +1385,7 @@ void DemoApplication::updateUI(float frameTime)
             "consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore",
             "et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation",
         };
-        static std::size_t nextIndex = 0;
+        static size_t nextIndex = 0;
         if (ImGui::Button("Add notification"))
         {
             m_notifications->add(texts[nextIndex % texts.size()]);

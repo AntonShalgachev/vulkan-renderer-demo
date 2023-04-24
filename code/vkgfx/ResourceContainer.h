@@ -22,15 +22,15 @@ namespace vkgfx
     {
         struct ResourceHeader
         {
-            std::size_t objectIndex = static_cast<std::size_t>(-1);
-            std::uint32_t reincarnation = static_cast<std::uint32_t>(-1);
+            size_t objectIndex = static_cast<size_t>(-1);
+            uint32_t reincarnation = static_cast<uint32_t>(-1);
         };
     }
 
     struct ResourceHandle
     {
-        std::uint32_t index = static_cast<std::uint32_t>(-1);
-        std::uint32_t reincarnation = static_cast<std::uint32_t>(-1);
+        uint32_t index = static_cast<uint32_t>(-1);
+        uint32_t reincarnation = static_cast<uint32_t>(-1);
 
         auto operator<=>(ResourceHandle const&) const = default;
 
@@ -48,15 +48,15 @@ namespace vkgfx
             shuffle();
 #endif
 
-            std::size_t objectIndex = m_objects.size();
+            size_t objectIndex = m_objects.size();
 
             if (objectIndex == m_headerIndexMap.size())
             {
-                std::size_t newHeaderIndex = m_headers.size();
+                size_t newHeaderIndex = m_headers.size();
                 m_headerIndexMap.push_back(newHeaderIndex);
                 m_headers.push_back(detail::ResourceHeader{
                     .objectIndex = objectIndex,
-                    .reincarnation = static_cast<std::uint32_t>(-1),
+                    .reincarnation = static_cast<uint32_t>(-1),
                 });
             }
 
@@ -66,7 +66,7 @@ namespace vkgfx
 
             assert(objectIndex < m_headerIndexMap.size());
 
-            std::size_t headerIndex = m_headerIndexMap[objectIndex];
+            size_t headerIndex = m_headerIndexMap[objectIndex];
 
             detail::ResourceHeader& header = m_headers[headerIndex];
 
@@ -76,7 +76,7 @@ namespace vkgfx
             handle.index = headerIndex;
             handle.reincarnation = header.reincarnation;
 
-            m_objects.push_back(std::move(value));
+            m_objects.push_back(nstl::move(value));
 
 #ifdef VALIDATE_RESOURCE_CONTAINER
             m_objectHandles.push_back(handle);
@@ -124,7 +124,7 @@ namespace vkgfx
 #ifdef VALIDATE_RESOURCE_CONTAINER
             m_objectHandles.pop_back();
             m_deadHandles.push_back(handle);
-            m_aliveHandles.erase(std::remove(m_aliveHandles.begin(), m_aliveHandles.end(), handle), m_aliveHandles.end());
+            m_aliveHandles.erase(nstl::remove(m_aliveHandles.begin(), m_aliveHandles.end(), handle), m_aliveHandles.end());
 #endif
 
 #ifdef VALIDATE_RESOURCE_CONTAINER
@@ -154,9 +154,9 @@ namespace vkgfx
         auto cbegin() const { return m_objects.cbegin(); }
         auto cend() const { return m_objects.cend(); }
 
-        std::size_t size() const { return m_objects.size(); }
+        size_t size() const { return m_objects.size(); }
         
-        void reserve(std::size_t capacity)
+        void reserve(size_t capacity)
         {
             m_objects.reserve(capacity);
             m_headers.reserve(capacity);
@@ -164,7 +164,7 @@ namespace vkgfx
         }
 
     private:
-        nstl::optional<std::size_t> getIndex(ResourceHandle handle) const
+        nstl::optional<size_t> getIndex(ResourceHandle handle) const
         {
             if (!handle)
                 return {};
@@ -180,7 +180,7 @@ namespace vkgfx
             return header.objectIndex;
         }
 
-        void swap(std::size_t i1, std::size_t i2)
+        void swap(size_t i1, size_t i2)
         {
 #ifdef VALIDATE_RESOURCE_CONTAINER
             validateInvariants();
@@ -189,13 +189,13 @@ namespace vkgfx
             if (i1 == i2)
                 return;
 
-            std::size_t headerIndex1 = m_headerIndexMap[i1];
-            std::size_t headerIndex2 = m_headerIndexMap[i2];
+            size_t headerIndex1 = m_headerIndexMap[i1];
+            size_t headerIndex2 = m_headerIndexMap[i2];
 
             {
-                T o = std::move(m_objects[i2]);
-                m_objects[i2] = std::move(m_objects[i1]);
-                m_objects[i1] = std::move(o);
+                T o = nstl::move(m_objects[i2]);
+                m_objects[i2] = nstl::move(m_objects[i1]);
+                m_objects[i1] = nstl::move(o);
             }
 
             nstl::exchange(m_headers[headerIndex1].objectIndex, m_headers[headerIndex2].objectIndex);
@@ -213,10 +213,10 @@ namespace vkgfx
 #ifdef VALIDATE_RESOURCE_CONTAINER
         void shuffle()
         {
-            for (std::size_t i = 0; i < m_objects.size(); i++)
+            for (size_t i = 0; i < m_objects.size(); i++)
             {
-                std::size_t index0 = m_objects.size() - i - 1;
-                std::size_t index1 = std::rand() % (index0 + 1);
+                size_t index0 = m_objects.size() - i - 1;
+                size_t index1 = std::rand() % (index0 + 1);
                 swap(index0, index1);
             }
         }
@@ -227,15 +227,15 @@ namespace vkgfx
         {
             assert(m_headers.size() == m_headerIndexMap.size());
 
-            for (std::size_t headerIndex = 0; headerIndex < m_headers.size(); headerIndex++)
+            for (size_t headerIndex = 0; headerIndex < m_headers.size(); headerIndex++)
             {
-                std::size_t objectIndex = m_headers[headerIndex].objectIndex;
+                size_t objectIndex = m_headers[headerIndex].objectIndex;
                 assert(m_headerIndexMap[objectIndex] == headerIndex);
             }
 
-            for (std::size_t objectIndex = 0; objectIndex < m_objects.size(); objectIndex++)
+            for (size_t objectIndex = 0; objectIndex < m_objects.size(); objectIndex++)
             {
-                std::size_t headerIndex = m_headerIndexMap[objectIndex];
+                size_t headerIndex = m_headerIndexMap[objectIndex];
                 assert(m_headers[headerIndex].objectIndex == objectIndex);
             }
 
@@ -264,7 +264,7 @@ namespace vkgfx
         nstl::vector<detail::ResourceHeader> m_headers;
 
         nstl::vector<T> m_objects;
-        nstl::vector<std::size_t> m_headerIndexMap;
+        nstl::vector<size_t> m_headerIndexMap;
 
 #ifdef VALIDATE_RESOURCE_CONTAINER
         nstl::vector<ResourceHandle> m_objectHandles;

@@ -13,7 +13,7 @@ namespace
         auto isComment = [](char c) { return c == ';' || c == '#'; };
         auto isChar = [&isComment, &isQuote](char c) { return !isspace(c) && !isComment(c) && !isQuote(c); };
 
-        for (std::size_t i = 0; i < line.size(); i++)
+        for (size_t i = 0; i < line.size(); i++)
         {
             while ((i < line.size()) && isspace(line[i]))
                 i++;
@@ -27,14 +27,14 @@ namespace
             if (isQuote(line[i]))
             {
                 i++;
-                std::size_t tokenBegin = i;
+                size_t tokenBegin = i;
                 while ((i < line.size()) && !isQuote(line[i]))
                     i++;
                 arguments.emplace_back(line.substr(tokenBegin, i - tokenBegin));
             }
             else if (isChar(line[i]))
             {
-                std::size_t tokenBegin = i;
+                size_t tokenBegin = i;
                 i++;
                 while ((i < line.size()) && isChar(line[i]))
                     i++;

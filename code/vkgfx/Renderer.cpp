@@ -134,17 +134,17 @@ namespace
     {
         struct SampledImage
         {
-            std::size_t binding = 0;
+            size_t binding = 0;
             VkImageView imageView = VK_NULL_HANDLE;
             VkSampler sampler = VK_NULL_HANDLE;
         };
 
         struct Buffer
         {
-            std::size_t binding = 0;
+            size_t binding = 0;
             VkBuffer buffer = VK_NULL_HANDLE;
-            std::size_t offset = 0;
-            std::size_t size = 0;
+            size_t offset = 0;
+            size_t size = 0;
         };
 
         nstl::vector<SampledImage> images;
@@ -301,8 +301,8 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
             .imageAvailableSemaphore{device},
             .renderFinishedSemaphore{device},
             .inFlightFence{device},
-            .commandPool{std::move(commandPool)},
-            .commandBuffers{std::move(commandBuffers)},
+            .commandPool{nstl::move(commandPool)},
+            .commandBuffers{nstl::move(commandBuffers)},
         };
 
         instance.setDebugName(device.getHandle(), resources.imageAvailableSemaphore.getHandle(), nstl::sprintf("Image available %d", i));
@@ -310,10 +310,10 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
         instance.setDebugName(device.getHandle(), resources.inFlightFence.getHandle(), nstl::sprintf("In-flight fence %d", i));
         instance.setDebugName(device.getHandle(), resources.commandPool.getHandle(), nstl::sprintf("Main %d", i));
 
-        for (std::size_t index = 0; index < resources.commandBuffers.getSize(); index++)
+        for (size_t index = 0; index < resources.commandBuffers.getSize(); index++)
             instance.setDebugName(device.getHandle(), resources.commandBuffers.getHandle(index), nstl::sprintf("Buffer%zu %d", index, i));
 
-        m_frameResources.push_back(std::move(resources));
+        m_frameResources.push_back(nstl::move(resources));
     }
 
     m_resourceManager = nstl::make_unique<ResourceManager>(device, physicalDevice, device.getGraphicsQueue(), *m_renderPass, FRAME_RESOURCE_COUNT);
@@ -354,22 +354,22 @@ vkgfx::Renderer::~Renderer()
 
 void vkgfx::Renderer::setCameraTransform(TestCameraTransform transform)
 {
-    m_cameraTransform = std::move(transform);
+    m_cameraTransform = nstl::move(transform);
 }
 
 void vkgfx::Renderer::setCameraParameters(TestCameraParameters parameters)
 {
-    m_cameraParameters = std::move(parameters);
+    m_cameraParameters = nstl::move(parameters);
 }
 
 void vkgfx::Renderer::setLightParameters(TestLightParameters parameters)
 {
-    m_lightParameters = std::move(parameters);
+    m_lightParameters = nstl::move(parameters);
 }
 
 void vkgfx::Renderer::addOneFrameTestObject(TestObject object)
 {
-    m_oneFrameTestObjects.push_back(std::move(object));
+    m_oneFrameTestObjects.push_back(nstl::move(object));
 }
 
 void vkgfx::Renderer::waitIdle()
@@ -448,7 +448,7 @@ void vkgfx::Renderer::createCameraResources()
         .location = vkgfx::BufferLocation::HostVisible,
         .isMutable = true,
     };
-    m_cameraBuffer = m_resourceManager->createBuffer(sizeof(CameraData), std::move(metadata));
+    m_cameraBuffer = m_resourceManager->createBuffer(sizeof(CameraData), nstl::move(metadata));
 
     DescriptorSetLayoutKey key = {
         .uniformConfig = {
@@ -481,7 +481,7 @@ void vkgfx::Renderer::createCameraResources()
     }
 }
 
-void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameResources& frameResources)
+void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResources& frameResources)
 {
     for (vko::DescriptorPool& pool : frameResources.descriptorPools)
         pool.reset();
@@ -539,7 +539,7 @@ void vkgfx::Renderer::recordCommandBuffer(std::size_t imageIndex, RendererFrameR
         {
             auto buffer = m_resourceManager->getBuffer(m_cameraBuffer);
             assert(buffer);
-            auto frameUniformBufferOffset = static_cast<std::uint32_t>(buffer->getDynamicOffset(m_nextFrameResourcesIndex));
+            auto frameUniformBufferOffset = static_cast<uint32_t>(buffer->getDynamicOffset(m_nextFrameResourcesIndex));
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 0, 1, &m_data->frameDescriptorSet, 1, &frameUniformBufferOffset);
 
             currentPipelineLayoutForDescriptorSets = pipeline.getPipelineLayoutHandle();
@@ -746,7 +746,7 @@ void vkgfx::Renderer::createSwapchain()
 
     config.preTransform = capabilities.currentTransform;
 
-    m_swapchain = nstl::make_unique<vko::Swapchain>(device, m_context->getSurface(), graphicsQueueFamily, presentQueueFamily, std::move(config));
+    m_swapchain = nstl::make_unique<vko::Swapchain>(device, m_context->getSurface(), graphicsQueueFamily, presentQueueFamily, nstl::move(config));
     instance.setDebugName(device.getHandle(), m_swapchain->getHandle(), "Main");
 
     // TODO move swapchain images to the ResourceManager?
@@ -754,7 +754,7 @@ void vkgfx::Renderer::createSwapchain()
     auto const& images = m_swapchain->getImages();
     m_swapchainImageViews.reserve(images.size());
 
-    for (std::size_t i = 0; i < images.size(); i++)
+    for (size_t i = 0; i < images.size(); i++)
     {
         vko::Image const& image = images[i];
         m_swapchainImageViews.push_back(nstl::make_unique<vko::ImageView>(device, image, VK_IMAGE_ASPECT_COLOR_BIT));
@@ -775,7 +775,7 @@ void vkgfx::Renderer::createSwapchain()
     instance.setDebugName(device.getHandle(), m_depthImageView->getHandle(), "Main depth");
 
     m_swapchainFramebuffers.reserve(m_swapchainImageViews.size());
-    for (std::size_t i = 0; i < m_swapchainImageViews.size(); i++)
+    for (size_t i = 0; i < m_swapchainImageViews.size(); i++)
     {
         nstl::unique_ptr<vko::ImageView> const& colorImageView = m_swapchainImageViews[i];
         m_swapchainFramebuffers.push_back(nstl::make_unique<vko::Framebuffer>(device, *colorImageView, *m_depthImageView, *m_renderPass, m_swapchain->getExtent()));

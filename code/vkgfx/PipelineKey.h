@@ -56,7 +56,7 @@ namespace vkgfx
     {
         struct Binding
         {
-            std::size_t stride = 0;
+            size_t stride = 0;
 
             auto operator<=>(Binding const&) const = default;
 
@@ -65,9 +65,9 @@ namespace vkgfx
 
         struct Attribute
         {
-            std::size_t binding = 0;
-            std::size_t location = 0;
-            std::size_t offset = 0;
+            size_t binding = 0;
+            size_t location = 0;
+            size_t offset = 0;
             AttributeType type = AttributeType::Vec4f;
 
             auto operator<=>(Attribute const&) const = default;
@@ -111,8 +111,8 @@ namespace vkgfx
 {
     struct PushConstantRange
     {
-        std::size_t offset = 0;
-        std::size_t size = 0;
+        size_t offset = 0;
+        size_t size = 0;
 
         auto operator<=>(PushConstantRange const&) const = default;
 

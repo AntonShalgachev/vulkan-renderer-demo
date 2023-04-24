@@ -37,7 +37,7 @@ void vko::Buffer::bindMemory(DeviceMemory const& memory) const
     VKO_VERIFY(vkBindBufferMemory(m_device, m_handle, memory.getHandle(), 0));
 }
 
-void vko::Buffer::copy(VkCommandBuffer commandBuffer, Buffer const& source, std::size_t sourceOffset, Buffer const& destination, std::size_t destinationOffset, std::size_t size)
+void vko::Buffer::copy(VkCommandBuffer commandBuffer, Buffer const& source, size_t sourceOffset, Buffer const& destination, size_t destinationOffset, size_t size)
 {
     assert(sourceOffset + size <= source.getSize());
     assert(destinationOffset + size <= destination.getSize());

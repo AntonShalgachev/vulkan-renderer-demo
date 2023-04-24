@@ -10,7 +10,7 @@ namespace vko
     {
     public:
         UniqueHandle() = default;
-        explicit UniqueHandle(std::nullptr_t) : UniqueHandle() {}
+        explicit UniqueHandle(nullptr_t) : UniqueHandle() {}
         UniqueHandle(T const& handle) : m_handle(handle) {}
 
         UniqueHandle(UniqueHandle const&) = delete;
@@ -30,7 +30,7 @@ namespace vko
             return *this;
         }
 
-        UniqueHandle& operator=(std::nullptr_t)
+        UniqueHandle& operator=(nullptr_t)
         {
             m_handle = VK_NULL_HANDLE;
             return *this;

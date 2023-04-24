@@ -25,7 +25,7 @@ namespace nstl
     template<>
     struct hash<ShaderConfiguration>
     {
-        std::size_t operator()(ShaderConfiguration const& rhs) const
+        size_t operator()(ShaderConfiguration const& rhs) const
         {
             return rhs.hash();
         }

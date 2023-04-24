@@ -1,6 +1,6 @@
 #include "Buffer.h"
 
-std::size_t vkgfx::Buffer::getDynamicOffset(std::size_t resourceIndex) const
+size_t vkgfx::Buffer::getDynamicOffset(size_t resourceIndex) const
 {
     if (!metadata.isMutable)
         return 0;

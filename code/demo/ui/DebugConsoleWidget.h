@@ -33,10 +33,10 @@ namespace ui
         nstl::optional<nstl::string_view> onInputCompletion(nstl::string_view input);
         void onInputSubmitted(nstl::string_view input);
 
-        nstl::optional<std::size_t> getHistoryIndex(std::size_t historySize) const;
-        nstl::optional<std::size_t> getSuggestionIndex() const;
+        nstl::optional<size_t> getHistoryIndex(size_t historySize) const;
+        nstl::optional<size_t> getSuggestionIndex() const;
 
-        void updateSuggestionsWindow(std::size_t selectedIndex);
+        void updateSuggestionsWindow(size_t selectedIndex);
 
         nstl::string_view getInputCommandName() const;
 
@@ -55,7 +55,7 @@ namespace ui
         bool m_showScore = false;
 
         nstl::array<char, 256> m_inputBuffer = {};
-        std::size_t m_inputLength = 0;
+        size_t m_inputLength = 0;
 
         bool m_scrollToLast = false;
 
@@ -63,7 +63,7 @@ namespace ui
         int m_replacementIndex = 0;
 
         nstl::vector<Suggestion> m_suggestions;
-        std::size_t m_suggestionsWindowStart = 0;
-        std::size_t m_suggestionsWindowEnd = 0;
+        size_t m_suggestionsWindowStart = 0;
+        size_t m_suggestionsWindowEnd = 0;
     };
 }

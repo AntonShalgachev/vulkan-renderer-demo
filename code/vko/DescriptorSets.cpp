@@ -62,7 +62,7 @@ void vko::DescriptorSets::update(UpdateConfig const& updateConfig)
     vkUpdateDescriptorSets(m_device->getHandle(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 }
 
-std::size_t vko::DescriptorSets::getSize() const
+size_t vko::DescriptorSets::getSize() const
 {
     return m_handles.size();
 }

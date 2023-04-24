@@ -62,24 +62,24 @@ namespace vkgfx
     class ResourceManager
     {
     public:
-        ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, std::size_t resourceCount);
+        ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, size_t resourceCount);
         ~ResourceManager();
 
         ImageHandle createImage(ImageMetadata metadata);
-        void uploadImage(ImageHandle handle, void const* data, std::size_t dataSize);
+        void uploadImage(ImageHandle handle, void const* data, size_t dataSize);
         void uploadImage(ImageHandle handle, nstl::span<unsigned char const> bytes);
         Image* getImage(ImageHandle handle);
         Image const* getImage(ImageHandle handle) const;
         void removeImage(ImageHandle handle);
 
-        void reserveMoreBuffers(std::size_t size);
-        BufferHandle createBuffer(std::size_t size, BufferMetadata metadata);
-        void uploadBuffer(BufferHandle handle, void const* data, std::size_t dataSize);
+        void reserveMoreBuffers(size_t size);
+        BufferHandle createBuffer(size_t size, BufferMetadata metadata);
+        void uploadBuffer(BufferHandle handle, void const* data, size_t dataSize);
         void uploadBuffer(BufferHandle handle, nstl::span<unsigned char const> bytes);
         void uploadBuffer(BufferHandle handle, nstl::span<std::byte const> bytes);
-        void uploadDynamicBufferToStaging(BufferHandle handle, void const* data, std::size_t dataSize, std::size_t offset = 0);
-        void transferDynamicBuffersFromStaging(std::size_t resourceIndex);
-        std::size_t getBufferSize(BufferHandle handle) const;
+        void uploadDynamicBufferToStaging(BufferHandle handle, void const* data, size_t dataSize, size_t offset = 0);
+        void transferDynamicBuffersFromStaging(size_t resourceIndex);
+        size_t getBufferSize(BufferHandle handle) const;
         Buffer* getBuffer(BufferHandle handle);
         Buffer const* getBuffer(BufferHandle handle) const;
         void removeBuffer(BufferHandle handle);
@@ -104,7 +104,7 @@ namespace vkgfx
         Material const* getMaterial(MaterialHandle handle) const;
         void removeMaterial(MaterialHandle handle);
 
-        void reserveMoreMeshes(std::size_t size);
+        void reserveMoreMeshes(size_t size);
         MeshHandle createMesh(Mesh mesh);
         void updateMesh(MeshHandle handle, Mesh mesh);
         Mesh const* getMesh(MeshHandle handle) const;
@@ -121,9 +121,9 @@ namespace vkgfx
         vko::Pipeline const& getPipeline(PipelineHandle handle) const;
 
     private:
-        void uploadBuffer(Buffer const& buffer, void const* data, std::size_t dataSize, std::size_t offset);
-        void uploadBuffer(Buffer const& buffer, nstl::span<unsigned char const> bytes, std::size_t offset);
-        void uploadImage(Image const& image, void const* data, std::size_t dataSize);
+        void uploadBuffer(Buffer const& buffer, void const* data, size_t dataSize, size_t offset);
+        void uploadBuffer(Buffer const& buffer, nstl::span<unsigned char const> bytes, size_t offset);
+        void uploadImage(Image const& image, void const* data, size_t dataSize);
 
         DescriptorSetLayoutHandle createDescriptorSetLayout(DescriptorSetLayoutKey const& key);
 
@@ -136,7 +136,7 @@ namespace vkgfx
         vko::PhysicalDevice const& m_physicalDevice; // TODO replace with the allocator
         vko::Queue const& m_uploadQueue;
         vko::RenderPass const& m_renderPass; // TODO remove
-        std::size_t m_resourceCount = 0; // TODO rename
+        size_t m_resourceCount = 0; // TODO rename
 
         nstl::unique_ptr<vko::CommandPool> m_uploadCommandPool;
 

@@ -66,7 +66,7 @@ struct DemoMeshMetadata
 {
     vkgfx::VertexConfiguration vertexConfig;
     DemoAttributeSemanticsConfiguration attributeSemanticsConfig;
-    std::size_t materialIndex = 0;
+    size_t materialIndex = 0;
 };
 
 struct DemoMaterial
@@ -84,7 +84,7 @@ struct DemoMesh
 struct DemoCamera
 {
     vkgfx::TestCameraTransform transform;
-    std::size_t parametersIndex = 0;
+    size_t parametersIndex = 0;
 };
 
 struct GltfResources
@@ -131,7 +131,7 @@ private:
     void onMouseMove(glm::vec2 const& delta);
 
     DemoScene createDemoScene(cgltf_data const& gltfModel, cgltf_scene const& gltfScene) const;
-    void createDemoObjectRecursive(cgltf_data const& gltfModel, std::size_t nodeIndex, glm::mat4 parentTransform, DemoScene& scene) const;
+    void createDemoObjectRecursive(cgltf_data const& gltfModel, size_t nodeIndex, glm::mat4 parentTransform, DemoScene& scene) const;
 
     void clearScene();
     bool loadScene(nstl::string_view gltfPath);
@@ -170,7 +170,7 @@ private:
 
     vkc::Timer m_frameTimer;
     vkc::Timer m_appTime;
-    std::uint32_t m_fpsDrawnFrames = 0;
+    uint32_t m_fpsDrawnFrames = 0;
     float m_lastFrameTime = 0.0f;
 
     glm::vec3 m_cameraRotation = glm::vec3(0.0f, 0.0f, 0.0f);

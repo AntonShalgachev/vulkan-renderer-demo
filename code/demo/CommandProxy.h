@@ -25,7 +25,7 @@ public:
 
     CommandProxy& operator=(coil::AnyFunctor anyFunctor)&&;
     CommandProxy& operator=(coil::Vector<coil::AnyFunctor> anyFunctors)&&;
-    CommandProxy& operator=(std::nullptr_t);
+    CommandProxy& operator=(nullptr_t);
 
     CommandProxy&& description(nstl::string value)&&;
     CommandProxy&& arguments(nstl::vector<nstl::vector<nstl::string>> names)&&;
@@ -64,7 +64,7 @@ CommandProxy<CommandsContainer>& CommandProxy<CommandsContainer>::operator=(coil
 }
 
 template<typename CommandsContainer>
-CommandProxy<CommandsContainer>& CommandProxy<CommandsContainer>::operator=(std::nullptr_t)
+CommandProxy<CommandsContainer>& CommandProxy<CommandsContainer>::operator=(nullptr_t)
 {
     m_commands.remove(m_name);
     return *this;
@@ -83,7 +83,7 @@ CommandProxy<CommandsContainer>&& CommandProxy<CommandsContainer>::arguments(nst
     if (m_metadata.functors.size() < names.size())
         m_metadata.functors.resize(names.size());
 
-    for (std::size_t i = 0; i < names.size(); i++)
+    for (size_t i = 0; i < names.size(); i++)
     {
         nstl::vector<nstl::string> const& functorArgNames = names[i];
         FunctorMetadata& functorMetadata = m_metadata.functors[i];
@@ -91,7 +91,7 @@ CommandProxy<CommandsContainer>&& CommandProxy<CommandsContainer>::arguments(nst
         if (functorMetadata.arguments.size() < functorArgNames.size())
             functorMetadata.arguments.resize(functorArgNames.size());
 
-        for (std::size_t j = 0; j < functorArgNames.size(); j++)
+        for (size_t j = 0; j < functorArgNames.size(); j++)
         {
             ArgumentMetadata& argumentMetadata = functorMetadata.arguments[j];
             argumentMetadata.name = functorArgNames[j];

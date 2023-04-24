@@ -30,7 +30,7 @@ namespace vko
         VkDeviceSize getSize() const { return m_size; }
 
     public:
-        static void copy(VkCommandBuffer commandBuffer, Buffer const& source, std::size_t sourceOffset, Buffer const& destination, std::size_t destinationOffset, std::size_t size);
+        static void copy(VkCommandBuffer commandBuffer, Buffer const& source, size_t sourceOffset, Buffer const& destination, size_t destinationOffset, size_t size);
 
     private:
         Allocator m_allocator{ AllocatorScope::Buffer };

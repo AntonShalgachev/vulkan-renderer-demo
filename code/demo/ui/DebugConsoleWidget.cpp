@@ -11,8 +11,8 @@
 
 namespace
 {
-    std::size_t outputLinesCount = 15;
-    std::size_t suggestionsLinesCountMax = 5;
+    size_t outputLinesCount = 15;
+    size_t suggestionsLinesCountMax = 5;
 
     auto getLineColor(DebugConsoleService::Line::Type type)
     {
@@ -96,7 +96,7 @@ void ui::DebugConsoleWidget::drawInput()
         if (!console)
             return 0;
 
-        auto getView = [](ImGuiInputTextCallbackData* data) { return nstl::string_view{ data->Buf, static_cast<std::size_t>(data->BufTextLen) }; };
+        auto getView = [](ImGuiInputTextCallbackData* data) { return nstl::string_view{ data->Buf, static_cast<size_t>(data->BufTextLen) }; };
 
         nstl::string_view input = getView(data);
 
@@ -160,7 +160,7 @@ void ui::DebugConsoleWidget::drawSuggestions()
     if (m_suggestionsWindowStart > 0)
         ImGui::Text("  ...");
 
-    for (std::size_t i = m_suggestionsWindowStart; i < m_suggestionsWindowEnd; i++)
+    for (size_t i = m_suggestionsWindowStart; i < m_suggestionsWindowEnd; i++)
     {
         bool const selected = i == getSuggestionIndex();
         if (selected)
@@ -276,21 +276,21 @@ void ui::DebugConsoleWidget::onInputSubmitted(nstl::string_view input)
     clearInput();
 }
 
-nstl::optional<std::size_t> ui::DebugConsoleWidget::getHistoryIndex(std::size_t historySize) const
+nstl::optional<size_t> ui::DebugConsoleWidget::getHistoryIndex(size_t historySize) const
 {
-    return m_replacementIndex < 0 ? historySize + m_replacementIndex : nstl::optional<std::size_t>{};
+    return m_replacementIndex < 0 ? historySize + m_replacementIndex : nstl::optional<size_t>{};
 }
 
-nstl::optional<std::size_t> ui::DebugConsoleWidget::getSuggestionIndex() const
+nstl::optional<size_t> ui::DebugConsoleWidget::getSuggestionIndex() const
 {
-    return m_replacementIndex > 0 ? static_cast<std::size_t>(m_replacementIndex - 1) : nstl::optional<std::size_t>{};
+    return m_replacementIndex > 0 ? static_cast<size_t>(m_replacementIndex - 1) : nstl::optional<size_t>{};
 }
 
-void ui::DebugConsoleWidget::updateSuggestionsWindow(std::size_t selectedIndex)
+void ui::DebugConsoleWidget::updateSuggestionsWindow(size_t selectedIndex)
 {
     if (selectedIndex < m_suggestionsWindowStart)
     {
-        std::size_t delta = m_suggestionsWindowStart - selectedIndex;
+        size_t delta = m_suggestionsWindowStart - selectedIndex;
         m_suggestionsWindowStart -= delta;
         m_suggestionsWindowEnd -= delta;
         return;
@@ -298,7 +298,7 @@ void ui::DebugConsoleWidget::updateSuggestionsWindow(std::size_t selectedIndex)
 
     if (selectedIndex >= m_suggestionsWindowEnd)
     {
-        std::size_t delta = selectedIndex - m_suggestionsWindowEnd + 1;
+        size_t delta = selectedIndex - m_suggestionsWindowEnd + 1;
         m_suggestionsWindowStart += delta;
         m_suggestionsWindowEnd += delta;
         return;

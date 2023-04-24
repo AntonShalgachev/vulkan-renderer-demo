@@ -5,7 +5,7 @@
 
 vko::DescriptorSetLayout::DescriptorSetLayout(Device const& device, DescriptorSetConfiguration config)
     : m_device(device)
-    , m_configuration(std::move(config))
+    , m_configuration(nstl::move(config))
 {
     // TODO pass configuration externally
 

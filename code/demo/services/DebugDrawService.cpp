@@ -98,7 +98,7 @@ DebugDrawService::DebugDrawService(vkgfx::Renderer& renderer)
             .vertexOffset = 0,
         };
 
-        m_mesh = resources.createMesh(std::move(mesh));
+        m_mesh = resources.createMesh(nstl::move(mesh));
     }
 
     vkgfx::ShaderModuleHandle vertexShaderModule;
@@ -177,7 +177,7 @@ DebugDrawService::DebugDrawService(vkgfx::Renderer& renderer)
             },
         };
 
-        m_pipeline = resources.getOrCreatePipeline(std::move(key));
+        m_pipeline = resources.getOrCreatePipeline(nstl::move(key));
     }
 }
 
@@ -205,7 +205,7 @@ void DebugDrawService::box(glm::vec3 const& center, glm::quat const& rotation, g
     vkgfx::TestObject& object = m_objects.emplace_back();
     object.pipeline = m_pipeline;
     object.mesh = m_mesh;
-    object.pushConstants = std::move(pushConstants);
+    object.pushConstants = nstl::move(pushConstants);
 }
 
 void DebugDrawService::queueGeometry(vkgfx::Renderer& renderer)
@@ -213,6 +213,6 @@ void DebugDrawService::queueGeometry(vkgfx::Renderer& renderer)
     MEMORY_TRACKING_SCOPE(scopeId);
 
     for (auto&& object : m_objects)
-        renderer.addOneFrameTestObject(std::move(object));
+        renderer.addOneFrameTestObject(nstl::move(object));
     m_objects.clear();
 }

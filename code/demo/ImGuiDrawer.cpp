@@ -145,14 +145,14 @@ void ImGuiDrawer::queueGeometry(vkgfx::Renderer& renderer)
 
     auto pushConstantsBytes = createPushConstants(drawData);
 
-    std::size_t nextResourceIndex = 0;
-    std::size_t vertexOffset = 0;
-    std::size_t indexOffset = 0;
+    size_t nextResourceIndex = 0;
+    size_t vertexOffset = 0;
+    size_t indexOffset = 0;
     for (int listIndex = 0; listIndex < drawData->CmdListsCount; listIndex++)
     {
         ImDrawList const* cmdList = drawData->CmdLists[listIndex];
 
-        for (std::size_t commandIndex = 0; commandIndex < cmdList->CmdBuffer.Size; commandIndex++)
+        for (size_t commandIndex = 0; commandIndex < cmdList->CmdBuffer.Size; commandIndex++)
         {
             const ImDrawCmd* drawCommand = &cmdList->CmdBuffer[commandIndex];
             if (drawCommand->UserCallback != NULL)
@@ -179,7 +179,7 @@ void ImGuiDrawer::queueGeometry(vkgfx::Renderer& renderer)
                 object.scissorOffset = clipMin;
                 object.scissorSize = clipMax - clipMin;
 
-                renderer.addOneFrameTestObject(std::move(object));
+                renderer.addOneFrameTestObject(nstl::move(object));
 
                 nextResourceIndex++;
             }
@@ -193,23 +193,23 @@ void ImGuiDrawer::queueGeometry(vkgfx::Renderer& renderer)
 void ImGuiDrawer::createBuffers(vkgfx::ResourceManager& resourceManager)
 {
     {
-        std::size_t size = 64 * 1024 * sizeof(ImDrawVert);
+        size_t size = 64 * 1024 * sizeof(ImDrawVert);
         vkgfx::BufferMetadata metadata{
             .usage = vkgfx::BufferUsage::VertexIndexBuffer,
             .location = vkgfx::BufferLocation::HostVisible,
             .isMutable = true,
         };
-        m_vertexBuffer = resourceManager.createBuffer(size, std::move(metadata));
+        m_vertexBuffer = resourceManager.createBuffer(size, nstl::move(metadata));
     }
 
     {
-        std::size_t size = 64 * 1024 * sizeof(ImDrawIdx);
+        size_t size = 64 * 1024 * sizeof(ImDrawIdx);
         vkgfx::BufferMetadata metadata{
             .usage = vkgfx::BufferUsage::VertexIndexBuffer,
             .location = vkgfx::BufferLocation::HostVisible,
             .isMutable = true,
         };
-        m_indexBuffer = resourceManager.createBuffer(size, std::move(metadata));
+        m_indexBuffer = resourceManager.createBuffer(size, nstl::move(metadata));
     }
 }
 
@@ -228,12 +228,12 @@ void ImGuiDrawer::createImages(vkgfx::ResourceManager& resourceManager)
     assert(bytesPerPixel > 0);
 
     vkgfx::ImageMetadata metadata{
-        .width = static_cast<std::size_t>(width),
-        .height = static_cast<std::size_t>(height),
+        .width = static_cast<size_t>(width),
+        .height = static_cast<size_t>(height),
         .byteSize = static_cast<size_t>(width * height * bytesPerPixel),
         .format = vkgfx::ImageFormat::R8G8B8A8,
     };
-    m_fontImage = resourceManager.createImage(std::move(metadata));
+    m_fontImage = resourceManager.createImage(nstl::move(metadata));
 
     resourceManager.uploadImage(m_fontImage, pixels, width * height * bytesPerPixel);
 
@@ -332,14 +332,14 @@ void ImGuiDrawer::uploadBuffers(vkgfx::ResourceManager& resourceManager, ImDrawD
     if (drawData->TotalVtxCount <= 0)
         return;
 
-    std::size_t vertexBufferSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
-    std::size_t indexBufferSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
+    size_t vertexBufferSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
+    size_t indexBufferSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
 
     assert(vertexBufferSize <= resourceManager.getBufferSize(m_vertexBuffer));
     assert(indexBufferSize <= resourceManager.getBufferSize(m_indexBuffer));
 
-    std::size_t nextVertexBufferOffset = 0;
-    std::size_t nextIndexBufferOffset = 0;
+    size_t nextVertexBufferOffset = 0;
+    size_t nextIndexBufferOffset = 0;
 
     for (int n = 0; n < drawData->CmdListsCount; n++)
     {
@@ -356,7 +356,7 @@ void ImGuiDrawer::uploadBuffers(vkgfx::ResourceManager& resourceManager, ImDrawD
     }
 }
 
-void ImGuiDrawer::updateMesh(vkgfx::ResourceManager& resourceManager, std::size_t index, std::size_t indexCount, std::size_t indexOffset, std::size_t vertexOffset)
+void ImGuiDrawer::updateMesh(vkgfx::ResourceManager& resourceManager, size_t index, size_t indexCount, size_t indexOffset, size_t vertexOffset)
 {
     static_assert(sizeof(ImDrawIdx) == 2);
 
@@ -385,7 +385,7 @@ void ImGuiDrawer::updateMesh(vkgfx::ResourceManager& resourceManager, std::size_
     mesh->vertexOffset = vertexOffset;
 }
 
-void ImGuiDrawer::updateMaterial(vkgfx::ResourceManager& resourceManager, std::size_t index, vkgfx::ImageHandle image)
+void ImGuiDrawer::updateMaterial(vkgfx::ResourceManager& resourceManager, size_t index, vkgfx::ImageHandle image)
 {
     vkgfx::Texture texture = {
         .image = image,
@@ -394,11 +394,11 @@ void ImGuiDrawer::updateMaterial(vkgfx::ResourceManager& resourceManager, std::s
 
     if (index < m_textures.size())
     {
-        resourceManager.updateTexture(m_textures[index], std::move(texture));
+        resourceManager.updateTexture(m_textures[index], nstl::move(texture));
     }
     else
     {
-        m_textures.push_back(resourceManager.createTexture(std::move(texture)));
+        m_textures.push_back(resourceManager.createTexture(nstl::move(texture)));
     }
 
     vkgfx::Material material = {
@@ -407,10 +407,10 @@ void ImGuiDrawer::updateMaterial(vkgfx::ResourceManager& resourceManager, std::s
 
     if (index < m_materials.size())
     {
-        resourceManager.updateMaterial(m_materials[index], std::move(material));
+        resourceManager.updateMaterial(m_materials[index], nstl::move(material));
     }
     else
     {
-        m_materials.push_back(resourceManager.createMaterial(std::move(material)));
+        m_materials.push_back(resourceManager.createMaterial(nstl::move(material)));
     }
 }

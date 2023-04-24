@@ -16,7 +16,7 @@ namespace vkgfx
     struct BufferWithOffset
     {
         BufferHandle buffer;
-        std::size_t offset = 0;
+        size_t offset = 0;
     };
 
     // TODO store Vulkan objects directly
@@ -24,9 +24,9 @@ namespace vkgfx
     {
         nstl::vector<BufferWithOffset> vertexBuffers;
         BufferWithOffset indexBuffer;
-        std::size_t indexCount = 0;
+        size_t indexCount = 0;
         IndexType indexType = IndexType::UnsignedShort;
-        std::size_t indexOffset = 0;
-        std::size_t vertexOffset = 0;
+        size_t indexOffset = 0;
+        size_t vertexOffset = 0;
     };
 }

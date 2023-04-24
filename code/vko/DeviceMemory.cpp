@@ -56,7 +56,7 @@ vko::DeviceMemory::~DeviceMemory()
     vkFreeMemory(m_device, m_handle, m_allocator);
 }
 
-void vko::DeviceMemory::copyFrom(void const* sourcePointer, std::size_t sourceSize, std::size_t offset) const
+void vko::DeviceMemory::copyFrom(void const* sourcePointer, size_t sourceSize, size_t offset) const
 {
     assert(m_data);
     assert(offset + sourceSize <= m_requirements.size);

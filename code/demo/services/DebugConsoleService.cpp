@@ -22,7 +22,7 @@ namespace
             if (commands.empty())
                 return;
 
-            std::size_t i = 0;
+            size_t i = 0;
             while (i < commands.size() && commands[i] != ';')
                 i++;
 
@@ -214,7 +214,7 @@ DebugConsoleService::DebugConsoleService(Services& services) : ServiceContainer(
         context.logf("%s", builder.build().c_str());
     };
 
-    commands["help"].description("Print global/command help").arguments({ {}, {"command_name"} }) = coil::overloaded(std::move(globalHelp), std::move(commandHelp));
+    commands["help"].description("Print global/command help").arguments({ {}, {"command_name"} }) = coil::overloaded(nstl::move(globalHelp), nstl::move(commandHelp));
 }
 
 bool DebugConsoleService::execute(nstl::string_view command)
@@ -314,7 +314,7 @@ nstl::optional<nstl::string_view> DebugConsoleService::autoComplete(nstl::string
 
     nstl::string_view longestPrefix = baseCandidate.substr(0, input.size());
 
-    for (std::size_t s = input.size() + 1; s <= baseCandidate.size(); s++)
+    for (size_t s = input.size() + 1; s <= baseCandidate.size(); s++)
     {
         nstl::string_view prefix = baseCandidate.substr(0, s);
 
@@ -368,8 +368,8 @@ void DebugConsoleService::add(nstl::string_view name, CommandMetadata metadata, 
     MEMORY_TRACKING_SCOPE(scopeId);
 
     coil::Vector<coil::AnyFunctor> functors;
-    functors.pushBack(std::move(anyFunctor));
-    return add(name, std::move(metadata), std::move(functors));
+    functors.pushBack(nstl::move(anyFunctor));
+    return add(name, nstl::move(metadata), nstl::move(functors));
 }
 
 void DebugConsoleService::add(nstl::string_view name, CommandMetadata metadata, coil::Vector<coil::AnyFunctor> anyFunctors)
@@ -377,8 +377,8 @@ void DebugConsoleService::add(nstl::string_view name, CommandMetadata metadata, 
     MEMORY_TRACKING_SCOPE(scopeId);
 
     coil::StringView coilName = utils::nstlToCoilStringView(name);
-    coil::Bindings::Command const& command = m_bindings.add(coilName, std::move(anyFunctors));
-    auto it = m_metadata.insertOrAssign(coil::String{ coilName }, std::move(metadata));
+    coil::Bindings::Command const& command = m_bindings.add(coilName, nstl::move(anyFunctors));
+    auto it = m_metadata.insertOrAssign(coil::String{ coilName }, nstl::move(metadata));
 
     fillCommandMetadata(it->value(), command.functors);
 
@@ -422,7 +422,7 @@ void DebugConsoleService::fillCommandMetadata(CommandMetadata& metadata, coil::V
 	if (metadata.functors.size() < functors.size())
 		metadata.functors.resize(functors.size());
 
-	for (std::size_t i = 0; i < functors.size(); i++)
+	for (size_t i = 0; i < functors.size(); i++)
 	{
 		coil::AnyFunctor const& functor = functors[i];
 		coil::Vector<coil::StringView> const& functorArgTypes = functor.parameterTypes();
@@ -431,7 +431,7 @@ void DebugConsoleService::fillCommandMetadata(CommandMetadata& metadata, coil::V
 		if (functorMetadata.arguments.size() < functorArgTypes.size())
 			functorMetadata.arguments.resize(functorArgTypes.size());
 
-		for (std::size_t j = 0; j < functorArgTypes.size(); j++)
+		for (size_t j = 0; j < functorArgTypes.size(); j++)
 		{
 			ArgumentMetadata& argumentMetadata = functorMetadata.arguments[j];
 			argumentMetadata.type = utils::coilToNstlStringView(functorArgTypes[j]);
@@ -447,7 +447,7 @@ void DebugConsoleService::fillCommandMetadata(CommandMetadata& metadata, coil::V
         FunctorMetadata const* functor1 = &metadata.functors[1];
 
         if (functor0->arguments.size() > functor1->arguments.size())
-            std::swap(functor0, functor1);
+            nstl::exchange(functor0, functor1);
 
         nstl::string_view ret0 = functor0->returnType;
         nstl::string_view ret1 = functor1->returnType;
@@ -466,7 +466,7 @@ void DebugConsoleService::addLine(nstl::string text, Line::Type type)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    m_lines.push_back({ std::move(text), type });
+    m_lines.push_back({ nstl::move(text), type });
 }
 
 template class CommandProxy<DebugConsoleService>;

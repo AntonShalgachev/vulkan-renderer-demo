@@ -40,7 +40,7 @@ namespace vko
         VkExtent2D getExtent() const;
         VkSurfaceFormatKHR getSurfaceFormat() const;
 
-        std::size_t getImageCount() const;
+        size_t getImageCount() const;
         nstl::vector<vko::Image> const& getImages() const; // TODO use std::span
 
     private:

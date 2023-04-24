@@ -187,7 +187,7 @@ namespace
         return VK_FORMAT_R32G32B32A32_SFLOAT;
     }
 
-    std::size_t alignSize(std::size_t originalSize, std::size_t alignment)
+    size_t alignSize(size_t originalSize, size_t alignment)
     {
         if (alignment == 0)
             return originalSize;
@@ -196,7 +196,7 @@ namespace
     }
 }
 
-vkgfx::ResourceManager::ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, std::size_t resourceCount)
+vkgfx::ResourceManager::ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, size_t resourceCount)
     : m_device(device)
     , m_physicalDevice(physicalDevice)
     , m_uploadQueue(uploadQueue)
@@ -247,16 +247,16 @@ vkgfx::ImageHandle vkgfx::ResourceManager::createImage(ImageMetadata metadata)
     vko::ImageView vkImageView{ m_device, vkImage, VK_IMAGE_ASPECT_COLOR_BIT };
 
     Image imageResource = {
-        .memory = std::move(vkImageMemory),
-        .image = std::move(vkImage),
-        .imageView = std::move(vkImageView),
-        .metadata = std::move(metadata),
+        .memory = nstl::move(vkImageMemory),
+        .image = nstl::move(vkImage),
+        .imageView = nstl::move(vkImageView),
+        .metadata = nstl::move(metadata),
     };
 
-    return { m_images.add(std::move(imageResource)) };
+    return { m_images.add(nstl::move(imageResource)) };
 }
 
-void vkgfx::ResourceManager::uploadImage(ImageHandle handle, void const* data, std::size_t dataSize)
+void vkgfx::ResourceManager::uploadImage(ImageHandle handle, void const* data, size_t dataSize)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
@@ -295,14 +295,14 @@ vkgfx::Image const* vkgfx::ResourceManager::getImage(ImageHandle handle) const
     return m_images.get(handle);
 }
 
-void vkgfx::ResourceManager::reserveMoreBuffers(std::size_t size)
+void vkgfx::ResourceManager::reserveMoreBuffers(size_t size)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
     m_buffers.reserve(m_buffers.size() + size);
 }
 
-vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(std::size_t size, BufferMetadata metadata)
+vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(size_t size, BufferMetadata metadata)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
@@ -330,9 +330,9 @@ vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(std::size_t size, Buffe
         break;
     }
 
-    std::size_t alignedSize = alignSize(size, m_physicalDevice.getProperties().limits.minUniformBufferOffsetAlignment);
+    size_t alignedSize = alignSize(size, m_physicalDevice.getProperties().limits.minUniformBufferOffsetAlignment);
 
-    std::size_t totalBufferSize = size;
+    size_t totalBufferSize = size;
     if (metadata.isMutable)
         totalBufferSize = alignedSize * m_resourceCount;
 
@@ -341,9 +341,9 @@ vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(std::size_t size, Buffe
     buffer.bindMemory(memory);
 
     Buffer bufferResource{
-        .memory = std::move(memory),
-        .buffer = std::move(buffer),
-        .metadata = std::move(metadata),
+        .memory = nstl::move(memory),
+        .buffer = nstl::move(buffer),
+        .metadata = nstl::move(metadata),
         .size = size,
         .realSize = totalBufferSize,
     };
@@ -354,10 +354,10 @@ vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(std::size_t size, Buffe
         bufferResource.alignedSize = alignedSize;
     }
 
-    return { m_buffers.add(std::move(bufferResource)) };
+    return { m_buffers.add(nstl::move(bufferResource)) };
 }
 
-void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, void const* data, std::size_t dataSize)
+void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, void const* data, size_t dataSize)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
@@ -385,7 +385,7 @@ void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, nstl::span<unsign
     return uploadBuffer(handle, bytes.data(), bytes.size());
 }
 
-void vkgfx::ResourceManager::uploadDynamicBufferToStaging(BufferHandle handle, void const* data, std::size_t dataSize, std::size_t offset)
+void vkgfx::ResourceManager::uploadDynamicBufferToStaging(BufferHandle handle, void const* data, size_t dataSize, size_t offset)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
@@ -399,14 +399,14 @@ void vkgfx::ResourceManager::uploadDynamicBufferToStaging(BufferHandle handle, v
 
     memcpy(buffer->stagingBuffer.data() + offset, data, dataSize);
 
-    std::size_t start = offset;
-    std::size_t end = offset + dataSize;
+    size_t start = offset;
+    size_t end = offset + dataSize;
 
     buffer->stagingDirtyStart = nstl::min(buffer->stagingDirtyStart, start);
     buffer->stagingDirtyEnd = nstl::max(buffer->stagingDirtyEnd, end);
 }
 
-void vkgfx::ResourceManager::transferDynamicBuffersFromStaging(std::size_t resourceIndex)
+void vkgfx::ResourceManager::transferDynamicBuffersFromStaging(size_t resourceIndex)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
@@ -417,16 +417,16 @@ void vkgfx::ResourceManager::transferDynamicBuffersFromStaging(std::size_t resou
         if (!buffer.metadata.isMutable)
             continue;
 
-        std::size_t dirtyOffset = buffer.stagingDirtyStart;
-        std::size_t dirtySize = buffer.stagingDirtyEnd - buffer.stagingDirtyStart;
+        size_t dirtyOffset = buffer.stagingDirtyStart;
+        size_t dirtySize = buffer.stagingDirtyEnd - buffer.stagingDirtyStart;
 
         if (dirtySize == 0)
             continue;
 
-        std::size_t bufferOffset = buffer.alignedSize * resourceIndex;
+        size_t bufferOffset = buffer.alignedSize * resourceIndex;
 
         void* data = buffer.stagingBuffer.data() + dirtyOffset;
-        std::size_t size = dirtySize;
+        size_t size = dirtySize;
 
         uploadBuffer(buffer, data, size, bufferOffset + dirtyOffset);
 
@@ -435,7 +435,7 @@ void vkgfx::ResourceManager::transferDynamicBuffersFromStaging(std::size_t resou
     }
 }
 
-std::size_t vkgfx::ResourceManager::getBufferSize(BufferHandle handle) const
+size_t vkgfx::ResourceManager::getBufferSize(BufferHandle handle) const
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
@@ -470,7 +470,7 @@ vkgfx::ShaderModuleHandle vkgfx::ResourceManager::createShaderModule(nstl::span<
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    return { m_shaderModules.add(vko::ShaderModule{ m_device, bytes, type, std::move(entryPoint) }) };
+    return { m_shaderModules.add(vko::ShaderModule{ m_device, bytes, type, nstl::move(entryPoint) }) };
 }
 
 void vkgfx::ResourceManager::removeShaderModule(ShaderModuleHandle handle)
@@ -512,7 +512,7 @@ vkgfx::TextureHandle vkgfx::ResourceManager::createTexture(Texture texture)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    return { m_textures.add(std::move(texture)) };
+    return { m_textures.add(nstl::move(texture)) };
 }
 
 void vkgfx::ResourceManager::updateTexture(TextureHandle handle, Texture texture)
@@ -522,7 +522,7 @@ void vkgfx::ResourceManager::updateTexture(TextureHandle handle, Texture texture
     assert(handle);
     auto item = getTexture(handle);
     assert(item);
-    *item = std::move(texture);
+    *item = nstl::move(texture);
 }
 
 vkgfx::Texture* vkgfx::ResourceManager::getTexture(TextureHandle handle)
@@ -550,7 +550,7 @@ vkgfx::MaterialHandle vkgfx::ResourceManager::createMaterial(Material material)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    return { m_materials.add(std::move(material)) };
+    return { m_materials.add(nstl::move(material)) };
 }
 
 void vkgfx::ResourceManager::updateMaterial(MaterialHandle handle, Material material)
@@ -560,7 +560,7 @@ void vkgfx::ResourceManager::updateMaterial(MaterialHandle handle, Material mate
     assert(handle);
     auto item = getMaterial(handle);
     assert(item);
-    *item = std::move(material);
+    *item = nstl::move(material);
 }
 
 vkgfx::Material* vkgfx::ResourceManager::getMaterial(MaterialHandle handle)
@@ -584,7 +584,7 @@ vkgfx::Material const* vkgfx::ResourceManager::getMaterial(MaterialHandle handle
     return m_materials.get(handle);
 }
 
-void vkgfx::ResourceManager::reserveMoreMeshes(std::size_t size)
+void vkgfx::ResourceManager::reserveMoreMeshes(size_t size)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
@@ -595,7 +595,7 @@ vkgfx::MeshHandle vkgfx::ResourceManager::createMesh(Mesh mesh)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    return { m_meshes.add(std::move(mesh)) };
+    return { m_meshes.add(nstl::move(mesh)) };
 }
 
 void vkgfx::ResourceManager::updateMesh(MeshHandle handle, Mesh mesh)
@@ -605,7 +605,7 @@ void vkgfx::ResourceManager::updateMesh(MeshHandle handle, Mesh mesh)
     assert(handle);
     auto item = getMesh(handle);
     assert(item);
-    *item = std::move(mesh);
+    *item = nstl::move(mesh);
 }
 
 vkgfx::Mesh* vkgfx::ResourceManager::getMesh(MeshHandle handle)
@@ -680,7 +680,7 @@ vko::Pipeline const& vkgfx::ResourceManager::getPipeline(PipelineHandle handle) 
     return m_pipelines[handle.index];
 }
 
-void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, void const* data, std::size_t dataSize, std::size_t offset)
+void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, void const* data, size_t dataSize, size_t offset)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
@@ -701,14 +701,14 @@ void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, void const* data
     }
 }
 
-void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, nstl::span<unsigned char const> bytes, std::size_t offset)
+void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, nstl::span<unsigned char const> bytes, size_t offset)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
     return uploadBuffer(buffer, bytes.data(), bytes.size(), offset);
 }
 
-void vkgfx::ResourceManager::uploadImage(Image const& image, void const* data, std::size_t dataSize)
+void vkgfx::ResourceManager::uploadImage(Image const& image, void const* data, size_t dataSize)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
@@ -741,7 +741,7 @@ vkgfx::DescriptorSetLayoutHandle vkgfx::ResourceManager::createDescriptorSetLayo
     config.hasTexture = key.uniformConfig.hasAlbedoTexture;
     config.hasNormalMap = key.uniformConfig.hasNormalMap;
 
-    m_descriptorSetLayouts.emplace_back(m_device, std::move(config));
+    m_descriptorSetLayouts.emplace_back(m_device, nstl::move(config));
     m_descriptorSetLayoutHandles[key] = handle;
 
     return handle;
@@ -772,7 +772,7 @@ vkgfx::PipelineLayoutHandle vkgfx::ResourceManager::createPipelineLayout(Pipelin
         vkRange.size = range.size;
     }
 
-    m_pipelineLayouts.emplace_back(m_device, std::move(descriptorSetLayouts), std::move(pushConstantRanges));
+    m_pipelineLayouts.emplace_back(m_device, nstl::move(descriptorSetLayouts), nstl::move(pushConstantRanges));
     m_pipelineLayoutHandles[key] = handle;
 
     return handle;
@@ -795,7 +795,7 @@ vkgfx::PipelineHandle vkgfx::ResourceManager::createPipeline(PipelineKey const& 
     config.depthTest = key.renderConfig.depthTest;
     config.alphaBlending = key.renderConfig.alphaBlending;
 
-    for (std::size_t i = 0; i < key.vertexConfig.bindings.size(); i++)
+    for (size_t i = 0; i < key.vertexConfig.bindings.size(); i++)
     {
         VertexConfiguration::Binding const& binding = key.vertexConfig.bindings[i];
         VkVertexInputBindingDescription& desc = config.bindingDescriptions.emplace_back();

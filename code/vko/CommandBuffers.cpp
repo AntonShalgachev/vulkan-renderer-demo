@@ -10,7 +10,7 @@
 
 #include "nstl/static_vector.h"
 
-vko::CommandBuffers::CommandBuffers(Device const& device, CommandPool const& commandPool, std::size_t size)
+vko::CommandBuffers::CommandBuffers(Device const& device, CommandPool const& commandPool, size_t size)
     : m_device(device.getHandle())
     , m_commandPool(commandPool.getHandle())
 {
@@ -42,12 +42,12 @@ vko::CommandBuffers::~CommandBuffers()
     vkFreeCommandBuffers(m_device, m_commandPool, static_cast<uint32_t>(rawHandles.size()), rawHandles.data());
 }
 
-void vko::CommandBuffers::reset(std::size_t index) const
+void vko::CommandBuffers::reset(size_t index) const
 {
     VKO_VERIFY(vkResetCommandBuffer(m_handles[index], 0));
 }
 
-void vko::CommandBuffers::begin(std::size_t index, bool oneTime /*= true*/) const
+void vko::CommandBuffers::begin(size_t index, bool oneTime /*= true*/) const
 {
     VkCommandBufferUsageFlags flags = 0;
     if (oneTime)
@@ -61,12 +61,12 @@ void vko::CommandBuffers::begin(std::size_t index, bool oneTime /*= true*/) cons
     VKO_VERIFY(vkBeginCommandBuffer(m_handles[index], &commandBufferBeginInfo));
 }
 
-void vko::CommandBuffers::end(std::size_t index) const
+void vko::CommandBuffers::end(size_t index) const
 {
     VKO_VERIFY(vkEndCommandBuffer(m_handles[index]));
 }
 
-void vko::CommandBuffers::submit(std::size_t index, Queue const& queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence) const
+void vko::CommandBuffers::submit(size_t index, Queue const& queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence) const
 {
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

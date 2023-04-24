@@ -21,7 +21,7 @@ namespace vko
         friend class CommandPool;
 
     public:
-    	CommandBuffers(Device const& device, CommandPool const& commandPool, std::size_t size);
+    	CommandBuffers(Device const& device, CommandPool const& commandPool, size_t size);
     	~CommandBuffers();
 
         CommandBuffers(CommandBuffers const&) = default;
@@ -29,13 +29,13 @@ namespace vko
         CommandBuffers& operator=(CommandBuffers const&) = default;
         CommandBuffers& operator=(CommandBuffers&&) = default;
 
-        std::size_t getSize() const { return m_handles.size(); }
-        VkCommandBuffer getHandle(std::size_t index) const { return m_handles[index]; }
+        size_t getSize() const { return m_handles.size(); }
+        VkCommandBuffer getHandle(size_t index) const { return m_handles[index]; }
 
-        void reset(std::size_t index) const;
-        void begin(std::size_t index, bool oneTime = true) const;
-        void end(std::size_t index) const;
-        void submit(std::size_t index, Queue const& queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence) const;
+        void reset(size_t index) const;
+        void begin(size_t index, bool oneTime = true) const;
+        void end(size_t index) const;
+        void submit(size_t index, Queue const& queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence) const;
 
     private:
         VkDevice m_device;

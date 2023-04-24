@@ -6,7 +6,7 @@ namespace vkgfx
     {
         struct Data
         {
-            std::uint64_t value = 0;
+            uint64_t value = 0;
         };
 
         vkgfx::ResourceContainer<Data> container;

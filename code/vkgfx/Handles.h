@@ -10,7 +10,7 @@ namespace vkgfx
 {
     struct OldResourceHandle
     {
-        std::size_t index = static_cast<std::size_t>(-1);
+        size_t index = static_cast<size_t>(-1);
 
         auto operator<=>(OldResourceHandle const&) const = default;
 

@@ -9,15 +9,15 @@ Services::~Services() = default;
 
 void Services::setCommandLine(nstl::unique_ptr<CommandLineService> service)
 {
-    m_commandLine = std::move(service);
+    m_commandLine = nstl::move(service);
 }
 
 void Services::setDebugConsole(nstl::unique_ptr<DebugConsoleService> service)
 {
-    m_debugConsole = std::move(service);
+    m_debugConsole = nstl::move(service);
 }
 
 void Services::setDebugDraw(nstl::unique_ptr<DebugDrawService> service)
 {
-    m_debugDraw = std::move(service);
+    m_debugDraw = nstl::move(service);
 }

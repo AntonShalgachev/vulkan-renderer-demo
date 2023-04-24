@@ -51,7 +51,7 @@ namespace vkgfx
         void onWindowResized();
 
         void createCameraResources();
-        void recordCommandBuffer(std::size_t imageIndex, RendererFrameResources& frameResources);
+        void recordCommandBuffer(size_t imageIndex, RendererFrameResources& frameResources);
 
         void updateCameraBuffer();
 
@@ -81,11 +81,11 @@ namespace vkgfx
         nstl::unique_ptr<vko::Image> m_depthImage;
         nstl::unique_ptr<vko::DeviceMemory> m_depthImageMemory;
         nstl::unique_ptr<vko::ImageView> m_depthImageView;
-        std::size_t m_width = 0;
-        std::size_t m_height = 0;
+        size_t m_width = 0;
+        size_t m_height = 0;
 
         nstl::vector<RendererFrameResources> m_frameResources;
-        std::size_t m_nextFrameResourcesIndex = 0;
+        size_t m_nextFrameResourcesIndex = 0;
 
         BufferHandle m_cameraBuffer;
         TestCameraTransform m_cameraTransform;

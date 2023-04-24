@@ -27,8 +27,8 @@ private:
     void createPipeline(vkgfx::ResourceManager& resourceManager);
 
     void uploadBuffers(vkgfx::ResourceManager& resourceManager, ImDrawData const* drawData);
-    void updateMesh(vkgfx::ResourceManager& resourceManager, std::size_t index, std::size_t indexCount, std::size_t indexOffset, std::size_t vertexOffset);
-    void updateMaterial(vkgfx::ResourceManager& resourceManager, std::size_t index, vkgfx::ImageHandle image);
+    void updateMesh(vkgfx::ResourceManager& resourceManager, size_t index, size_t indexCount, size_t indexOffset, size_t vertexOffset);
+    void updateMaterial(vkgfx::ResourceManager& resourceManager, size_t index, vkgfx::ImageHandle image);
 
 private:
     vkgfx::BufferHandle m_vertexBuffer;
