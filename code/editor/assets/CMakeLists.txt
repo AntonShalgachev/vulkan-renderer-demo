@@ -28,4 +28,5 @@ target_link_libraries(editor_assets
     Vulkan::Vulkan
     yyjsoncpp
     platform # TODO remove (only needed for Uuid)
+    tglm
 )

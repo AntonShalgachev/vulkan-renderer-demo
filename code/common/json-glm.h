@@ -1,30 +1,29 @@
 #pragma once
 
-#include "common/glm.h"
+#include "tglm/fwd.h"
 
 #include "yyjsoncpp/serializer.h"
 
 namespace yyjsoncpp
 {
     template<>
-    struct serializer<glm::vec3>
+    struct serializer<tglm::vec3>
     {
-        static optional<glm::vec3> from_json(value_ref obj);
-        static mutable_value_ref to_json(mutable_doc& doc, glm::vec3 const& value);
+        static optional<tglm::vec3> from_json(value_ref obj);
+        static mutable_value_ref to_json(mutable_doc& doc, tglm::vec3 const& value);
     };
 
     template<>
-    struct serializer<glm::vec4>
+    struct serializer<tglm::vec4>
     {
-        static optional<glm::vec4> from_json(value_ref obj);
-        static mutable_value_ref to_json(mutable_doc& doc, glm::vec4 const& value);
+        static optional<tglm::vec4> from_json(value_ref obj);
+        static mutable_value_ref to_json(mutable_doc& doc, tglm::vec4 const& value);
     };
 
     template<>
-    struct serializer<glm::quat>
+    struct serializer<tglm::quat>
     {
-        static optional<glm::quat> from_json(value_ref obj);
-        static mutable_value_ref to_json(mutable_doc& doc, glm::quat const& value);
+        static optional<tglm::quat> from_json(value_ref obj);
+        static mutable_value_ref to_json(mutable_doc& doc, tglm::quat const& value);
     };
-
 }

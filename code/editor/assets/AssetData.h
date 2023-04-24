@@ -4,8 +4,9 @@
 
 #include "editor/assets/Uuid.h"
 
-#include "common/glm.h"
 #include "common/tiny_ctti.h"
+
+#include "tglm/types.h"
 
 #include "nstl/optional.h"
 #include "nstl/vector.h"
@@ -64,7 +65,7 @@ namespace editor::assets
         float alphaCutoff = 0.0f;
         bool doubleSided = false;
 
-        nstl::optional<glm::vec4> baseColor;
+        nstl::optional<tglm::vec4> baseColor;
         nstl::optional<TextureData> baseColorTexture;
         nstl::optional<TextureData> metallicRoughnessTexture;
         nstl::optional<TextureData> normalTexture;
@@ -159,9 +160,9 @@ namespace editor::assets
     // TODO generalize; these are basically "components"
     struct TransformParams
     {
-        glm::vec3 position = { 0, 0, 0 };
-        glm::vec3 scale = { 1, 1, 1 };
-        glm::quat rotation = glm::identity<glm::quat>(); // TODO or euler angles?
+        tglm::vec3 position = { 0, 0, 0 };
+        tglm::vec3 scale = { 1, 1, 1 };
+        tglm::quat rotation = tglm::quat::identity(); // TODO or euler angles?
     };
     TINY_CTTI_DESCRIBE_STRUCT(TransformParams, position, scale, rotation);
 

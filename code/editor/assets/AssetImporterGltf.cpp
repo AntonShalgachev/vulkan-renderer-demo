@@ -6,12 +6,13 @@
 
 #include "memory/tracking.h"
 #include "common/Utils.h"
-#include "common/glm.h"
 #include "common/json-tiny-ctti.h"
 #include "common/json-nstl.h"
 #include "common/json-glm.h"
 #include "logging/logging.h"
 #include "path/path.h"
+
+#include "tglm/affine.h"
 
 #include "fs/file.h"
 
@@ -182,8 +183,8 @@ namespace
 
         if (material.has_pbr_metallic_roughness)
         {
-            static_assert(sizeof(material.pbr_metallic_roughness.base_color_factor) == sizeof(glm::vec4));
-            materialData.baseColor = glm::make_vec4(material.pbr_metallic_roughness.base_color_factor);
+            static_assert(sizeof(material.pbr_metallic_roughness.base_color_factor) == sizeof(tglm::vec4));
+            materialData.baseColor = tglm::vec4(material.pbr_metallic_roughness.base_color_factor);
 
             if (auto texture = material.pbr_metallic_roughness.base_color_texture.texture)
                 materialData.baseColorTexture = createTextureData(*texture);
@@ -514,12 +515,10 @@ namespace
     {
         if (node.has_matrix)
         {
-            glm::vec3 position;
-            glm::vec3 scale;
-            glm::quat rotation;
-            glm::vec3 skew;
-            glm::vec4 perspective;
-            glm::decompose(glm::make_mat4(node.matrix), scale, rotation, position, skew, perspective);
+            tglm::vec4 position;
+            tglm::vec3 scale;
+            tglm::quat rotation;
+            tglm::decompose(tglm::mat4(node.matrix), position, rotation, scale);
 
             return editor::assets::TransformParams{ position, scale, rotation };
         }
@@ -527,13 +526,13 @@ namespace
         editor::assets::TransformParams transform;
 
         if (node.has_translation)
-            transform.position = glm::make_vec3(node.translation);
+            transform.position = tglm::vec3(node.translation);
 
         if (node.has_scale)
-            transform.scale = glm::make_vec3(node.scale);
+            transform.scale = tglm::vec3(node.scale);
 
         if (node.has_rotation)
-            transform.rotation = glm::make_quat(node.rotation);
+            transform.rotation = tglm::quat(node.rotation);
 
         return transform;
     }

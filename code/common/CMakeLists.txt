@@ -43,4 +43,5 @@ target_link_libraries(${PROJECT_NAME}
     yyjsoncpp
     fs
     tiny_ctti
+    tglm
 )
