@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tiny_glm/detail/cglm_types.h"
+#include "tglm/detail/cglm_types.h"
 
 namespace tglm
 {

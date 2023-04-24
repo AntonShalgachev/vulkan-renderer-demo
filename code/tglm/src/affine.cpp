@@ -1,9 +1,9 @@
-#include "tiny_glm/affine.h"
+#include "tglm/affine.h"
 
-#include "tiny_glm/types/vec3.h"
-#include "tiny_glm/types/vec4.h"
-#include "tiny_glm/types/mat4.h"
-#include "tiny_glm/types/quat.h"
+#include "tglm/types/vec3.h"
+#include "tglm/types/vec4.h"
+#include "tglm/types/mat4.h"
+#include "tglm/types/quat.h"
 
 #include "cglm/affine.h"
 

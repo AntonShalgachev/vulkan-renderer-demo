@@ -1,6 +1,6 @@
-#include "tiny_glm/types/vec4.h"
+#include "tglm/types/vec4.h"
 
-#include "tiny_glm/types/vec3.h"
+#include "tglm/types/vec3.h"
 
 #include "cglm/vec4.h"
 #include "cglm/vec3.h"

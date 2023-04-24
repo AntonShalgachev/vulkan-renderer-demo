@@ -1,4 +1,4 @@
-#include "tiny_glm/types/vec2.h"
+#include "tglm/types/vec2.h"
 
 #include "cglm/vec2.h"
 

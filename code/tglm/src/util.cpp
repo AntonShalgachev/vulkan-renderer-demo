@@ -1,6 +1,6 @@
-#include "tiny_glm/util.h"
+#include "tglm/util.h"
 
-#include "tiny_glm/types/vec3.h"
+#include "tglm/types/vec3.h"
 
 tglm::vec3 tglm::degrees(vec3 rad)
 {

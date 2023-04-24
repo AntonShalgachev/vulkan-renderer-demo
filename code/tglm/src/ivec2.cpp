@@ -1,4 +1,4 @@
-#include "tiny_glm/types/ivec2.h"
+#include "tglm/types/ivec2.h"
 
 #include "cglm/ivec2.h"
 
