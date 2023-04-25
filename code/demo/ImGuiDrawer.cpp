@@ -4,6 +4,9 @@
 #include "ShaderPackage.h"
 #include "glm.h"
 
+#include "tglm/types.h"
+#include "tglm/util.h"
+
 #include "vko/SamplerProperties.h"
 #include "vko/ShaderModuleProperties.h"
 
@@ -79,30 +82,28 @@ namespace
 
     struct ClipData
     {
-        glm::ivec2 clipMin;
-        glm::ivec2 clipMax;
+        tglm::ivec2 clipMin;
+        tglm::ivec2 clipMax;
     };
 
     ClipData calculateClip(ImDrawData const* drawData, ImDrawCmd const* drawCommand)
     {
-        glm::ivec2 framebufferSize = { drawData->DisplaySize.x * drawData->FramebufferScale.x, drawData->DisplaySize.y * drawData->FramebufferScale.y };
+        tglm::vec2 displayPos = { drawData->DisplayPos.x, drawData->DisplayPos.y };
+        tglm::vec2 displaySize = { drawData->DisplaySize.x, drawData->DisplaySize.y };
+        tglm::vec2 scale = { drawData->FramebufferScale.x, drawData->FramebufferScale.y };
 
-        ImVec2 clipOffset = drawData->DisplayPos;
-        ImVec2 clipScale = drawData->FramebufferScale;
+        tglm::vec2 clipRectMin = { drawCommand->ClipRect.x, drawCommand->ClipRect.y };
+        tglm::vec2 clipRectMax = { drawCommand->ClipRect.z, drawCommand->ClipRect.w };
 
-        glm::ivec2 clipMin = { (drawCommand->ClipRect.x - clipOffset.x) * clipScale.x, (drawCommand->ClipRect.y - clipOffset.y) * clipScale.y };
-        glm::ivec2 clipMax = { (drawCommand->ClipRect.z - clipOffset.x) * clipScale.x, (drawCommand->ClipRect.w - clipOffset.y) * clipScale.y };
+        tglm::vec2 framebufferSize = displaySize * scale;
 
-        if (clipMin.x < 0)
-            clipMin.x = 0;
-        if (clipMin.y < 0)
-            clipMin.y = 0;
-        if (clipMax.x > framebufferSize.x)
-            clipMax.x = framebufferSize.x;
-        if (clipMax.y > framebufferSize.y)
-            clipMax.y = framebufferSize.y;
+        tglm::vec2 clipMin = (clipRectMin - displayPos) * scale;
+        tglm::vec2 clipMax = (clipRectMax - displayPos) * scale;
 
-        return { clipMin, clipMax };
+        clipMin.x = tglm::clamp(clipMin.x, 0.0f, framebufferSize.x);
+        clipMin.y = tglm::clamp(clipMin.y, 0.0f, framebufferSize.y);
+
+        return { static_cast<tglm::ivec2>(clipMin), static_cast<tglm::ivec2>(clipMax) };
     }
 }
 

@@ -4,6 +4,8 @@
 
 #include "common/glm.h"
 
+#include "tglm/types.h"
+
 #include "nstl/static_vector.h"
 
 namespace vkgfx
@@ -22,8 +24,8 @@ namespace vkgfx
         nstl::static_vector<unsigned char, MaxPushConstantsSize> pushConstants; // TODO have a reference to the buffer instead
 
         bool hasScissors = false;
-        glm::uvec2 scissorOffset = { 0, 0 };
-        glm::uvec2 scissorSize = { 0, 0 };
+        tglm::ivec2 scissorOffset = { 0, 0 };
+        tglm::ivec2 scissorSize = { 0, 0 };
     };
 
     struct TestCameraTransform
