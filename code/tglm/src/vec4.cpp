@@ -15,7 +15,7 @@ tglm::vec4::vec4(float const* v, [[maybe_unused]] size_t count)
     memcpy(data, v, sizeof(data));
 }
 
-tglm::vec4::operator vec3() const
+tglm::vec4::operator tglm::vec3() const
 {
     vec3 result;
     glm_vec3(const_cast<vec4*>(this)->data, result.data);
