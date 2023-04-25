@@ -7,7 +7,7 @@ namespace tglm
     struct vec3;
     struct mat4;
 
-    struct alignas(16) quat
+    struct quat
     {
         constexpr static size_t elements_count = 4;
 
@@ -48,3 +48,4 @@ namespace tglm
 
 static_assert(sizeof(tglm::quat) == sizeof(tglm::cglm_versor), "Unexpected type size");
 static_assert(alignof(tglm::quat) == alignof(tglm::cglm_versor), "Unexpected type alignment");
+static_assert(alignof(tglm::quat) >= 16, "Unexpected type alignment");

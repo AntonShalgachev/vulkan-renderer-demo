@@ -6,7 +6,7 @@ namespace tglm
 {
     struct vec3;
 
-    struct alignas(cglm_vec4) vec4
+    struct vec4
     {
         constexpr static size_t elements_count = 4;
 
@@ -47,3 +47,4 @@ namespace tglm
 
 static_assert(sizeof(tglm::vec4) == sizeof(tglm::cglm_vec4), "Unexpected type size");
 static_assert(alignof(tglm::vec4) == alignof(tglm::cglm_vec4), "Unexpected type alignment");
+static_assert(alignof(tglm::vec4) >= 16, "Unexpected type alignment");

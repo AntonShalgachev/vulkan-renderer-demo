@@ -4,7 +4,7 @@
 
 namespace tglm
 {
-    struct alignas(cglm_mat4) mat4
+    struct mat4
     {
         constexpr static size_t elements_count = 16;
 
@@ -29,3 +29,4 @@ namespace tglm
 
 static_assert(sizeof(tglm::mat4) == sizeof(tglm::cglm_mat4), "Unexpected type size");
 static_assert(alignof(tglm::mat4) == alignof(tglm::cglm_mat4), "Unexpected type alignment");
+static_assert(alignof(tglm::mat4) >= 16, "Unexpected type alignment");
