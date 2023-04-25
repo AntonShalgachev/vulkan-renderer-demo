@@ -13,7 +13,7 @@ namespace nstl
     class blob
     {
     public:
-        blob(size_t size, any_allocator alloc = {});
+        blob(size_t size = 0, any_allocator alloc = {});
 
         size_t size() const;
         void* data();
