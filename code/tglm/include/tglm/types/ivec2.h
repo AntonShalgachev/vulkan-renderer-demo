@@ -35,6 +35,7 @@ namespace tglm
     };
 
     // TODO operators
+    ivec2 operator-(ivec2 const& lhs, ivec2 const& rhs);
     ivec2 operator*(ivec2 const& lhs, int rhs);
     inline ivec2 operator*(int lhs, ivec2 const& rhs) { return rhs * lhs; }
 }

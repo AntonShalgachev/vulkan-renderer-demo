@@ -4,6 +4,8 @@
 
 namespace tglm
 {
+    struct ivec2;
+
     struct vec2
     {
         constexpr static size_t elements_count = 2;
@@ -18,6 +20,7 @@ namespace tglm
         vec2 normalized() const;
 
         // TODO conversion operators?
+        explicit operator ivec2() const;
 
         union
         {
@@ -38,6 +41,8 @@ namespace tglm
     };
 
     // TODO other operators
+    vec2 operator-(vec2 const& lhs, vec2 const& rhs);
+    vec2 operator*(vec2 const& lhs, vec2 const& rhs);
     vec2 operator*(vec2 const& lhs, float rhs);
     inline vec2 operator*(float lhs, vec2 const& rhs) { return rhs * lhs; }
 }
