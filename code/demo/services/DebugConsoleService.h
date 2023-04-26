@@ -49,7 +49,7 @@ namespace coil
     {
         static coil::StringView name()
         {
-            return typeid(T).name();
+            return "Unknown";
         }
     };
 }
