@@ -9,7 +9,7 @@ namespace
 {
     void append(nstl::string_view line, nstl::vector<nstl::string>& arguments)
     {
-        auto isQuote = [](char c) { return c == '"'; };
+        auto isQuote = [](char c) { return c == '"' || c == '\''; };
         auto isComment = [](char c) { return c == ';' || c == '#'; };
         auto isChar = [&isComment, &isQuote](char c) { return !isspace(c) && !isComment(c) && !isQuote(c); };
 
@@ -26,9 +26,11 @@ namespace
 
             if (isQuote(line[i]))
             {
+                char openingQuote = line[i];
+
                 i++;
                 size_t tokenBegin = i;
-                while ((i < line.size()) && !isQuote(line[i]))
+                while ((i < line.size()) && line[i] != openingQuote)
                     i++;
                 arguments.emplace_back(line.substr(tokenBegin, i - tokenBegin));
             }
