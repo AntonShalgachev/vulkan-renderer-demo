@@ -46,6 +46,13 @@ tglm::quat::quat(mat4 const& m)
     glm_mat4_quat(const_cast<mat4&>(m).data, data);
 }
 
+tglm::vec3 tglm::quat::rotate(vec3 const& v) const
+{
+    vec3 result;
+    glm_quat_rotatev(const_cast<quat*>(this)->data, const_cast<vec3&>(v).data, result.data);
+    return result;
+}
+
 tglm::vec3 tglm::quat::to_euler_xyz() const
 {
     // TODO make it more optimal when cglm allows it

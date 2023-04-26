@@ -13,6 +13,7 @@ namespace tglm
         vec4() : data{} {}
         vec4(float v) : data{ v, v, v, v } {}
         vec4(float x, float y, float z, float w) : data{ x, y, z, w } {}
+        vec4(vec3 const& xyz, float w);
         vec4(float const* v, size_t count);
         vec4(float const(&v)[elements_count]) : vec4(v, elements_count) {}
         // TODO vec3 + float constructor

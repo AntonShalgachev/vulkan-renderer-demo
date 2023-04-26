@@ -19,6 +19,20 @@ tglm::mat4::mat4(float const* v, [[maybe_unused]] size_t count)
     memcpy(data, v, sizeof(data));
 }
 
+tglm::mat4 tglm::mat4::inversed() const
+{
+    mat4 result;
+    glm_mat4_inv(const_cast<mat4*>(this)->data, result.data);
+    return result;
+}
+
+tglm::mat4 tglm::mat4::inversed_fast() const
+{
+    mat4 result;
+    glm_mat4_inv_fast(const_cast<mat4*>(this)->data, result.data);
+    return result;
+}
+
 tglm::mat4 tglm::operator*(mat4 const& lhs, mat4 const& rhs)
 {
     mat4 result;

@@ -4,7 +4,9 @@ namespace tglm
 {
     struct vec3;
 
+    float degrees(float rad);
     vec3 degrees(vec3 rad);
+    float radians(float deg);
     vec3 radians(vec3 deg);
 
     float clamp(float v, float min, float max);

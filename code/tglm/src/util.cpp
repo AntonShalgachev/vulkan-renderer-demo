@@ -4,14 +4,24 @@
 
 #include "cglm/util.h"
 
-tglm::vec3 tglm::degrees(vec3 rad)
+float tglm::degrees(float deg)
+{
+    return deg * (180.0f / GLM_PIf);
+}
+
+tglm::vec3 tglm::degrees(vec3 deg)
+{
+    return deg * (180.0f / GLM_PIf);
+}
+
+float tglm::radians(float rad)
 {
     return rad * (GLM_PIf / 180.0f);
 }
 
-tglm::vec3 tglm::radians(vec3 deg)
+tglm::vec3 tglm::radians(vec3 rad)
 {
-    return deg * (180.0f / GLM_PIf);
+    return rad * (GLM_PIf / 180.0f);
 }
 
 float tglm::clamp(float v, float min, float max)

@@ -14,6 +14,9 @@ namespace tglm
         mat4(float const* v, size_t count);
         mat4(float const(&v)[elements_count]) : mat4(v, elements_count) {}
 
+        mat4 inversed() const;
+        mat4 inversed_fast() const;
+
         union
         {
             cglm_mat4 data;

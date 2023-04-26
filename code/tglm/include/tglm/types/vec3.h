@@ -15,7 +15,13 @@ namespace tglm
         vec3(float const(&v)[elements_count]) : vec3(v, elements_count) {}
         // TODO vec2 + float constructor
 
+        void normalize();
+        vec3 normalized() const;
+
         // TODO conversion operators?
+
+        float& operator[](size_t index);
+        float const& operator[](size_t index) const;
 
         union
         {
@@ -40,6 +46,10 @@ namespace tglm
     // TODO other operators
     vec3 operator*(vec3 const& lhs, float rhs);
     inline vec3 operator*(float lhs, vec3 const& rhs) { return rhs * lhs; }
+
+    vec3& operator+=(vec3& lhs, vec3 const& rhs);
+
+    vec3 operator-(vec3 const& v);
 }
 
 static_assert(sizeof(tglm::vec3) == sizeof(tglm::cglm_vec3), "Unexpected type size");

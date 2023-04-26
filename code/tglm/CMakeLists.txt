@@ -9,20 +9,21 @@ add_library(tglm
     "include/tglm/types/vec4.h"
 
     "include/tglm/affine.h"
+    "include/tglm/camera.h"
     "include/tglm/fwd.h"
     "include/tglm/tglm.h"
     "include/tglm/types.h"
     "include/tglm/util.h"
 
     "src/affine.cpp"
+    "src/camera.cpp"
     "src/ivec2.cpp"
     "src/mat4.cpp"
     "src/quat.cpp"
     "src/util.cpp"
     "src/vec2.cpp"
     "src/vec3.cpp"
-    "src/vec4.cpp"
-)
+    "src/vec4.cpp")
 
 target_compile_features(tglm PUBLIC cxx_std_17)
 

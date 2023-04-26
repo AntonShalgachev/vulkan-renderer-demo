@@ -21,6 +21,8 @@ namespace tglm
 //         quat(mat3 const& m); // TODO
         quat(mat4 const& m);
 
+        vec3 rotate(vec3 const& v) const;
+
         vec3 to_euler_xyz() const;
 //         mat3 to_mat3() const; // TODO
         mat4 to_mat4() const;
