@@ -35,6 +35,7 @@
 
 #include "demo/console/GlmSerializer.h"
 #include "demo/console/EnumSerializer.h"
+#include "demo/console/EditorSerializer.h"
 
 #include "editor/assets/AssetDatabase.h"
 #include "editor/assets/AssetData.h"
@@ -336,6 +337,19 @@ namespace
         return vkgfx::AttributeType::Vec4f;
     }
 
+    vkgfx::AttributeType findAttributeType(editor::assets::DataType dataType, editor::assets::DataComponentType componentType)
+    {
+        if (dataType == editor::assets::DataType::Vec2 && componentType == editor::assets::DataComponentType::Float)
+            return vkgfx::AttributeType::Vec2f;
+        if (dataType == editor::assets::DataType::Vec3 && componentType == editor::assets::DataComponentType::Float)
+            return vkgfx::AttributeType::Vec3f;
+        if (dataType == editor::assets::DataType::Vec4 && componentType == editor::assets::DataComponentType::Float)
+            return vkgfx::AttributeType::Vec4f;
+
+        assert(false);
+        return vkgfx::AttributeType::Vec4f;
+    }
+
     size_t getAttributeByteSize(vkgfx::AttributeType type)
     {
         size_t gltfFloatSize = 4;
@@ -370,6 +384,20 @@ namespace
 
         if (it != attributeNames.end())
             return it - attributeNames.begin();
+
+        return {};
+    }
+
+    nstl::optional<size_t> findAttributeLocation(editor::assets::AttributeSemantic semantic)
+    {
+        using editor::assets::AttributeSemantic;
+
+        static nstl::vector<AttributeSemantic> const attributeSemantics = { AttributeSemantic::Position, AttributeSemantic::Color, AttributeSemantic::Texcoord, AttributeSemantic::Normal, AttributeSemantic::Tangent }; // TODO move to the shader metadata
+
+        auto it = attributeSemantics.find(semantic);
+
+        if (it != attributeSemantics.end())
+            return it - attributeSemantics.begin();
 
         return {};
     }
@@ -520,7 +548,11 @@ void DemoApplication::init()
     m_commands["window.memory-viewer"].description("Memory viewer window") = [this]() { m_memoryViewer->toggle(); };
 
     m_commands["assets.import"] = [this](nstl::string_view path) { m_assetDatabase->importAsset(path); };
-    m_commands["assets.load-scene"] = [this](nstl::string_view id) { m_assetDatabase->loadScene(id); };
+
+    m_commands["scene.load-editor"].description("Load scene from the asset").arguments("id") = [this](coil::Context context, editor::assets::Uuid id) {
+        if (!editorLoadScene(id))
+            context.reportError("Failed to load the scene '" + coil::fromNstlStringView(id.toString()) + "'");
+    };
 
     // TODO find a proper place for these commands
     auto const& lines = m_services.commandLine().get("--exec-before-init");
@@ -737,9 +769,9 @@ void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, siz
     {
         size_t meshIndex = findIndex(gltfNode.mesh, gltfModel.meshes, gltfModel.meshes_count);
 
-        for (DemoMesh const& mesh : m_gltfResources->meshes[meshIndex])
+        for (DemoPrimitive const& primitive : m_gltfResources->meshes[meshIndex].primitives)
         {
-            DemoMaterial const& material = m_gltfResources->materials[mesh.metadata.materialIndex];
+            DemoMaterial const& material = m_gltfResources->materials[primitive.metadata.materialIndex];
 
             vkgfx::PipelineKey pipelineKey;
             pipelineKey.renderConfig = material.metadata.renderConfig;
@@ -760,7 +792,7 @@ void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, siz
                 },
             };
 
-            pipelineKey.vertexConfig = mesh.metadata.vertexConfig;
+            pipelineKey.vertexConfig = primitive.metadata.vertexConfig;
 
             pipelineKey.pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DemoObjectPushConstants), } };
 
@@ -768,10 +800,10 @@ void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, siz
             ShaderConfiguration shaderConfiguration;
             shaderConfiguration.hasTexture = material.metadata.uniformConfig.hasAlbedoTexture;
             shaderConfiguration.hasNormalMap = material.metadata.uniformConfig.hasNormalMap;
-            shaderConfiguration.hasColor = mesh.metadata.attributeSemanticsConfig.hasColor;
-            shaderConfiguration.hasTexCoord = mesh.metadata.attributeSemanticsConfig.hasUv;
-            shaderConfiguration.hasNormal = mesh.metadata.attributeSemanticsConfig.hasNormal;
-            shaderConfiguration.hasTangent = mesh.metadata.attributeSemanticsConfig.hasTangent;
+            shaderConfiguration.hasColor = primitive.metadata.attributeSemanticsConfig.hasColor;
+            shaderConfiguration.hasTexCoord = primitive.metadata.attributeSemanticsConfig.hasUv;
+            shaderConfiguration.hasNormal = primitive.metadata.attributeSemanticsConfig.hasNormal;
+            shaderConfiguration.hasTangent = primitive.metadata.attributeSemanticsConfig.hasTangent;
 
             nstl::string const* vertexShaderPath = m_defaultVertexShader->get(shaderConfiguration);
             nstl::string const* fragmentShaderPath = m_defaultFragmentShader->get(shaderConfiguration);
@@ -801,7 +833,7 @@ void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, siz
             pushConstants.model = nodeTransform;
 
             vkgfx::TestObject& object = scene.objects.emplace_back();
-            object.mesh = mesh.handle;
+            object.mesh = primitive.handle;
             object.material = material.handle;
             object.pipeline = pipeline;
             object.uniformBuffer = uniformBuffer;
@@ -854,9 +886,9 @@ void DemoApplication::clearScene()
             resourceManager.removeImage(handle);
         for (auto const& material : resources.materials)
             resourceManager.removeMaterial(material.handle);
-        for (auto const& meshList : resources.meshes)
-            for (auto const& mesh : meshList)
-                resourceManager.removeMesh(mesh.handle);
+        for (auto const& mesh : resources.meshes)
+            for (auto const& primitive : mesh.primitives)
+                resourceManager.removeMesh(primitive.handle);
         for (auto const& handle : resources.samplers)
             resourceManager.removeSampler(handle);
         for (auto const& [name, handle] : resources.shaderModules)
@@ -865,6 +897,11 @@ void DemoApplication::clearScene()
             resourceManager.removeTexture(handle);
 
         m_gltfResources = {};
+    }
+
+    if (m_editorGltfResources)
+    {
+        // TODO implement
     }
 }
 
@@ -948,6 +985,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     for (auto i = 0; i < model.extensions_required_count; i++)
         logging::warn("GLTF requires extension '{}'", model.extensions_required[i]);
 
+    // TODO move somewhere else? Doesn't seem to be related to the GLTF model
     // TODO implement
 //     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
     for (auto const& pair : m_defaultVertexShader->getAll())
@@ -1177,13 +1215,13 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
         cgltf_mesh const& gltfMesh = model.meshes[meshIndex];
 
-        nstl::vector<DemoMesh>& demoMeshes = m_gltfResources->meshes.emplace_back();
-        demoMeshes.reserve(gltfMesh.primitives_count);
+        DemoMesh& demoMesh = m_gltfResources->meshes.emplace_back();
+        demoMesh.primitives.reserve(gltfMesh.primitives_count);
         for (auto primitiveIndex = 0; primitiveIndex < gltfMesh.primitives_count; primitiveIndex++)
         {
             cgltf_primitive const& gltfPrimitive = gltfMesh.primitives[primitiveIndex];
 
-            DemoMesh& demoMesh = demoMeshes.emplace_back();
+            DemoPrimitive& demoPrimitive = demoMesh.primitives.emplace_back();
 
             vkgfx::Mesh mesh;
 
@@ -1216,8 +1254,8 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
             }
 
             mesh.vertexBuffers.reserve(gltfPrimitive.attributes_count);
-            demoMesh.metadata.vertexConfig.bindings.reserve(gltfPrimitive.attributes_count);
-            demoMesh.metadata.vertexConfig.attributes.reserve(gltfPrimitive.attributes_count);
+            demoPrimitive.metadata.vertexConfig.bindings.reserve(gltfPrimitive.attributes_count);
+            demoPrimitive.metadata.vertexConfig.attributes.reserve(gltfPrimitive.attributes_count);
 
             for (size_t attributeIndex = 0; attributeIndex < gltfPrimitive.attributes_count; attributeIndex++)
             {
@@ -1245,13 +1283,13 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
                 attributeBuffer.offset = gltfBufferView->offset + gltfAccessor->offset; // TODO can be improved
 
                 if (name == "COLOR_0")
-                    demoMesh.metadata.attributeSemanticsConfig.hasColor = true;
+                    demoPrimitive.metadata.attributeSemanticsConfig.hasColor = true;
                 if (name == "TEXCOORD_0")
-                    demoMesh.metadata.attributeSemanticsConfig.hasUv = true;
+                    demoPrimitive.metadata.attributeSemanticsConfig.hasUv = true;
                 if (name == "NORMAL")
-                    demoMesh.metadata.attributeSemanticsConfig.hasNormal = true;
+                    demoPrimitive.metadata.attributeSemanticsConfig.hasNormal = true;
                 if (name == "TANGENT")
-                    demoMesh.metadata.attributeSemanticsConfig.hasTangent = true;
+                    demoPrimitive.metadata.attributeSemanticsConfig.hasTangent = true;
 
                 vkgfx::AttributeType attributeType = findAttributeType(gltfAccessor->type, gltfAccessor->component_type);
 
@@ -1259,10 +1297,10 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
                 if (stride == 0)
                     stride = getAttributeByteSize(attributeType);
 
-                vkgfx::VertexConfiguration::Binding& bindingConfig = demoMesh.metadata.vertexConfig.bindings.emplace_back();
+                vkgfx::VertexConfiguration::Binding& bindingConfig = demoPrimitive.metadata.vertexConfig.bindings.emplace_back();
                 bindingConfig.stride = stride;
 
-                vkgfx::VertexConfiguration::Attribute& attributeConfig = demoMesh.metadata.vertexConfig.attributes.emplace_back();
+                vkgfx::VertexConfiguration::Attribute& attributeConfig = demoPrimitive.metadata.vertexConfig.attributes.emplace_back();
                 attributeConfig.binding = attributeIndex;
                 attributeConfig.location = *location;
                 attributeConfig.offset = 0; // TODO can be improved
@@ -1270,12 +1308,12 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
                 // TODO implement
                 assert(gltfPrimitive.type == cgltf_primitive_type_triangles);
-                demoMesh.metadata.vertexConfig.topology = vkgfx::VertexTopology::Triangles;
+                demoPrimitive.metadata.vertexConfig.topology = vkgfx::VertexTopology::Triangles;
 
-                demoMesh.metadata.materialIndex = findIndex(gltfPrimitive.material, model.materials, model.materials_count); // TODO check
+                demoPrimitive.metadata.materialIndex = findIndex(gltfPrimitive.material, model.materials, model.materials_count); // TODO check
             }
 
-            demoMesh.handle = resourceManager.createMesh(nstl::move(mesh));
+            demoPrimitive.handle = resourceManager.createMesh(nstl::move(mesh));
         }
     }
 
@@ -1332,6 +1370,271 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     }
 
     return true;
+}
+
+bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
+{
+    static auto scopeId = memory::tracking::create_scope_id("Scene/Load/Editor");
+    static auto shadersScopeId = memory::tracking::create_scope_id("Scene/Load/Editor/Shader");
+
+    MEMORY_TRACKING_SCOPE(scopeId);
+
+    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
+
+    m_editorGltfResources = nstl::make_unique<EditorGltfResources>();
+
+    // TODO move somewhere else? Doesn't seem to be related to the GLTF model
+    // TODO implement
+//     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
+    for (auto const& pair : m_defaultVertexShader->getAll())
+    {
+        MEMORY_TRACKING_SCOPE(shadersScopeId);
+
+        auto const& configuration = pair.key();
+        auto const& modulePath = pair.value();
+        auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
+        m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
+    }
+    // TODO implement
+//     for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
+    for (auto const& pair : m_defaultFragmentShader->getAll())
+    {
+        MEMORY_TRACKING_SCOPE(shadersScopeId);
+
+        auto const& configuration = pair.key();
+        auto const& modulePath = pair.value();
+        auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Fragment, "main");
+        m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
+    }
+
+    editor::assets::SceneData scene = m_assetDatabase->loadScene(id);
+
+    for (editor::assets::ObjectDescription const& object : scene.objects)
+    {
+        if (object.mesh)
+        {
+            editor::assets::Uuid id = object.mesh->id;
+            if (m_editorGltfResources->meshes.find(id) == m_editorGltfResources->meshes.end())
+                editorLoadMesh(id);
+
+            // TODO
+        }
+    }
+
+    return true;
+}
+
+void DemoApplication::editorLoadImage(editor::assets::Uuid id)
+{
+    static auto scopeId = memory::tracking::create_scope_id("Scene/Load/Editor/Image");
+    MEMORY_TRACKING_SCOPE(scopeId);
+
+    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
+
+    // TODO leads to unnecessary data copy; change that
+    nstl::optional<ImageData> imageData = loadImage(m_assetDatabase->loadImage(id));
+    assert(imageData);
+
+    assert(!imageData->bytes.empty());
+    assert(!imageData->mips.empty());
+    assert(imageData->mips[0].size > 0);
+
+    vkgfx::ImageMetadata metadata;
+    metadata.width = imageData->width;
+    metadata.height = imageData->height;
+
+    // TODO support all mips
+
+    ImageData::MipData const& mipData = imageData->mips[0];
+    auto bytes = nstl::span<unsigned char const>{ imageData->bytes }.subspan(mipData.offset, mipData.size);
+
+    metadata.byteSize = bytes.size();
+    metadata.format = imageData->format;
+
+    auto handle = resourceManager.createImage(metadata);
+    resourceManager.uploadImage(handle, bytes);
+    m_editorGltfResources->images[id] = handle;
+}
+
+void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
+{
+    static auto scopeId = memory::tracking::create_scope_id("Scene/Load/Editor/Material");
+
+    MEMORY_TRACKING_SCOPE(scopeId);
+
+    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
+
+    editor::assets::MaterialData materialData = m_assetDatabase->loadMaterial(id);
+
+    vkgfx::Material material;
+    material.albedo = m_defaultAlbedoTexture;
+    material.normalMap = m_defaultNormalMapTexture;
+
+    struct MaterialUniformBuffer
+    {
+        glm::vec4 color = glm::vec4(1);
+    };
+
+    MaterialUniformBuffer values;
+    if (materialData.baseColor)
+        values.color = glm::make_vec4(materialData.baseColor->data);
+
+    vkgfx::BufferMetadata metadata{
+        .usage = vkgfx::BufferUsage::UniformBuffer,
+        .location = vkgfx::BufferLocation::HostVisible,
+        .isMutable = false,
+    };
+    auto buffer = resourceManager.createBuffer(sizeof(MaterialUniformBuffer), std::move(metadata));
+    resourceManager.uploadBuffer(buffer, &values, sizeof(MaterialUniformBuffer));
+    m_editorGltfResources->additionalBuffers.push_back(buffer);
+
+    material.uniformBuffer = buffer;
+
+    if (materialData.baseColorTexture)
+    {
+        editor::assets::Uuid imageId = materialData.baseColorTexture->image;
+        if (m_editorGltfResources->images.find(imageId) == m_editorGltfResources->images.end())
+            editorLoadImage(imageId);
+
+        auto textureHandle = resourceManager.createTexture(vkgfx::Texture{
+            .image = m_editorGltfResources->images[imageId],
+            .sampler = m_defaultSampler, // TODO create actual sampler
+        });
+
+        material.albedo = textureHandle;
+    }
+
+    if (materialData.normalTexture)
+    {
+        editor::assets::Uuid imageId = materialData.normalTexture->image;
+        if (m_editorGltfResources->images.find(imageId) == m_editorGltfResources->images.end())
+            editorLoadImage(imageId);
+
+        auto textureHandle = resourceManager.createTexture(vkgfx::Texture{
+            .image = m_editorGltfResources->images[imageId],
+            .sampler = m_defaultSampler, // TODO create actual sampler
+            });
+
+        material.normalMap = textureHandle;
+    }
+
+    DemoMaterial& demoMaterial = m_editorGltfResources->materials[id];
+
+    demoMaterial.handle = resourceManager.createMaterial(std::move(material));
+
+    demoMaterial.metadata.renderConfig.wireframe = false;
+    demoMaterial.metadata.renderConfig.cullBackfaces = !materialData.doubleSided;
+    demoMaterial.metadata.uniformConfig.hasBuffer = true;
+    demoMaterial.metadata.uniformConfig.hasAlbedoTexture = true;
+    demoMaterial.metadata.uniformConfig.hasNormalMap = true;
+}
+
+void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
+{
+    static auto scopeId = memory::tracking::create_scope_id("Scene/Load/Editor/Mesh");
+
+    MEMORY_TRACKING_SCOPE(scopeId);
+
+    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
+
+    // Mesh buffer
+    nstl::blob data = m_assetDatabase->loadMeshData(id);
+
+    vkgfx::BufferMetadata metadata{
+        .usage = vkgfx::BufferUsage::VertexIndexBuffer,
+        .location = vkgfx::BufferLocation::DeviceLocal,
+        .isMutable = false,
+    };
+    vkgfx::BufferHandle meshBufferHandle = resourceManager.createBuffer(data.size(), nstl::move(metadata));
+    resourceManager.uploadBuffer(meshBufferHandle, data);
+    m_editorGltfResources->meshBuffers[id] = meshBufferHandle;
+
+    editor::assets::MeshData meshData = m_assetDatabase->loadMesh(id);
+
+    DemoMesh& demoMesh = m_editorGltfResources->meshes[id];
+    
+    for (editor::assets::PrimitiveDescription const& primitiveData : meshData.primitives)
+    {
+        editor::assets::Uuid materialId = primitiveData.material;
+        if (m_editorGltfResources->materials.find(materialId) == m_editorGltfResources->materials.end())
+            editorLoadMaterial(materialId);
+
+        DemoPrimitive& demoPrimitive = demoMesh.primitives.emplace_back();
+
+        vkgfx::Mesh mesh;
+
+        {
+            auto findIndexType = [](editor::assets::DataComponentType componentType)
+            {
+                switch (componentType)
+                {
+                case editor::assets::DataComponentType::Int8:
+                    return vkgfx::IndexType::UnsignedByte;
+                case editor::assets::DataComponentType::UInt16:
+                    return vkgfx::IndexType::UnsignedShort;
+                case editor::assets::DataComponentType::UInt32:
+                    return vkgfx::IndexType::UnsignedInt;
+                default:
+                    assert(false);
+                }
+
+                assert(false);
+                return vkgfx::IndexType::UnsignedShort;
+            };
+
+            assert(primitiveData.indices.type == editor::assets::DataType::Scalar);
+
+            mesh.indexBuffer.buffer = m_editorGltfResources->meshBuffers[id];
+            mesh.indexBuffer.offset = primitiveData.indices.bufferOffset;
+            mesh.indexCount = primitiveData.indices.count;
+            mesh.indexType = findIndexType(primitiveData.indices.componentType);
+            // TODO use stride?
+        }
+
+        for (editor::assets::VertexAttributeDescription const& attributeData : primitiveData.vertexAttributes)
+        {
+            nstl::optional<size_t> location = findAttributeLocation(attributeData.semantic);
+
+            if (!location)
+            {
+                logging::warn("Skipping attribute");
+                continue;
+            }
+
+            vkgfx::BufferWithOffset& attributeBuffer = mesh.vertexBuffers.emplace_back();
+            attributeBuffer.buffer = meshBufferHandle;
+            attributeBuffer.offset = attributeData.accessor.bufferOffset;
+
+            if (attributeData.semantic == editor::assets::AttributeSemantic::Color)
+                demoPrimitive.metadata.attributeSemanticsConfig.hasColor = true;
+            if (attributeData.semantic == editor::assets::AttributeSemantic::Texcoord)
+                demoPrimitive.metadata.attributeSemanticsConfig.hasUv = true;
+            if (attributeData.semantic == editor::assets::AttributeSemantic::Normal)
+                demoPrimitive.metadata.attributeSemanticsConfig.hasNormal = true;
+            if (attributeData.semantic == editor::assets::AttributeSemantic::Tangent)
+                demoPrimitive.metadata.attributeSemanticsConfig.hasTangent = true;
+
+            vkgfx::AttributeType attributeType = findAttributeType(attributeData.accessor.type, attributeData.accessor.componentType);
+
+            vkgfx::VertexConfiguration::Binding& bindingConfig = demoPrimitive.metadata.vertexConfig.bindings.emplace_back();
+            bindingConfig.stride = attributeData.accessor.stride;
+
+            size_t attributeIndex = demoPrimitive.metadata.vertexConfig.attributes.size(); // TODO check
+            vkgfx::VertexConfiguration::Attribute& attributeConfig = demoPrimitive.metadata.vertexConfig.attributes.emplace_back();
+            attributeConfig.binding = attributeIndex;
+            attributeConfig.location = *location;
+            attributeConfig.offset = 0; // TODO can be improved
+            attributeConfig.type = attributeType;
+
+            // TODO implement
+            assert(primitiveData.topology == editor::assets::Topology::Triangles);
+            demoPrimitive.metadata.vertexConfig.topology = vkgfx::VertexTopology::Triangles;
+
+            demoPrimitive.metadata.materialUuid = materialId;
+        }
+
+        demoPrimitive.handle = resourceManager.createMesh(nstl::move(mesh));
+    }
 }
 
 void DemoApplication::updateUI(float frameTime)

@@ -15,6 +15,8 @@
 
 #include "ScopedDebugCommands.h"
 
+#include "editor/assets/Uuid.h"
+
 #include "nstl/vector.h"
 #include "nstl/unordered_map.h"
 #include "nstl/optional.h"
@@ -28,6 +30,7 @@ class ShaderPackage;
 namespace editor::assets
 {
     class AssetDatabase;
+    struct Uuid;
 }
 
 namespace vkgfx
@@ -67,6 +70,7 @@ struct DemoMeshMetadata
     vkgfx::VertexConfiguration vertexConfig;
     DemoAttributeSemanticsConfiguration attributeSemanticsConfig;
     size_t materialIndex = 0;
+    editor::assets::Uuid materialUuid;
 };
 
 struct DemoMaterial
@@ -75,10 +79,15 @@ struct DemoMaterial
     DemoMaterialMetadata metadata;
 };
 
-struct DemoMesh
+struct DemoPrimitive
 {
     vkgfx::MeshHandle handle;
     DemoMeshMetadata metadata;
+};
+
+struct DemoMesh
+{
+    nstl::vector<DemoPrimitive> primitives;
 };
 
 struct DemoCamera
@@ -94,7 +103,21 @@ struct GltfResources
     nstl::vector<vkgfx::SamplerHandle> samplers;
     nstl::vector<vkgfx::TextureHandle> textures;
     nstl::vector<DemoMaterial> materials;
-    nstl::vector<nstl::vector<DemoMesh>> meshes;
+    nstl::vector<DemoMesh> meshes;
+
+    nstl::unordered_map<nstl::string, vkgfx::ShaderModuleHandle> shaderModules;
+
+    nstl::vector<vkgfx::TestCameraParameters> cameraParameters;
+
+    nstl::vector<vkgfx::BufferHandle> additionalBuffers; // TODO think how to store all created resources better
+};
+
+struct EditorGltfResources
+{
+    nstl::unordered_map<editor::assets::Uuid, vkgfx::ImageHandle> images;
+    nstl::unordered_map<editor::assets::Uuid, DemoMaterial> materials;
+    nstl::unordered_map<editor::assets::Uuid, DemoMesh> meshes;
+    nstl::unordered_map<editor::assets::Uuid, vkgfx::BufferHandle> meshBuffers;
 
     nstl::unordered_map<nstl::string, vkgfx::ShaderModuleHandle> shaderModules;
 
@@ -137,6 +160,11 @@ private:
     bool loadScene(nstl::string_view gltfPath);
     bool loadGltfModel(nstl::string_view basePath, cgltf_data const& model);
 
+    bool editorLoadScene(editor::assets::Uuid id);
+    void editorLoadImage(editor::assets::Uuid id);
+    void editorLoadMaterial(editor::assets::Uuid id);
+    void editorLoadMesh(editor::assets::Uuid id);
+
     void updateUI(float frameTime);
     void drawFrame();
 
@@ -155,6 +183,7 @@ private:
     nstl::unique_ptr<ImGuiDrawer> m_imGuiDrawer;
 
     nstl::unique_ptr<GltfResources> m_gltfResources;
+    nstl::unique_ptr<EditorGltfResources> m_editorGltfResources;
 
     DemoScene m_demoScene;
 
