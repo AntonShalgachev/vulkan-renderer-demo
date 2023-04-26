@@ -3,7 +3,6 @@
 #include <stdint.h>
 
 #include "nstl/hash.h"
-
 #include "yyjsoncpp/serializer.h"
 
 namespace nstl
@@ -17,17 +16,16 @@ namespace editor::assets
 {
     struct Uuid
     {
-        Uuid() = default;
-        Uuid(nstl::string_view str);
-
         uint8_t bytes[16] = {};
 
         bool operator==(Uuid const&) const = default;
         operator bool() const { return *this != Uuid{}; }
 
-        static Uuid generate();
         nstl::string toString() const;
     };
+
+    bool tryParseUuid(nstl::string_view str, Uuid& destination);
+    Uuid generateUuid();
 
     static_assert(sizeof(Uuid) == 16);
 }

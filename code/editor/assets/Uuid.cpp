@@ -9,24 +9,21 @@
 #include "yyjsoncpp/value_ref.h"
 #include "yyjsoncpp/type.h"
 
-editor::assets::Uuid::Uuid(nstl::string_view str)
-{
-    bool result = platform::uuid_from_string(str, bytes);
-    assert(result);
-}
-
-editor::assets::Uuid editor::assets::Uuid::generate()
-{
-    Uuid id;
-
-    platform::uuid_generate(id.bytes);
-
-    return id;
-}
-
 nstl::string editor::assets::Uuid::toString() const
 {
     return platform::uuid_to_string(bytes);
+}
+
+bool editor::assets::tryParseUuid(nstl::string_view str, Uuid& destination)
+{
+    return platform::uuid_from_string(str, destination.bytes);
+}
+
+editor::assets::Uuid editor::assets::generateUuid()
+{
+    Uuid id;
+    platform::uuid_generate(id.bytes);
+    return id;
 }
 
 size_t nstl::hash<editor::assets::Uuid>::operator()(editor::assets::Uuid const& value) const
@@ -42,7 +39,11 @@ yyjsoncpp::optional<editor::assets::Uuid> yyjsoncpp::serializer<editor::assets::
     if (obj.get_type() != yyjsoncpp::type::string)
         return {};
 
-    return editor::assets::Uuid{ obj.get_string() };
+    editor::assets::Uuid result;
+    if (tryParseUuid(obj.get_string(), result))
+        return result;
+
+    return {};
 }
 
 yyjsoncpp::mutable_value_ref yyjsoncpp::serializer<editor::assets::Uuid>::to_json(yyjsoncpp::mutable_doc& doc, editor::assets::Uuid const& value)

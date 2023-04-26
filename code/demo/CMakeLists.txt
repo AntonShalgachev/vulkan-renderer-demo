@@ -27,6 +27,8 @@ set(ALL_FILES
     "console/GlmSerializer.h"
     "console/GlmSerializer.cpp"
     "console/EnumSerializer.h"
+    "console/EditorSerializer.h"
+    "console/EditorSerializer.cpp"
     
     "services/DebugConsoleService.h"
     "services/DebugConsoleService.cpp"

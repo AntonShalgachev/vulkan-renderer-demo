@@ -88,7 +88,7 @@ nstl::vector<editor::assets::Uuid> editor::assets::AssetDatabase::importAsset(Im
 
 editor::assets::Uuid editor::assets::AssetDatabase::createAsset(AssetType type, nstl::string_view name)
 {
-    Uuid id = Uuid::generate();
+    Uuid id = generateUuid();
 
     AssetMetadata metadata = {
         .version = assetMetadataVersion,
