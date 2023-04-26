@@ -235,8 +235,11 @@ bool DebugConsoleService::execute(nstl::string_view command)
         for (coil::String const& error : result.errors)
             addLine("  " + utils::coilToNstlString(error), Line::Type::Error);
 
-        for (nstl::string_view line : vkc::utils::split(utils::coilToNstlStringView(result.output)))
-            addLine("  " + nstl::string{ line }, Line::Type::Output);
+        if (!result.output.empty())
+        {
+            for (nstl::string_view line : vkc::utils::split(utils::coilToNstlStringView(result.output)))
+                addLine("  " + nstl::string{ line }, Line::Type::Output);
+        }
 
         if (result.returnValue)
             addLine("  -> '" + utils::coilToNstlString(*result.returnValue) + "'", Line::Type::ReturnValue);
