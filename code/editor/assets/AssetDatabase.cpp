@@ -178,41 +178,106 @@ void editor::assets::AssetDatabase::saveMetadataFile(Uuid id, AssetMetadata cons
     f.write(resultSpan.data(), resultSpan.size());
 }
 
+namespace
+{
+    yyjsoncpp::doc readJson(nstl::string_view path)
+    {
+        fs::file f{ path, fs::open_mode::read };
+
+        nstl::string contents;
+        contents.resize(f.size());
+        f.read(contents.data(), contents.size());
+
+        yyjsoncpp::doc doc;
+        if (!doc.read(contents.data(), contents.size()))
+            assert(false);
+
+        return doc;
+    }
+}
+
 editor::assets::SceneData editor::assets::AssetDatabase::loadScene(Uuid id) const
 {
     auto metadata = loadMetadataFile(id);
     assert(metadata);
-
     assert(metadata->type == AssetType::Scene);
+    assert(metadata->files.size() == 1);
 
+    nstl::string path = constructAssetPath(id, metadata->files[0]);
+    yyjsoncpp::doc doc = readJson(path);
+
+    yyjsoncpp::value_ref root = doc.get_root();
+    SceneData data = root.get<SceneData>();
+
+    assert(data.version == sceneAssetVersion);
+
+    return data;
+}
+
+editor::assets::MeshData editor::assets::AssetDatabase::loadMesh(Uuid id) const
+{
+    auto metadata = loadMetadataFile(id);
+    assert(metadata);
+    assert(metadata->type == AssetType::Mesh);
+    assert(metadata->files.size() == 2);
+
+    nstl::string path = constructAssetPath(id, metadata->files[0]);
+    yyjsoncpp::doc doc = readJson(path);
+
+    yyjsoncpp::value_ref root = doc.get_root();
+    MeshData data = root.get<MeshData>();
+
+    assert(data.version == meshAssetVersion);
+
+    return data;
+}
+
+nstl::blob editor::assets::AssetDatabase::loadMeshData(Uuid id) const
+{
+    auto metadata = loadMetadataFile(id);
+    assert(metadata);
+    assert(metadata->type == AssetType::Mesh);
+    assert(metadata->files.size() == 2);
+
+    nstl::string path = constructAssetPath(id, metadata->files[1]);
+
+    fs::file f{ path, fs::open_mode::read };
+    nstl::blob data{ f.size() };
+    f.read(data.data(), data.size());
+
+    return data;
+}
+
+editor::assets::MaterialData editor::assets::AssetDatabase::loadMaterial(Uuid id) const
+{
+    auto metadata = loadMetadataFile(id);
+    assert(metadata);
+    assert(metadata->type == AssetType::Material);
+    assert(metadata->files.size() == 1);
+
+    nstl::string path = constructAssetPath(id, metadata->files[0]);
+    yyjsoncpp::doc doc = readJson(path);
+
+    yyjsoncpp::value_ref root = doc.get_root();
+    MaterialData data = root.get<MaterialData>();
+
+    assert(data.version == materialAssetVersion);
+
+    return data;
+}
+
+nstl::blob editor::assets::AssetDatabase::loadImage(Uuid id) const
+{
+    auto metadata = loadMetadataFile(id);
+    assert(metadata);
+    assert(metadata->type == AssetType::Image);
     assert(metadata->files.size() == 1);
 
     nstl::string path = constructAssetPath(id, metadata->files[0]);
 
     fs::file f{ path, fs::open_mode::read };
+    nstl::blob data{ f.size() };
+    f.read(data.data(), data.size());
 
-    nstl::string contents;
-    contents.resize(f.size());
-    f.read(contents.data(), contents.size());
-
-    namespace json = yyjsoncpp;
-
-    json::doc doc;
-    if (!doc.read(contents.data(), contents.size()))
-        assert(false);
-
-    json::value_ref root = doc.get_root();
-    return root.get<SceneData>();
-}
-
-editor::assets::MeshData editor::assets::AssetDatabase::loadMesh(Uuid id) const
-{
-    assert(false); // TODO implement
-    return {};
-}
-
-editor::assets::MaterialData editor::assets::AssetDatabase::loadMaterial(Uuid id) const
-{
-    assert(false); // TODO implement
-    return {};
+    return data;
 }

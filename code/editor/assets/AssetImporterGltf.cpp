@@ -26,10 +26,6 @@
 
 namespace
 {
-    constexpr uint16_t materialAssetVersion = 1; // TODO move somewhere where the material would be also read
-    constexpr uint16_t meshAssetVersion = 1; // TODO move somewhere where the mesh would be also read
-    constexpr uint16_t sceneAssetVersion = 1; // TODO move somewhere where the mesh would be also read
-
     struct GltfResources
     {
         nstl::vector<nstl::blob> bufferData;
@@ -175,7 +171,7 @@ namespace
 
         editor::assets::MaterialData materialData;
 
-        materialData.version = materialAssetVersion;
+        materialData.version = editor::assets::materialAssetVersion;
 
         materialData.alphaMode = getAlphaMode(material.alpha_mode);
         materialData.alphaCutoff = material.alpha_cutoff;
@@ -495,7 +491,7 @@ namespace
             primitives.push_back(appendPrimitive(mesh.primitives[i], destinationData, data, resources, primitiveParams[i]));
 
         editor::assets::MeshData meshData = {
-            .version = meshAssetVersion,
+            .version = editor::assets::meshAssetVersion,
             .primitives = nstl::move(primitives),
         };
 
@@ -626,7 +622,7 @@ namespace
         cgltf_scene const& scene = data.scenes[i];
 
         editor::assets::SceneData sceneData = {
-            .version = sceneAssetVersion,
+            .version = editor::assets::sceneAssetVersion,
             .objects = {},
         };
 

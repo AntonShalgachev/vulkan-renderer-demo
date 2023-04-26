@@ -63,9 +63,12 @@ namespace editor::assets
 
         // TODO return optional<> if data can't be read
         // TODO cache the assets?
+        // TODO return a wrapper object that contains logic for the asset type (encapsulating various requirements, e.g. number/type of files)
         SceneData loadScene(Uuid id) const;
         MeshData loadMesh(Uuid id) const;
+        nstl::blob loadMeshData(Uuid id) const;
         MaterialData loadMaterial(Uuid id) const;
+        nstl::blob loadImage(Uuid id) const;
 
     private:
         AssetMetadata getMetadata(Uuid id) const;

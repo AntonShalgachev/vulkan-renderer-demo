@@ -14,6 +14,11 @@
 
 namespace editor::assets
 {
+    // TODO move somewhere else?
+    constexpr uint16_t materialAssetVersion = 1;
+    constexpr uint16_t meshAssetVersion = 1;
+    constexpr uint16_t sceneAssetVersion = 1;
+
     //////////////////////////////////////////////////////////////////////////
     // Material
     //////////////////////////////////////////////////////////////////////////
@@ -112,11 +117,12 @@ namespace editor::assets
     enum class AttributeSemantic
     {
         Position,
+        Color,
         Normal,
         Tangent,
         Texcoord,
     };
-    TINY_CTTI_DESCRIBE_ENUM(AttributeSemantic, Position, Normal, Tangent, Texcoord);
+    TINY_CTTI_DESCRIBE_ENUM(AttributeSemantic, Position, Color, Normal, Tangent, Texcoord);
 
     struct DataAccessorDescription
     {
