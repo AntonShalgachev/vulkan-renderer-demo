@@ -6,7 +6,8 @@
 
 void* memory::allocate(size_t size)
 {
-    assert(size > 0);
+    if (size == 0)
+        return nullptr;
 
     void* ptr = platform::allocate(size);
     assert(ptr);
