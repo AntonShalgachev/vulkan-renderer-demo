@@ -13,13 +13,12 @@ namespace tglm
 
         static quat identity();
         static quat from_euler_xyz(vec3 const& angles);
+        static quat from_euler_zyx(vec3 const& angles);
 
         quat() : data{} {}
         quat(float x, float y, float z, float w) : data{ x, y, z, w } {}
         quat(float const* v, size_t count);
         quat(float const(&v)[elements_count]) : quat(v, elements_count) {}
-//         quat(mat3 const& m); // TODO
-        quat(mat4 const& m);
 
         vec3 rotate(vec3 const& v) const;
 

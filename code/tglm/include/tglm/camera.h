@@ -4,7 +4,6 @@ namespace tglm
 {
     struct mat4;
 
-    // TODO implement other options
-    // left-handed, zero-to-one
-    mat4 perspective_lh_zo(float fovy, float aspect, float nearZ, float farZ);
+    // TODO implement options (left-handed/right-handed, [0;1]/[-1;1])
+    mat4 perspective(float fovy, float aspect, float nearZ, float farZ);
 }

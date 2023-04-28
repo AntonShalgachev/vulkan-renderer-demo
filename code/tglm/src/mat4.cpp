@@ -1,5 +1,8 @@
 #include "tglm/types/mat4.h"
 
+#include "tglm/types/quat.h"
+#include "tglm/types/vec4.h"
+
 #include "cglm/mat4.h"
 
 #include "assert.h"
@@ -30,6 +33,20 @@ tglm::mat4 tglm::mat4::inversed_fast() const
 {
     mat4 result;
     glm_mat4_inv_fast(const_cast<mat4*>(this)->data, result.data);
+    return result;
+}
+
+tglm::quat tglm::mat4::to_quat() const
+{
+    quat result;
+    glm_mat4_quat(const_cast<mat4*>(this)->data, result.data);
+    return result;
+}
+
+tglm::vec4 tglm::operator*(mat4 const& lhs, vec4 const& rhs)
+{
+    vec4 result;
+    glm_mat4_mulv(const_cast<mat4&>(lhs).data, const_cast<vec4&>(rhs).data, result.data);
     return result;
 }
 

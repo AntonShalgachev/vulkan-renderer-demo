@@ -54,5 +54,5 @@ void tglm::decompose(mat4 const& m, vec4& translation, quat& rotation, vec3& sca
     mat4 rotation_matrix;
     decompose(m, translation, rotation_matrix, scale);
 
-    rotation = quat{ rotation_matrix };
+    rotation = rotation_matrix.to_quat();
 }

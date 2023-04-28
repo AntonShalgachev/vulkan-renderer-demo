@@ -4,6 +4,9 @@
 
 namespace tglm
 {
+    struct quat;
+    struct vec4;
+
     struct mat4
     {
         constexpr static size_t elements_count = 16;
@@ -17,6 +20,8 @@ namespace tglm
         mat4 inversed() const;
         mat4 inversed_fast() const;
 
+        quat to_quat() const;
+
         union
         {
             cglm_mat4 data;
@@ -26,6 +31,7 @@ namespace tglm
     };
 
     // TODO other operators
+    vec4 operator*(mat4 const& lhs, vec4 const& rhs);
     mat4 operator*(mat4 const& lhs, mat4 const& rhs);
     mat4& operator*=(mat4& lhs, mat4 const& rhs);
 }

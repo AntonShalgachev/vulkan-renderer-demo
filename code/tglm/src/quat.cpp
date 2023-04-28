@@ -29,21 +29,24 @@ tglm::quat tglm::quat::from_euler_xyz(vec3 const& angles)
     return result;
 }
 
+tglm::quat tglm::quat::from_euler_zyx(vec3 const& angles)
+{
+    // TODO make it more optimal when cglm allows it
+
+    cglm_mat4 m;
+    glm_euler_zyx(const_cast<vec3&>(angles).data, m);
+
+    tglm::quat result;
+    glm_mat4_quat(m, result.data);
+
+    return result;
+}
+
 tglm::quat::quat(float const* v, [[maybe_unused]] size_t count)
 {
     assert(count == elements_count);
     static_assert(elements_count * sizeof(float) == sizeof(data), "");
     memcpy(data, v, sizeof(data));
-}
-
-// tglm::quat::quat(mat3 const& m)
-// {
-//     glm_mat3_quat(const_cast<mat3&>(m).data, data);
-// }
-
-tglm::quat::quat(mat4 const& m)
-{
-    glm_mat4_quat(const_cast<mat4&>(m).data, data);
 }
 
 tglm::vec3 tglm::quat::rotate(vec3 const& v) const
