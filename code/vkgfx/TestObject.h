@@ -2,8 +2,6 @@
 
 #include "vkgfx/Handles.h"
 
-#include "common/glm.h"
-
 #include "tglm/types.h"
 
 #include "nstl/static_vector.h"
@@ -30,8 +28,8 @@ namespace vkgfx
 
     struct TestCameraTransform
     {
-        glm::vec3 position = glm::vec3(0.0f);
-        glm::quat rotation = glm::identity<glm::quat>();
+        tglm::vec3 position = { 0.0f, 0.0f, 0.0f };
+        tglm::quat rotation = tglm::quat::identity();
     };
 
     struct TestCameraParameters
@@ -43,8 +41,8 @@ namespace vkgfx
 
     struct TestLightParameters
     {
-        glm::vec3 position = glm::vec3(0.0f);
-        glm::vec3 color = glm::vec3(1.0f);
+        tglm::vec3 position = { 0.0f, 0.0f, 0.0f };
+        tglm::vec3 color = { 1.0f, 1.0f, 1.0f };
         float intensity = 1.0f;
     };
 }

@@ -1,8 +1,6 @@
 set(PROJECT_NAME common)
 
 set(ALL_FILES
-    "glm.h"
-    "glm-fwd.h"
     "charming_enum.h"
     "tiny_ctti.h"
     "fmt.h"
@@ -35,7 +33,6 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS) # TODO remove?
 
 target_link_libraries(${PROJECT_NAME}
-    glm::glm
     nstl
     charming_enum
     fmt::fmt

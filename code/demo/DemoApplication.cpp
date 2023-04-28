@@ -1,10 +1,11 @@
 #include "DemoApplication.h"
 
 #include "stb_image.h"
-#include "glm.h"
 #include "dds-ktx.h"
 #include "cgltf.h"
 #include "ktx.h"
+
+#include "tglm/tglm.h" // TODO only include what is needed
 
 #include "imgui.h"
 
@@ -84,49 +85,40 @@ namespace
     bool const VALIDATION_ENABLED = false;
 #endif
 
-    const glm::vec3 LIGHT_POS = glm::vec3(0.0, 2.0f, 0.0f);
-    const glm::vec3 LIGHT_COLOR = glm::vec3(1.0, 1.0f, 1.0f);
+    const tglm::vec3 LIGHT_POS = tglm::vec3(0.0, 2.0f, 0.0f);
+    const tglm::vec3 LIGHT_COLOR = tglm::vec3(1.0, 1.0f, 1.0f);
     const float LIGHT_INTENSITY = 30.0f;
-    const glm::vec3 CAMERA_POS = glm::vec3(0.0f, 0.0f, 4.0f);
-    const glm::vec3 CAMERA_ANGLES = glm::vec3(0.0f, 0.0f, 0.0f);
+    const tglm::vec3 CAMERA_POS = tglm::vec3(0.0f, 0.0f, 4.0f);
+    const tglm::vec3 CAMERA_ANGLES = tglm::vec3(0.0f, 0.0f, 0.0f);
 
-    glm::quat createRotation(glm::vec3 const& eulerDegrees)
+    tglm::quat createRotation(tglm::vec3 const& eulerDegrees)
     {
-        return glm::quat{ glm::radians(eulerDegrees) };
+        return tglm::quat::from_euler_zyx(tglm::radians(eulerDegrees));
     }
 
-    glm::mat4 createMatrix(cgltf_node const& node)
+    tglm::mat4 createMatrix(cgltf_node const& node)
     {
         if (node.has_matrix)
-            return glm::make_mat4(node.matrix);
+            return tglm::mat4(node.matrix);
 
-        auto matrix = glm::identity<glm::mat4>();
+        tglm::mat4 matrix = tglm::mat4::identity();
 
         if (node.has_translation)
-        {
-            glm::vec3 translation = glm::make_vec3(node.translation);
-            matrix = glm::translate(matrix, translation);
-        }
+            tglm::translate(matrix, tglm::vec3{ node.translation });
 
         if (node.has_rotation)
-        {
-            glm::quat rotation = glm::make_quat(node.rotation);
-            matrix = matrix * glm::mat4_cast(rotation);
-        }
+            tglm::rotate(matrix, tglm::quat{ node.rotation });
 
         if (node.has_scale)
-        {
-            glm::vec3 scale = glm::make_vec3(node.scale);
-            matrix = glm::scale(matrix, scale);
-        }
+            tglm::scale(matrix, tglm::vec3{ node.scale });
 
         return matrix;
     }
 
-    glm::vec4 createColor(nstl::span<float const> flatColor)
+    tglm::vec4 createColor(nstl::span<float const> flatColor)
     {
         assert(flatColor.size() == 4);
-        return glm::make_vec4(flatColor.data());
+        return tglm::vec4{ flatColor.data(), flatColor.size() };
     }
 
     struct ImageData
@@ -531,8 +523,8 @@ void DemoApplication::init()
     m_commands["camera.mouse_sensitivity"] = coil::variable(&m_mouseSensitivity);
     m_commands["camera.pos"] = coil::variable(&m_cameraTransform.position);
     m_commands["camera.angles"] = coil::property([this]() {
-        return glm::degrees(glm::eulerAngles(m_cameraTransform.rotation));
-    }, [this](glm::vec3 const& angles) {
+        return tglm::degrees(m_cameraTransform.rotation.to_euler_xyz());
+    }, [this](tglm::vec3 const& angles) {
         m_cameraTransform.rotation = createRotation(angles);
     });
 
@@ -717,10 +709,10 @@ void DemoApplication::onKey(GlfwWindow::Action action, GlfwWindow::OldKey key, c
         m_debugConsole->toggle();
 }
 
-void DemoApplication::onMouseMove(glm::vec2 const& delta)
+void DemoApplication::onMouseMove(tglm::vec2 const& delta)
 {
-    glm::vec3 angleDelta = m_mouseSensitivity * glm::vec3{ -delta.y, -delta.x, 0.0f };
-    glm::quat rotationDelta = createRotation(angleDelta);
+    tglm::vec3 angleDelta = m_mouseSensitivity * tglm::vec3{ -delta.y, -delta.x, 0.0f };
+    tglm::quat rotationDelta = createRotation(angleDelta);
 
     m_cameraTransform.rotation *= rotationDelta;
 }
@@ -733,12 +725,12 @@ DemoScene DemoApplication::createDemoScene(cgltf_data const& gltfModel, cgltf_sc
     DemoScene scene;
 
     for (size_t i = 0; i < gltfScene.nodes_count; i++)
-        createDemoObjectRecursive(gltfModel, i, glm::identity<glm::mat4>(), scene);
+        createDemoObjectRecursive(gltfModel, i, tglm::mat4::identity(), scene);
 
     return scene;
 }
 
-void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, size_t nodeIndex, glm::mat4 parentTransform, DemoScene& scene) const
+void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, size_t nodeIndex, tglm::mat4 parentTransform, DemoScene& scene) const
 {
     // TODO is there a better way?
     auto findIndex = [](auto const* object, auto const* firstObject, size_t count) -> size_t
@@ -751,19 +743,19 @@ void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, siz
 
     struct DemoObjectPushConstants
     {
-        glm::mat4 model;
+        tglm::mat4 model;
     };
 
     struct DemoObjectUniformBuffer
     {
-        glm::vec4 color;
+        tglm::vec4 color;
     };
 
     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
 
     cgltf_node const& gltfNode = gltfModel.nodes[nodeIndex];
 
-    glm::mat4 nodeTransform = parentTransform * createMatrix(gltfNode);
+    tglm::mat4 nodeTransform = parentTransform * createMatrix(gltfNode);
 
     if (gltfNode.mesh)
     {
@@ -826,7 +818,7 @@ void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, siz
             m_gltfResources->additionalBuffers.push_back(uniformBuffer);
 
             DemoObjectUniformBuffer uniformValues;
-            uniformValues.color = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
+            uniformValues.color = { 1.0f, 1.0f, 1.0f, 0.0f };
             resourceManager.uploadBuffer(uniformBuffer, &uniformValues, sizeof(uniformValues));
 
             DemoObjectPushConstants pushConstants;
@@ -844,12 +836,10 @@ void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, siz
 
     if (gltfNode.camera)
     {
-        glm::vec3 position;
-        glm::vec3 scale;
-        glm::quat rotation;
-        glm::vec3 skew;
-        glm::vec4 perspective;
-        glm::decompose(nodeTransform, scale, rotation, position, skew, perspective);
+        tglm::vec4 position;
+        tglm::vec3 scale;
+        tglm::quat rotation;
+        tglm::decompose(nodeTransform, position, rotation, scale);
 
         scene.cameras.push_back(DemoCamera{
             .transform = {
@@ -1164,7 +1154,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
         struct MaterialUniformBuffer
         {
-            glm::vec4 color;
+            tglm::vec4 color;
         };
 
         MaterialUniformBuffer values;
@@ -1331,7 +1321,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
             assert(gltfParams.has_zfar);
 
             m_gltfResources->cameraParameters.push_back(vkgfx::TestCameraParameters{
-                .fov = glm::degrees(static_cast<float>(gltfParams.yfov)),
+                .fov = tglm::degrees(static_cast<float>(gltfParams.yfov)),
                 .nearZ = static_cast<float>(gltfParams.znear),
                 .farZ = static_cast<float>(gltfParams.zfar),
             });
@@ -1472,12 +1462,12 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
 
     struct MaterialUniformBuffer
     {
-        glm::vec4 color = glm::vec4(1);
+        tglm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
     };
 
     MaterialUniformBuffer values;
     if (materialData.baseColor)
-        values.color = glm::make_vec4(materialData.baseColor->data);
+        values.color = tglm::vec4{ materialData.baseColor->data };
 
     vkgfx::BufferMetadata metadata{
         .usage = vkgfx::BufferUsage::UniformBuffer,
@@ -1743,7 +1733,7 @@ void DemoApplication::update()
 
 void DemoApplication::updateScene(float)
 {
-    m_services.debugDraw().box(m_lightParameters.position, glm::identity<glm::quat>(), glm::vec3(0.1f), { 1.0f, 0.0f, 0.0f }, -1.0f);
+    m_services.debugDraw().box(m_lightParameters.position, tglm::quat::identity(), tglm::vec3{ 0.1f }, { 1.0f, 0.0f, 0.0f }, -1.0f);
 }
 
 void DemoApplication::updateCamera(float dt)
@@ -1752,11 +1742,11 @@ void DemoApplication::updateCamera(float dt)
     if (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard)
         return;
 
-    glm::vec3 right = glm::toMat4(m_cameraTransform.rotation) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
-    glm::vec3 forward = glm::toMat4(m_cameraTransform.rotation) * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
-    glm::vec3 up = glm::toMat4(m_cameraTransform.rotation) * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+    tglm::vec3 right = m_cameraTransform.rotation.rotate(tglm::vec3(1.0f, 0.0f, 0.0f));
+    tglm::vec3 forward = m_cameraTransform.rotation.rotate(tglm::vec3(0.0f, 0.0f, -1.0f));
+    tglm::vec3 up = m_cameraTransform.rotation.rotate(tglm::vec3(0.0f, 1.0f, 0.0f));
 
-    glm::vec3 posDelta = glm::zero<glm::vec3>();
+    tglm::vec3 posDelta = { 0.0f, 0.0f, 0.0f };
 
     if (m_keyState['A'])
         posDelta += -right;
@@ -1771,8 +1761,5 @@ void DemoApplication::updateCamera(float dt)
     if (m_keyState['E'])
         posDelta += up;
 
-    if (glm::length2(posDelta) > glm::epsilon<float>())
-        posDelta = glm::normalize(posDelta);
-
-    m_cameraTransform.position += m_cameraSpeed * dt * posDelta;
+    m_cameraTransform.position += m_cameraSpeed * dt * posDelta.normalized();
 }

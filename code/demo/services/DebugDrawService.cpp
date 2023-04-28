@@ -13,7 +13,9 @@
 #include "vko/ShaderModuleProperties.h"
 
 #include "common/Utils.h"
-#include "common/glm.h"
+
+#include "tglm/types.h"
+#include "tglm/affine.h"
 
 #include "memory/tracking.h"
 
@@ -173,7 +175,7 @@ DebugDrawService::DebugDrawService(vkgfx::Renderer& renderer)
         key.pushConstantRanges = {
             vkgfx::PushConstantRange{
                 .offset = 0,
-                .size = sizeof(glm::mat4),
+                .size = sizeof(tglm::mat4),
             },
         };
 
@@ -183,20 +185,20 @@ DebugDrawService::DebugDrawService(vkgfx::Renderer& renderer)
 
 DebugDrawService::~DebugDrawService() = default;
 
-void DebugDrawService::sphere(glm::vec3 const& center, glm::vec3 const& scale, glm::vec3 const& color, float duration)
+void DebugDrawService::sphere(tglm::vec3 const& center, tglm::vec3 const& scale, tglm::vec3 const& color, float duration)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 }
 
-void DebugDrawService::box(glm::vec3 const& center, glm::quat const& rotation, glm::vec3 const& scale, glm::vec3 const& color, float duration)
+void DebugDrawService::box(tglm::vec3 const& center, tglm::quat const& rotation, tglm::vec3 const& scale, tglm::vec3 const& color, float duration)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    auto matrix = glm::identity<glm::mat4>();
+    auto matrix = tglm::mat4::identity();
 
-    matrix = glm::translate(matrix, center);
-    matrix = matrix * glm::mat4_cast(rotation);
-    matrix = glm::scale(matrix, scale);
+    tglm::translate(matrix, center);
+    tglm::rotate(matrix, rotation);
+    tglm::scale(matrix, scale);
 
     nstl::static_vector<unsigned char, vkgfx::MaxPushConstantsSize> pushConstants;
     pushConstants.resize(sizeof(matrix));

@@ -151,10 +151,10 @@ private:
     void unloadImgui();
 
     void onKey(GlfwWindow::Action action, GlfwWindow::OldKey key, char c, GlfwWindow::Modifiers mods);
-    void onMouseMove(glm::vec2 const& delta);
+    void onMouseMove(tglm::vec2 const& delta);
 
     DemoScene createDemoScene(cgltf_data const& gltfModel, cgltf_scene const& gltfScene) const;
-    void createDemoObjectRecursive(cgltf_data const& gltfModel, size_t nodeIndex, glm::mat4 parentTransform, DemoScene& scene) const;
+    void createDemoObjectRecursive(cgltf_data const& gltfModel, size_t nodeIndex, tglm::mat4 parentTransform, DemoScene& scene) const;
 
     void clearScene();
     bool loadScene(nstl::string_view gltfPath);
@@ -202,7 +202,7 @@ private:
     uint32_t m_fpsDrawnFrames = 0;
     float m_lastFrameTime = 0.0f;
 
-    glm::vec3 m_cameraRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+    tglm::vec3 m_cameraRotation = { 0.0f, 0.0f, 0.0f };
     float m_mouseSensitivity = 0.3f;
     float m_cameraSpeed = 5.0f;
     bool m_paused = false;

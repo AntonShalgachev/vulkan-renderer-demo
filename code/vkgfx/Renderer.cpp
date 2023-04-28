@@ -33,7 +33,9 @@
 #include "vkgfx/Image.h"
 #include "vkgfx/PipelineKey.h"
 
-#include "glm.h"
+#include "tglm/util.h"
+#include "tglm/affine.h"
+#include "tglm/camera.h"
 
 #include "nstl/array.h"
 #include "nstl/algorithm.h"
@@ -48,10 +50,10 @@ namespace
 {
     struct CameraData
     {
-        glm::mat4 view;
-        glm::mat4 projection;
-        glm::vec3 lightPosition;
-        glm::vec3 lightColor;
+        tglm::mat4 view;
+        tglm::mat4 projection;
+        alignas(16) tglm::vec3 lightPosition;
+        alignas(16) tglm::vec3 lightColor;
     };
 
     int const FRAME_RESOURCE_COUNT = 3;
@@ -320,16 +322,10 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
 
     createCameraResources();
 
-    // TODO move to utils
-    auto quatFromEuler = [](glm::vec3 const& eulerDegrees)
-    {
-        return glm::quat{ glm::radians(eulerDegrees) };
-    };
-
     // TODO remove hardcoded values
     m_cameraTransform = {
         .position = {5.0f, 3.5f, 0.0f},
-        .rotation = quatFromEuler({-15.0f, 90.0f, 0.0f}),
+        .rotation = tglm::quat::from_euler_xyz(tglm::radians({-15.0f, 90.0f, 0.0f})),
     };
 
     m_cameraParameters = {
@@ -710,12 +706,12 @@ void vkgfx::Renderer::updateCameraBuffer()
     auto aspectRatio = 1.0f * extent.width / extent.height;
 
     CameraData data{
-        .view = glm::inverse(glm::translate(glm::mat4(1.0f), m_cameraTransform.position) * glm::toMat4(m_cameraTransform.rotation)),
-        .projection = glm::perspective(glm::radians(m_cameraParameters.fov), aspectRatio, m_cameraParameters.nearZ, m_cameraParameters.farZ),
-        .lightPosition = data.view * glm::vec4(m_lightParameters.position, 1.0f),
+        .view = (tglm::translated(tglm::mat4::identity(), m_cameraTransform.position) * m_cameraTransform.rotation.to_mat4()).inversed(), // TODO rewrite this operation
+        .projection = tglm::perspective(tglm::radians(m_cameraParameters.fov), aspectRatio, m_cameraParameters.nearZ, m_cameraParameters.farZ),
+        .lightPosition = data.view * tglm::vec4(m_lightParameters.position, 1.0f),
         .lightColor = m_lightParameters.intensity * m_lightParameters.color,
     };
-    data.projection[1][1] *= -1;
+    data.projection.data[1][1] *= -1; // TODO check if can be avoided
 
     m_resourceManager->uploadDynamicBufferToStaging(m_cameraBuffer, &data, sizeof(data));
 }

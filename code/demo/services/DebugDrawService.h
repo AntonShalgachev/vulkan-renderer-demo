@@ -6,7 +6,7 @@
 
 #include "nstl/vector.h"
 
-#include "common/glm-fwd.h"
+#include "tglm/fwd.h"
 
 namespace vkgfx
 {
@@ -33,8 +33,8 @@ public:
     DebugDrawService(vkgfx::Renderer& renderer);
     ~DebugDrawService();
 
-    void sphere(glm::vec3 const& center, glm::vec3 const& scale, glm::vec3 const& color, float duration);
-    void box(glm::vec3 const& center, glm::quat const& rotation, glm::vec3 const& scale, glm::vec3 const& color, float duration);
+    void sphere(tglm::vec3 const& center, tglm::vec3 const& scale, tglm::vec3 const& color, float duration);
+    void box(tglm::vec3 const& center, tglm::quat const& rotation, tglm::vec3 const& scale, tglm::vec3 const& color, float duration);
 
     void queueGeometry(vkgfx::Renderer& renderer);
 

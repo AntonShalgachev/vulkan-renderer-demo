@@ -2,7 +2,6 @@
 
 // TODO think about these dependencies
 #include "ShaderPackage.h"
-#include "glm.h"
 
 #include "tglm/types.h"
 #include "tglm/util.h"
