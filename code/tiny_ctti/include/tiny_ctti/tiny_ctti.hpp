@@ -238,12 +238,25 @@ constexpr bool tiny_ctti_is_enum(tiny_ctti::type_tag<E>) { return true; }       
 constexpr tiny_ctti::string_view tiny_ctti_get_type_name(tiny_ctti::type_tag<E>) { return { #E, sizeof(#E) - 1 }; }                                                                \
 constexpr auto tiny_ctti_get_enum_entries(tiny_ctti::type_tag<E>) { return tiny_ctti::simple_array{ TCTTI_FOR_EACH(TCTTI_CREATE_ENUM_ENTRY, E, __VA_ARGS__) }; }
 
+#define TINY_CTTI_DESCRIBE_NESTED_ENUM(E, ...)                                                                                                                                     \
+friend constexpr bool tiny_ctti_is_described(tiny_ctti::type_tag<E>) { return true; }                                                                                              \
+friend constexpr bool tiny_ctti_is_enum(tiny_ctti::type_tag<E>) { return true; }                                                                                                   \
+friend constexpr tiny_ctti::string_view tiny_ctti_get_type_name(tiny_ctti::type_tag<E>) { return { #E, sizeof(#E) - 1 }; }                                                         \
+friend constexpr auto tiny_ctti_get_enum_entries(tiny_ctti::type_tag<E>) { return tiny_ctti::simple_array{ TCTTI_FOR_EACH(TCTTI_CREATE_ENUM_ENTRY, E, __VA_ARGS__) }; }
+
 #define TINY_CTTI_DESCRIBE_STRUCT(T, ...)                                                                                                                                          \
 constexpr bool tiny_ctti_is_described(tiny_ctti::type_tag<T>) { return true; }                                                                                                     \
 constexpr bool tiny_ctti_is_struct(tiny_ctti::type_tag<T>) { return true; }                                                                                                        \
 constexpr tiny_ctti::string_view tiny_ctti_get_type_name(tiny_ctti::type_tag<T>) { return { #T, sizeof(#T) - 1 }; }                                                                \
 constexpr size_t tiny_ctti_get_struct_size(tiny_ctti::type_tag<T>) { return TCTTI_ARGS_COUNT(__VA_ARGS__); }                                                                       \
 TCTTI_FOR_EACH(TCTTI_CREATE_STRUCT_FIELD, T, __VA_ARGS__)
+
+#define TINY_CTTI_DESCRIBE_NESTED_STRUCT(T, ...)                                                                                                                                   \
+friend constexpr bool tiny_ctti_is_described(tiny_ctti::type_tag<T>) { return true; }                                                                                              \
+friend constexpr bool tiny_ctti_is_struct(tiny_ctti::type_tag<T>) { return true; }                                                                                                 \
+friend constexpr tiny_ctti::string_view tiny_ctti_get_type_name(tiny_ctti::type_tag<T>) { return { #T, sizeof(#T) - 1 }; }                                                         \
+friend constexpr size_t tiny_ctti_get_struct_size(tiny_ctti::type_tag<T>) { return TCTTI_ARGS_COUNT(__VA_ARGS__); }                                                                \
+TCTTI_FOR_EACH(friend TCTTI_CREATE_STRUCT_FIELD, T, __VA_ARGS__)
 
 //////////////////////////////////////////////////////////////////////////
 
