@@ -346,7 +346,7 @@ void GlfwWindow::queryRequiredInstanceExtensions()
 
 void GlfwWindow::createCursors()
 {
-    for (MouseCursorIcon icon : charming_enum::enum_values<MouseCursorIcon>())
+    for (MouseCursorIcon icon : tiny_ctti::enum_values<MouseCursorIcon>())
     {
         size_t index = static_cast<size_t>(icon);
         m_cursors[index] = glfwCreateStandardCursor(translateCursorType(icon));

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/charming_enum.h"
+#include "common/tiny_ctti.h"
 
 #include "coil/Coil.h" // TODO don't include whole Coil
 
@@ -47,20 +47,21 @@ namespace coil
             if (input.subvalues.size() != 1)
                 return errors::createMismatchedSubvaluesError<E>(input, 1);
 
-            nstl::string_view value{ input.subvalues[0].data(), input.subvalues[0].length() };
-            
-            if (nstl::optional<E> optionalValue = charming_enum::enum_cast<E>(value, ::utils::caseInsensitivePredicate))
-                return *optionalValue;
+            nstl::string_view value = coil::toNstlStringView(input.subvalues[0]);
 
-            nstl::string names = ::utils::flatten(charming_enum::enum_names<E>(), "'");
+            nstl::optional<E> optionalValue = tiny_ctti::enum_cast<E>(value, ::utils::caseInsensitivePredicate);
+            if (!optionalValue)
+            {
+                nstl::string names = ::utils::flatten(tiny_ctti::enum_names<E>(), "'");
+                return errors::createGenericError<E>(input, coil::sprintf("Possible values are [%s]", names.c_str()));
+            }
 
-            return errors::createGenericError<E>(input, coil::sprintf("Possible values are [%s]", names.c_str()));
+            return *optionalValue;
         }
 
         static coil::String toString(E const& value)
         {
-            nstl::string_view name = charming_enum::enum_name(value);
-            return coil::StringView{ name.data(), name.size() };
+            return coil::fromNstlString(tiny_ctti::enum_name(value));
         }
     };
 
@@ -69,12 +70,7 @@ namespace coil
     {
         static coil::StringView name()
         {
-            nstl::string_view typeName = charming_enum::enum_type_name<E>();
-            // TODO implement
-//             auto it = typeName.rfind("::");
-//             if (it != std::string_view::npos)
-//                 typeName = typeName.substr(it + 2);
-            return coil::StringView{ typeName.data(), typeName.size() };
+            return coil::fromNstlStringView(tiny_ctti::type_name<E>());
         }
     };
 }

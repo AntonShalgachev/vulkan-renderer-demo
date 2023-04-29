@@ -42,7 +42,7 @@
 #include "editor/assets/AssetData.h"
 
 #include "common/Utils.h"
-#include "common/charming_enum.h"
+#include "common/tiny_ctti.h"
 
 #include "logging/logging.h"
 
@@ -56,23 +56,6 @@
 #include "nstl/optional.h"
 #include "nstl/string_builder.h"
 #include "nstl/scope_exit.h"
-
-// TODO find a better solution
-template <>
-struct charming_enum::customize::enum_range<GlfwWindow::OldKey> {
-    static constexpr int min = 0;
-    static constexpr int max = 10;
-};
-template <>
-struct charming_enum::customize::enum_range<GlfwWindow::Modifiers> {
-    static constexpr int min = 0;
-    static constexpr int max = 10;
-};
-template <>
-struct charming_enum::customize::enum_range<GlfwWindow::Action> {
-    static constexpr int min = 0;
-    static constexpr int max = 10;
-};
 
 namespace
 {
@@ -689,17 +672,17 @@ void DemoApplication::onKey(GlfwWindow::Action action, GlfwWindow::OldKey key, c
 
     nstl::string_builder builder;
 
-    for (GlfwWindow::Modifiers value : charming_enum::enum_values<GlfwWindow::Modifiers>())
+    for (GlfwWindow::Modifiers value : tiny_ctti::enum_values<GlfwWindow::Modifiers>())
     {
         if (mods & value)
         {
-            nstl::string_view name = charming_enum::enum_name(value);
+            nstl::string_view name = tiny_ctti::enum_name(value);
             builder.append(separator).append(name);
             separator = " | ";
         }
     }
 
-    logging::info("onKey: {} {} {}: '{}'", charming_enum::enum_name(action), charming_enum::enum_name(key), builder.build(), c);
+    logging::info("onKey: {} {} {}: '{}'", tiny_ctti::enum_name(action), tiny_ctti::enum_name(key), builder.build(), c);
 
     size_t index = static_cast<size_t>(c);
     m_keyState[index] = action == GlfwWindow::Action::Press;

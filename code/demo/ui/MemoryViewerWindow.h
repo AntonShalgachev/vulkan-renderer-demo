@@ -2,6 +2,8 @@
 
 #include "services/ServiceContainer.h"
 
+#include "common/tiny_ctti.h"
+
 #include "nstl/string_view.h"
 #include "nstl/vector.h"
 #include "nstl/unordered_map.h"
@@ -17,6 +19,7 @@ namespace ui
             Kilobytes,
             Megabytes,
         };
+        TINY_CTTI_DESCRIBE_NESTED_ENUM(SizeUnit, Bytes, Kilobytes, Megabytes);
 
         struct TreeNode
         {

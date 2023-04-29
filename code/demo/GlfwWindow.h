@@ -2,7 +2,7 @@
 
 #include "vko/Window.h"
 
-#include "common/charming_enum.h"
+#include "common/tiny_ctti.h"
 
 #include "nstl/vector.h"
 #include "nstl/function.h"
@@ -42,6 +42,7 @@ enum class MouseCursorMode
     Hidden,
     Disabled,
 };
+TINY_CTTI_DESCRIBE_ENUM(MouseCursorMode, Normal, Hidden, Disabled);
 
 enum class MouseCursorIcon
 {
@@ -55,21 +56,18 @@ enum class MouseCursorIcon
     NotAllowed,
     Hand,
 };
-
-template <>
-struct charming_enum::customize::enum_range<MouseCursorIcon> {
-    static constexpr int min = 0;
-    static constexpr int max = 10;
-};
+TINY_CTTI_DESCRIBE_ENUM(MouseCursorIcon, Arrow, TextInput, ResizeAll, ResizeNS, ResizeEW, ResizeNESW, ResizeNWSE, NotAllowed, Hand);
 
 class GlfwWindow : public vko::Window
 {
 public:
+    // TODO remove this enum
     enum class OldKey
     {
         Unknown,
         Char,
     };
+    TINY_CTTI_DESCRIBE_NESTED_ENUM(OldKey, Unknown, Char);
 
     // TODO compat some entries
     enum class Key
@@ -113,6 +111,7 @@ public:
         Middle,
         Right,
     };
+    TINY_CTTI_DESCRIBE_NESTED_ENUM(MouseButton, Left, Middle, Right);
 
     enum class Modifiers
     {
@@ -121,6 +120,7 @@ public:
         Shift = 2,
         Alt = 4,
     };
+    TINY_CTTI_DESCRIBE_NESTED_ENUM(Modifiers, None, Ctrl, Shift, Alt);
 
     enum class Action
     {
@@ -128,6 +128,7 @@ public:
         Release,
         Repeat,
     };
+    TINY_CTTI_DESCRIBE_NESTED_ENUM(Action, Press, Release, Repeat);
 
 public:
     GlfwWindow(int width, int height, char const* title);
@@ -236,7 +237,7 @@ private:
     temp::event<float, float> m_onScroll;
     temp::event<char> m_onChar;
 
-    nstl::array<GLFWcursor*, charming_enum::enum_count<MouseCursorIcon>()> m_cursors;
+    nstl::array<GLFWcursor*, tiny_ctti::enum_size_v<MouseCursorIcon>> m_cursors;
 };
 
 inline GlfwWindow::Modifiers operator|(GlfwWindow::Modifiers lhs, GlfwWindow::Modifiers rhs)

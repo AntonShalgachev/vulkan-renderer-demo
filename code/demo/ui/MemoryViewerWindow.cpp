@@ -7,15 +7,7 @@
 
 #include "memory/tracking.h"
 
-#include "common/charming_enum.h"
-
 #include "imgui.h"
-
-template <>
-struct charming_enum::customize::enum_range<ui::MemoryViewerWindow::SizeUnit> {
-    static constexpr int min = 0;
-    static constexpr int max = 10;
-};
 
 namespace
 {
@@ -125,7 +117,7 @@ void ui::MemoryViewerWindow::draw()
 
     if (ImGui::BeginCombo("Size units", unitPrettyName(m_sizeUnits)))
     {
-        for (SizeUnit unit : charming_enum::enum_values<SizeUnit>())
+        for (SizeUnit unit : tiny_ctti::enum_values<SizeUnit>())
         {
             bool isSelected = m_sizeUnits == unit;
             if (ImGui::Selectable(unitPrettyName(unit), isSelected))
