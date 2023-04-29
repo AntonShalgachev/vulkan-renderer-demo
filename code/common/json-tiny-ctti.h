@@ -55,26 +55,16 @@ namespace yyjsoncpp
             if (value.get_type() != type::object)
                 return {};
 
-            T obj{};
-            bool found_errors = false;
+            StructType obj{};
 
-            auto json_to_field = [&obj, &value, &found_errors]<typename FieldType>(tiny_ctti::struct_entry<T, FieldType> const& entry)
+            auto json_to_field = [&obj, &value]<typename FieldType>(tiny_ctti::struct_entry<StructType, FieldType> const& entry)
             {
-                nstl::optional<FieldType> field_value = value[entry.name].template try_get<FieldType>();
-
-                if (!field_value)
-                {
-                    found_errors = true;
-                    return;
-                }
-
+                nstl::optional<FieldType> field_value = serializer<FieldType>::from_json(value[entry.name]);
+                assert(field_value);
                 obj.*(entry.field) = *nstl::move(field_value);
             };
 
-            common::for_each_struct_entry<T>(json_to_field);
-
-            if (found_errors)
-                return {};
+            common::for_each_struct_entry<StructType>(json_to_field);
 
             return obj;
         }
@@ -83,9 +73,9 @@ namespace yyjsoncpp
         {
             mutable_object_ref root = doc.create_object();
 
-            auto field_to_json = [&obj, &root](auto const& entry)
+            auto field_to_json = [&obj, &root, &doc]<typename FieldType>(tiny_ctti::struct_entry<T, FieldType> const& entry)
             {
-                root[entry.name] = obj.*(entry.field);
+                root[entry.name] = serializer<FieldType>::to_json(doc, obj.*(entry.field));
             };
 
             common::for_each_struct_entry<T>(field_to_json);
