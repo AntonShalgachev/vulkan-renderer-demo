@@ -24,7 +24,7 @@
 
 namespace
 {
-    auto scopeId = memory::tracking::create_scope_id("Rendering/DebugDraw");
+    auto debugDrawScopeId = memory::tracking::create_scope_id("Rendering/DebugDraw");
 
     // normals: offset 0, stride 24, type vec3, count 24
     // position: offset 12, stride 24, type vec3, count 24
@@ -76,7 +76,7 @@ namespace
 
 DebugDrawService::DebugDrawService(vkgfx::Renderer& renderer)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(debugDrawScopeId);
 
     vkgfx::ResourceManager& resources = renderer.getResourceManager();
 
@@ -187,12 +187,12 @@ DebugDrawService::~DebugDrawService() = default;
 
 void DebugDrawService::sphere(tglm::vec3 const& center, tglm::vec3 const& scale, tglm::vec3 const& color, float duration)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(debugDrawScopeId);
 }
 
 void DebugDrawService::box(tglm::vec3 const& center, tglm::quat const& rotation, tglm::vec3 const& scale, tglm::vec3 const& color, float duration)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(debugDrawScopeId);
 
     auto matrix = tglm::mat4::identity();
 
@@ -212,7 +212,7 @@ void DebugDrawService::box(tglm::vec3 const& center, tglm::quat const& rotation,
 
 void DebugDrawService::queueGeometry(vkgfx::Renderer& renderer)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(debugDrawScopeId);
 
     for (auto&& object : m_objects)
         renderer.addOneFrameTestObject(nstl::move(object));

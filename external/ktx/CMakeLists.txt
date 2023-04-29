@@ -40,6 +40,26 @@ set_source_files_properties(
     PROPERTIES HEADER_FILE_ONLY ON
 )
 
+if(MSVC)
+    target_compile_options(ktx PRIVATE
+        /wd4996 # 'XXX': This function or variable may be unsafe. Consider using XXX_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+        /wd4267 # '+=': conversion from 'size_t' to 'uint32_t', possible loss of data
+    )
+endif()
+
+set_target_properties(ktx
+    PROPERTIES
+    UNITY_BUILD ON
+    UNITY_BUILD_BATCH_SIZE 64
+)
+
+set_source_files_properties(
+    ${ktx_SOURCE_DIR}/lib/etcdec.cxx
+    
+    TARGET_DIRECTORY ktx
+    PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
+)
+
 get_property(ASTC_TARGETS DIRECTORY ${ktx_SOURCE_DIR}/lib/astc-encoder/Source PROPERTY BUILDSYSTEM_TARGETS)
 foreach(ASTC_TARGET ${ASTC_TARGETS})
     target_precompile_headers(${ASTC_TARGET} PRIVATE "astc-pch.h")

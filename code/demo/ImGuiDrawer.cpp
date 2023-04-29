@@ -30,7 +30,7 @@
 
 namespace
 {
-    auto scopeId = memory::tracking::create_scope_id("UI/ImGui/Drawer");
+    auto imguiDrawerScopeId = memory::tracking::create_scope_id("UI/ImGui/Drawer");
 
     // TODO move somewhere
     auto imageToTextureId(vkgfx::ImageHandle image)
@@ -108,7 +108,7 @@ namespace
 
 ImGuiDrawer::ImGuiDrawer(vkgfx::Renderer& renderer)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(imguiDrawerScopeId);
 
     ImGuiIO& io = ImGui::GetIO();
 
@@ -126,7 +126,7 @@ ImGuiDrawer::ImGuiDrawer(vkgfx::Renderer& renderer)
 
 void ImGuiDrawer::queueGeometry(vkgfx::Renderer& renderer)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(imguiDrawerScopeId);
 
     if (!ImGui::GetCurrentContext())
         return;

@@ -4,7 +4,7 @@
 #include "nstl/string.h"
 #include "nstl/string_view.h"
 
-#include "common/glm.h"
+#include "tglm/tglm.h"
 
 // #include "coil/Coil.h" // TODO research why including this here increases the compilation time
 

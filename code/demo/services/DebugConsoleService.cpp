@@ -11,7 +11,7 @@
 
 namespace
 {
-    auto scopeId = memory::tracking::create_scope_id("System/Services/Console");
+    auto consoleScopeId = memory::tracking::create_scope_id("System/Services/Console");
 
     class CommandsListIterator
     {
@@ -169,7 +169,7 @@ coil::String coil::TypeSerializer<nstl::string_view>::toString(nstl::string_view
 
 DebugConsoleService::DebugConsoleService(Services& services) : ServiceContainer(services)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(consoleScopeId);
 
     auto& commands = *this;
 
@@ -219,7 +219,7 @@ DebugConsoleService::DebugConsoleService(Services& services) : ServiceContainer(
 
 bool DebugConsoleService::execute(nstl::string_view command)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(consoleScopeId);
 
     for (nstl::string_view subcommand : CommandsList{ command })
     {
@@ -262,7 +262,7 @@ bool DebugConsoleService::execute(nstl::string_view command)
 
 nstl::vector<DebugConsoleService::Suggestion> DebugConsoleService::getSuggestions(nstl::string_view input) const
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(consoleScopeId);
 
     if (input.empty())
         return {};
@@ -297,7 +297,7 @@ nstl::vector<DebugConsoleService::Suggestion> DebugConsoleService::getSuggestion
 
 nstl::optional<nstl::string_view> DebugConsoleService::autoComplete(nstl::string_view input) const
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(consoleScopeId);
 
     static nstl::vector<nstl::string_view> candidates;
     candidates.clear();
@@ -334,14 +334,14 @@ nstl::optional<nstl::string_view> DebugConsoleService::autoComplete(nstl::string
 
 void DebugConsoleService::clear()
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(consoleScopeId);
 
     m_lines.clear();
 }
 
 void DebugConsoleService::getCommandHelp(nstl::string_builder& builder, nstl::string_view name) const
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(consoleScopeId);
 
     auto const* functors = m_bindings.get(utils::nstlToCoilStringView(name));
     if (!functors)
@@ -368,7 +368,7 @@ void DebugConsoleService::getCommandHelp(nstl::string_builder& builder, nstl::st
 
 void DebugConsoleService::add(nstl::string_view name, CommandMetadata metadata, coil::AnyFunctor anyFunctor)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(consoleScopeId);
 
     coil::Vector<coil::AnyFunctor> functors;
     functors.pushBack(nstl::move(anyFunctor));
@@ -377,7 +377,7 @@ void DebugConsoleService::add(nstl::string_view name, CommandMetadata metadata, 
 
 void DebugConsoleService::add(nstl::string_view name, CommandMetadata metadata, coil::Vector<coil::AnyFunctor> anyFunctors)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(consoleScopeId);
 
     coil::StringView coilName = utils::nstlToCoilStringView(name);
     coil::Bindings::Command const& command = m_bindings.add(coilName, nstl::move(anyFunctors));
@@ -390,7 +390,7 @@ void DebugConsoleService::add(nstl::string_view name, CommandMetadata metadata, 
 
 void DebugConsoleService::remove(nstl::string_view name)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(consoleScopeId);
 
     coil::StringView coilName = utils::nstlToCoilStringView(name);
 
@@ -400,14 +400,14 @@ void DebugConsoleService::remove(nstl::string_view name)
 
 CommandProxy<DebugConsoleService> DebugConsoleService::operator[](nstl::string_view name)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(consoleScopeId);
 
     return { *this, name };
 }
 
 CommandMetadata const* DebugConsoleService::getMetadata(nstl::string_view name) const
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(consoleScopeId);
 
     coil::StringView coilName = utils::nstlToCoilStringView(name);
 
@@ -420,7 +420,7 @@ CommandMetadata const* DebugConsoleService::getMetadata(nstl::string_view name) 
 
 void DebugConsoleService::fillCommandMetadata(CommandMetadata& metadata, coil::Vector<coil::AnyFunctor> const& functors)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(consoleScopeId);
 
 	if (metadata.functors.size() < functors.size())
 		metadata.functors.resize(functors.size());
@@ -467,7 +467,7 @@ void DebugConsoleService::fillCommandMetadata(CommandMetadata& metadata, coil::V
 
 void DebugConsoleService::addLine(nstl::string text, Line::Type type)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(consoleScopeId);
 
     m_lines.push_back({ nstl::move(text), type });
 }

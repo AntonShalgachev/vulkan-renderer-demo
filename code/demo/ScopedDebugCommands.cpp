@@ -4,17 +4,17 @@
 
 namespace
 {
-    auto scopeId = memory::tracking::create_scope_id("System/ScopedCommands");
+    auto scopedCommandsScopeId = memory::tracking::create_scope_id("System/ScopedCommands");
 }
 
 ScopedDebugCommands::ScopedDebugCommands(Services& services) : ServiceContainer(services)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(scopedCommandsScopeId);
 }
 
 ScopedDebugCommands::ScopedDebugCommands(ScopedDebugCommands&& rhs) : ServiceContainer(rhs.services())
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(scopedCommandsScopeId);
 
     clear();
 
@@ -23,14 +23,14 @@ ScopedDebugCommands::ScopedDebugCommands(ScopedDebugCommands&& rhs) : ServiceCon
 
 ScopedDebugCommands::~ScopedDebugCommands()
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(scopedCommandsScopeId);
 
     clear();
 }
 
 ScopedDebugCommands& ScopedDebugCommands::operator=(ScopedDebugCommands&& rhs)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(scopedCommandsScopeId);
 
     clear();
 
@@ -40,7 +40,7 @@ ScopedDebugCommands& ScopedDebugCommands::operator=(ScopedDebugCommands&& rhs)
 
 void ScopedDebugCommands::add(nstl::string_view name, CommandMetadata metadata, coil::AnyFunctor anyFunctor)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(scopedCommandsScopeId);
 
     coil::Vector<coil::AnyFunctor> functors;
     functors.pushBack(nstl::move(anyFunctor));
@@ -49,7 +49,7 @@ void ScopedDebugCommands::add(nstl::string_view name, CommandMetadata metadata, 
 
 void ScopedDebugCommands::add(nstl::string_view name, CommandMetadata metadata, coil::Vector<coil::AnyFunctor> anyFunctors)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(scopedCommandsScopeId);
 
     services().debugConsole().add(name, nstl::move(metadata), nstl::move(anyFunctors));
     m_names.push_back(name);
@@ -57,7 +57,7 @@ void ScopedDebugCommands::add(nstl::string_view name, CommandMetadata metadata, 
 
 void ScopedDebugCommands::remove(nstl::string_view name)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(scopedCommandsScopeId);
 
     services().debugConsole().remove(name);
     m_names.erase_unsorted(name);
@@ -65,14 +65,14 @@ void ScopedDebugCommands::remove(nstl::string_view name)
 
 CommandProxy<ScopedDebugCommands> ScopedDebugCommands::operator[](nstl::string_view name)
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(scopedCommandsScopeId);
 
     return { *this, name };
 }
 
 void ScopedDebugCommands::clear()
 {
-    MEMORY_TRACKING_SCOPE(scopeId);
+    MEMORY_TRACKING_SCOPE(scopedCommandsScopeId);
 
     for (auto const& name : m_names)
         services().debugConsole().remove(name);
