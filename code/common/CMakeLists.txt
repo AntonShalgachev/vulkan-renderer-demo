@@ -1,7 +1,6 @@
 set(PROJECT_NAME common)
 
 set(ALL_FILES
-    "charming_enum.h"
     "tiny_ctti.h"
     "fmt.h"
 
@@ -34,7 +33,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS) # TO
 
 target_link_libraries(${PROJECT_NAME}
     nstl
-    charming_enum
     fmt::fmt
     memory
     yyjsoncpp
