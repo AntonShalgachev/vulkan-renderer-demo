@@ -6,6 +6,11 @@
 
 namespace nstl
 {
+    namespace detail_optional
+    {
+        struct dummy {};
+    }
+
     template<typename T>
     class optional
     {
@@ -52,14 +57,10 @@ namespace nstl
         void destroy();
 
     private:
-        struct Dummy
-        {
-        };
-
         bool m_hasValue = false;
         union
         {
-            Dummy m_empty;
+            detail_optional::dummy m_empty;
             T m_value;
         };
     };
