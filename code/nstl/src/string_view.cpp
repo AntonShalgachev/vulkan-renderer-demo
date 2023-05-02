@@ -30,7 +30,6 @@ bool nstl::string_view::empty() const
 
 char const* nstl::string_view::data() const
 {
-    NSTL_ASSERT(m_str);
     return m_str;
 }
 
