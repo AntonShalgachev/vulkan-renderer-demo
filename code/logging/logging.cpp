@@ -1,5 +1,7 @@
 #include "logging.h"
 
+#include "stdio.h"
+
 namespace
 {
     void log(char const* tag, nstl::string_view str)

@@ -161,7 +161,7 @@ namespace
 
         size_t dataSize = static_cast<size_t>(w * h * comp) * size_t(bits / 8);
         imageData.bytes.resize(dataSize);
-        std::copy(data, data + dataSize, imageData.bytes.begin());
+        nstl::copy(data, data + dataSize, imageData.bytes.begin());
         stbi_image_free(data);
 
         imageData.mips = { { 0, imageData.bytes.size() } };
@@ -1457,7 +1457,7 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
         .location = vkgfx::BufferLocation::HostVisible,
         .isMutable = false,
     };
-    auto buffer = resourceManager.createBuffer(sizeof(MaterialUniformBuffer), std::move(metadata));
+    auto buffer = resourceManager.createBuffer(sizeof(MaterialUniformBuffer), nstl::move(metadata));
     resourceManager.uploadBuffer(buffer, &values, sizeof(MaterialUniformBuffer));
     m_editorGltfResources->additionalBuffers.push_back(buffer);
 
@@ -1493,7 +1493,7 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
 
     DemoMaterial& demoMaterial = m_editorGltfResources->materials[id];
 
-    demoMaterial.handle = resourceManager.createMaterial(std::move(material));
+    demoMaterial.handle = resourceManager.createMaterial(nstl::move(material));
 
     demoMaterial.metadata.renderConfig.wireframe = false;
     demoMaterial.metadata.renderConfig.cullBackfaces = !materialData.doubleSided;
