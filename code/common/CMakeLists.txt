@@ -33,10 +33,10 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS) # TO
 
 target_link_libraries(${PROJECT_NAME}
     nstl
-    fmt::fmt
     memory
     yyjsoncpp
     fs
     tiny_ctti
     tglm
+    picofmt
 )

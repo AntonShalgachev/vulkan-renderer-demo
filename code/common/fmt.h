@@ -3,68 +3,44 @@
 #include "nstl/string.h"
 #include "nstl/string_view.h"
 
-#include "fmt/core.h"
+#define PICOFMT_CUSTOM_STRING_VIEW nstl::string_view
+#include "picofmt/picofmt.h"
 
 // TODO move somewhere
 template<>
-struct fmt::formatter<nstl::string_view>
+struct picofmt::formatter<nstl::string_view>
 {
-    constexpr auto parse(format_parse_context& ctx)
+    bool parse(string_view specifier, writer& ctx)
     {
-        return ctx.end();
+        return true;
     }
 
-    template<typename FormatContext>
-    auto format(nstl::string_view const& str, FormatContext& ctx)
+    bool format(nstl::string_view const& value, writer& ctx) const
     {
-        // TODO probably can be copied to the iterator directly
-        auto it = ctx.out();
-        for (char c : str)
-            *it++ = c;
-        return it;
+        // TODO take format into consideration
+        ctx.write(value);
+        return true;
     }
 };
 
 template<>
-struct fmt::formatter<nstl::string> : fmt::formatter<nstl::string_view>
-{
-    constexpr auto parse(format_parse_context& ctx)
-    {
-        return fmt::formatter<nstl::string_view>::parse(ctx);
-    }
-
-    template<typename FormatContext>
-    auto format(nstl::string const& str, FormatContext& ctx)
-    {
-        return fmt::formatter<nstl::string_view>::format(str, ctx);
-    }
-};
+struct picofmt::formatter<nstl::string> : public picofmt::formatter<nstl::string_view> {};
 
 namespace common
 {
-    struct StringAppender
+    struct StringAppender : public picofmt::writer
     {
         StringAppender(nstl::string& str) : m_str(&str) {}
 
-        StringAppender& operator=(char c)
+        bool write(nstl::string_view str) override
         {
-            m_str->push_back(c);
-            return *this;
+            *m_str += str;
+            return true;
         }
 
-        StringAppender& operator*()
+        void report_error(nstl::string_view str) override
         {
-            return *this;
-        }
-
-        StringAppender& operator++()
-        {
-            return *this;
-        }
-
-        StringAppender operator++(int)
-        {
-            return *this;
+            assert(false);
         }
 
     private:
@@ -76,7 +52,8 @@ namespace common
     {
         nstl::string result;
 
-        fmt::format_to(StringAppender{ result }, fmt::runtime(format), nstl::forward<Ts>(args)...);
+        StringAppender ctx{ result };
+        picofmt::format_to(ctx, format, nstl::forward<Ts>(args)...);
 
         return result;
     }

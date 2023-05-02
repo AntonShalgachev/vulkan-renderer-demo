@@ -30,12 +30,6 @@ set(COIL_BASIC_TYPENAME OFF CACHE INTERNAL "")
 FetchDependency(coil)
 
 FetchContent_Declare(
-    fmt
-    URL https://github.com/fmtlib/fmt/archive/refs/tags/9.1.0.tar.gz # 9.1.0
-)
-FetchDependency(fmt)
-
-FetchContent_Declare(
     yyjson
     URL https://github.com/ibireme/yyjson/archive/refs/tags/0.6.0.tar.gz # 0.6.0
 )
