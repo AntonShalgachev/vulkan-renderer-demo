@@ -2,14 +2,13 @@
 
 namespace picofmt
 {
-    struct writer;
-
     namespace detail
     {
         struct simple_string_view;
 
-        struct writer_base
+        class writer_base
         {
+        public:
             virtual ~writer_base() = default;
 
             [[nodiscard]] virtual bool write(simple_string_view str) = 0;

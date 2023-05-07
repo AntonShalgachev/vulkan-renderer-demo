@@ -63,6 +63,13 @@ namespace
     template<> constexpr float_formats_data float_formats_v<double> = { "%.*f", "%.*F", "%.*e", "%.*E", "%.*g", "%.*G", "%.*a", "%.*A" };
     template<> constexpr float_formats_data float_formats_v<long double> = { "%.*Lf", "%.*LF", "%.*Le", "%.*LE", "%.*Lg", "%.*LG", "%.*La", "%.*LA" };
 
+#if !defined(LDBL_DECIMAL_DIG)
+#if !defined(DECIMAL_DIG)
+#error Both LDBL_DECIMAL_DIG and DECIMAL_DIG aren't defined
+#endif
+#define LDBL_DECIMAL_DIG DECIMAL_DIG
+#endif
+
     template<typename T> constexpr int float_decimal_digits_v = -1;
     template<> constexpr int float_decimal_digits_v<float> = FLT_DECIMAL_DIG;
     template<> constexpr int float_decimal_digits_v<double> = DBL_DECIMAL_DIG;

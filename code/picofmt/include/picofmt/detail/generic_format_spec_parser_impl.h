@@ -8,7 +8,7 @@ namespace picofmt
     namespace detail
     {
         struct simple_string_view;
-        struct context_base;
+        class context_base;
         bool parse_generic_format_spec(simple_string_view specifier, generic_format_spec& format_spec, context_base& ctx);
     }
 }

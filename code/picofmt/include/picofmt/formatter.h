@@ -4,7 +4,7 @@
 
 namespace picofmt
 {
-    struct writer;
+    class writer;
     class args_list;
     class context;
 

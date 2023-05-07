@@ -5,7 +5,7 @@
 namespace picofmt::detail
 {
     struct simple_string_view;
-    struct context_base;
+    class context_base;
 
     bool parse_index(simple_string_view str, size_t& value);
     bool parse_index(simple_string_view str, size_t& parsed_chars, size_t& value);

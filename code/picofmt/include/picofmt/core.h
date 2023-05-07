@@ -34,8 +34,9 @@ namespace picofmt
         }
 
         template<typename T>
-        struct any_arg_impl : any_arg
+        class any_arg_impl : public any_arg
         {
+        public:
             any_arg_impl(T const& value) : m_value(value) {}
 
             bool parse(simple_string_view specifier, context& ctx) override
@@ -60,6 +61,7 @@ namespace picofmt
                 return m_formatter.format(m_value, ctx);
             }
 
+        private:
             T const& m_value;
             formatter<T> m_formatter;
         };

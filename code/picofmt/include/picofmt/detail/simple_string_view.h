@@ -5,9 +5,8 @@
 
 namespace picofmt::detail
 {
-    class simple_string_view
+    struct simple_string_view
     {
-    public:
         constexpr simple_string_view() = default;
         simple_string_view(char const* str) : simple_string_view(str, strlen(str)) {}
         constexpr simple_string_view(char const* str, size_t length) : data(str), length(length) {}
@@ -35,10 +34,8 @@ namespace picofmt::detail
 
         constexpr char const& operator[](size_t index) const { return data[index]; }
 
-    public:
         inline static size_t npos = static_cast<size_t>(-1);
 
-    public:
         char const* data = nullptr;
         size_t length = 0;
     };

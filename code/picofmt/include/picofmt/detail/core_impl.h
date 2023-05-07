@@ -7,11 +7,12 @@ namespace picofmt
 
     namespace detail
     {
-        struct context_base;
+        class context_base;
         struct simple_string_view;
 
-        struct any_arg
+        class any_arg
         {
+        public:
             virtual ~any_arg() = default;
             virtual bool parse(simple_string_view specifier, context& ctx) = 0;
             virtual bool try_get_int(int& value) const = 0;

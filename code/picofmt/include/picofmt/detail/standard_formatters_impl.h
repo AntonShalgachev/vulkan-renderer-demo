@@ -8,7 +8,7 @@ namespace picofmt
 
     namespace detail
     {
-        struct context_base;
+        class context_base;
         struct simple_string_view;
 
 #define PICOFMT_DECLARE_FORMATTER(T) bool format_value(T const& value, generic_format_spec const& format_spec, context_base const& ctx);
