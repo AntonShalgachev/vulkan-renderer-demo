@@ -39,8 +39,8 @@ namespace utils
 
 namespace coil
 {
-    template<typename E>
-    struct TypeSerializer<E, nstl::enable_if_t<nstl::is_enum_v<E>>>
+    template<tiny_ctti::described_enum E>
+    struct TypeSerializer<E>
     {
         static Expected<E, coil::String> fromString(Value const& input)
         {
@@ -65,8 +65,8 @@ namespace coil
         }
     };
 
-    template<typename E>
-    struct TypeName<E, nstl::enable_if_t<nstl::is_enum_v<E>>>
+    template<tiny_ctti::described_type E>
+    struct TypeName<E>
     {
         static coil::StringView name()
         {

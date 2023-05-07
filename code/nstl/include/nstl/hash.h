@@ -93,7 +93,8 @@ struct nstl::hash<char[N]>
 };
 
 template<typename E>
-struct nstl::hash<E, nstl::enable_if_t<nstl::is_enum_v<E>>>
+requires nstl::is_enum_v<E>
+struct nstl::hash<E>
 {
     size_t operator()(E const& value) const
     {

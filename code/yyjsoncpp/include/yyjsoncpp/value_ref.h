@@ -24,13 +24,13 @@ namespace yyjsoncpp
 
         value_ref operator[](string_view name) const;
 
-        template<typename T>
+        template<serializable T>
         optional<T> try_get() const
         {
             return serializer<T>::from_json(*this);
         }
 
-        template<typename T>
+        template<serializable T>
         T get() const
         {
             optional<T> val = serializer<T>::from_json(*this);

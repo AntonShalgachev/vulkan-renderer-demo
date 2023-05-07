@@ -26,8 +26,8 @@ namespace common
 
 namespace yyjsoncpp
 {
-    template<typename E>
-    struct serializer<E, nstl::enable_if_t<tiny_ctti::is_enum_v<E>>>
+    template<tiny_ctti::described_enum E>
+    struct serializer<E>
     {
         static optional<E> from_json(value_ref value)
         {
@@ -45,8 +45,8 @@ namespace yyjsoncpp
         }
     };
 
-    template<typename T>
-    struct serializer<T, nstl::enable_if_t<tiny_ctti::is_struct_v<T>>>
+    template<tiny_ctti::described_struct T>
+    struct serializer<T>
     {
         static optional<T> from_json(value_ref value)
         {
@@ -59,6 +59,7 @@ namespace yyjsoncpp
 
             auto json_to_field = [&obj, &value]<typename FieldType>(tiny_ctti::struct_entry<StructType, FieldType> const& entry)
             {
+                static_assert(yyjsoncpp::serializable<FieldType>);
                 nstl::optional<FieldType> field_value = serializer<FieldType>::from_json(value[entry.name]);
                 assert(field_value);
                 obj.*(entry.field) = *nstl::move(field_value);
@@ -75,6 +76,7 @@ namespace yyjsoncpp
 
             auto field_to_json = [&obj, &root, &doc]<typename FieldType>(tiny_ctti::struct_entry<T, FieldType> const& entry)
             {
+                static_assert(yyjsoncpp::serializable<FieldType>);
                 root[entry.name] = serializer<FieldType>::to_json(doc, obj.*(entry.field));
             };
 

@@ -104,7 +104,7 @@ namespace yyjsoncpp
         mutable_value_ref create_number(uint64_t value);
         mutable_value_ref create_boolean(bool value);
 
-        template<typename T>
+        template<serializable T>
         mutable_value_ref create_value(T const& value)
         {
             return serializer<T>::to_json(*this, value);
