@@ -4,6 +4,9 @@
 
 #include "picofmt/detail/generic_format_spec_parser_impl.h"
 #include "picofmt/detail/simple_string_view.h"
+#include "picofmt/detail/context_base.h"
+#include "picofmt/detail/util.h"
+#include "picofmt/detail/core_impl.h"
 
 #include <assert.h>
 
@@ -41,15 +44,15 @@ namespace
 
     picofmt::detail::simple_string_view parse_align(picofmt::detail::simple_string_view str, picofmt::generic_format_spec& format_spec)
     {
-        assert(str.size() >= 1);
+        assert(!str.empty());
 
         auto align = picofmt::align::none;
 
         size_t pos = 1;
-        if (str.size() <= 1)
+        if (str.length <= 1)
             pos = 0;
 
-        picofmt::detail::simple_string_view rest;
+        picofmt::detail::simple_string_view rest = str;
 
         // TODO rewrite this loop
         for (;;)
@@ -89,42 +92,6 @@ namespace
         return rest;
     }
 
-    //     picofmt::string_view parse_width(const Char* begin, const Char* end, Handler&& handler)
-    //     {
-    //         using detail::auto_id;
-    //         struct width_adapter {
-    //             Handler& handler;
-    // 
-    //             FMT_CONSTEXPR void operator()() { handler.on_dynamic_width(auto_id()); }
-    //             FMT_CONSTEXPR void operator()(int id) { handler.on_dynamic_width(id); }
-    //             FMT_CONSTEXPR void operator()(basic_picofmt::string_view<Char> id) {
-    //                 handler.on_dynamic_width(id);
-    //             }
-    //             FMT_CONSTEXPR void on_error(const char* message) {
-    //                 if (message) handler.on_error(message);
-    //             }
-    //         };
-    // 
-    //         FMT_ASSERT(begin != end, "");
-    //         if ('0' <= *begin && *begin <= '9')
-    //         {
-    //             int width = parse_nonnegative_int(begin, end, -1);
-    //             if (width != -1)
-    //                 handler.on_width(width);
-    //             else
-    //                 handler.on_error("number is too big");
-    //         }
-    //         else if (*begin == '{')
-    //         {
-    //             ++begin;
-    //             if (begin != end) begin = parse_arg_id(begin, end, width_adapter{ handler });
-    //             if (begin == end || *begin != '}')
-    //                 return handler.on_error("invalid format string"), begin;
-    //             ++begin;
-    //         }
-    //         return begin;
-    //     }
-
     bool try_parse_sign(char c, picofmt::sign& sign)
     {
         switch (c)
@@ -136,17 +103,79 @@ namespace
 
         return false;
     }
+
+    bool parse_dynamic_param(picofmt::detail::simple_string_view str, int& value, picofmt::detail::simple_string_view& rest, picofmt::detail::context_base& ctx)
+    {
+        assert(!str.empty());
+
+        size_t parsed_chars = 0;
+        if (picofmt::detail::parse_nonnegative_int(str, parsed_chars, value))
+        {
+            rest = str.substr(parsed_chars);
+            return true;
+        }
+
+        // No value -> either the string doesn't contain any digits or the integer is out of range
+
+        if (parsed_chars > 0)
+        {
+            ctx.report_error("Width out of range");
+            return false;
+        }
+
+        if (str[0] == '{')
+        {
+            size_t closing_pos = 0;
+            if (!picofmt::detail::try_extract_replacement_field(str, closing_pos, ctx))
+                return false;
+
+            assert(closing_pos > 0);
+            assert(str[closing_pos] == '}');
+
+            picofmt::detail::simple_string_view arg_id_str = str.substr(1, closing_pos - 1);
+
+            size_t arg_id = 0;
+            if (arg_id_str.empty())
+            {
+                arg_id = ctx.get_next_arg_id();
+            }
+            else
+            {
+                if (!picofmt::detail::parse_index(arg_id_str, arg_id))
+                {
+                    ctx.report_error("Invalid argument id"); // TODO include `arg_id_str`
+                    return false;
+                }
+            }
+
+            if (!ctx.args.try_get_int(arg_id, value))
+            {
+                // TODO report proper error?
+                ctx.report_error("Argument not found or not an integer");
+                return false;
+            }
+
+            ctx.consume_arg(arg_id);
+
+            rest = str.substr(closing_pos + 1);
+            return true;
+        }
+
+        rest = str;
+        return true;
+    }
 }
 
-bool picofmt::detail::parse_generic_format_spec(simple_string_view specifier, generic_format_spec& format_spec)
+bool picofmt::detail::parse_generic_format_spec(simple_string_view specifier, generic_format_spec& format_spec, context_base& ctx)
 {
     if (specifier.empty())
         return true;
 
-    if (specifier.size() == 1 && is_ascii_letter(specifier[0]) && specifier[0] != 'L')
+    if (specifier.length == 1 && is_ascii_letter(specifier[0]))
     {
         if (!try_parse_presentation_type(specifier[0], format_spec.type))
         {
+            ctx.report_error("Unknown presentation type");
             return false;
         }
 
@@ -185,31 +214,41 @@ bool picofmt::detail::parse_generic_format_spec(simple_string_view specifier, ge
     if (specifier.empty())
         return true;
 
-    //         begin = parse_width(begin, end, handler);
-    //         if (begin == end) return begin;
-    // 
-    //         // Parse precision.
-    //         if (*begin == '.')
-    //         {
-    //             begin = parse_precision(begin, end, handler);
-    //             if (begin == end) return begin;
-    //         }
-    // 
-    //         if (*begin == 'L')
-    //         {
-    //             handler.on_localized();
-    //             ++begin;
-    //         }
-    // 
-    //         // Parse type.
-//         if (begin != end && *begin != '}')
-    //         {
-    //             presentation_type type = parse_presentation_type(*begin++);
-    //             if (type == presentation_type::none)
-    //                 handler.on_error("invalid type specifier");
-    //             handler.on_type(type);
-    //         }
-    //         return begin;
+    if (!parse_dynamic_param(specifier, format_spec.width, specifier, ctx))
+        return false;
+
+    if (specifier.empty())
+        return true;
+
+    if (specifier[0] == '.')
+    {
+        specifier = specifier.substr(1);
+
+        if (!parse_dynamic_param(specifier, format_spec.precision, specifier, ctx))
+            return false;
+
+        if (format_spec.precision < 0)
+        {
+            ctx.report_error("Mising precision specifier");
+        }
+    }
+
+    if (specifier.empty())
+        return true;
+
+    if (!try_parse_presentation_type(specifier[0], format_spec.type))
+    {
+        ctx.report_error("Invalid format specifier");
+        return false;
+    }
+
+    specifier = specifier.substr(1);
+
+    if (!specifier.empty())
+    {
+        ctx.report_error("Invalid format specifier");
+        return false;
+    }
 
     return true;
 }

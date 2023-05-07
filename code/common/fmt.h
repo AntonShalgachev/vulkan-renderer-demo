@@ -6,23 +6,6 @@
 #define PICOFMT_CUSTOM_STRING_VIEW nstl::string_view
 #include "picofmt/picofmt.h"
 
-// TODO move somewhere
-template<>
-struct picofmt::formatter<nstl::string_view>
-{
-    bool parse(string_view specifier, writer& ctx)
-    {
-        return true;
-    }
-
-    bool format(nstl::string_view const& value, writer& ctx) const
-    {
-        // TODO take format into consideration
-        ctx.write(value);
-        return true;
-    }
-};
-
 template<>
 struct picofmt::formatter<nstl::string> : public picofmt::formatter<nstl::string_view> {};
 
