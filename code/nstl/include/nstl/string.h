@@ -38,7 +38,9 @@ namespace nstl
         size_t find_last_of(string_view chars) const;
         string substr(size_t offset, size_t length = npos) const;
 
+        char* begin();
         char const* begin() const;
+        char* end();
         char const* end() const;
 
         string& operator+=(char rhs);

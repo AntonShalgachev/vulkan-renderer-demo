@@ -15,6 +15,9 @@ nstl::string::string(string_view str, any_allocator alloc) : string(str.data(), 
 
 nstl::string::string(char const* str, size_t length, any_allocator alloc) : string(nstl::move(alloc))
 {
+    if (length == 0)
+        return;
+
     resize(length);
 
     NSTL_ASSERT(str);
@@ -141,10 +144,21 @@ nstl::string nstl::string::substr(size_t offset, size_t length) const
     return string{ static_cast<string_view>(*this).substr(offset, length) };
 }
 
+char* nstl::string::begin()
+{
+    NSTL_ASSERT(m_buffer.size() != 0);
+    return m_buffer.data();
+}
+
 char const* nstl::string::begin() const
 {
     NSTL_ASSERT(m_buffer.size() != 0);
     return m_buffer.data();
+}
+
+char* nstl::string::end()
+{
+    return begin() + length();
 }
 
 char const* nstl::string::end() const
