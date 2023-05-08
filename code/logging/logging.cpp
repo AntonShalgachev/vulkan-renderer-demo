@@ -1,30 +1,47 @@
 #include "logging.h"
 
+#include "platform/debug.h"
+
+#include "nstl/vector.h"
+#include "nstl/unique_ptr.h"
+
 #include "stdio.h"
 
 namespace
 {
-    void log(char const* tag, nstl::string_view str)
+    struct log_writer : public picofmt::writer
     {
-        // TODO colors and various destinations
-        printf("[%s] %.*s\n", tag, str.slength(), str.data());
-    }
+        bool write(nstl::string_view str) override
+        {
+            if (str.empty())
+                return true;
+
+            platform::debug_output(str);
+
+            return true;
+        }
+
+        void report_error(nstl::string_view str) override
+        {
+            assert(false);
+        }
+    };
 }
 
 namespace logging
 {
-    void info(nstl::string_view str)
+    void log(level level, nstl::string_view str)
     {
-        log("INFO", str);
+        MEMORY_TRACKING_SCOPE(scope_id);
+
+        log_writer out{};
+        bool res = picofmt::format_to(out, "[{:!}] {}\n", level, str);
+        assert(res);
     }
 
-    void warn(nstl::string_view str)
+    void vlog(level level, nstl::string_view format, picofmt::args_list const& args)
     {
-        log("WARN", str);
-    }
-
-    void error(nstl::string_view str)
-    {
-        log("ERROR", str);
+        MEMORY_TRACKING_SCOPE(scope_id);
+        return log(level, common::vformat(format, args));
     }
 }

@@ -6,8 +6,6 @@
 
 #include "nstl/string.h"
 
-#include <Windows.h>
-
 void platform::create_directory(nstl::string_view path)
 {
     nstl::string pathCopy = path;

@@ -3,6 +3,7 @@ set(PROJECT_NAME common)
 set(ALL_FILES
     "tiny_ctti.h"
     "fmt.h"
+    "fmt.cpp"
 
     "json-nstl.h"
     "json-nstl.cpp"

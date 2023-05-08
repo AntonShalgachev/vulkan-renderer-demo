@@ -1,9 +1,9 @@
 #include "platform/threading.h"
 
 #include "windows_common.h"
-#include "platform/memory.h"
 
-#include "Windows.h"
+#include "windows_common.h"
+#include "platform/memory.h"
 
 #include <assert.h>
 

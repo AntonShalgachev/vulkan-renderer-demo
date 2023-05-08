@@ -4,12 +4,16 @@ add_library(platform
     "include/platform/uuid.h"
     "include/platform/threading.h"
     "src/windows/windows_common.h"
+    "include/platform/debug.h"
+    "include/platform/startup.h"
 
     "src/windows/memory.cpp"
     "src/windows/filesystem.cpp"
     "src/windows/uuid.cpp"
     "src/windows/threading.cpp"
     "src/windows/windows_common.cpp"
+    "src/windows/debug.cpp"
+    "src/windows/startup.cpp"
 )
 
 target_compile_features(platform PUBLIC cxx_std_20)

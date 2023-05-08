@@ -1,6 +1,6 @@
 #include "DemoApplication.h"
 
-int main(int argc, char** argv)
+int run(int argc, char** argv)
 {
     DemoApplication app;
 
