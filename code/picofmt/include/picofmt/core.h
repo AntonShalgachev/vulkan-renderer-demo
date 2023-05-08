@@ -33,7 +33,7 @@ namespace picofmt
             return string_view{ sv.data, sv.length };
         }
 
-        template<typename T>
+        template<formattable T>
         class any_arg_impl : public any_arg
         {
         public:
@@ -84,7 +84,7 @@ namespace picofmt
         return detail::vformat_to(detail::simple_string_view{ fmt.data(), fmt.length() }, ctx);
     }
 
-    template<typename... Ts>
+    template<formattable... Ts>
     bool format_to(writer& writer, string_view fmt, Ts const&... args)
     {
         return vformat_to(writer, fmt, args_list{ args... });
