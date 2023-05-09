@@ -124,13 +124,17 @@ bool nstl::string_view::ends_with(string_view str) const
 
 char const* nstl::string_view::begin() const
 {
-    NSTL_ASSERT(m_str);
+    if (m_length > 0)
+        NSTL_ASSERT(m_str);
+
     return m_str;
 }
 
 char const* nstl::string_view::end() const
 {
-    NSTL_ASSERT(m_str);
+    if (m_length > 0)
+        NSTL_ASSERT(m_str);
+
     return m_str + m_length;
 }
 

@@ -202,7 +202,11 @@ void ui::MemoryViewerWindow::drawTreeNode(size_t index)
     if (self.childrenIndices.empty())
         treeNodeFlags = treeNodeFlags | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet;
 
-    ImGui::PushID(self.path.begin(), self.path.end());
+    // TODO handle it in a better way. PushID crashes with empty string_view containing nullptr
+    if (self.path.empty())
+        ImGui::PushID("");
+    else
+        ImGui::PushID(self.path.begin(), self.path.end());
     bool open = ImGui::TreeNodeEx("", treeNodeFlags, "%.*s", self.name.slength(), self.name.data());
     ImGui::PopID();
 
