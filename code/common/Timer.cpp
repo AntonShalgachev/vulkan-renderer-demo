@@ -1,21 +1,12 @@
 #include "Timer.h"
 
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <windows.h>
-
-#include <assert.h>
+#include "platform/time.h"
 
 namespace
 {
     size_t now()
     {
-        LARGE_INTEGER counter;
-
-        if (!QueryPerformanceCounter(&counter))
-            assert(false);
-
-        return counter.QuadPart;
+        return platform::get_monotonic_time_counter();
     }
 
     float getDeltaTime(size_t startTime, size_t stopTime, size_t frequency)
@@ -26,14 +17,7 @@ namespace
 
 vkc::Timer::Timer()
 {
-    {
-        LARGE_INTEGER frequency;
-        if (!QueryPerformanceFrequency(&frequency))
-            assert(false);
-
-        m_countsPerSecond = frequency.QuadPart;
-    }
-
+    m_countsPerSecond = platform::get_monotonic_time_frequency();
     start();
 }
 

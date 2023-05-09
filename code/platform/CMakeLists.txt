@@ -6,6 +6,7 @@ add_library(platform
     "src/windows/windows_common.h"
     "include/platform/debug.h"
     "include/platform/startup.h"
+    "include/platform/time.h"
 
     "src/windows/memory.cpp"
     "src/windows/filesystem.cpp"
@@ -14,6 +15,7 @@ add_library(platform
     "src/windows/windows_common.cpp"
     "src/windows/debug.cpp"
     "src/windows/startup.cpp"
+    "src/windows/time.cpp"
 )
 
 target_compile_features(platform PUBLIC cxx_std_20)
