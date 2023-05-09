@@ -1,6 +1,6 @@
 FetchContent_Declare(
     imgui
-    URL https://github.com/ocornut/imgui/archive/refs/tags/v1.88.tar.gz # 1.88
+    URL https://github.com/ocornut/imgui/archive/refs/tags/v1.89.5.tar.gz # 1.89.5
 )
 
 FetchDependency(imgui)
