@@ -47,7 +47,7 @@ add_library(nstl # non-standard template library
     "src/blob.cpp"
 
     "nstl.natvis"
-)
+ "include/nstl/source_location.h")
 
 target_include_directories(nstl
     PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"

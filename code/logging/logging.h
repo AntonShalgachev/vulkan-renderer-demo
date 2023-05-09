@@ -6,6 +6,7 @@
 #include "memory/tracking.h"
 
 #include "nstl/string_view.h"
+#include "nstl/source_location.h"
 
 namespace logging
 {
@@ -29,35 +30,44 @@ namespace logging
     };
     TINY_CTTI_DESCRIBE_ENUM(level, info, warn, error);
 
-    void log(level level, nstl::string_view str);
+    struct format_with_location
+    {
+        format_with_location(nstl::string_view format, nstl::source_location location = {}) : format(format), location(location) {}
+        format_with_location(char const* format, nstl::source_location location = {}) : format_with_location(nstl::string_view{format}, location) {}
 
-    void vlog(level level, nstl::string_view format, picofmt::args_list const& args);
+        nstl::string_view format;
+        nstl::source_location location;
+    };
+
+    void log(level level, nstl::string_view str, nstl::source_location loc = {});
+
+    void vlogf(level level, nstl::string_view format, picofmt::args_list const& args, nstl::source_location loc = {});
 
     template<picofmt::formattable... Ts>
-    void log(level level, nstl::string_view format, Ts const&... args)
+    void logf(level level, nstl::string_view format, Ts const&... args)
     {
         MEMORY_TRACKING_SCOPE(scope_id);
-        return vlog(level, format, { args... });
+        return vlogf(level, format, { args... });
     }
 
     template<picofmt::formattable... Ts>
-    void info(nstl::string_view format, Ts const&... args)
+    void info(format_with_location format_location, Ts const&... args)
     {
         MEMORY_TRACKING_SCOPE(scope_id);
-        return vlog(level::info, format, { args... });
+        return vlogf(level::info, format_location.format, { args... }, format_location.location);
     }
 
     template<picofmt::formattable... Ts>
     void warn(nstl::string_view format, Ts const&... args)
     {
         MEMORY_TRACKING_SCOPE(scope_id);
-        return vlog(level::warn, format, { args... });
+        return vlogf(level::warn, format, { args... });
     }
 
     template<picofmt::formattable... Ts>
     void error(nstl::string_view format, Ts const&... args)
     {
         MEMORY_TRACKING_SCOPE(scope_id);
-        return vlog(level::error, format, { args... });
+        return vlogf(level::error, format, { args... });
     }
 }

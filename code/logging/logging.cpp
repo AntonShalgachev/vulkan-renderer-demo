@@ -30,18 +30,18 @@ namespace
 
 namespace logging
 {
-    void log(level level, nstl::string_view str)
+    void log(level level, nstl::string_view str, nstl::source_location loc)
     {
         MEMORY_TRACKING_SCOPE(scope_id);
 
         log_writer out{};
-        bool res = picofmt::format_to(out, "[{:!}] {}\n", level, str);
+        bool res = picofmt::format_to(out, "{}({},{}): [{:!}] {}\n", loc.file_name(), loc.line(), loc.column(), level, str);
         assert(res);
     }
 
-    void vlog(level level, nstl::string_view format, picofmt::args_list const& args)
+    void vlogf(level level, nstl::string_view format, picofmt::args_list const& args, nstl::source_location loc)
     {
         MEMORY_TRACKING_SCOPE(scope_id);
-        return log(level, common::vformat(format, args));
+        return log(level, common::vformat(format, args), loc);
     }
 }
