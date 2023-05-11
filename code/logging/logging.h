@@ -58,16 +58,16 @@ namespace logging
     }
 
     template<picofmt::formattable... Ts>
-    void warn(nstl::string_view format, Ts const&... args)
+    void warn(format_with_location format_location, Ts const&... args)
     {
         MEMORY_TRACKING_SCOPE(scope_id);
-        return vlogf(level::warn, format, { args... });
+        return vlogf(level::warn, format_location.format, { args... }, format_location.location);
     }
 
     template<picofmt::formattable... Ts>
-    void error(nstl::string_view format, Ts const&... args)
+    void error(format_with_location format_location, Ts const&... args)
     {
         MEMORY_TRACKING_SCOPE(scope_id);
-        return vlogf(level::error, format, { args... });
+        return vlogf(level::error, format_location.format, { args... }, format_location.location);
     }
 }
