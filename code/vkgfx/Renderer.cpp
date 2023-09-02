@@ -46,6 +46,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include <limits> // for std::numeric_limits
+
 namespace
 {
     struct CameraData
