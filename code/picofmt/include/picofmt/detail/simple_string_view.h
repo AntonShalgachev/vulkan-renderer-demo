@@ -8,7 +8,7 @@ namespace picofmt::detail
     struct simple_string_view
     {
         constexpr simple_string_view() = default;
-        simple_string_view(char const* str) : simple_string_view(str, strlen(str)) {}
+        simple_string_view(char const* str) : simple_string_view(str, str ? strlen(str) : 0) {}
         constexpr simple_string_view(char const* str, size_t length) : data(str), length(length) {}
 
         constexpr bool empty() const { return length == 0; }
