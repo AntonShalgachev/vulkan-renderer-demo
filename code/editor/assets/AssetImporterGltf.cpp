@@ -703,6 +703,8 @@ nstl::vector<editor::assets::Uuid> editor::assets::AssetImporterGltf::parseGltfD
         Uuid asset = importImage(i, data, desc, resources, m_database);
         resources.images.push_back(asset);
         result.push_back(asset);
+
+        logging::info("Imported image {} ({}) as {}", i, data.images[i].name, asset);
     }
 
     for (size_t i = 0; i < data.materials_count; i++)
@@ -710,6 +712,8 @@ nstl::vector<editor::assets::Uuid> editor::assets::AssetImporterGltf::parseGltfD
         Uuid asset = importMaterial(i, data, desc, resources, m_database);
         resources.materials.push_back(asset);
         result.push_back(asset);
+
+        logging::info("Imported material {} ({}) as {}", i, data.materials[i].name, asset);
     }
 
     for (auto i = 0; i < data.meshes_count; i++)
@@ -717,6 +721,8 @@ nstl::vector<editor::assets::Uuid> editor::assets::AssetImporterGltf::parseGltfD
         Uuid asset = importMesh(i, data, desc, resources, m_database);
         resources.meshes.push_back(asset);
         result.push_back(asset);
+
+        logging::info("Imported mesh {} ({}) as {}", i, data.meshes[i].name, asset);
     }
 
     for (auto i = 0; i < data.scenes_count; i++)
@@ -724,6 +730,8 @@ nstl::vector<editor::assets::Uuid> editor::assets::AssetImporterGltf::parseGltfD
         Uuid asset = importScene(i, data, desc, resources, m_database);
         resources.scenes.push_back(asset);
         result.push_back(asset);
+
+        logging::info("Imported scene {} ({}) as {}", i, data.scenes[i].name, asset);
     }
 
     return result;

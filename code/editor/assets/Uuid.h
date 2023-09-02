@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include "common/fmt.h"
+
 #include "nstl/hash.h"
 #include "yyjsoncpp/serializer.h"
 
@@ -41,4 +43,13 @@ struct yyjsoncpp::serializer<editor::assets::Uuid>
 {
     static optional<editor::assets::Uuid> from_json(value_ref obj);
     static mutable_value_ref to_json(mutable_doc& doc, editor::assets::Uuid const& value);
+};
+
+template<>
+struct picofmt::formatter<editor::assets::Uuid> : public picofmt::formatter<nstl::string_view>
+{
+    bool format(editor::assets::Uuid const& value, context& ctx) const
+    {
+        return picofmt::formatter<nstl::string_view>::format(value.toString(), ctx);
+    }
 };
