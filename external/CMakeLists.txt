@@ -17,12 +17,6 @@ add_subdirectory(glfw)
 add_subdirectory(ktx)
 
 FetchContent_Declare(
-    glm
-    URL https://github.com/g-truc/glm/archive/refs/tags/0.9.9.8.tar.gz # 0.9.9.8
-)
-FetchDependency(glm)
-
-FetchContent_Declare(
     coil
     URL https://github.com/AntonShalgachev/coil/archive/a1365d2aa789675e37ca388c5bcf382502af7c1b.tar.gz # Merge pull request #39 from AntonShalgachev/restructure-compilation-time-benchmark
 )
