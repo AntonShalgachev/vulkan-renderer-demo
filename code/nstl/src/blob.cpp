@@ -1,7 +1,6 @@
 #include "nstl/blob.h"
 
-#include "nstl/string_view.h"
-#include "nstl/span.h"
+#include "nstl/blob_view.h"
 
 nstl::blob::blob(size_t size, any_allocator alloc) : m_buffer(size, sizeof(char), nstl::move(alloc))
 {
@@ -43,17 +42,7 @@ unsigned char const* nstl::blob::ucdata() const
     return reinterpret_cast<unsigned char const*>(m_buffer.data());
 }
 
-nstl::blob::operator nstl::string_view() const
+nstl::blob::operator nstl::blob_view() const
 {
-    return { cdata(), size() };
-}
-
-nstl::blob::operator nstl::span<unsigned char>()
-{
-    return { ucdata(), size() };
-}
-
-nstl::blob::operator nstl::span<unsigned char const>() const
-{
-    return { ucdata(), size() };
+    return { data(), size() };
 }

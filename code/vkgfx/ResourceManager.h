@@ -2,8 +2,8 @@
 
 #include "vkgfx/ResourceContainer.h"
 
+#include "nstl/blob_view.h"
 #include "nstl/vector.h"
-#include "nstl/span.h"
 #include "nstl/string.h"
 #include "nstl/unordered_map.h"
 #include "nstl/unique_ptr.h"
@@ -67,16 +67,14 @@ namespace vkgfx
 
         ImageHandle createImage(ImageMetadata metadata);
         void uploadImage(ImageHandle handle, void const* data, size_t dataSize);
-        void uploadImage(ImageHandle handle, nstl::span<unsigned char const> bytes);
+        void uploadImage(ImageHandle handle, nstl::blob_view bytes);
         Image* getImage(ImageHandle handle);
         Image const* getImage(ImageHandle handle) const;
         void removeImage(ImageHandle handle);
 
         void reserveMoreBuffers(size_t size);
         BufferHandle createBuffer(size_t size, BufferMetadata metadata);
-        void uploadBuffer(BufferHandle handle, void const* data, size_t dataSize);
-        void uploadBuffer(BufferHandle handle, nstl::span<unsigned char const> bytes);
-        void uploadBuffer(BufferHandle handle, nstl::span<std::byte const> bytes);
+        void uploadBuffer(BufferHandle handle, nstl::blob_view bytes);
         void uploadDynamicBufferToStaging(BufferHandle handle, void const* data, size_t dataSize, size_t offset = 0);
         void transferDynamicBuffersFromStaging(size_t resourceIndex);
         size_t getBufferSize(BufferHandle handle) const;
@@ -84,7 +82,7 @@ namespace vkgfx
         Buffer const* getBuffer(BufferHandle handle) const;
         void removeBuffer(BufferHandle handle);
 
-        ShaderModuleHandle createShaderModule(nstl::span<unsigned char const> bytes, vko::ShaderModuleType type, nstl::string entryPoint = "main");
+        ShaderModuleHandle createShaderModule(nstl::blob_view bytes, vko::ShaderModuleType type, nstl::string entryPoint = "main");
         void removeShaderModule(ShaderModuleHandle handle);
 
         SamplerHandle createSampler(vko::SamplerFilterMode magFilter, vko::SamplerFilterMode minFilter, vko::SamplerWrapMode wrapU, vko::SamplerWrapMode wrapV);
@@ -122,7 +120,7 @@ namespace vkgfx
 
     private:
         void uploadBuffer(Buffer const& buffer, void const* data, size_t dataSize, size_t offset);
-        void uploadBuffer(Buffer const& buffer, nstl::span<unsigned char const> bytes, size_t offset);
+        void uploadBuffer(Buffer const& buffer, nstl::blob_view bytes, size_t offset);
         void uploadImage(Image const& image, void const* data, size_t dataSize);
 
         DescriptorSetLayoutHandle createDescriptorSetLayout(DescriptorSetLayoutKey const& key);

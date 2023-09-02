@@ -17,6 +17,8 @@
 #include "yyjsoncpp/yyjsoncpp.h"
 #include "logging/logging.h"
 
+#include "nstl/blob_view.h"
+
 namespace
 {
     nstl::string_view assetsRoot = "data/assets";
@@ -102,7 +104,7 @@ editor::assets::Uuid editor::assets::AssetDatabase::createAsset(AssetType type, 
     return id;
 }
 
-void editor::assets::AssetDatabase::addAssetFile(Uuid id, nstl::span<unsigned char const> bytes, nstl::string_view filename)
+void editor::assets::AssetDatabase::addAssetFile(Uuid id, nstl::blob_view bytes, nstl::string_view filename)
 {
     nstl::string filePath = constructAndCreateAssetPath(id, filename);
 
@@ -119,16 +121,12 @@ void editor::assets::AssetDatabase::addAssetFile(Uuid id, nstl::span<unsigned ch
 
 void editor::assets::AssetDatabase::addAssetFile(Uuid id, nstl::string_view bytes, nstl::string_view filename)
 {
-    char const* data = bytes.data();
-    size_t size = bytes.size();
-
-    // TODO don't use reinterpret_cast
-    return addAssetFile(id, { reinterpret_cast<unsigned char const*>(data), size }, filename);
+    return addAssetFile(id, static_cast<nstl::blob_view>(bytes), filename);
 }
 
-void editor::assets::AssetDatabase::addAssetFile(Uuid id, nstl::blob const& bytes, nstl::string_view filename)
+void editor::assets::AssetDatabase::addAssetFile(Uuid id, nstl::span<unsigned char const> bytes, nstl::string_view filename)
 {
-    return addAssetFile(id, static_cast<nstl::span<unsigned char const>>(bytes), filename);
+    return addAssetFile(id, static_cast<nstl::blob_view>(bytes), filename);
 }
 
 editor::assets::AssetMetadata editor::assets::AssetDatabase::getMetadata(Uuid id) const

@@ -3,13 +3,12 @@
 #include "buffer.h"
 #include "allocator.h"
 
+#include "nstl/blob_view.h"
+
 #include <stddef.h>
 
 namespace nstl
 {
-    class string_view;
-    template<typename T> class span;
-
     class blob
     {
     public:
@@ -23,9 +22,7 @@ namespace nstl
         unsigned char* ucdata();
         unsigned char const* ucdata() const;
 
-        operator string_view() const;
-        operator span<unsigned char>();
-        operator span<unsigned char const>() const;
+        operator blob_view() const;
 
     private:
         buffer m_buffer;

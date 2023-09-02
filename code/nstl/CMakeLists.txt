@@ -34,6 +34,8 @@ add_library(nstl # non-standard template library
     "include/nstl/scope_exit.h"
     "include/nstl/blob.h"
     "include/nstl/tuple.h"
+    "include/nstl/source_location.h"
+    "include/nstl/blob_view.h"
 
     "src/string.cpp"
     "src/string_view.cpp"
@@ -45,9 +47,10 @@ add_library(nstl # non-standard template library
     "src/allocator.cpp"
     "src/malloc_allocator.cpp"
     "src/blob.cpp"
+    "src/blob_view.cpp"
 
     "nstl.natvis"
- "include/nstl/source_location.h")
+)
 
 target_include_directories(nstl
     PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"

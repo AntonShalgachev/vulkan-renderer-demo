@@ -14,6 +14,7 @@
 namespace nstl
 {
     class blob;
+    class blob_view;
 }
 
 namespace editor::assets
@@ -57,9 +58,9 @@ namespace editor::assets
         nstl::vector<Uuid> importAsset(ImportDescription const& desc);
 
         Uuid createAsset(AssetType type, nstl::string_view name);
-        void addAssetFile(Uuid id, nstl::span<unsigned char const> bytes, nstl::string_view filename);
-        void addAssetFile(Uuid id, nstl::string_view bytes, nstl::string_view filename);
-        void addAssetFile(Uuid id, nstl::blob const& bytes, nstl::string_view filename);
+        void addAssetFile(Uuid id, nstl::blob_view bytes, nstl::string_view filename);
+        void addAssetFile(Uuid id, nstl::string_view bytes, nstl::string_view filename); // TODO this is here to allow string -> blob_view conversion. Remove?
+        void addAssetFile(Uuid id, nstl::span<unsigned char const> bytes, nstl::string_view filename); // TODO this is here to allow vector -> blob_view conversion. Remove?
 
         // TODO return optional<> if data can't be read
         // TODO cache the assets?

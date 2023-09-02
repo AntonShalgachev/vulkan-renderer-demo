@@ -3,7 +3,7 @@
 #include "vko/UniqueHandle.h"
 #include "vko/Allocator.h"
 
-#include "nstl/span.h"
+#include "nstl/blob_view.h"
 #include "nstl/string.h"
 
 #include <vulkan/vulkan.h>
@@ -17,7 +17,7 @@ namespace vko
     class ShaderModule
     {
     public:
-        explicit ShaderModule(Device const& device, nstl::span<unsigned char const> bytes, ShaderModuleType type, nstl::string entryPoint);
+        explicit ShaderModule(Device const& device, nstl::blob_view bytes, ShaderModuleType type, nstl::string entryPoint);
         ~ShaderModule();
 
         ShaderModule(ShaderModule&&) = default;

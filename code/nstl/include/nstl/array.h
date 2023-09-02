@@ -1,5 +1,6 @@
 #pragma once
 
+#include "blob_view.h"
 #include "span.h"
 
 #include <stddef.h>
@@ -20,6 +21,7 @@ namespace nstl
 
         operator span<T>() { return { m_values, N }; }
         operator span<T const>() const { return { m_values, N }; }
+        operator blob_view() const { return { m_values, sizeof(T) * N }; } // TODO feels like a hack. Remove?
 
         T& operator[](size_t index);
         T const& operator[](size_t index) const;

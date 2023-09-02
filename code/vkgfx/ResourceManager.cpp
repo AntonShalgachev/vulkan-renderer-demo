@@ -267,7 +267,7 @@ void vkgfx::ResourceManager::uploadImage(ImageHandle handle, void const* data, s
     return uploadImage(*image, data, dataSize);
 }
 
-void vkgfx::ResourceManager::uploadImage(ImageHandle handle, nstl::span<unsigned char const> bytes)
+void vkgfx::ResourceManager::uploadImage(ImageHandle handle, nstl::blob_view bytes)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
@@ -357,7 +357,7 @@ vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(size_t size, BufferMeta
     return { m_buffers.add(nstl::move(bufferResource)) };
 }
 
-void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, void const* data, size_t dataSize)
+void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, nstl::blob_view bytes)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
@@ -368,21 +368,7 @@ void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, void const* data,
 
     assert(!buffer->metadata.isMutable);
 
-    return uploadBuffer(*buffer, data, dataSize, 0);
-}
-
-void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, nstl::span<std::byte const> bytes)
-{
-    MEMORY_TRACKING_SCOPE(scopeId);
-
-    return uploadBuffer(handle, bytes.data(), bytes.size());
-}
-
-void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, nstl::span<unsigned char const> bytes)
-{
-    MEMORY_TRACKING_SCOPE(scopeId);
-
-    return uploadBuffer(handle, bytes.data(), bytes.size());
+    return uploadBuffer(*buffer, bytes.data(), bytes.size(), 0);
 }
 
 void vkgfx::ResourceManager::uploadDynamicBufferToStaging(BufferHandle handle, void const* data, size_t dataSize, size_t offset)
@@ -466,7 +452,7 @@ vkgfx::Buffer const* vkgfx::ResourceManager::getBuffer(BufferHandle handle) cons
     return m_buffers.get(handle);
 }
 
-vkgfx::ShaderModuleHandle vkgfx::ResourceManager::createShaderModule(nstl::span<unsigned char const> bytes, vko::ShaderModuleType type, nstl::string entryPoint)
+vkgfx::ShaderModuleHandle vkgfx::ResourceManager::createShaderModule(nstl::blob_view bytes, vko::ShaderModuleType type, nstl::string entryPoint)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
@@ -701,7 +687,7 @@ void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, void const* data
     }
 }
 
-void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, nstl::span<unsigned char const> bytes, size_t offset)
+void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, nstl::blob_view bytes, size_t offset)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 

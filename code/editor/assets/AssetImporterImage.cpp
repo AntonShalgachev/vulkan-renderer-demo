@@ -8,6 +8,7 @@
 #include "common/Utils.h"
 
 #include "nstl/string.h"
+#include "nstl/blob_view.h"
 
 #include "stb_image.h"
 #include "ktx.h"
@@ -123,11 +124,11 @@ namespace
         return bytes;
     }
 
-    nstl::vector<unsigned char> createImage(nstl::span<unsigned char const> content)
+    nstl::vector<unsigned char> createImage(nstl::blob_view content)
     {
         int req_comp = 4; // TODO remove this? GPU doesn't support RGB format
         int w = 0, h = 0, comp = 0;
-        unsigned char* data = stbi_load_from_memory(content.data(), content.size(), &w, &h, &comp, req_comp);
+        unsigned char* data = stbi_load_from_memory(content.ucdata(), content.size(), &w, &h, &comp, req_comp);
         int bits = 8;
 
         if (req_comp != 0)

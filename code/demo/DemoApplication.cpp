@@ -121,13 +121,13 @@ namespace
         nstl::vector<MipData> mips;
     };
 
-    nstl::optional<ImageData> loadWithStbImage(nstl::span<unsigned char const> bytes)
+    nstl::optional<ImageData> loadWithStbImage(nstl::blob_view bytes)
     {
         static auto scopeId = memory::tracking::create_scope_id("Image/Load/STBI");
         MEMORY_TRACKING_SCOPE(scopeId);
 
         int w = 0, h = 0, comp = 0, req_comp = 4;
-        unsigned char* data = stbi_load_from_memory(bytes.data(), bytes.size(), &w, &h, &comp, req_comp);
+        unsigned char* data = stbi_load_from_memory(bytes.ucdata(), bytes.size(), &w, &h, &comp, req_comp);
         int bits = 8;
 
         if (!data)
@@ -169,7 +169,7 @@ namespace
         return imageData;
     }
 
-    nstl::optional<ImageData> loadWithDdspp(nstl::span<unsigned char const> bytes)
+    nstl::optional<ImageData> loadWithDdspp(nstl::blob_view bytes)
     {
         static auto scopeId = memory::tracking::create_scope_id("Image/Load/DDS");
         MEMORY_TRACKING_SCOPE(scopeId);
@@ -214,7 +214,7 @@ namespace
             ddsktx_get_sub(&info, &mipInfo, bytes.data(), bytes.size(), 0, 0, mip);
 
             assert(mipInfo.buff > bytes.data());
-            size_t offset = static_cast<unsigned char const*>(mipInfo.buff) - bytes.data();
+            size_t offset = static_cast<unsigned char const*>(mipInfo.buff) - bytes.ucdata();
 
             imageData.mips.push_back({ offset, static_cast<size_t>(mipInfo.size_bytes) });
         }
@@ -222,13 +222,13 @@ namespace
         return imageData;
     }
 
-    nstl::optional<ImageData> loadWithKtx(nstl::span<unsigned char const> bytes)
+    nstl::optional<ImageData> loadWithKtx(nstl::blob_view bytes)
     {
         static auto scopeId = memory::tracking::create_scope_id("Image/Load/KTX");
         MEMORY_TRACKING_SCOPE(scopeId);
 
         ktxTexture2* texture = nullptr;
-        KTX_error_code result = ktxTexture2_CreateFromMemory(bytes.data(), bytes.size(), 0, &texture);
+        KTX_error_code result = ktxTexture2_CreateFromMemory(bytes.ucdata(), bytes.size(), 0, &texture);
 
         if (result != KTX_SUCCESS)
             return {};
@@ -282,7 +282,7 @@ namespace
         return imageData;
     }
 
-    nstl::optional<ImageData> loadImage(nstl::span<unsigned char const> bytes)
+    nstl::optional<ImageData> loadImage(nstl::blob_view bytes)
     {
         static auto scopeId = memory::tracking::create_scope_id("Image/Load");
         MEMORY_TRACKING_SCOPE(scopeId);
@@ -802,7 +802,7 @@ void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, siz
 
             DemoObjectUniformBuffer uniformValues;
             uniformValues.color = { 1.0f, 1.0f, 1.0f, 0.0f };
-            resourceManager.uploadBuffer(uniformBuffer, &uniformValues, sizeof(uniformValues));
+            resourceManager.uploadBuffer(uniformBuffer, nstl::blob_view{ &uniformValues, sizeof(uniformValues) });
 
             DemoObjectPushConstants pushConstants;
             pushConstants.model = nodeTransform;
@@ -1149,7 +1149,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
             .isMutable = false,
         };
         auto buffer = resourceManager.createBuffer(sizeof(MaterialUniformBuffer), nstl::move(metadata));
-        resourceManager.uploadBuffer(buffer, &values, sizeof(MaterialUniformBuffer));
+        resourceManager.uploadBuffer(buffer, nstl::blob_view{ &values, sizeof(MaterialUniformBuffer) });
         m_gltfResources->additionalBuffers.push_back(buffer);
 
         material.uniformBuffer = buffer;
@@ -1458,7 +1458,7 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
         .isMutable = false,
     };
     auto buffer = resourceManager.createBuffer(sizeof(MaterialUniformBuffer), nstl::move(metadata));
-    resourceManager.uploadBuffer(buffer, &values, sizeof(MaterialUniformBuffer));
+    resourceManager.uploadBuffer(buffer, nstl::blob_view{ &values, sizeof(MaterialUniformBuffer) });
     m_editorGltfResources->additionalBuffers.push_back(buffer);
 
     material.uniformBuffer = buffer;

@@ -6,6 +6,8 @@
 
 namespace nstl
 {
+    // view of contiguous typed data
+
     template<typename T>
     class span
     {
