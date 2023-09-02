@@ -1,6 +1,6 @@
 FetchContent_Declare(
     cgltf
-    URL https://github.com/jkuhlmann/cgltf/archive/refs/tags/v1.13.tar.gz # 1.13
+    URL https://github.com/jkuhlmann/cgltf/archive/refs/tags/v1.13.tar.gz
 )
 FetchDependency(cgltf)
 

@@ -1,6 +1,6 @@
 FetchContent_Declare(
     dds-ktx
-    URL https://github.com/septag/dds-ktx/archive/refs/tags/v1.1.tar.gz # 1.1
+    URL https://github.com/septag/dds-ktx/archive/refs/tags/v1.1.tar.gz
 )
 
 FetchDependency(dds-ktx)

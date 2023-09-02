@@ -1,6 +1,6 @@
 FetchContent_Declare(
     ktx
-    URL https://github.com/KhronosGroup/KTX-Software/archive/d8be8ff731dfccef4419ad75d16d0b7a9930c345.zip # Change build image for deployment to VS2022.
+    URL https://github.com/KhronosGroup/KTX-Software/archive/refs/tags/v4.2.1.tar.gz
 )
 set(KTX_FEATURE_TOOLS OFF CACHE INTERNAL "")
 set(KTX_FEATURE_TESTS OFF CACHE INTERNAL "")
@@ -55,6 +55,8 @@ set_target_properties(ktx
 
 set_source_files_properties(
     ${ktx_SOURCE_DIR}/lib/etcdec.cxx
+    ${ktx_SOURCE_DIR}/lib/vk_funcs.c
+    ${ktx_SOURCE_DIR}/lib/vkloader.c
     
     TARGET_DIRECTORY ktx
     PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON

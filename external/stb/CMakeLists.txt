@@ -1,6 +1,6 @@
 FetchContent_Declare(
     stb
-    URL https://github.com/nothings/stb/archive/8b5f1f37b5b75829fc72d38e7b5d4bcbf8a26d55.tar.gz # Sep 8
+    URL https://github.com/nothings/stb/archive/5736b15f7ea0ffb08dd38af21067c314d6a3aae9.tar.gz # re-add perlin noise again
 )
 
 FetchDependency(stb)

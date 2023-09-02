@@ -48,7 +48,7 @@ namespace
             yyjson_alc allocator;
 
             allocator.malloc = [](void* ctx, size_t size) { return get(ctx).malloc(size); };
-            allocator.realloc = [](void* ctx, void* ptr, size_t size) { return get(ctx).realloc(ptr, size); };
+            allocator.realloc = [](void* ctx, void* ptr, size_t old_size, size_t size) { return get(ctx).realloc(ptr, old_size, size); };
             allocator.free = [](void* ctx, void* ptr) { return get(ctx).free(ptr); };
             allocator.ctx = this;
 
@@ -68,7 +68,7 @@ namespace
             return m_ptr;
         }
 
-        void* realloc(void* ptr, size_t size)
+        void* realloc(void* ptr, size_t old_size, size_t size)
         {
             if (ptr != m_ptr)
             {

@@ -25,13 +25,13 @@ FetchDependency(coil)
 
 FetchContent_Declare(
     yyjson
-    URL https://github.com/ibireme/yyjson/archive/refs/tags/0.6.0.tar.gz # 0.6.0
+    URL https://github.com/ibireme/yyjson/archive/refs/tags/0.7.0.tar.gz
 )
 FetchDependency(yyjson)
 
 FetchContent_Declare(
     cglm
-    URL https://github.com/recp/cglm/archive/0b3049dca0c300dbe80e76052569408f49c26c7b.tar.gz # utility to print selected simd path (docs)
+    URL https://github.com/recp/cglm/archive/refs/tags/v0.9.1.tar.gz
 )
 set(CGLM_SHARED OFF)
 set(CGLM_STATIC ON)
