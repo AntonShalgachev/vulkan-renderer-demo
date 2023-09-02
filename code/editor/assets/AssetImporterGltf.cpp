@@ -5,6 +5,7 @@
 #include "AssetData.h"
 
 #include "memory/tracking.h"
+#include "common/align.h"
 #include "common/Utils.h"
 #include "common/json-tiny-ctti.h"
 #include "common/json-nstl.h"
@@ -19,6 +20,7 @@
 #include "nstl/span.h"
 #include "nstl/scope_exit.h"
 #include "nstl/sprintf.h"
+#include "nstl/blob_view.h"
 
 #include "yyjsoncpp/yyjsoncpp.h"
 
@@ -298,11 +300,11 @@ namespace
         switch (type)
         {
         case cgltf_attribute_type_position: return editor::assets::AttributeSemantic::Position;
+        case cgltf_attribute_type_color: return editor::assets::AttributeSemantic::Color;
         case cgltf_attribute_type_normal: return editor::assets::AttributeSemantic::Normal;
         case cgltf_attribute_type_tangent: return editor::assets::AttributeSemantic::Tangent;
         case cgltf_attribute_type_texcoord: return editor::assets::AttributeSemantic::Texcoord;
 
-        case cgltf_attribute_type_color:
         case cgltf_attribute_type_joints:
         case cgltf_attribute_type_weights:
         case cgltf_attribute_type_custom:
@@ -319,7 +321,7 @@ namespace
     void* memcpy_stride(void* destination, void const* source, size_t count, size_t chunk_size, size_t dst_stride, size_t src_stride)
     {
         if (dst_stride == chunk_size && src_stride == chunk_size)
-            memcpy(destination, source, count * chunk_size);
+            return memcpy(destination, source, count * chunk_size);
 
         assert(dst_stride > 0);
         assert(src_stride > 0);
@@ -338,6 +340,25 @@ namespace
         return destination;
     }
 
+    struct DataBuffer
+    {
+        size_t append(nstl::blob_view source, size_t count, size_t chunk_size, size_t stride)
+        {
+            assert(stride * (count - 1) + chunk_size <= source.size());
+
+            size_t alignment = chunk_size; // TODO double-check?
+
+            size_t destination_offset = common::align_up(buffer.size(), alignment);
+            size_t destination_stride = chunk_size;
+            buffer.resize(destination_offset + chunk_size * count);
+            memcpy_stride(buffer.data() + destination_offset, source.data(), count, chunk_size, destination_stride, stride);
+
+            return destination_offset;
+        }
+
+        nstl::vector<unsigned char> buffer;
+    };
+
     struct DataLayout
     {
         size_t bufferIndex = 0;
@@ -347,7 +368,6 @@ namespace
 
         size_t count = 0;
         size_t elementSize = 0;
-        size_t byteSize = 0;
         
         size_t offset = 0;
         size_t stride = 0;
@@ -365,7 +385,6 @@ namespace
 
         layout.count = accessor.count;
         layout.elementSize = getComponentSize(layout.componentType) * getComponentsCount(layout.type);
-        layout.byteSize = layout.count * layout.elementSize;
 
         layout.offset = bufferView.offset + accessor.offset;
         layout.stride = bufferView.stride > 0 ? bufferView.stride : layout.elementSize;
@@ -373,59 +392,23 @@ namespace
         return layout;
     }
 
-    struct PrimitiveParams
+    editor::assets::PrimitiveDescription appendPrimitive(cgltf_primitive const& primitive, cgltf_data const& data, GltfResources const& resources, DataBuffer& buffer)
     {
-        size_t totalByteSize = 0;
-        size_t vertexElementByteSize = 0;
-
-        DataLayout indexLayout;
-        nstl::vector<DataLayout> attributeLayouts;
-    };
-
-    PrimitiveParams calculatePrimitiveParameters(cgltf_primitive const& primitive, cgltf_data const& data)
-    {
-        PrimitiveParams params{};
-
-        params.indexLayout = calculateDataLayout(*primitive.indices, data);
-        params.totalByteSize += params.indexLayout.byteSize;
-
-        params.attributeLayouts.reserve(primitive.attributes_count);
-        for (size_t i = 0; i < primitive.attributes_count; i++)
+        auto appendChunk = [&resources, &buffer](DataLayout const& layout)
         {
-            DataLayout layout = calculateDataLayout(*primitive.attributes[i].data, data);
-            params.totalByteSize += layout.byteSize;
-            params.vertexElementByteSize += layout.elementSize;
-
-            params.attributeLayouts.push_back(layout);
-        }
-
-        return params;
-    }
-
-    editor::assets::PrimitiveDescription appendPrimitive(cgltf_primitive const& primitive, nstl::span<unsigned char> destinationData, cgltf_data const& data, GltfResources const& resources, PrimitiveParams const& params)
-    {
-        auto appendChunk = [&data, &resources, &destinationData](cgltf_accessor const& accessor, DataLayout const& layout, size_t offset, size_t stride)
-        {
-            nstl::blob const& sourceData = resources.bufferData[layout.bufferIndex];
+            nstl::blob_view sourceData = resources.bufferData[layout.bufferIndex];
 
             size_t count = layout.count;
             size_t elementSize = layout.elementSize;
-            size_t sourceOffset = layout.offset;
-            size_t sourceStride = layout.stride;
 
-            size_t destinationOffset = offset;
-            size_t destinationStride = stride > 0 ? stride : elementSize;
-
-            assert(sourceOffset + sourceStride * (count - 1) + elementSize <= sourceData.size());
-            assert(destinationOffset + destinationStride * (count - 1) + elementSize <= destinationData.size());
-            memcpy_stride(destinationData.data() + destinationOffset, sourceData.cdata() + sourceOffset, count, elementSize, destinationStride, sourceStride);
+            size_t destinationOffset = buffer.append(sourceData.subview(layout.offset), count, elementSize, layout.stride);
 
             editor::assets::DataAccessorDescription result;
 
             result.type = layout.type;
             result.componentType = layout.componentType;
-            result.count = layout.count;
-            result.stride = destinationStride;
+            result.count = count;
+            result.stride = elementSize;
             result.bufferOffset = destinationOffset;
 
             return result;
@@ -438,29 +421,21 @@ namespace
         description.material = resources.materials[materialIndex];
         description.topology = getTopology(primitive.type);
 
-        size_t indexOffset = 0;
-        size_t indexStride = 0;
+        DataLayout indexLayout = calculateDataLayout(*primitive.indices, data);
+        assert(indexLayout.type == editor::assets::DataType::Scalar);
+        description.indices = appendChunk(indexLayout);
 
-        assert(params.indexLayout.type == editor::assets::DataType::Scalar);
-        description.indices = appendChunk(*primitive.indices, params.indexLayout, indexOffset, indexStride);
-
-        size_t verticesOffset = params.indexLayout.byteSize;
-        size_t verticesStride = params.vertexElementByteSize;
-
-        assert(params.attributeLayouts.size() == primitive.attributes_count);
         for (size_t i = 0; i < primitive.attributes_count; i++)
         {
             cgltf_attribute const& attribute = primitive.attributes[i];
 
-            DataLayout const& layout = params.attributeLayouts[i];
+            DataLayout layout = calculateDataLayout(*primitive.attributes[i].data, data);
 
             editor::assets::VertexAttributeDescription& vertexAttributeDescription = description.vertexAttributes.emplace_back();
             vertexAttributeDescription.semantic = getAttributeSemantic(attribute.type);
             vertexAttributeDescription.index = attribute.index;
 
-            vertexAttributeDescription.accessor = appendChunk(*attribute.data, layout, verticesOffset, verticesStride);
-
-            verticesOffset += layout.elementSize;
+            vertexAttributeDescription.accessor = appendChunk(layout);
         }
 
         return description;
@@ -470,25 +445,12 @@ namespace
     {
         cgltf_mesh const& mesh = data.meshes[i];
 
-        nstl::vector<PrimitiveParams> primitiveParams;
-        size_t meshByteSize = 0;
-
-        primitiveParams.reserve(mesh.primitives_count);
-        for (size_t i = 0; i < mesh.primitives_count; i++)
-        {
-            PrimitiveParams params = calculatePrimitiveParameters(mesh.primitives[i], data);
-            meshByteSize += params.totalByteSize;
-            primitiveParams.push_back(params);
-        }
-
-        nstl::blob destinationData{ meshByteSize };
+        DataBuffer buffer;
 
         nstl::vector<editor::assets::PrimitiveDescription> primitives;
         primitives.reserve(mesh.primitives_count);
-        assert(primitiveParams.size() == mesh.primitives_count);
-
         for (size_t i = 0; i < mesh.primitives_count; i++)
-            primitives.push_back(appendPrimitive(mesh.primitives[i], destinationData, data, resources, primitiveParams[i]));
+            primitives.push_back(appendPrimitive(mesh.primitives[i], data, resources, buffer));
 
         editor::assets::MeshData meshData = {
             .version = editor::assets::meshAssetVersion,
@@ -498,7 +460,7 @@ namespace
         nstl::string name = mesh.name ? mesh.name : nstl::sprintf("%.*s mesh %zu", desc.name.slength(), desc.name.data(), i);
         editor::assets::Uuid id = database.createAsset(editor::assets::AssetType::Mesh, name);
         database.addAssetFile(id, serializeToJson(meshData), "mesh.json");
-        database.addAssetFile(id, destinationData, "buffer.bin");
+        database.addAssetFile(id, buffer.buffer, "buffer.bin");
 
         return id;
     }
@@ -609,7 +571,7 @@ namespace
             editor::assets::ObjectDescription& objectData = sceneData.objects[objectDataIndex];
 
             assert(!childData.parentIndex);
-            childData.parentIndex = childDataIndex;
+            childData.parentIndex = objectDataIndex;
             objectData.childrenIndices.push_back(childDataIndex);
         }
 

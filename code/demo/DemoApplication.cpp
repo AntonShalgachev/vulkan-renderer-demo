@@ -98,6 +98,20 @@ namespace
         return matrix;
     }
 
+    tglm::mat4 createMatrix(editor::assets::ObjectDescription const& object)
+    {
+        tglm::mat4 matrix = tglm::mat4::identity();
+
+        if (!object.transform)
+            return matrix;
+
+        tglm::translate(matrix, object.transform->position);
+        tglm::rotate(matrix, object.transform->rotation);
+        tglm::scale(matrix, object.transform->scale);
+
+        return matrix;
+    }
+
     tglm::vec4 createColor(nstl::span<float const> flatColor)
     {
         assert(flatColor.size() == 4);
@@ -1390,7 +1404,103 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
             if (m_editorGltfResources->meshes.find(id) == m_editorGltfResources->meshes.end())
                 editorLoadMesh(id);
 
-            // TODO
+            for (DemoPrimitive const& primitive : m_editorGltfResources->meshes[id].primitives)
+            {
+                DemoMaterial const& material = m_editorGltfResources->materials[primitive.metadata.materialUuid];
+
+                vkgfx::PipelineKey pipelineKey;
+                pipelineKey.renderConfig = material.metadata.renderConfig;
+
+                // TODO think how to handle multiple descriptor set layouts properly
+                pipelineKey.uniformConfigs = {
+                    // TODO get shared frame uniform config from the Renderer
+                    vkgfx::UniformConfiguration{
+                        .hasBuffer = true,
+                        .hasAlbedoTexture = false,
+                        .hasNormalMap = false,
+                    },
+                    material.metadata.uniformConfig,
+                    vkgfx::UniformConfiguration{
+                        .hasBuffer = true,
+                        .hasAlbedoTexture = false,
+                        .hasNormalMap = false,
+                    },
+                };
+
+                pipelineKey.vertexConfig = primitive.metadata.vertexConfig;
+
+                struct DemoObjectPushConstants
+                {
+                    tglm::mat4 model;
+                };
+
+                pipelineKey.pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DemoObjectPushConstants), } };
+
+                // TODO reimplement
+                ShaderConfiguration shaderConfiguration;
+                shaderConfiguration.hasTexture = material.metadata.uniformConfig.hasAlbedoTexture;
+                shaderConfiguration.hasNormalMap = material.metadata.uniformConfig.hasNormalMap;
+                shaderConfiguration.hasColor = primitive.metadata.attributeSemanticsConfig.hasColor;
+                shaderConfiguration.hasTexCoord = primitive.metadata.attributeSemanticsConfig.hasUv;
+                shaderConfiguration.hasNormal = primitive.metadata.attributeSemanticsConfig.hasNormal;
+                shaderConfiguration.hasTangent = primitive.metadata.attributeSemanticsConfig.hasTangent;
+
+                nstl::string const* vertexShaderPath = m_defaultVertexShader->get(shaderConfiguration);
+                nstl::string const* fragmentShaderPath = m_defaultFragmentShader->get(shaderConfiguration);
+
+                assert(vertexShaderPath && fragmentShaderPath);
+
+                vkgfx::ShaderModuleHandle vertexShaderModule = m_editorGltfResources->shaderModules[*vertexShaderPath];
+                vkgfx::ShaderModuleHandle fragmentShaderModule = m_editorGltfResources->shaderModules[*fragmentShaderPath];
+
+                pipelineKey.shaderHandles = { vertexShaderModule, fragmentShaderModule };
+
+                vkgfx::PipelineHandle pipeline = resourceManager.getOrCreatePipeline(pipelineKey);
+
+                struct DemoObjectUniformBuffer
+                {
+                    tglm::vec4 color;
+                };
+
+                vkgfx::BufferMetadata uniformBufferMetadata{
+                    .usage = vkgfx::BufferUsage::UniformBuffer,
+                    .location = vkgfx::BufferLocation::HostVisible,
+                    .isMutable = false,
+                };
+                vkgfx::BufferHandle uniformBuffer = resourceManager.createBuffer(sizeof(DemoObjectUniformBuffer), nstl::move(uniformBufferMetadata));
+                m_editorGltfResources->additionalBuffers.push_back(uniformBuffer);
+
+                DemoObjectUniformBuffer uniformValues;
+                uniformValues.color = { 1.0f, 1.0f, 1.0f, 0.0f };
+                resourceManager.uploadBuffer(uniformBuffer, nstl::blob_view{ &uniformValues, sizeof(uniformValues) });
+
+                auto calculateTransform = [&object, &scene]()
+                {
+                    tglm::mat4 transform = tglm::mat4::identity();
+
+                    editor::assets::ObjectDescription const* obj = &object;
+
+                    while (obj)
+                    {
+                        transform = createMatrix(*obj) * transform;
+
+                        obj = obj->parentIndex ? &scene.objects[*obj->parentIndex] : nullptr;
+                    }
+
+                    return transform;
+                };
+
+                DemoObjectPushConstants pushConstants;
+                pushConstants.model = calculateTransform();
+
+                vkgfx::TestObject& object = m_demoScene.objects.emplace_back();
+                object.mesh = primitive.handle;
+                object.material = material.handle;
+                object.pipeline = pipeline;
+                object.uniformBuffer = uniformBuffer;
+                object.pushConstants.resize(sizeof(pushConstants));
+                memcpy(object.pushConstants.data(), &pushConstants, object.pushConstants.size());
+            }
         }
     }
 

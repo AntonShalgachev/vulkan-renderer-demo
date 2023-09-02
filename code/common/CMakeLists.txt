@@ -15,6 +15,9 @@ set(ALL_FILES
     "Timer.h"
     "Utils.cpp"
     "Utils.h"
+
+    "align.h"
+    "align.cpp"
 )
 
 add_library(${PROJECT_NAME} ${ALL_FILES})
