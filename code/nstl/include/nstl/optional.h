@@ -197,14 +197,14 @@ bool nstl::optional<T>::operator!=(optional const& rhs) const
 template<typename T>
 void nstl::optional<T>::construct(T const& value)
 {
-    new (nstl::NewTag{}, &m_value) T(value);
+    new (nstl::new_tag{}, &m_value) T(value);
     m_hasValue = true;
 }
 
 template<typename T>
 void nstl::optional<T>::construct(T&& value)
 {
-    new (nstl::NewTag{}, &m_value) T(nstl::move(value));
+    new (nstl::new_tag{}, &m_value) T(nstl::move(value));
     m_hasValue = true;
 }
 

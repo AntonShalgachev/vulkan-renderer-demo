@@ -4,10 +4,10 @@
 
 namespace nstl
 {
-    struct NewTag
+    struct new_tag
     {
     };
 }
 
-void* operator new(size_t, nstl::NewTag, void* p);
-void operator delete(void*, nstl::NewTag, void*);
+void* operator new(size_t, nstl::new_tag, void* p);
+void operator delete(void*, nstl::new_tag, void*);

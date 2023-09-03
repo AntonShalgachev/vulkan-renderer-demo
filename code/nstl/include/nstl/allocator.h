@@ -26,7 +26,7 @@ namespace nstl
             static_assert(nstl::is_same_v<decltype(allocator == allocator), bool>, "");
 
             m_allocator = allocator.allocate(sizeof(Alloc));
-            new(nstl::NewTag{}, m_allocator) Alloc(nstl::move(allocator));
+            new(nstl::new_tag{}, m_allocator) Alloc(nstl::move(allocator));
 
             m_destructStorage = [](any_allocator* self)
             {
@@ -60,7 +60,7 @@ namespace nstl
 
                 Alloc* allocator = static_cast<Alloc*>(source->m_allocator);
                 destination->m_allocator = allocator->allocate(sizeof(Alloc));
-                new(nstl::NewTag{}, destination->m_allocator) Alloc(*allocator);
+                new(nstl::new_tag{}, destination->m_allocator) Alloc(*allocator);
             };
 
             m_allocate = [](void* allocator, size_t size) { return static_cast<Alloc*>(allocator)->allocate(size); };

@@ -40,7 +40,7 @@ namespace nstl
             NSTL_ASSERT(m_size < m_capacity);
             NSTL_ASSERT(m_chunkSize == sizeof(T));
 
-            T* obj = new (NewTag{}, m_ptr + m_size * sizeof(T)) T(nstl::forward<Args>(args)...);
+            T* obj = new (new_tag{}, m_ptr + m_size * sizeof(T)) T(nstl::forward<Args>(args)...);
             m_size++;
 
 #if NSTL_CONFIG_ENABLE_ASSERTS

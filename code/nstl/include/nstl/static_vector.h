@@ -98,7 +98,7 @@ void nstl::static_vector<T, N>::resize(size_t new_size)
     if constexpr (!nstl::is_trivial_v<T>)
     {
         for (size_t i = 0; i < m_size; i++)
-            new (nstl::NewTag{}, &m_storage[i]) T{};
+            new (nstl::new_tag{}, &m_storage[i]) T{};
     }
 }
 
@@ -110,7 +110,7 @@ void nstl::static_vector<T, N>::resize(size_t new_size, T const& value)
     if constexpr (!nstl::is_trivial_v<T>)
     {
         for (size_t i = 0; i < m_size; i++)
-            new (nstl::NewTag{}, &m_storage[i]) T{ value };
+            new (nstl::new_tag{}, &m_storage[i]) T{ value };
     }
 }
 
@@ -118,7 +118,7 @@ template<typename T, size_t N>
 void nstl::static_vector<T, N>::push_back(T item)
 {
     NSTL_ASSERT(m_size < N);
-    new (nstl::NewTag{}, &m_storage[m_size]) T{nstl::move(item)};
+    new (nstl::new_tag{}, &m_storage[m_size]) T{nstl::move(item)};
     m_size++;
 }
 
