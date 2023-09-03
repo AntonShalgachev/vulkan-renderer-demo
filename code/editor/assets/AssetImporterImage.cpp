@@ -17,25 +17,16 @@
 
 namespace
 {
-    class KtxMemoryStream
+    class KtxMemoryStream : public ktxStream
     {
     public:
         KtxMemoryStream(nstl::vector<unsigned char>& bytes) : m_bytes(bytes)
         {
-
-        }
-
-        operator ktxStream()
-        {
-            ktxStream stream{};
-
-            stream.type = eStreamTypeCustom;
-            stream.data.custom_ptr.address = this;
-            stream.readpos = 0;
-            stream.write = &write;
-            stream.getpos = &getpos;
-
-            return stream;
+            ktxStream::type = eStreamTypeCustom;
+            ktxStream::data.custom_ptr.address = this;
+            ktxStream::readpos = 0;
+            ktxStream::write = &write;
+            ktxStream::getpos = &getpos;
         }
 
     private:
@@ -115,8 +106,7 @@ namespace
 
         nstl::vector<unsigned char> bytes;
         KtxMemoryStream stream{ bytes };
-        ktxStream str = stream;
-        result = ktxTexture_WriteToStream(ktxTexture(texture), &str);
+        result = ktxTexture_WriteToStream(ktxTexture(texture), &stream);
         assert(result == KTX_SUCCESS);
 
         ktxTexture_Destroy(ktxTexture(texture));
