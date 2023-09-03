@@ -16,7 +16,7 @@ namespace yyjsoncpp
         bool operator==(array_iterator const&) const;
         array_iterator& operator++();
         array_iterator operator++(int);
-        operator bool() const;
+        explicit operator bool() const;
 
         size_t index() const;
 

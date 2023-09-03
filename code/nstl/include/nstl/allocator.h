@@ -78,7 +78,7 @@ namespace nstl
         void* allocate(size_t size);
         void deallocate(void* ptr);
 
-        operator bool() const;
+        explicit operator bool() const;
 
         bool operator==(any_allocator const& rhs) const;
 

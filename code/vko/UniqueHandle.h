@@ -39,7 +39,7 @@ namespace vko
         T const& get() const { return m_handle; }
         T& get() { return m_handle; }
 
-        operator bool() const
+        explicit operator bool() const
         {
             return m_handle != VK_NULL_HANDLE;
         }

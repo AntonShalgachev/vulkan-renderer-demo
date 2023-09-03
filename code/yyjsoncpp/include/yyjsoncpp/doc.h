@@ -32,7 +32,7 @@ namespace yyjsoncpp
 
     struct read_result
     {
-        operator bool() const;
+        explicit operator bool() const;
 
         read_code code = read_code::unknown;
         string_view message = {};

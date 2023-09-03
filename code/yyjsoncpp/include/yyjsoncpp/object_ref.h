@@ -24,7 +24,7 @@ namespace yyjsoncpp
 
         object_iterator& operator++();
 
-        operator bool() const;
+        explicit operator bool() const;
 
     private:
         size_t m_size = 0;

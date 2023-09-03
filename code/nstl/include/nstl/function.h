@@ -54,7 +54,7 @@ namespace nstl
             return m_callFunc(m_func, nstl::move(args)...);
         }
 
-        operator bool() const
+        explicit operator bool() const
         {
             return m_func;
         }
