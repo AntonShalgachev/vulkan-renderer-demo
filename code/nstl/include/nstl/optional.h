@@ -16,8 +16,9 @@ namespace nstl
     {
     public:
         optional();
-        optional(T const& value);
-        optional(T&& value);
+
+        template<typename U = T>
+        optional(U&& value);
 
         optional(optional const& rhs);
         optional(optional&& rhs);
@@ -46,7 +47,17 @@ namespace nstl
             return lhs.m_hasValue && lhs.m_value == rhs;
         }
         template<typename T2>
+        friend bool operator==(T2 const& lhs, optional const& rhs)
+        {
+            return rhs.m_hasValue && rhs.m_value == lhs;
+        }
+        template<typename T2>
         friend bool operator!=(optional const& lhs, T2 const& rhs)
+        {
+            return !(lhs == rhs);
+        }
+        template<typename T2>
+        friend bool operator!=(T2 const& lhs, optional const& rhs)
         {
             return !(lhs == rhs);
         }
@@ -81,15 +92,10 @@ nstl::optional<T>::optional() : m_hasValue(false), m_empty({})
 #endif
 
 template<typename T>
-nstl::optional<T>::optional(T const& value) : optional()
+template<typename U>
+nstl::optional<T>::optional(U&& value) : optional()
 {
-    construct(value);
-}
-
-template<typename T>
-nstl::optional<T>::optional(T&& value) : optional()
-{
-    construct(nstl::move(value));
+    construct(nstl::forward<U>(value));
 }
 
 template<typename T>
