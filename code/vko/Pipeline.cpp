@@ -188,7 +188,7 @@ vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, Rend
     pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
     pipelineCreateInfo.basePipelineIndex = -1;
 
-	VKO_VERIFY(vkCreateGraphicsPipelines(m_device.getHandle(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, m_allocator, &m_handle.get()));
+	VKO_VERIFY(vkCreateGraphicsPipelines(m_device.getHandle(), VK_NULL_HANDLE, 1, &pipelineCreateInfo, &m_allocator.getCallbacks(), &m_handle.get()));
 
 	auto layoutsSpan = layout.getDescriptorSetLayouts();
 	m_descriptorSetLayouts = nstl::vector<VkDescriptorSetLayout>{ layoutsSpan.begin(), layoutsSpan.end() };
@@ -197,7 +197,7 @@ vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, Rend
 vko::Pipeline::~Pipeline()
 {
     if (m_handle)
-		vkDestroyPipeline(m_device.getHandle(), m_handle, m_allocator);
+		vkDestroyPipeline(m_device.getHandle(), m_handle, &m_allocator.getCallbacks());
 }
 
 void vko::Pipeline::bind(VkCommandBuffer commandBuffer) const

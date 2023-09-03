@@ -22,10 +22,10 @@ vko::Framebuffer::Framebuffer(Device const& device, vko::ImageView const& colorI
     framebufferCreateInfo.height = extent.height;
     framebufferCreateInfo.layers = 1;
 
-    VKO_VERIFY(vkCreateFramebuffer(m_device.getHandle(), &framebufferCreateInfo, m_allocator, &m_handle.get()));
+    VKO_VERIFY(vkCreateFramebuffer(m_device.getHandle(), &framebufferCreateInfo, &m_allocator.getCallbacks(), &m_handle.get()));
 }
 
 vko::Framebuffer::~Framebuffer()
 {
-    vkDestroyFramebuffer(m_device.getHandle(), m_handle, m_allocator);
+    vkDestroyFramebuffer(m_device.getHandle(), m_handle, &m_allocator.getCallbacks());
 }

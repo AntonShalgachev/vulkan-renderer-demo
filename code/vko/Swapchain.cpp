@@ -41,14 +41,14 @@ vko::Swapchain::Swapchain(Device const& device, Surface const& surface, QueueFam
     swapchainCreateInfo.clipped = VK_TRUE;
     swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    VKO_VERIFY(vkCreateSwapchainKHR(m_device.getHandle(), &swapchainCreateInfo, m_allocator, &m_handle.get()));
+    VKO_VERIFY(vkCreateSwapchainKHR(m_device.getHandle(), &swapchainCreateInfo, &m_allocator.getCallbacks(), &m_handle.get()));
 
     retrieveImages();
 }
 
 vko::Swapchain::~Swapchain()
 {
-    vkDestroySwapchainKHR(m_device.getHandle(), m_handle, m_allocator);
+    vkDestroySwapchainKHR(m_device.getHandle(), m_handle, &m_allocator.getCallbacks());
 }
 
 VkExtent2D vko::Swapchain::getExtent() const

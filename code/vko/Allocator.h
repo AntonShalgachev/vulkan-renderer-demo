@@ -34,7 +34,7 @@ namespace vko
     public:
         Allocator(AllocatorScope scope);
 
-        operator VkAllocationCallbacks const* () const;
+        VkAllocationCallbacks const& getCallbacks() const { return m_callbacks; }
 
     private:
         static void* allocate(void* userData, size_t size, size_t alignment, VkSystemAllocationScope allocationScope);

@@ -79,9 +79,9 @@ vko::Instance::Instance(char const* appName, nstl::vector<char const*> const& ex
 vko::Instance::~Instance()
 {
     if (m_vkDestroyDebugUtilsMessengerEXT && m_debugMessenger)
-        m_vkDestroyDebugUtilsMessengerEXT(m_handle.get(), m_debugMessenger.get(), m_debugAllocator);
+        m_vkDestroyDebugUtilsMessengerEXT(m_handle.get(), m_debugMessenger.get(), &m_debugAllocator.getCallbacks());
 
-    vkDestroyInstance(m_handle, m_allocator);
+    vkDestroyInstance(m_handle, &m_allocator.getCallbacks());
 }
 
 void vko::Instance::createInstance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump)
@@ -111,7 +111,7 @@ void vko::Instance::createInstance(char const* appName, nstl::vector<char const*
     instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(requestedLayers.size());
     instanceCreateInfo.ppEnabledLayerNames = requestedLayers.data();
 
-    VKO_VERIFY(vkCreateInstance(&instanceCreateInfo, m_allocator, &m_handle.get()));
+    VKO_VERIFY(vkCreateInstance(&instanceCreateInfo, &m_allocator.getCallbacks(), &m_handle.get()));
 }
 
 void vko::Instance::findFunctions(bool enableValidation)
@@ -142,7 +142,7 @@ void vko::Instance::createDebugMessenger()
     createInfo.pfnUserCallback = debugMessageCallback;
     createInfo.pUserData = this;
 
-    VKO_VERIFY(m_vkCreateDebugUtilsMessengerEXT(m_handle.get(), &createInfo, m_debugAllocator, &m_debugMessenger.get()));
+    VKO_VERIFY(m_vkCreateDebugUtilsMessengerEXT(m_handle.get(), &createInfo, &m_debugAllocator.getCallbacks(), &m_debugMessenger.get()));
 }
 
 void vko::Instance::setDebugName(VkDevice device, uint64_t handle, VkObjectType type, char const* name) const

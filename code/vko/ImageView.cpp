@@ -19,12 +19,12 @@ namespace vko
 		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		imageViewCreateInfo.subresourceRange.layerCount = 1;
 
-		VKO_VERIFY(vkCreateImageView(m_device, &imageViewCreateInfo, m_allocator, &m_handle.get()));
+		VKO_VERIFY(vkCreateImageView(m_device, &imageViewCreateInfo, &m_allocator.getCallbacks(), &m_handle.get()));
 	}
 
 	ImageView::~ImageView()
 	{
 		if (m_handle)
-			vkDestroyImageView(m_device, m_handle, m_allocator);
+			vkDestroyImageView(m_device, m_handle, &m_allocator.getCallbacks());
 	}
 }

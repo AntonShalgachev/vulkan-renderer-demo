@@ -43,13 +43,13 @@ vko::ShaderModule::ShaderModule(Device const& device, nstl::blob_view bytes, Sha
     createInfo.codeSize = bytes.size();
     createInfo.pCode = code.data();
 
-    VKO_VERIFY(vkCreateShaderModule(m_device, &createInfo, m_allocator, &m_handle.get()));
+    VKO_VERIFY(vkCreateShaderModule(m_device, &createInfo, &m_allocator.getCallbacks(), &m_handle.get()));
 }
 
 vko::ShaderModule::~ShaderModule()
 {
     if (m_handle)
-        vkDestroyShaderModule(m_device, m_handle, m_allocator);
+        vkDestroyShaderModule(m_device, m_handle, &m_allocator.getCallbacks());
 
     m_handle = nullptr;
 }

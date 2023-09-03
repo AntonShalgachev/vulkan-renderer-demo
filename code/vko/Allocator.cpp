@@ -112,11 +112,6 @@ vko::Allocator::Allocator(AllocatorScope scope)
     };
 }
 
-vko::Allocator::operator VkAllocationCallbacks const* () const
-{
-    return &m_callbacks;
-}
-
 void* vko::Allocator::allocate(void* userData, size_t size, size_t alignment, VkSystemAllocationScope allocationScope)
 {
     auto scopeId = parseUserData(userData);

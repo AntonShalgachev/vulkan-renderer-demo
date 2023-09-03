@@ -14,13 +14,13 @@ vko::Buffer::Buffer(Device const& device, VkDeviceSize size, VkBufferUsageFlags 
     bufferCreateInfo.usage = usage;
     bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    VKO_VERIFY(vkCreateBuffer(m_device, &bufferCreateInfo, m_allocator, &m_handle.get()));
+    VKO_VERIFY(vkCreateBuffer(m_device, &bufferCreateInfo, &m_allocator.getCallbacks(), &m_handle.get()));
 }
 
 vko::Buffer::~Buffer()
 {
     if (m_handle)
-        vkDestroyBuffer(m_device, m_handle, m_allocator);
+        vkDestroyBuffer(m_device, m_handle, &m_allocator.getCallbacks());
 }
 
 VkMemoryRequirements vko::Buffer::getMemoryRequirements() const

@@ -26,7 +26,7 @@ namespace vko
         imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 
-        VKO_VERIFY(vkCreateImage(m_device, &imageCreateInfo, m_allocator, &m_handle.get()));
+        VKO_VERIFY(vkCreateImage(m_device, &imageCreateInfo, &m_allocator.getCallbacks(), &m_handle.get()));
     }
 
     Image::Image(Device const& device, VkImage image, VkFormat format) : m_device(device.getHandle())
@@ -39,7 +39,7 @@ namespace vko
     Image::~Image()
     {
         if (m_isOwned && m_handle)
-            vkDestroyImage(m_device, m_handle, m_allocator);
+            vkDestroyImage(m_device, m_handle, &m_allocator.getCallbacks());
     }
 
     VkMemoryRequirements Image::getMemoryRequirements() const

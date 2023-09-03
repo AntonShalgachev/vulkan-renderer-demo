@@ -44,7 +44,7 @@ vko::Device::Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily 
     deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
     deviceCreateInfo.ppEnabledExtensionNames = extensions.data();
 
-    VKO_VERIFY(vkCreateDevice(physicalDevice.getHandle(), &deviceCreateInfo, m_allocator, &m_handle.get()));
+    VKO_VERIFY(vkCreateDevice(physicalDevice.getHandle(), &deviceCreateInfo, &m_allocator.getCallbacks(), &m_handle.get()));
     
     for(QueueFamily const* queueFamily : uniqueQueueFamilies)
     {
@@ -68,5 +68,5 @@ void vko::Device::waitIdle() const
 
 vko::Device::~Device()
 {
-    vkDestroyDevice(m_handle, m_allocator);
+    vkDestroyDevice(m_handle, &m_allocator.getCallbacks());
 }

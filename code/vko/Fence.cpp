@@ -9,13 +9,13 @@ vko::Fence::Fence(Device const& device) : m_device(device)
     fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    VKO_VERIFY(vkCreateFence(m_device.getHandle(), &fenceCreateInfo, m_allocator, &m_handle.get()));
+    VKO_VERIFY(vkCreateFence(m_device.getHandle(), &fenceCreateInfo, &m_allocator.getCallbacks(), &m_handle.get()));
 }
 
 vko::Fence::~Fence()
 {
     if (m_handle)
-        vkDestroyFence(m_device.getHandle(), m_handle, m_allocator);
+        vkDestroyFence(m_device.getHandle(), m_handle, &m_allocator.getCallbacks());
 }
 
 void vko::Fence::wait() const
