@@ -45,6 +45,9 @@ if(MSVC)
         /wd4996 # 'XXX': This function or variable may be unsafe. Consider using XXX_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
         /wd4267 # '+=': conversion from 'size_t' to 'uint32_t', possible loss of data
     )
+    target_compile_options(fmt PRIVATE
+        /wd4996 # 'XXX': This function or variable may be unsafe. Consider using XXX_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+    )
 endif()
 
 set_target_properties(ktx
