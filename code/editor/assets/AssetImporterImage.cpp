@@ -10,69 +10,16 @@
 #include "nstl/string.h"
 #include "nstl/blob_view.h"
 
+#include "tiny_ktx/tiny_ktx.h"
+
 #include "stb_image.h"
-#include "ktx.h"
 
 #include <vulkan/vulkan.h> // TODO remove?
 
 namespace
 {
-    class KtxMemoryStream : public ktxStream
-    {
-    public:
-        KtxMemoryStream(nstl::vector<unsigned char>& bytes) : m_bytes(bytes)
-        {
-            ktxStream::type = eStreamTypeCustom;
-            ktxStream::data.custom_ptr.address = this;
-            ktxStream::readpos = 0;
-            ktxStream::write = &write;
-            ktxStream::getpos = &getpos;
-        }
-
-    private:
-        static KTX_error_code write(ktxStream* str, const void* src, const ktx_size_t size, const ktx_size_t count)
-        {
-            if (!str || !src)
-                return KTX_INVALID_VALUE;
-
-            assert(str->type == eStreamTypeCustom);
-            assert(str->data.custom_ptr.address);
-            KtxMemoryStream const& self = *static_cast<KtxMemoryStream const*>(str->data.custom_ptr.address);
-
-            assert(size == 1 || count == 1);
-
-            size_t destinationOffset = self.m_bytes.size();
-            self.m_bytes.resize(self.m_bytes.size() + count * size);
-            memcpy(self.m_bytes.data() + destinationOffset, src, count * size);
-
-            return KTX_SUCCESS;
-        }
-
-        static KTX_error_code getpos(ktxStream* str, ktx_off_t* pos)
-        {
-            if (!str || !pos)
-                return KTX_INVALID_VALUE;
-
-            assert(str->type == eStreamTypeCustom);
-            assert(str->data.custom_ptr.address);
-            KtxMemoryStream const& self = *static_cast<KtxMemoryStream const*>(str->data.custom_ptr.address);
-
-            *pos = self.m_bytes.size();
-
-            return KTX_SUCCESS;
-        }
-
-    private:
-        nstl::vector<unsigned char>& m_bytes;
-    };
-
     nstl::vector<unsigned char> convertToKtx2(nstl::span<unsigned char const> content, size_t width, size_t height, int comp)
     {
-        ktxTexture2* texture;
-        ktxTextureCreateInfo createInfo;
-        KTX_error_code result;
-        ktx_uint32_t level, layer, faceSlice;
-
         auto getFormat = [](int comp)
         {
             if (comp == 3)
@@ -84,32 +31,48 @@ namespace
             return VK_FORMAT_UNDEFINED;
         };
 
-        createInfo.vkFormat = getFormat(comp);
-        createInfo.baseWidth = width;
-        createInfo.baseHeight = height;
-        createInfo.baseDepth = 1;
-        createInfo.numDimensions = 2;
-        createInfo.numLevels = 1;
-        createInfo.numLayers = 1;
-        createInfo.numFaces = 1;
-        createInfo.isArray = false;
-        createInfo.generateMipmaps = false;
+        tiny_ktx::image_header header = {
+            .vk_format = static_cast<uint32_t>(getFormat(comp)),
+            .type_size = 1, // TODO check
+            .pixel_width = static_cast<uint32_t>(width),
+            .pixel_height = static_cast<uint32_t>(height),
+            .pixel_depth = 1,
+            .layer_count = 1,
+            .face_count = 1,
+            .level_count = 1,
+        };
 
-        result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
-        assert(result == KTX_SUCCESS);
+        class memory_stream : public tiny_ktx::output_stream
+        {
+        public:
+            memory_stream(nstl::vector<unsigned char>& bytes) : m_bytes(bytes) {}
 
-        auto imageSize = ktxTexture_GetImageSize(ktxTexture(texture), 0);
-        assert(imageSize == content.size());
+            bool write(void const* src, size_t size) override
+            {
+                if (!src)
+                    return false;
 
-        result = ktxTexture_SetImageFromMemory(ktxTexture(texture), 0, 0, 0, content.data(), content.size());
-        assert(result == KTX_SUCCESS);
+                size_t destinationOffset = m_bytes.size();
+                m_bytes.resize(m_bytes.size() + size);
+                memcpy(m_bytes.data() + destinationOffset, src, size);
+
+                return true;
+            }
+
+        private:
+            nstl::vector<unsigned char>& m_bytes;
+        };
+
+        tiny_ktx::image_level_info info{
+            .byte_offset = 0,
+            .byte_length = content.size(),
+            .uncompressed_byte_length = content.size(),
+        };
 
         nstl::vector<unsigned char> bytes;
-        KtxMemoryStream stream{ bytes };
-        result = ktxTexture_WriteToStream(ktxTexture(texture), &stream);
-        assert(result == KTX_SUCCESS);
-
-        ktxTexture_Destroy(ktxTexture(texture));
+        memory_stream stream{ bytes };
+        bool result = tiny_ktx::write_image(header, &info, 1, content.data(), content.size(), stream);
+        assert(result);
 
         return bytes;
     }

@@ -24,9 +24,9 @@ target_link_libraries(editor_assets
     fs
     path
     stb
-    ktx
     Vulkan::Vulkan
     yyjsoncpp
     platform # TODO remove (only needed for Uuid)
     tglm
+    tiny_ktx
 )

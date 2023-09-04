@@ -3,7 +3,8 @@
 #include "stb_image.h"
 #include "dds-ktx.h"
 #include "cgltf.h"
-#include "ktx.h"
+
+#include "tiny_ktx/tiny_ktx.h"
 
 #include "tglm/tglm.h" // TODO only include what is needed
 
@@ -241,22 +242,43 @@ namespace
         static auto scopeId = memory::tracking::create_scope_id("Image/Load/KTX");
         MEMORY_TRACKING_SCOPE(scopeId);
 
-        ktxTexture2* texture = nullptr;
-        KTX_error_code result = ktxTexture2_CreateFromMemory(bytes.ucdata(), bytes.size(), 0, &texture);
+        class memory_stream : public tiny_ktx::input_stream
+        {
+        public:
+            memory_stream(nstl::blob_view bytes) : m_bytes(bytes) {}
 
-        if (result != KTX_SUCCESS)
+            bool read(void* dest, size_t size) override
+            {
+                if (!dest)
+                    return false;
+
+                if (m_position + size > m_bytes.size())
+                    return false;
+
+                memcpy(dest, m_bytes.ucdata() + m_position, size);
+                m_position += size;
+                return true;
+            }
+
+        private:
+            nstl::blob_view m_bytes;
+            size_t m_position = 0;
+        };
+
+        memory_stream stream{ bytes };
+
+        tiny_ktx::image_header header;
+        if (!tiny_ktx::parse_header(&header, stream))
             return {};
 
-        assert(texture);
-
-        assert(texture->numLayers == 1);
-        assert(texture->numFaces == 1);
-        assert(texture->numDimensions == 2);
+        assert(header.layer_count == 0 || header.layer_count == 1);
+        assert(header.face_count == 1);
+        assert(header.pixel_depth == 0 || header.pixel_depth == 1);
 
         ImageData imageData;
 
-        imageData.width = texture->baseWidth;
-        imageData.height = texture->baseHeight;
+        imageData.width = header.pixel_width;
+        imageData.height = header.pixel_height;
 
         imageData.format = [](VkFormat format)
         {
@@ -272,26 +294,28 @@ namespace
 
             assert(false);
             return vkgfx::ImageFormat::R8G8B8A8;
-        }(static_cast<VkFormat>(texture->vkFormat));
+        }(static_cast<VkFormat>(header.vk_format));
 
-        size_t dataSize = ktxTexture_GetDataSize(ktxTexture(texture));
+        size_t mipsCount = tiny_ktx::get_level_count(header);
+
+        nstl::vector<tiny_ktx::image_level_info> levelIndex{ mipsCount }; // TODO: static or hybrid vector
+        if (!tiny_ktx::load_image_level_index(levelIndex.data(), levelIndex.size(), header, stream))
+            return {};
+
+        size_t dataOffset = levelIndex[mipsCount - 1].byte_offset;
+        size_t dataSize = levelIndex[0].byte_offset + levelIndex[0].byte_length - dataOffset;
         imageData.bytes.resize(dataSize);
 
-        result = ktxTexture_LoadImageData(ktxTexture(texture), imageData.bytes.data(), imageData.bytes.size());
-        assert(result == KTX_SUCCESS);
+        assert(dataOffset + dataSize <= bytes.size());
+        memcpy(imageData.bytes.data(), bytes.ucdata() + dataOffset, dataSize);
 
-        for (size_t i = 0; i < texture->numLevels; i++)
+        for (size_t i = 0; i < mipsCount; i++)
         {
-            size_t mipOffset = 0;
-            KTX_error_code result = ktxTexture_GetImageOffset(ktxTexture(texture), i, 0, 0, &mipOffset);
-            assert(result == KTX_SUCCESS);
-
-            size_t mipSize = ktxTexture_GetImageSize(ktxTexture(texture), i);
+            size_t mipOffset = levelIndex[i].byte_offset - dataOffset;
+            size_t mipSize = levelIndex[i].byte_length;
 
             imageData.mips.push_back({ mipOffset, mipSize });
         }
-
-        ktxTexture_Destroy(ktxTexture(texture));
 
         return imageData;
     }
