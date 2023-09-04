@@ -14,7 +14,6 @@ add_subdirectory(dds-ktx)
 add_subdirectory(cgltf)
 add_subdirectory(stb)
 add_subdirectory(glfw)
-add_subdirectory(ktx)
 
 FetchContent_Declare(
     coil
