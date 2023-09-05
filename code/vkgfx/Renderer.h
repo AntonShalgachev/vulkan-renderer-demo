@@ -84,6 +84,12 @@ namespace vkgfx
         size_t m_width = 0;
         size_t m_height = 0;
 
+        nstl::unique_ptr<vko::Image> m_shadowDepthImage;
+        nstl::unique_ptr<vko::DeviceMemory> m_shadowDepthImageMemory;
+        nstl::unique_ptr<vko::ImageView> m_shadowDepthImageView;
+        nstl::unique_ptr<vko::RenderPass> m_shadowRenderPass;
+        nstl::unique_ptr<vko::Framebuffer> m_shadowFramebuffer;
+
         nstl::vector<RendererFrameResources> m_frameResources;
         size_t m_nextFrameResourcesIndex = 0;
 

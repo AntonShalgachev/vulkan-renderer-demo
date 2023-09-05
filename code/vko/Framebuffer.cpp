@@ -6,12 +6,17 @@
 #include "vko/Device.h"
 #include "vko/Assert.h"
 
-#include "nstl/array.h"
+#include "nstl/static_vector.h"
 
-vko::Framebuffer::Framebuffer(Device const& device, vko::ImageView const& colorImageView, vko::ImageView const& depthImageView, vko::RenderPass const& renderPass, VkExtent2D extent)
+vko::Framebuffer::Framebuffer(Device const& device, vko::ImageView const* colorImageView, vko::ImageView const* depthImageView, vko::RenderPass const& renderPass, VkExtent2D extent)
     : m_device(device)
 {
-    nstl::array<VkImageView, 2> attachments = { colorImageView.getHandle(), depthImageView.getHandle() };
+    nstl::static_vector<VkImageView, 2> attachments;
+
+    if (colorImageView)
+        attachments.push_back(colorImageView->getHandle());
+    if (depthImageView)
+        attachments.push_back(depthImageView->getHandle());
 
     VkFramebufferCreateInfo framebufferCreateInfo{};
     framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;

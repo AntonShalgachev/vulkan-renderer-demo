@@ -14,7 +14,7 @@ namespace vko
     class Framebuffer
     {
     public:
-        explicit Framebuffer(Device const& device, vko::ImageView const& colorImageView, vko::ImageView const& depthImageView, vko::RenderPass const& renderPass, VkExtent2D extent);
+        explicit Framebuffer(Device const& device, vko::ImageView const* colorImageView, vko::ImageView const* depthImageView, vko::RenderPass const& renderPass, VkExtent2D extent);
         ~Framebuffer();
 
         Framebuffer(Framebuffer const&) = default;

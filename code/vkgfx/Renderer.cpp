@@ -287,11 +287,24 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
     m_data->m_depthFormat = findDepthFormat(physicalDevice);
 
     {
-        m_renderPass = nstl::make_unique<vko::RenderPass>(device, m_data->m_surfaceFormat.format, m_data->m_depthFormat);
+        m_renderPass = nstl::make_unique<vko::RenderPass>(device, m_data->m_surfaceFormat.format, m_data->m_depthFormat, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
         instance.setDebugName(device.getHandle(), m_renderPass->getHandle(), "Main");
     }
 
     createSwapchain();
+
+    // Shadow map
+    constexpr uint32_t shadowmapResolution = 1024;
+    m_shadowDepthImage = nstl::make_unique<vko::Image>(device, shadowmapResolution, shadowmapResolution, m_data->m_depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+    m_shadowDepthImageMemory = nstl::make_unique<vko::DeviceMemory>(device, m_context->getPhysicalDevice(), m_shadowDepthImage->getMemoryRequirements(), VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    m_shadowDepthImage->bindMemory(*m_shadowDepthImageMemory);
+    m_shadowDepthImageView = nstl::make_unique<vko::ImageView>(device, *m_shadowDepthImage, VK_IMAGE_ASPECT_DEPTH_BIT);
+
+    instance.setDebugName(device.getHandle(), m_shadowDepthImage->getHandle(), "Shadow map depth");
+    instance.setDebugName(device.getHandle(), m_shadowDepthImageView->getHandle(), "Shadow map depth");
+
+    m_shadowRenderPass = nstl::make_unique<vko::RenderPass>(device, nstl::optional<VkFormat>{}, m_data->m_depthFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    m_shadowFramebuffer = nstl::make_unique<vko::Framebuffer>(device, nullptr, m_shadowDepthImageView.get(), *m_shadowRenderPass, VkExtent2D{shadowmapResolution, shadowmapResolution});
 
     for (auto i = 0; i < FRAME_RESOURCE_COUNT; i++)
     {
@@ -761,8 +774,8 @@ void vkgfx::Renderer::createSwapchain()
 
     VkExtent2D swapchainExtent = m_swapchain->getExtent();
 
-    m_depthImage = nstl::make_unique<vko::Image>(m_context->getDevice(), swapchainExtent.width, swapchainExtent.height, m_data->m_depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
-    m_depthImageMemory = nstl::make_unique<vko::DeviceMemory>(m_context->getDevice(), m_context->getPhysicalDevice(), m_depthImage->getMemoryRequirements(), VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    m_depthImage = nstl::make_unique<vko::Image>(device, swapchainExtent.width, swapchainExtent.height, m_data->m_depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    m_depthImageMemory = nstl::make_unique<vko::DeviceMemory>(device, m_context->getPhysicalDevice(), m_depthImage->getMemoryRequirements(), VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     m_depthImage->bindMemory(*m_depthImageMemory);
 
     m_depthImageView = nstl::make_unique<vko::ImageView>(device, *m_depthImage, VK_IMAGE_ASPECT_DEPTH_BIT);
@@ -774,7 +787,7 @@ void vkgfx::Renderer::createSwapchain()
     for (size_t i = 0; i < m_swapchainImageViews.size(); i++)
     {
         nstl::unique_ptr<vko::ImageView> const& colorImageView = m_swapchainImageViews[i];
-        m_swapchainFramebuffers.push_back(nstl::make_unique<vko::Framebuffer>(device, *colorImageView, *m_depthImageView, *m_renderPass, m_swapchain->getExtent()));
+        m_swapchainFramebuffers.push_back(nstl::make_unique<vko::Framebuffer>(device, colorImageView.get(), m_depthImageView.get(), *m_renderPass, m_swapchain->getExtent()));
 
         instance.setDebugName(device.getHandle(), m_swapchainFramebuffers.back()->getHandle(), nstl::sprintf("Main %zu", i));
     }

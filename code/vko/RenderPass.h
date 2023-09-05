@@ -3,6 +3,8 @@
 #include "vko/UniqueHandle.h"
 #include "vko/Allocator.h"
 
+#include "nstl/optional.h"
+
 #include <vulkan/vulkan.h>
 
 namespace vko
@@ -12,7 +14,7 @@ namespace vko
     class RenderPass
     {
     public:
-        explicit RenderPass(Device const& device, VkFormat colorFormat, VkFormat depthFormat);
+        explicit RenderPass(Device const& device, nstl::optional<VkFormat> colorFormat, nstl::optional<VkFormat> depthFormat, VkImageLayout finalDepthLayout);
         ~RenderPass();
 
         RenderPass(RenderPass const&) = default;
