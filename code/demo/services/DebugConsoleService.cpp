@@ -3,11 +3,10 @@
 #include "common/Utils.h"
 
 #include "nstl/algorithm.h"
+#include "nstl/sort.h"
 #include "nstl/string_builder.h"
 
 #include "memory/tracking.h"
-
-#include <algorithm> // for std::sort
 
 namespace
 {
@@ -285,7 +284,7 @@ nstl::vector<DebugConsoleService::Suggestion> DebugConsoleService::getSuggestion
         suggestions.push_back({ command, distance });
     }
 
-    std::sort(suggestions.begin(), suggestions.end(), [](Suggestion const& lhs, Suggestion const& rhs)
+    nstl::simple_sort(suggestions.begin(), suggestions.end(), [](Suggestion const& lhs, Suggestion const& rhs)
     {
         if (lhs.distance == rhs.distance)
             return lhs.command < rhs.command;

@@ -57,6 +57,7 @@
 #include "nstl/optional.h"
 #include "nstl/string_builder.h"
 #include "nstl/scope_exit.h"
+#include "nstl/sort.h"
 
 namespace
 {
@@ -1357,19 +1358,12 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
         assert(model.scene);
         m_demoScene = createDemoScene(model, *model.scene);
 
-        qsort(m_demoScene.objects.data(), m_demoScene.objects.size(), sizeof(vkgfx::TestObject), [](void const* p1, void const* p2) -> int {
-            vkgfx::TestObject const& lhs = *static_cast<vkgfx::TestObject const*>(p1);
-            vkgfx::TestObject const& rhs = *static_cast<vkgfx::TestObject const*>(p2);
-
-            auto cmp = [](auto const& lhs, auto const& rhs) -> int
-            {
-                return (lhs > rhs) - (lhs < rhs);
-            };
-
+        nstl::simple_sort(m_demoScene.objects.begin(), m_demoScene.objects.end(), [](vkgfx::TestObject const& lhs, vkgfx::TestObject const& rhs)
+        {
             if (lhs.pipeline != rhs.pipeline)
-                return cmp(lhs.pipeline, rhs.pipeline);
+                return lhs.pipeline < rhs.pipeline;
 
-            return cmp(lhs.material, rhs.material);
+            return lhs.material < rhs.material;
         });
 
         if (!m_demoScene.cameras.empty())
