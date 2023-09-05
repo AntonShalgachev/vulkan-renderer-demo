@@ -36,8 +36,8 @@ namespace
             .type_size = 1, // TODO check
             .pixel_width = static_cast<uint32_t>(width),
             .pixel_height = static_cast<uint32_t>(height),
-            .pixel_depth = 1,
-            .layer_count = 1,
+            .pixel_depth = 0,
+            .layer_count = 0,
             .face_count = 1,
             .level_count = 1,
         };
