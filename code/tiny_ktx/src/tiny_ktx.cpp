@@ -55,29 +55,38 @@ bool tiny_ktx::load_image_level_index(image_level_info* infos, size_t count, ima
     return true;
 }
 
-bool tiny_ktx::write_image(image_header& header, image_level_info* infos, size_t count, void const* data, size_t data_size, output_stream& stream)
+bool tiny_ktx::write_image(image_parameters const& params, output_stream& stream)
 {
-    size_t index_byte_size = sizeof(image_level_info) * count;
+    size_t index_byte_size = sizeof(image_level_info) * params.levels_count;
 
-    size_t dfd_offset = sizeof(header) + index_byte_size;
+    size_t dfd_offset = sizeof(image_header) + index_byte_size;
     size_t data_offset = dfd_offset + sizeof(FORMAT_DESCRIPTION);
 
-    header.dfd_byte_offset = dfd_offset;
-    header.dfd_byte_length = sizeof(FORMAT_DESCRIPTION);
+    image_header header = {
+        .vk_format = params.vk_format,
+        .pixel_width = params.pixel_width,
+        .pixel_height = params.pixel_height,
+        .level_count = static_cast<uint32_t>(params.levels_count),
 
-    for (size_t i = 0; i < count; i++)
-        infos[i].byte_offset += data_offset;
+        .dfd_byte_offset = static_cast<uint32_t>(dfd_offset),
+        .dfd_byte_length = sizeof(FORMAT_DESCRIPTION),
+    };
 
     if (!stream.write(&header, sizeof(header)))
         return false;
 
-    if (!stream.write(infos, index_byte_size))
-        return false;
+    for (size_t i = 0; i < params.levels_count; i++)
+    {
+        image_level_info level_info = params.level_infos[i];
+        level_info.byte_offset += data_offset;
+        if (!stream.write(&level_info, sizeof(level_info)))
+            return false;
+    }
 
     if (!stream.write(&FORMAT_DESCRIPTION, sizeof(FORMAT_DESCRIPTION)))
         return false;
 
-    if (!stream.write(data, data_size))
+    if (!stream.write(params.data, params.data_size))
         return false;
 
     return true;

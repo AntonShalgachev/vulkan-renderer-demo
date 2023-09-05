@@ -20,12 +20,12 @@ namespace tiny_ktx
         uint96_t identifier = KTX_IDENTIFIER;
 
         uint32_t vk_format = 0;
-        uint32_t type_size = 0;
+        uint32_t type_size = 1; // TODO check default value
         uint32_t pixel_width = 0;
         uint32_t pixel_height = 0;
         uint32_t pixel_depth = 0;
         uint32_t layer_count = 0;
-        uint32_t face_count = 0;
+        uint32_t face_count = 1;
         uint32_t level_count = 0;
         uint32_t supercompression_scheme = 0;
 
@@ -56,5 +56,19 @@ namespace tiny_ktx
     [[nodiscard]] size_t get_level_count(image_header const& header);
     [[nodiscard]] bool load_image_level_index(image_level_info* infos, size_t count, image_header const& header, input_stream& stream);
 
+    struct image_parameters
+    {
+        uint32_t vk_format = 0;
+        uint32_t pixel_width = 0;
+        uint32_t pixel_height = 0;
+
+        image_level_info const* level_infos = nullptr;
+        size_t levels_count = 0;
+
+        void const* data = nullptr;
+        size_t data_size = 0;
+    };
+
     [[nodiscard]] bool write_image(image_header& header, image_level_info* infos, size_t count, void const* data, size_t data_size, output_stream& stream); // TODO header & infos should be const
+    [[nodiscard]] bool write_image(image_parameters const& params, output_stream& stream);
 }

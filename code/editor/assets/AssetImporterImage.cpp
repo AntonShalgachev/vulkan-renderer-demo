@@ -31,17 +31,6 @@ namespace
             return VK_FORMAT_UNDEFINED;
         };
 
-        tiny_ktx::image_header header = {
-            .vk_format = static_cast<uint32_t>(getFormat(comp)),
-            .type_size = 1, // TODO check
-            .pixel_width = static_cast<uint32_t>(width),
-            .pixel_height = static_cast<uint32_t>(height),
-            .pixel_depth = 0,
-            .layer_count = 0,
-            .face_count = 1,
-            .level_count = 1,
-        };
-
         class memory_stream : public tiny_ktx::output_stream
         {
         public:
@@ -69,9 +58,21 @@ namespace
             .uncompressed_byte_length = content.size(),
         };
 
+        tiny_ktx::image_parameters params = {
+            .vk_format = static_cast<uint32_t>(getFormat(comp)),
+            .pixel_width = static_cast<uint32_t>(width),
+            .pixel_height = static_cast<uint32_t>(height),
+
+            .level_infos = &info,
+            .levels_count = 1,
+
+            .data = content.data(),
+            .data_size = content.size(),
+        };
+
         nstl::vector<unsigned char> bytes;
         memory_stream stream{ bytes };
-        bool result = tiny_ktx::write_image(header, &info, 1, content.data(), content.size(), stream);
+        bool result = tiny_ktx::write_image(params, stream);
         assert(result);
 
         return bytes;
