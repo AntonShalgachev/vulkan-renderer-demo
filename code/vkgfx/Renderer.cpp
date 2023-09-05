@@ -46,8 +46,6 @@
 
 #include <vulkan/vulkan.h>
 
-#include <limits> // for std::numeric_limits
-
 namespace
 {
     struct CameraData
@@ -106,7 +104,7 @@ namespace
 
     VkExtent2D chooseSwapchainExtent(vko::Surface const& surface, const VkSurfaceCapabilitiesKHR& capabilities)
     {
-        if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
+        if (capabilities.currentExtent.width != UINT32_MAX)
             return capabilities.currentExtent;
 
         auto width = static_cast<uint32_t>(surface.getWidth());
@@ -387,7 +385,7 @@ void vkgfx::Renderer::draw()
     vko::Device const& device = m_context->getDevice();
 
     uint32_t imageIndex;
-    VkResult aquireImageResult = vkAcquireNextImageKHR(device.getHandle(), m_swapchain->getHandle(), std::numeric_limits<uint64_t>::max(), frameResources.imageAvailableSemaphore.getHandle(), VK_NULL_HANDLE, &imageIndex);
+    VkResult aquireImageResult = vkAcquireNextImageKHR(device.getHandle(), m_swapchain->getHandle(), UINT64_MAX, frameResources.imageAvailableSemaphore.getHandle(), VK_NULL_HANDLE, &imageIndex);
 
     if (aquireImageResult == VK_ERROR_OUT_OF_DATE_KHR)
     {
