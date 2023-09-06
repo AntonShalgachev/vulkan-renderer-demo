@@ -1,0 +1,16 @@
+{
+    "options": [],
+    "variants": [
+        {
+            "configuration": {},
+            "cmdline": "-g -O0",
+            "path": "shaders\\shadowmap.vert.spv",
+            "compiler_version": [
+                "shaderc v2023.1 v2023.1",
+                "spirv-tools v2023.1 v2022.4-63-g63de608d",
+                "glslang 11.1.0-631-g1fb2f1d7",
+                "Target: SPIR-V 1.0"
+            ]
+        }
+    ]
+}

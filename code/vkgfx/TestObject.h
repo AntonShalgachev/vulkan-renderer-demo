@@ -14,6 +14,7 @@ namespace vkgfx
     struct TestObject
     {
         vkgfx::PipelineHandle pipeline;
+        vkgfx::PipelineHandle shadowmapPipeline;
 
         vkgfx::MeshHandle mesh;
         vkgfx::MaterialHandle material;

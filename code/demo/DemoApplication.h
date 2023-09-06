@@ -191,6 +191,8 @@ private:
     nstl::unique_ptr<ShaderPackage> m_defaultVertexShader;
     nstl::unique_ptr<ShaderPackage> m_defaultFragmentShader;
 
+    nstl::unique_ptr<ShaderPackage> m_shadowmapVertexShader;
+
     vkgfx::SamplerHandle m_defaultSampler;
     vkgfx::ImageHandle m_defaultAlbedoImage;
     vkgfx::TextureHandle m_defaultAlbedoTexture;

@@ -639,6 +639,8 @@ void DemoApplication::createResources()
     m_defaultVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shader.vert");
     m_defaultFragmentShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shader.frag");
 
+    m_shadowmapVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shadowmap.vert");
+
     m_defaultSampler = resourceManager.createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
 
     m_defaultAlbedoImage = resourceManager.createImage(vkgfx::ImageMetadata{
@@ -1389,6 +1391,7 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
     m_editorGltfResources = nstl::make_unique<EditorGltfResources>();
 
     // TODO move somewhere else? Doesn't seem to be related to the GLTF model
+    // TODO only load actually used permutations
     // TODO implement
 //     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
     for (auto const& pair : m_defaultVertexShader->getAll())
@@ -1409,6 +1412,18 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
         auto const& configuration = pair.key();
         auto const& modulePath = pair.value();
         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Fragment, "main");
+        m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
+    }
+
+    // TODO implement
+//     for (auto const& [configuration, modulePath] : m_shadowmapVertexShader->getAll())
+    for (auto const& pair : m_shadowmapVertexShader->getAll())
+    {
+        MEMORY_TRACKING_SCOPE(shadersScopeId);
+
+        auto const& configuration = pair.key();
+        auto const& modulePath = pair.value();
+        auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
     }
 
@@ -1475,6 +1490,26 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
 
                 vkgfx::PipelineHandle pipeline = resourceManager.getOrCreatePipeline(pipelineKey);
 
+                nstl::string const* shadowmapVertexShaderPath = m_shadowmapVertexShader->get({});
+                assert(shadowmapVertexShaderPath);
+                vkgfx::ShaderModuleHandle shadowmapVertexShaderModule = m_editorGltfResources->shaderModules[*shadowmapVertexShaderPath];
+
+                vkgfx::PipelineKey shadowmapPipelineKey = {
+                    .shaderHandles = {shadowmapVertexShaderModule},
+                    .uniformConfigs = {
+                        vkgfx::UniformConfiguration{
+                            .hasBuffer = true,
+                            .hasAlbedoTexture = false,
+                            .hasNormalMap = false,
+                        },
+                    },
+                    .vertexConfig = primitive.metadata.vertexConfig,
+                    .renderConfig = {},
+                    .pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DemoObjectPushConstants), } },
+                };
+
+                vkgfx::PipelineHandle shadowmapPipeline = resourceManager.getOrCreatePipeline(shadowmapPipelineKey);
+
                 struct DemoObjectUniformBuffer
                 {
                     tglm::vec4 color;
@@ -1515,6 +1550,7 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
                 object.mesh = primitive.handle;
                 object.material = material.handle;
                 object.pipeline = pipeline;
+                object.shadowmapPipeline = shadowmapPipeline;
                 object.uniformBuffer = uniformBuffer;
                 object.pushConstants.resize(sizeof(pushConstants));
                 memcpy(object.pushConstants.data(), &pushConstants, object.pushConstants.size());
