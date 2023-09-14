@@ -196,11 +196,12 @@ namespace
     }
 }
 
-vkgfx::ResourceManager::ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, size_t resourceCount)
+vkgfx::ResourceManager::ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, vko::RenderPass const& shadowmapRenderPass, size_t resourceCount)
     : m_device(device)
     , m_physicalDevice(physicalDevice)
     , m_uploadQueue(uploadQueue)
     , m_renderPass(renderPass)
+    , m_shadowmapRenderPass(shadowmapRenderPass)
     , m_resourceCount(resourceCount)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
@@ -816,7 +817,7 @@ vkgfx::PipelineHandle vkgfx::ResourceManager::createPipeline(PipelineKey const& 
 
     vko::PipelineLayout const& pipelineLayout = m_pipelineLayouts[pipelineLayoutHandle.index];
 
-    m_pipelines.emplace_back(m_device, pipelineLayout, m_renderPass, shaderModules, config);
+    m_pipelines.emplace_back(m_device, pipelineLayout, key.isShadowmap ? m_shadowmapRenderPass : m_renderPass, shaderModules, config);
     m_pipelineHandles[key] = handle;
 
     return handle;

@@ -14,7 +14,7 @@ namespace vko
     class RenderPass
     {
     public:
-        explicit RenderPass(Device const& device, nstl::optional<VkFormat> colorFormat, nstl::optional<VkFormat> depthFormat, VkImageLayout finalDepthLayout);
+        explicit RenderPass(Device const& device, nstl::optional<VkFormat> colorFormat, nstl::optional<VkFormat> depthFormat, VkImageLayout finalDepthLayout, bool keepDepthValuesAfterRenderPass = false);
         ~RenderPass();
 
         RenderPass(RenderPass const&) = default;

@@ -56,7 +56,15 @@ namespace
         alignas(16) tglm::vec3 lightColor;
     };
 
+    struct ShadowmapCameraData
+    {
+        tglm::mat4 view;
+        tglm::mat4 projection;
+    };
+
     int const FRAME_RESOURCE_COUNT = 3;
+
+    constexpr uint32_t SHADOWMAP_RESOLUTION = 1024;
 
     VkFormat findSupportedFormat(vko::PhysicalDevice const& physicalDevice, nstl::span<VkFormat const> candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
     {
@@ -170,6 +178,7 @@ namespace vkgfx
         vko::DescriptorPool frameDescriptorPool;
         VkDescriptorSetLayout frameDescriptorSetLayout = VK_NULL_HANDLE;
         VkDescriptorSet frameDescriptorSet = VK_NULL_HANDLE;
+        VkDescriptorSet shadowmapFrameDescriptorSet = VK_NULL_HANDLE;
     };
 
     struct RendererFrameResources
@@ -294,8 +303,7 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
     createSwapchain();
 
     // Shadow map
-    constexpr uint32_t shadowmapResolution = 1024;
-    m_shadowDepthImage = nstl::make_unique<vko::Image>(device, shadowmapResolution, shadowmapResolution, m_data->m_depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+    m_shadowDepthImage = nstl::make_unique<vko::Image>(device, SHADOWMAP_RESOLUTION, SHADOWMAP_RESOLUTION, m_data->m_depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
     m_shadowDepthImageMemory = nstl::make_unique<vko::DeviceMemory>(device, m_context->getPhysicalDevice(), m_shadowDepthImage->getMemoryRequirements(), VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     m_shadowDepthImage->bindMemory(*m_shadowDepthImageMemory);
     m_shadowDepthImageView = nstl::make_unique<vko::ImageView>(device, *m_shadowDepthImage, VK_IMAGE_ASPECT_DEPTH_BIT);
@@ -303,8 +311,8 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
     instance.setDebugName(device.getHandle(), m_shadowDepthImage->getHandle(), "Shadow map depth");
     instance.setDebugName(device.getHandle(), m_shadowDepthImageView->getHandle(), "Shadow map depth");
 
-    m_shadowRenderPass = nstl::make_unique<vko::RenderPass>(device, nstl::optional<VkFormat>{}, m_data->m_depthFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    m_shadowFramebuffer = nstl::make_unique<vko::Framebuffer>(device, nullptr, m_shadowDepthImageView.get(), *m_shadowRenderPass, VkExtent2D{shadowmapResolution, shadowmapResolution});
+    m_shadowRenderPass = nstl::make_unique<vko::RenderPass>(device, nstl::optional<VkFormat>{}, m_data->m_depthFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, true);
+    m_shadowFramebuffer = nstl::make_unique<vko::Framebuffer>(device, nullptr, m_shadowDepthImageView.get(), *m_shadowRenderPass, VkExtent2D{SHADOWMAP_RESOLUTION, SHADOWMAP_RESOLUTION});
 
     for (auto i = 0; i < FRAME_RESOURCE_COUNT; i++)
     {
@@ -331,7 +339,7 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
         m_frameResources.push_back(nstl::move(resources));
     }
 
-    m_resourceManager = nstl::make_unique<ResourceManager>(device, physicalDevice, device.getGraphicsQueue(), *m_renderPass, FRAME_RESOURCE_COUNT);
+    m_resourceManager = nstl::make_unique<ResourceManager>(device, physicalDevice, device.getGraphicsQueue(), *m_renderPass, *m_shadowRenderPass, FRAME_RESOURCE_COUNT);
 
     createCameraResources();
 
@@ -458,6 +466,7 @@ void vkgfx::Renderer::createCameraResources()
         .isMutable = true,
     };
     m_cameraBuffer = m_resourceManager->createBuffer(sizeof(CameraData), nstl::move(metadata));
+    m_shadowmapCameraBuffer = m_resourceManager->createBuffer(sizeof(ShadowmapCameraData), nstl::move(metadata));
 
     DescriptorSetLayoutKey key = {
         .uniformConfig = {
@@ -470,6 +479,7 @@ void vkgfx::Renderer::createCameraResources()
     m_frameDescriptorSetLayout = m_resourceManager->getOrCreateDescriptorSetLayout(key);
     m_data->frameDescriptorSetLayout = m_resourceManager->getDescriptorSetLayout(m_frameDescriptorSetLayout).getHandle();
     m_data->frameDescriptorPool.allocateRaw({ &m_data->frameDescriptorSetLayout, 1 }, { &m_data->frameDescriptorSet, 1 });
+    m_data->frameDescriptorPool.allocateRaw({ &m_data->frameDescriptorSetLayout, 1 }, { &m_data->shadowmapFrameDescriptorSet, 1 });
 
     {
         Buffer const* frameUniformBuffer = m_resourceManager->getBuffer(m_cameraBuffer);
@@ -488,6 +498,23 @@ void vkgfx::Renderer::createCameraResources()
 
         updateDescriptorSet(m_context->getDevice().getHandle(), m_data->frameDescriptorSet, config, *m_cache);
     }
+    {
+        Buffer const* frameUniformBuffer = m_resourceManager->getBuffer(m_shadowmapCameraBuffer);
+        assert(frameUniformBuffer);
+
+        DescriptorSetUpdateConfig config{
+            .buffers = {
+                {
+                    .binding = 0,
+                    .buffer = frameUniformBuffer->buffer.getHandle(),
+                    .offset = 0,
+                    .size = frameUniformBuffer->size,
+                },
+            },
+        };
+
+        updateDescriptorSet(m_context->getDevice().getHandle(), m_data->shadowmapFrameDescriptorSet, config, *m_cache);
+    }
 }
 
 void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResources& frameResources)
@@ -503,53 +530,32 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
 
     VkCommandBuffer commandBuffer = commandBuffers.getHandle(0);
 
-    VkRenderPassBeginInfo renderPassBeginInfo{};
-    renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassBeginInfo.renderPass = m_renderPass->getHandle();
-    renderPassBeginInfo.framebuffer = m_swapchainFramebuffers[imageIndex]->getHandle(); // CRASH: get correct framebuffer
-    renderPassBeginInfo.renderArea.offset = { 0, 0 };
-    renderPassBeginInfo.renderArea.extent = m_swapchain->getExtent();
-
-    nstl::array<VkClearValue, 2> clearValues{};
-    clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
-    clearValues[1].depthStencil = { 1.0f, 0 };
-
-    renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());;
-    renderPassBeginInfo.pClearValues = clearValues.data();
-
-    {
-        VkViewport viewport{};
-        viewport.x = 0.0f;
-        viewport.y = 0.0f;
-        viewport.width = 1.0f * m_width;
-        viewport.height = 1.0f * m_height;
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-    }
-
-    vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
     PipelineHandle boundPipeline;
     MaterialHandle boundMaterial;
     VkPipelineLayout currentPipelineLayoutForDescriptorSets = VK_NULL_HANDLE; // TODO use PipelineLayoutHandle, and change name
 
-    auto drawTestObject = [this, commandBuffer, &frameResources, &boundPipeline, &boundMaterial, &currentPipelineLayoutForDescriptorSets](TestObject const& object)
+    auto drawTestObject = [this, commandBuffer, &frameResources, &boundPipeline, &boundMaterial, &currentPipelineLayoutForDescriptorSets](TestObject const& object, bool isShadowmap)
     {
-        vko::Pipeline const& pipeline = m_resourceManager->getPipeline(object.pipeline);
+        if (isShadowmap && !object.shadowmapPipeline)
+            return;
 
-        if (boundPipeline != object.pipeline)
+        vkgfx::PipelineHandle pipelineHandle = isShadowmap ? object.shadowmapPipeline : object.pipeline;
+        vko::Pipeline const& pipeline = m_resourceManager->getPipeline(pipelineHandle);
+
+        if (boundPipeline != pipelineHandle)
         {
             pipeline.bind(commandBuffer);
-            boundPipeline = object.pipeline;
+            boundPipeline = pipelineHandle;
         }
 
         if (currentPipelineLayoutForDescriptorSets != pipeline.getPipelineLayoutHandle())
         {
-            auto buffer = m_resourceManager->getBuffer(m_cameraBuffer);
+            BufferHandle bufferHandle = isShadowmap ? m_shadowmapCameraBuffer : m_cameraBuffer;
+            auto buffer = m_resourceManager->getBuffer(bufferHandle);
             assert(buffer);
             auto frameUniformBufferOffset = static_cast<uint32_t>(buffer->getDynamicOffset(m_nextFrameResourcesIndex));
-            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 0, 1, &m_data->frameDescriptorSet, 1, &frameUniformBufferOffset);
+            VkDescriptorSet frameDescriptorSet = isShadowmap ? m_data->shadowmapFrameDescriptorSet : m_data->frameDescriptorSet;
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 0, 1, &frameDescriptorSet, 1, &frameUniformBufferOffset);
 
             currentPipelineLayoutForDescriptorSets = pipeline.getPipelineLayoutHandle();
         }
@@ -557,7 +563,7 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
         if (!object.pushConstants.empty())
             vkCmdPushConstants(commandBuffer, pipeline.getPipelineLayoutHandle(), VK_SHADER_STAGE_VERTEX_BIT, 0, object.pushConstants.size(), object.pushConstants.data()); // TODO configure shader stage
 
-        if (object.material && boundMaterial != object.material)
+        if (!isShadowmap && object.material && boundMaterial != object.material)
         {
             nstl::span<VkDescriptorSetLayout const> descriptorSetLayouts = pipeline.getDescriptorSetLayouts();
 
@@ -703,30 +709,128 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh->indexCount), 1, static_cast<uint32_t>(mesh->indexOffset), static_cast<uint32_t>(mesh->vertexOffset), 0);
     };
 
-    for (TestObject const& object : m_oneFrameTestObjects)
-        drawTestObject(object);
+    {
 
-    m_oneFrameTestObjects.clear();
+        VkClearValue clearValue = {
+            .depthStencil = { 1.0f, 0 },
+        };
+
+        VkRenderPassBeginInfo renderPassBeginInfo = {
+            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+            .renderPass = m_shadowRenderPass->getHandle(),
+            .framebuffer = m_shadowFramebuffer->getHandle(),
+            .renderArea = {
+                .offset = { 0, 0 },
+                .extent = {SHADOWMAP_RESOLUTION, SHADOWMAP_RESOLUTION},
+            },
+            .clearValueCount = 1,
+            .pClearValues = &clearValue,
+        };
+
+        vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    }
+
+    {
+        VkViewport viewport = {
+            .x = 0.0f,
+            .y = 0.0f,
+            .width = 1.0f * SHADOWMAP_RESOLUTION,
+            .height = 1.0f * SHADOWMAP_RESOLUTION,
+            .minDepth = 0.0f,
+            .maxDepth = 1.0f,
+        };
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+    }
+
+    for (TestObject const& object : m_oneFrameTestObjects)
+        drawTestObject(object, true);
+
+    vkCmdEndRenderPass(commandBuffer);
+
+    // TODO put a barrier
+
+    {
+
+        nstl::array<VkClearValue, 2> clearValues{{
+            {
+                .color = { 0.0f, 0.0f, 0.0f, 1.0f },
+            },
+            {
+                .depthStencil = { 1.0f, 0 },
+            },
+        }};
+
+        VkRenderPassBeginInfo renderPassBeginInfo = {
+            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+            .renderPass = m_renderPass->getHandle(),
+            .framebuffer = m_swapchainFramebuffers[imageIndex]->getHandle(),
+            .renderArea = {
+                .offset = { 0, 0 },
+                .extent = m_swapchain->getExtent(),
+            },
+            .clearValueCount = static_cast<uint32_t>(clearValues.size()),
+            .pClearValues = clearValues.data(),
+        };
+
+        vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    }
+
+    {
+        VkViewport viewport = {
+            .x = 0.0f,
+            .y = 0.0f,
+            .width = 1.0f * m_width,
+            .height = 1.0f * m_height,
+            .minDepth = 0.0f,
+            .maxDepth = 1.0f,
+        };
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+    }
+
+    for (TestObject const& object : m_oneFrameTestObjects)
+        drawTestObject(object, false);
 
     vkCmdEndRenderPass(commandBuffer);
 
     commandBuffers.end(0);
+
+    m_oneFrameTestObjects.clear();
 }
 
 void vkgfx::Renderer::updateCameraBuffer()
 {
-    VkExtent2D extent = m_swapchain->getExtent();
-    auto aspectRatio = 1.0f * extent.width / extent.height;
+    {
+        VkExtent2D extent = m_swapchain->getExtent();
+        auto aspectRatio = 1.0f * extent.width / extent.height;
 
-    CameraData data{
-        .view = (tglm::translated(tglm::mat4::identity(), m_cameraTransform.position) * m_cameraTransform.rotation.to_mat4()).inversed(), // TODO rewrite this operation
-        .projection = tglm::perspective(tglm::radians(m_cameraParameters.fov), aspectRatio, m_cameraParameters.nearZ, m_cameraParameters.farZ),
-        .lightPosition = data.view * tglm::vec4(m_lightParameters.position, 1.0f),
-        .lightColor = m_lightParameters.intensity * m_lightParameters.color,
-    };
-    data.projection.data[1][1] *= -1; // TODO check if can be avoided
+        CameraData data{
+            .view = (tglm::translated(tglm::mat4::identity(), m_cameraTransform.position) * m_cameraTransform.rotation.to_mat4()).inversed(), // TODO rewrite this operation
+            .projection = tglm::perspective(tglm::radians(m_cameraParameters.fov), aspectRatio, m_cameraParameters.nearZ, m_cameraParameters.farZ),
+            .lightPosition = data.view * tglm::vec4(m_lightParameters.position, 1.0f),
+            .lightColor = m_lightParameters.intensity * m_lightParameters.color,
+        };
+        data.projection.data[1][1] *= -1; // TODO check if can be avoided
 
-    m_resourceManager->uploadDynamicBufferToStaging(m_cameraBuffer, &data, sizeof(data));
+        m_resourceManager->uploadDynamicBufferToStaging(m_cameraBuffer, &data, sizeof(data));
+    }
+
+    // Shadowmap
+    {
+        auto aspectRatio = 1.0f;
+        auto fov = 45.0f;
+        auto nearZ = 0.1f;
+        auto farZ = 10000.0f;
+
+        auto rotation = tglm::quat::from_euler_xyz(tglm::radians({ 0, 0, 0 })); // TODO fix
+
+        ShadowmapCameraData data{
+            .view = (tglm::translated(tglm::mat4::identity(), m_lightParameters.position) * rotation.to_mat4()).inversed(), // TODO rewrite this operation
+            .projection = tglm::perspective(tglm::radians(fov), aspectRatio, nearZ, farZ),
+        };
+        data.projection.data[1][1] *= -1; // TODO check if can be avoided
+
+        m_resourceManager->uploadDynamicBufferToStaging(m_shadowmapCameraBuffer, &data, sizeof(data));
+    }
 }
 
 void vkgfx::Renderer::createSwapchain()

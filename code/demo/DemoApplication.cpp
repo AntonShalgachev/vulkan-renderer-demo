@@ -1506,6 +1506,7 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
                     .vertexConfig = primitive.metadata.vertexConfig,
                     .renderConfig = {},
                     .pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DemoObjectPushConstants), } },
+                    .isShadowmap = true,
                 };
 
                 vkgfx::PipelineHandle shadowmapPipeline = resourceManager.getOrCreatePipeline(shadowmapPipelineKey);

@@ -42,5 +42,5 @@ size_t vkgfx::PipelineLayoutKey::hash() const
 
 size_t vkgfx::PipelineKey::hash() const
 {
-    return nstl::hash_values(shaderHandles, uniformConfigs, vertexConfig, renderConfig, pushConstantRanges);
+    return nstl::hash_values(shaderHandles, uniformConfigs, vertexConfig, renderConfig, pushConstantRanges, isShadowmap);
 }

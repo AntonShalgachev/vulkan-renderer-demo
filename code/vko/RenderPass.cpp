@@ -5,7 +5,7 @@
 
 #include "nstl/static_vector.h"
 
-vko::RenderPass::RenderPass(Device const& device, nstl::optional<VkFormat> colorFormat, nstl::optional<VkFormat> depthFormat, VkImageLayout finalDepthLayout) : m_device(device)
+vko::RenderPass::RenderPass(Device const& device, nstl::optional<VkFormat> colorFormat, nstl::optional<VkFormat> depthFormat, VkImageLayout finalDepthLayout, bool keepDepthValuesAfterRenderPass) : m_device(device)
 {
     nstl::static_vector<VkAttachmentDescription, 2> attachments;
     nstl::static_vector<VkAttachmentReference, 1> colorAttachmentRefs;
@@ -40,7 +40,7 @@ vko::RenderPass::RenderPass(Device const& device, nstl::optional<VkFormat> color
             .format = *depthFormat,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-            .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            .storeOp = keepDepthValuesAfterRenderPass ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE,
             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,

@@ -160,6 +160,7 @@ namespace vkgfx
         VertexConfiguration vertexConfig;
         RenderConfiguration renderConfig;
         nstl::vector<PushConstantRange> pushConstantRanges;
+        bool isShadowmap = false; // TODO remove this hack
 
         auto operator<=>(PipelineKey const&) const = default;
 

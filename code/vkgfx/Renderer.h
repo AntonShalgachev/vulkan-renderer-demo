@@ -94,6 +94,7 @@ namespace vkgfx
         size_t m_nextFrameResourcesIndex = 0;
 
         BufferHandle m_cameraBuffer;
+        BufferHandle m_shadowmapCameraBuffer;
         TestCameraTransform m_cameraTransform;
         TestCameraParameters m_cameraParameters;
         TestLightParameters m_lightParameters;

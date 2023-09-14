@@ -62,7 +62,7 @@ namespace vkgfx
     class ResourceManager
     {
     public:
-        ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, size_t resourceCount);
+        ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, vko::RenderPass const& shadowmapRenderPass, size_t resourceCount);
         ~ResourceManager();
 
         ImageHandle createImage(ImageMetadata metadata);
@@ -134,6 +134,7 @@ namespace vkgfx
         vko::PhysicalDevice const& m_physicalDevice; // TODO replace with the allocator
         vko::Queue const& m_uploadQueue;
         vko::RenderPass const& m_renderPass; // TODO remove
+        vko::RenderPass const& m_shadowmapRenderPass; // TODO remove
         size_t m_resourceCount = 0; // TODO rename
 
         nstl::unique_ptr<vko::CommandPool> m_uploadCommandPool;
