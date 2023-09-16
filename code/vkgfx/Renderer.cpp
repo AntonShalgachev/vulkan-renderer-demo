@@ -22,6 +22,7 @@
 #include "vko/Instance.h"
 #include "vko/Sampler.h"
 #include "vko/PhysicalDeviceSurfaceParameters.h"
+#include "vko/SamplerProperties.h"
 
 #include "vkgfx/Context.h"
 #include "vkgfx/ResourceManager.h"
@@ -52,6 +53,7 @@ namespace
     {
         tglm::mat4 view;
         tglm::mat4 projection;
+        tglm::mat4 lightViewProjection;
         alignas(16) tglm::vec3 lightPosition;
         alignas(16) tglm::vec3 lightColor;
     };
@@ -65,6 +67,7 @@ namespace
     int const FRAME_RESOURCE_COUNT = 3;
 
     constexpr uint32_t SHADOWMAP_RESOLUTION = 1024;
+    constexpr uint32_t SHADOWMAP_FOV = 90;
 
     VkFormat findSupportedFormat(vko::PhysicalDevice const& physicalDevice, nstl::span<VkFormat const> candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
     {
@@ -177,6 +180,7 @@ namespace vkgfx
 
         vko::DescriptorPool frameDescriptorPool;
         VkDescriptorSetLayout frameDescriptorSetLayout = VK_NULL_HANDLE;
+        VkDescriptorSetLayout shadowmapFrameDescriptorSetLayout = VK_NULL_HANDLE;
         VkDescriptorSet frameDescriptorSet = VK_NULL_HANDLE;
         VkDescriptorSet shadowmapFrameDescriptorSet = VK_NULL_HANDLE;
     };
@@ -366,6 +370,8 @@ vkgfx::Renderer::~Renderer()
 {
     m_context->getDevice().waitIdle();
 
+    m_resourceManager->removeSampler(m_shadowSampler);
+
     destroySwapchain();
 }
 
@@ -468,24 +474,50 @@ void vkgfx::Renderer::createCameraResources()
     m_cameraBuffer = m_resourceManager->createBuffer(sizeof(CameraData), nstl::move(metadata));
     m_shadowmapCameraBuffer = m_resourceManager->createBuffer(sizeof(ShadowmapCameraData), nstl::move(metadata));
 
-    DescriptorSetLayoutKey key = {
-        .uniformConfig = {
-            .hasBuffer = true,
-            .hasAlbedoTexture = false,
-            .hasNormalMap = false,
-        },
-    };
+    {
+        DescriptorSetLayoutKey key = {
+            .uniformConfig = {
+                .hasBuffer = true,
+                .hasAlbedoTexture = false,
+                .hasNormalMap = false,
+                .hasShadowMap = true,
+            },
+        };
 
-    m_frameDescriptorSetLayout = m_resourceManager->getOrCreateDescriptorSetLayout(key);
-    m_data->frameDescriptorSetLayout = m_resourceManager->getDescriptorSetLayout(m_frameDescriptorSetLayout).getHandle();
-    m_data->frameDescriptorPool.allocateRaw({ &m_data->frameDescriptorSetLayout, 1 }, { &m_data->frameDescriptorSet, 1 });
-    m_data->frameDescriptorPool.allocateRaw({ &m_data->frameDescriptorSetLayout, 1 }, { &m_data->shadowmapFrameDescriptorSet, 1 });
+        m_frameDescriptorSetLayout = m_resourceManager->getOrCreateDescriptorSetLayout(key);
+        m_data->frameDescriptorSetLayout = m_resourceManager->getDescriptorSetLayout(m_frameDescriptorSetLayout).getHandle();
+        m_data->frameDescriptorPool.allocateRaw({ &m_data->frameDescriptorSetLayout, 1 }, { &m_data->frameDescriptorSet, 1 });
+
+        m_shadowSampler = m_resourceManager->createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
+    }
+
+    {
+        DescriptorSetLayoutKey key = {
+            .uniformConfig = {
+                .hasBuffer = true,
+                .hasAlbedoTexture = false,
+                .hasNormalMap = false,
+                .hasShadowMap = false,
+            },
+        };
+
+        m_shadowmapFrameDescriptorSetLayout = m_resourceManager->getOrCreateDescriptorSetLayout(key);
+        m_data->shadowmapFrameDescriptorSetLayout = m_resourceManager->getDescriptorSetLayout(m_shadowmapFrameDescriptorSetLayout).getHandle();
+        m_data->frameDescriptorPool.allocateRaw({ &m_data->shadowmapFrameDescriptorSetLayout, 1 }, { &m_data->shadowmapFrameDescriptorSet, 1 });
+    }
 
     {
         Buffer const* frameUniformBuffer = m_resourceManager->getBuffer(m_cameraBuffer);
         assert(frameUniformBuffer);
 
         DescriptorSetUpdateConfig config{
+            .images = {
+                {
+                    .binding = 3,
+                    .imageView = m_shadowDepthImageView->getHandle(),
+                    .sampler = m_resourceManager->getSampler(m_shadowSampler)->getHandle(),
+                }
+            },
             .buffers = {
                 {
                     .binding = 0,
@@ -698,8 +730,8 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
         {
             scissor.offset.x = 0;
             scissor.offset.y = 0;
-            scissor.extent.width = m_width;
-            scissor.extent.height = m_height;
+            scissor.extent.width = isShadowmap ? SHADOWMAP_RESOLUTION : m_width;
+            scissor.extent.height = isShadowmap ? SHADOWMAP_RESOLUTION : m_height;
         }
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
@@ -799,6 +831,30 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
 
 void vkgfx::Renderer::updateCameraBuffer()
 {
+    tglm::mat4 lightView;
+    tglm::mat4 lightProjection;
+
+    // Shadowmap
+    {
+        auto aspectRatio = 1.0f;
+        auto nearZ = 0.1f;
+        auto farZ = 10000.0f;
+
+        auto rotation = tglm::quat::from_euler_xyz(tglm::radians({ 0, 0, 0 })); // TODO fix
+
+        lightView = (tglm::translated(tglm::mat4::identity(), m_lightParameters.position) * rotation.to_mat4()).inversed(); // TODO rewrite this operation
+        lightProjection = tglm::perspective(tglm::radians(SHADOWMAP_FOV), aspectRatio, nearZ, farZ);
+
+        ShadowmapCameraData data{
+            .view = lightView,
+            .projection = lightProjection,
+        };
+        data.projection.data[1][1] *= -1; // TODO check if can be avoided
+
+        m_resourceManager->uploadDynamicBufferToStaging(m_shadowmapCameraBuffer, &data, sizeof(data));
+    }
+
+    // Main
     {
         VkExtent2D extent = m_swapchain->getExtent();
         auto aspectRatio = 1.0f * extent.width / extent.height;
@@ -806,30 +862,13 @@ void vkgfx::Renderer::updateCameraBuffer()
         CameraData data{
             .view = (tglm::translated(tglm::mat4::identity(), m_cameraTransform.position) * m_cameraTransform.rotation.to_mat4()).inversed(), // TODO rewrite this operation
             .projection = tglm::perspective(tglm::radians(m_cameraParameters.fov), aspectRatio, m_cameraParameters.nearZ, m_cameraParameters.farZ),
+            .lightViewProjection = lightProjection * lightView,
             .lightPosition = data.view * tglm::vec4(m_lightParameters.position, 1.0f),
             .lightColor = m_lightParameters.intensity * m_lightParameters.color,
         };
         data.projection.data[1][1] *= -1; // TODO check if can be avoided
 
         m_resourceManager->uploadDynamicBufferToStaging(m_cameraBuffer, &data, sizeof(data));
-    }
-
-    // Shadowmap
-    {
-        auto aspectRatio = 1.0f;
-        auto fov = 45.0f;
-        auto nearZ = 0.1f;
-        auto farZ = 10000.0f;
-
-        auto rotation = tglm::quat::from_euler_xyz(tglm::radians({ 0, 0, 0 })); // TODO fix
-
-        ShadowmapCameraData data{
-            .view = (tglm::translated(tglm::mat4::identity(), m_lightParameters.position) * rotation.to_mat4()).inversed(), // TODO rewrite this operation
-            .projection = tglm::perspective(tglm::radians(fov), aspectRatio, nearZ, farZ),
-        };
-        data.projection.data[1][1] *= -1; // TODO check if can be avoided
-
-        m_resourceManager->uploadDynamicBufferToStaging(m_shadowmapCameraBuffer, &data, sizeof(data));
     }
 }
 

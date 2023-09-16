@@ -727,6 +727,7 @@ vkgfx::DescriptorSetLayoutHandle vkgfx::ResourceManager::createDescriptorSetLayo
     config.hasBuffer = key.uniformConfig.hasBuffer;
     config.hasTexture = key.uniformConfig.hasAlbedoTexture;
     config.hasNormalMap = key.uniformConfig.hasNormalMap;
+    config.hasShadowMap = key.uniformConfig.hasShadowMap;
 
     m_descriptorSetLayouts.emplace_back(m_device, nstl::move(config));
     m_descriptorSetLayoutHandles[key] = handle;
@@ -781,6 +782,7 @@ vkgfx::PipelineHandle vkgfx::ResourceManager::createPipeline(PipelineKey const& 
     config.wireframe = key.renderConfig.wireframe;
     config.depthTest = key.renderConfig.depthTest;
     config.alphaBlending = key.renderConfig.alphaBlending;
+    config.depthBias = key.renderConfig.depthBias;
 
     for (size_t i = 0; i < key.vertexConfig.bindings.size(); i++)
     {

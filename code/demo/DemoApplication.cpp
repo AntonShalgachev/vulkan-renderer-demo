@@ -799,6 +799,7 @@ void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, siz
                     .hasBuffer = true,
                     .hasAlbedoTexture = false,
                     .hasNormalMap = false,
+                    .hasShadowMap = true,
                 },
                 material.metadata.uniformConfig,
                 vkgfx::UniformConfiguration{
@@ -1451,6 +1452,7 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
                         .hasBuffer = true,
                         .hasAlbedoTexture = false,
                         .hasNormalMap = false,
+                        .hasShadowMap = true,
                     },
                     material.metadata.uniformConfig,
                     vkgfx::UniformConfiguration{
@@ -1504,7 +1506,9 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
                         },
                     },
                     .vertexConfig = primitive.metadata.vertexConfig,
-                    .renderConfig = {},
+                    .renderConfig = {
+                        .depthBias = true,
+                    },
                     .pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DemoObjectPushConstants), } },
                     .isShadowmap = true,
                 };

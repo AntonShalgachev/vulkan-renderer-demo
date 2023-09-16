@@ -57,7 +57,7 @@ namespace
         return viewportStateCreateInfo;
     }
 
-    VkPipelineRasterizationStateCreateInfo initRasterizerCreateInfo(bool cullBackFaces, bool wireframe)
+    VkPipelineRasterizationStateCreateInfo initRasterizerCreateInfo(bool cullBackFaces, bool wireframe, bool depthBias)
     {
 		VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo{};
 		rasterizerCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -67,10 +67,14 @@ namespace
 		rasterizerCreateInfo.lineWidth = 1.0f;
 		rasterizerCreateInfo.cullMode = cullBackFaces ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_NONE;
 		rasterizerCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-		rasterizerCreateInfo.depthBiasEnable = VK_FALSE;
-		rasterizerCreateInfo.depthBiasConstantFactor = 0.0f;
-		rasterizerCreateInfo.depthBiasClamp = 0.0f;
-		rasterizerCreateInfo.depthBiasSlopeFactor = 0.0f;
+
+		if (depthBias)
+		{
+			rasterizerCreateInfo.depthBiasEnable = VK_TRUE;
+			rasterizerCreateInfo.depthBiasConstantFactor = 4.0f;
+			rasterizerCreateInfo.depthBiasClamp = 0.0f;
+			rasterizerCreateInfo.depthBiasSlopeFactor = 1.5f;
+		}
 
         return rasterizerCreateInfo;
     }
@@ -151,7 +155,7 @@ vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, Rend
 	VkRect2D scissor{};
     VkPipelineViewportStateCreateInfo viewportStateCreateInfo = initViewportStateCreateInfo(viewport, scissor);
 
-    VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo = initRasterizerCreateInfo(config.cullBackFaces, config.wireframe);
+    VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo = initRasterizerCreateInfo(config.cullBackFaces, config.wireframe, config.depthBias);
 
     VkPipelineMultisampleStateCreateInfo multisamplingCreateInfo = initMultisamplingCreateInfo();
 

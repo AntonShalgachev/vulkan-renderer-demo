@@ -271,6 +271,7 @@ void ImGuiDrawer::createPipeline(vkgfx::ResourceManager& resourceManager)
             .hasBuffer = true,
             .hasAlbedoTexture = false,
             .hasNormalMap = false,
+            .hasShadowMap = true,
         },
         vkgfx::UniformConfiguration{
             .hasBuffer = false,

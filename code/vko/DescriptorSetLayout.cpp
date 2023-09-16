@@ -41,6 +41,16 @@ vko::DescriptorSetLayout::DescriptorSetLayout(Device const& device, DescriptorSe
         samplerLayoutBinding.pImmutableSamplers = nullptr;
     }
 
+    if (m_configuration.hasShadowMap)
+    {
+        VkDescriptorSetLayoutBinding& samplerLayoutBinding = bindings.emplace_back();
+        samplerLayoutBinding.binding = 3;
+        samplerLayoutBinding.descriptorCount = 1;
+        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        samplerLayoutBinding.pImmutableSamplers = nullptr;
+    }
+
     VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{};
     descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     descriptorSetLayoutCreateInfo.bindingCount = static_cast<uint32_t>(bindings.size());

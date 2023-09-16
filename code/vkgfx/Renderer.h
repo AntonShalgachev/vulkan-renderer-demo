@@ -89,6 +89,7 @@ namespace vkgfx
         nstl::unique_ptr<vko::ImageView> m_shadowDepthImageView;
         nstl::unique_ptr<vko::RenderPass> m_shadowRenderPass;
         nstl::unique_ptr<vko::Framebuffer> m_shadowFramebuffer;
+        SamplerHandle m_shadowSampler;
 
         nstl::vector<RendererFrameResources> m_frameResources;
         size_t m_nextFrameResourcesIndex = 0;
@@ -99,6 +100,7 @@ namespace vkgfx
         TestCameraParameters m_cameraParameters;
         TestLightParameters m_lightParameters;
         DescriptorSetLayoutHandle m_frameDescriptorSetLayout;
+        DescriptorSetLayoutHandle m_shadowmapFrameDescriptorSetLayout;
 
         nstl::vector<TestObject> m_oneFrameTestObjects;
 

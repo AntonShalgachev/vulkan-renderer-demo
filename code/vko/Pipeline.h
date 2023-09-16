@@ -28,6 +28,7 @@ namespace vko
             bool wireframe = false;
             bool depthTest = true;
             bool alphaBlending = false;
+            bool depthBias = false;
         };
 
     	explicit Pipeline(Device const& device, PipelineLayout const& layout, RenderPass const& renderPass, nstl::span<ShaderModule const*> shaderModules, Config const& config);

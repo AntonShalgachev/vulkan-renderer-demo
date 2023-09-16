@@ -41,6 +41,7 @@ namespace vkgfx
         bool hasBuffer = true;
         bool hasAlbedoTexture = true;
         bool hasNormalMap = false;
+        bool hasShadowMap = false;
 
         auto operator<=>(UniformConfiguration const&) const = default;
 
@@ -98,6 +99,7 @@ namespace vkgfx
         bool wireframe = false;
         bool depthTest = true;
         bool alphaBlending = false;
+        bool depthBias = false;
 
         auto operator<=>(RenderConfiguration const&) const = default;
 

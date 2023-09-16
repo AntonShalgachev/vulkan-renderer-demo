@@ -132,6 +132,7 @@ DebugDrawService::DebugDrawService(vkgfx::Renderer& renderer)
                 .hasBuffer = true,
                 .hasAlbedoTexture = false,
                 .hasNormalMap = false,
+                .hasShadowMap = true,
             },
             vkgfx::UniformConfiguration{
                 .hasBuffer = false,

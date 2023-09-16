@@ -17,6 +17,7 @@ namespace vko
         bool hasBuffer = false;
         bool hasTexture = false;
         bool hasNormalMap = false;
+        bool hasShadowMap = false;
 
         auto operator<=>(DescriptorSetConfiguration const& rhs) const = default;
     };
