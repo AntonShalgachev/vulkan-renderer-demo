@@ -23,6 +23,7 @@ namespace picofmt
         general_upper,   // 'G'
         chr,             // 'c'
         string,          // 's'
+        pointer,         // 'p'
     };
 
     enum class align
@@ -83,6 +84,7 @@ namespace picofmt
 
         case presentation_type::chr: return false;
         case presentation_type::string: return false;
+        case presentation_type::pointer: return false;
         }
 
         assert(false);

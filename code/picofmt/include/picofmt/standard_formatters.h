@@ -24,6 +24,8 @@ namespace picofmt
 
 #define PICOFMT_CREATE_FORMATTER(T) template<> struct formatter<T> : detail::standard_formatter_base { bool format(T const& value, context& ctx) const { return format_value(value, format_spec, ctx); } };
 
+    PICOFMT_CREATE_FORMATTER(void*);
+    
     PICOFMT_CREATE_FORMATTER(bool);
 
     PICOFMT_CREATE_FORMATTER(char);

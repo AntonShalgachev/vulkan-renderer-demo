@@ -37,6 +37,7 @@ namespace
         case 'G': type = picofmt::presentation_type::general_upper; return true;
         case 'c': type = picofmt::presentation_type::chr; return true;
         case 's': type = picofmt::presentation_type::string; return true;
+        case 'p': type = picofmt::presentation_type::pointer; return true;
         }
 
         return false;

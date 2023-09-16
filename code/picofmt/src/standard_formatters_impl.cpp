@@ -310,6 +310,21 @@ namespace
     }
 }
 
+bool picofmt::detail::format_value(void* const& value, generic_format_spec const& format_spec, context_base const& ctx)
+{
+    if (format_spec.type != presentation_type::none && format_spec.type != presentation_type::pointer)
+    {
+        ctx.report_error("Presentation type not supported for this type");
+        return false;
+    }
+
+    generic_format_spec spec = format_spec;
+    spec.type = presentation_type::hex_lower;
+    spec.alternative_representation = true;
+
+    return format_integer(reinterpret_cast<uintptr_t>(value), spec, ctx);
+}
+
 bool picofmt::detail::format_value(bool const& value, generic_format_spec const& format_spec, context_base const& ctx)
 {
     if (format_spec.type == presentation_type::none || format_spec.type == presentation_type::string)
@@ -317,7 +332,7 @@ bool picofmt::detail::format_value(bool const& value, generic_format_spec const&
 
     if (is_integer_type(format_spec.type))
         return format_integer(static_cast<unsigned short>(value), format_spec, ctx);
-    
+
     ctx.report_error("Presentation type not supported for this type");
     return false;
 }

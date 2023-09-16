@@ -13,6 +13,8 @@ namespace picofmt
 
 #define PICOFMT_DECLARE_FORMATTER(T) bool format_value(T const& value, generic_format_spec const& format_spec, context_base const& ctx);
 
+        PICOFMT_DECLARE_FORMATTER(void*);
+
         PICOFMT_DECLARE_FORMATTER(bool);
         PICOFMT_DECLARE_FORMATTER(char);
 
