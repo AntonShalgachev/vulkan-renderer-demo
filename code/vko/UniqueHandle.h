@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/fmt.h"
+
 #include <vulkan/vulkan.h>
 
 namespace vko
@@ -55,3 +57,12 @@ namespace vko
         T m_handle = VK_NULL_HANDLE;
     };
 }
+
+template<typename T>
+struct picofmt::formatter<vko::UniqueHandle<T>> : public picofmt::formatter<void*>
+{
+    bool format(vko::UniqueHandle<T> const& value, context& ctx) const
+    {
+        return picofmt::formatter<void*>::format(value.get(), ctx);
+    }
+};
