@@ -9,6 +9,7 @@
 layout(set = 0, binding = 0) uniform FrameUniformBuffer {
     mat4 view;
     mat4 projection;
+    mat4 lightViewProjection;
     vec3 lightPosition;
     vec3 lightColor;
 } frameUniforms;
@@ -57,6 +58,8 @@ layout(location = 7) out vec4 objectColor;
 layout(location = 8) out vec3 fragBitangent;
 #endif
 
+layout(location = 9) out vec4 shadowCoord;
+
 void main()
 {
     mat4 modelView = frameUniforms.view * pcs.model;
@@ -88,4 +91,6 @@ void main()
 	lightVec = frameUniforms.lightPosition - viewPos.xyz;
 	viewVec = viewPos.xyz;
     lightColor = frameUniforms.lightColor;
+
+    shadowCoord = frameUniforms.lightViewProjection * pcs.model * vec4(inPosition, 1.0);
 }

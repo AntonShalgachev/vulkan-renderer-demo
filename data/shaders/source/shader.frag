@@ -1,6 +1,8 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
+layout(set = 0, binding = 3) uniform sampler2D shadowMap;
+
 #ifdef HAS_TEXTURE
 layout(set = 1, binding = 1) uniform sampler2D texSampler;
 #endif
@@ -43,6 +45,8 @@ layout(location = 7) in vec4 objectColor;
 layout(location = 8) in vec3 fragBitangent;
 #endif
 
+layout(location = 9) in vec4 shadowCoord;
+
 layout(location = 0) out vec4 outColor;
 
 float gamma = 2.2;
@@ -80,6 +84,25 @@ vec3 getNormalVector()
 #endif
 }
 #endif
+
+float computeShadowFactor(vec4 shadowCoord)
+{
+	if (abs(shadowCoord.x) > 1.0)
+		return 0.1;
+	if (abs(shadowCoord.y) > 1.0)
+		return 0.1;
+	if (abs(shadowCoord.z) > 1.0)
+		return 0.1;
+
+	vec2 uv = shadowCoord.xy * 0.5 + 0.5;
+	uv.y *= -1.0;
+
+	float dist = texture(shadowMap, uv).r;
+	if (shadowCoord.z > 0.0 && dist < shadowCoord.z)
+		return 0.1;
+
+	return 1.0;
+}
 
 const float PI = 3.14159265359;
 const float metallic = 0.0;
@@ -180,6 +203,8 @@ void main()
 #ifdef HAS_LIGHT
 	color = applyLighting(color);
 #endif
+
+	color *= computeShadowFactor(shadowCoord / shadowCoord.w);
 
 	color = color / (color + vec3(1.0));
 
