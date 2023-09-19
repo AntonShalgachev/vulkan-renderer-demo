@@ -105,6 +105,7 @@ namespace
 
         case picofmt::presentation_type::chr: return false;
         case picofmt::presentation_type::string: return false;
+        case picofmt::presentation_type::pointer: params = { formats.hex_lower_fmt, "0x" }; return true;
         }
 
         return false;
@@ -133,9 +134,15 @@ namespace
 
         case picofmt::presentation_type::chr: return false;
         case picofmt::presentation_type::string: return false;
+        case picofmt::presentation_type::pointer: return false;
         }
 
         return false;
+    }
+
+    bool uses_alternative_representation(picofmt::presentation_type type)
+    {
+        return type == picofmt::presentation_type::pointer;
     }
 
     bool write_value_string(picofmt::generic_format_spec const& format_spec, picofmt::detail::simple_string_view value_str, picofmt::detail::simple_string_view prefix_str, picofmt::detail::context_base const& ctx)
@@ -227,7 +234,7 @@ namespace
             break;
         }
 
-        if (format_spec.alternative_representation)
+        if (format_spec.alternative_representation || uses_alternative_representation(format_spec.type))
             append_prefix(radix_prefix);
 
         return { prefix_buffer, prefix_length };
@@ -319,8 +326,7 @@ bool picofmt::detail::format_value(void* const& value, generic_format_spec const
     }
 
     generic_format_spec spec = format_spec;
-    spec.type = presentation_type::hex_lower;
-    spec.alternative_representation = true;
+    spec.type = presentation_type::pointer;
 
     return format_integer(reinterpret_cast<uintptr_t>(value), spec, ctx);
 }
