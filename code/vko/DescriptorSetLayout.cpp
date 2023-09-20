@@ -16,7 +16,7 @@ vko::DescriptorSetLayout::DescriptorSetLayout(Device const& device, DescriptorSe
         VkDescriptorSetLayoutBinding& uboLayoutBinding = bindings.emplace_back();
         uboLayoutBinding.binding = 0;
         uboLayoutBinding.descriptorCount = 1;
-        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT; // TODO specify dynamically
         uboLayoutBinding.pImmutableSamplers = nullptr;
     }

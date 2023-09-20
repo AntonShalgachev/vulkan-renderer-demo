@@ -349,8 +349,8 @@ void ImGuiDrawer::uploadBuffers(vkgfx::ResourceManager& resourceManager, ImDrawD
         auto vertexChunkSize = cmdList->VtxBuffer.Size * sizeof(ImDrawVert);
         auto indexChunkSize = cmdList->IdxBuffer.Size * sizeof(ImDrawIdx);
 
-        resourceManager.uploadDynamicBufferToStaging(m_vertexBuffer, cmdList->VtxBuffer.Data, vertexChunkSize, nextVertexBufferOffset);
-        resourceManager.uploadDynamicBufferToStaging(m_indexBuffer, cmdList->IdxBuffer.Data, indexChunkSize, nextIndexBufferOffset);
+        resourceManager.uploadBuffer(m_vertexBuffer, { cmdList->VtxBuffer.Data, vertexChunkSize }, nextVertexBufferOffset);
+        resourceManager.uploadBuffer(m_indexBuffer, { cmdList->IdxBuffer.Data, indexChunkSize }, nextIndexBufferOffset);
 
         nextVertexBufferOffset += vertexChunkSize;
         nextIndexBufferOffset += indexChunkSize;

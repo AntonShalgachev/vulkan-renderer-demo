@@ -211,6 +211,11 @@ vkgfx::ResourceManager::ResourceManager(vko::Device const& device, vko::Physical
 
 vkgfx::ResourceManager::~ResourceManager() = default;
 
+void vkgfx::ResourceManager::setSubresourceIndex(size_t index)
+{
+    m_currentSubresourceIndex = index;
+}
+
 vkgfx::ImageHandle vkgfx::ResourceManager::createImage(ImageMetadata metadata)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
@@ -333,32 +338,42 @@ vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(size_t size, BufferMeta
 
     size_t alignedSize = alignSize(size, m_physicalDevice.getProperties().limits.minUniformBufferOffsetAlignment);
 
-    size_t totalBufferSize = size;
-    if (metadata.isMutable)
-        totalBufferSize = alignedSize * m_resourceCount;
+    nstl::vector<vko::Buffer> buffers;
 
-    vko::Buffer buffer{m_device, totalBufferSize, bufferUsageFlags };
-    vko::DeviceMemory memory{ m_device, m_physicalDevice, buffer.getMemoryRequirements(), memoryPropertiesFlags };
-    buffer.bindMemory(memory);
+    size_t subresourceCount = metadata.isMutable ? m_resourceCount : 1;
+    size_t totalBufferSize = alignedSize * subresourceCount;
+
+    VkMemoryRequirements memoryRequirements{};
+    for (size_t i = 0; i < subresourceCount; i++)
+    {
+        buffers.emplace_back(m_device, alignedSize, bufferUsageFlags);
+
+        VkMemoryRequirements subresourceMemoryRequirements = buffers.back().getMemoryRequirements();
+
+        memoryRequirements.size += subresourceMemoryRequirements.size;
+        memoryRequirements.alignment = nstl::max(memoryRequirements.alignment, subresourceMemoryRequirements.alignment);
+
+        if (memoryRequirements.memoryTypeBits != 0)
+            assert(memoryRequirements.memoryTypeBits == subresourceMemoryRequirements.memoryTypeBits);
+        memoryRequirements.memoryTypeBits = subresourceMemoryRequirements.memoryTypeBits;
+    }
+
+    vko::DeviceMemory memory{ m_device, m_physicalDevice, memoryRequirements, memoryPropertiesFlags };
+
+    for (vko::Buffer& buffer : buffers)
+        buffer.bindMemory(memory);
 
     Buffer bufferResource{
         .memory = nstl::move(memory),
-        .buffer = nstl::move(buffer),
+        .buffers = nstl::move(buffers),
         .metadata = nstl::move(metadata),
         .size = size,
-        .realSize = totalBufferSize,
     };
-
-    if (metadata.isMutable)
-    {
-        bufferResource.stagingBuffer.resize(size);
-        bufferResource.alignedSize = alignedSize;
-    }
 
     return { m_buffers.add(nstl::move(bufferResource)) };
 }
 
-void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, nstl::blob_view bytes)
+void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, nstl::blob_view bytes, size_t offset)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
@@ -367,59 +382,7 @@ void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, nstl::blob_view b
     Buffer const* buffer = getBuffer(handle);
     assert(buffer);
 
-    assert(!buffer->metadata.isMutable);
-
-    return uploadBuffer(*buffer, bytes.data(), bytes.size(), 0);
-}
-
-void vkgfx::ResourceManager::uploadDynamicBufferToStaging(BufferHandle handle, void const* data, size_t dataSize, size_t offset)
-{
-    MEMORY_TRACKING_SCOPE(scopeId);
-
-    assert(handle);
-
-    Buffer* buffer = getBuffer(handle);
-    assert(buffer);
-
-    assert(buffer->metadata.isMutable);
-    assert(buffer->stagingBuffer.size() - offset >= dataSize);
-
-    memcpy(buffer->stagingBuffer.data() + offset, data, dataSize);
-
-    size_t start = offset;
-    size_t end = offset + dataSize;
-
-    buffer->stagingDirtyStart = nstl::min(buffer->stagingDirtyStart, start);
-    buffer->stagingDirtyEnd = nstl::max(buffer->stagingDirtyEnd, end);
-}
-
-void vkgfx::ResourceManager::transferDynamicBuffersFromStaging(size_t resourceIndex)
-{
-    MEMORY_TRACKING_SCOPE(scopeId);
-
-    assert(resourceIndex < m_resourceCount);
-
-    for (Buffer& buffer : m_buffers)
-    {
-        if (!buffer.metadata.isMutable)
-            continue;
-
-        size_t dirtyOffset = buffer.stagingDirtyStart;
-        size_t dirtySize = buffer.stagingDirtyEnd - buffer.stagingDirtyStart;
-
-        if (dirtySize == 0)
-            continue;
-
-        size_t bufferOffset = buffer.alignedSize * resourceIndex;
-
-        void* data = buffer.stagingBuffer.data() + dirtyOffset;
-        size_t size = dirtySize;
-
-        uploadBuffer(buffer, data, size, bufferOffset + dirtyOffset);
-
-        buffer.stagingDirtyStart = 0;
-        buffer.stagingDirtyEnd = 0;
-    }
+    return uploadBuffer(*buffer, bytes.data(), bytes.size(), offset);
 }
 
 size_t vkgfx::ResourceManager::getBufferSize(BufferHandle handle) const
@@ -671,7 +634,7 @@ void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, void const* data
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    assert(buffer.realSize - offset >= dataSize);
+    assert(buffer.size - offset >= dataSize);
 
     if (buffer.metadata.location == BufferLocation::DeviceLocal)
     {
@@ -679,12 +642,16 @@ void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, void const* data
         stagingBuffer.memory().copyFrom(data, dataSize);
 
         OneTimeCommandBuffer commandBuffer{ *m_uploadCommandPool, m_uploadQueue };
-        vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), 0, buffer.buffer, offset, dataSize);
+        assert(!buffer.metadata.isMutable); // Not implemented yet
+        vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), 0, buffer.buffers[0], offset, dataSize);
         commandBuffer.submit();
     }
     else
     {
-        buffer.memory.copyFrom(data, dataSize, offset);
+        size_t index = buffer.metadata.isMutable ? m_currentSubresourceIndex : 0;
+        size_t subresourceOffset = index * buffer.size;
+        assert(subresourceOffset + buffer.size <= buffer.memory.getRequirements().size);
+        buffer.memory.copyFrom(data, dataSize, subresourceOffset + offset);
     }
 }
 

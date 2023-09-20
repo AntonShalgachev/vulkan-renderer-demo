@@ -181,8 +181,8 @@ namespace vkgfx
         vko::DescriptorPool frameDescriptorPool;
         VkDescriptorSetLayout frameDescriptorSetLayout = VK_NULL_HANDLE;
         VkDescriptorSetLayout shadowmapFrameDescriptorSetLayout = VK_NULL_HANDLE;
-        VkDescriptorSet frameDescriptorSet = VK_NULL_HANDLE;
-        VkDescriptorSet shadowmapFrameDescriptorSet = VK_NULL_HANDLE;
+        nstl::vector<VkDescriptorSet> frameDescriptorSets; // TODO: use nstl::array
+        nstl::vector<VkDescriptorSet> shadowmapFrameDescriptorSets; // TODO: use nstl::array
     };
 
     struct RendererFrameResources
@@ -205,7 +205,6 @@ namespace vkgfx
 
         DescriptorSetUpdateConfig config1;
         DescriptorSetUpdateConfig config2;
-        nstl::vector<uint32_t> dynamicBufferOffsets12;
 
         nstl::vector<VkDescriptorBufferInfo> bufferInfos;
         nstl::vector<VkDescriptorImageInfo> imageInfos;
@@ -243,7 +242,7 @@ namespace
             descriptorWrite.dstSet = set;
             descriptorWrite.dstBinding = buffer.binding;
             descriptorWrite.dstArrayElement = 0;
-            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             descriptorWrite.descriptorCount = 1;
             descriptorWrite.pBufferInfo = &bufferInfo;
         }
@@ -426,9 +425,7 @@ void vkgfx::Renderer::draw()
     frameResources.inFlightFence.reset();
 
     // TODO don't update camera buffer every frame
-    // TODO update camera buffer directly without staging buffer
     updateCameraBuffer();
-    m_resourceManager->transferDynamicBuffersFromStaging(m_nextFrameResourcesIndex);
 
     recordCommandBuffer(imageIndex, frameResources);
     frameResources.commandBuffers.submit(0, device.getGraphicsQueue(), &frameResources.renderFinishedSemaphore, &frameResources.imageAvailableSemaphore, &frameResources.inFlightFence);
@@ -453,6 +450,7 @@ void vkgfx::Renderer::draw()
         recreateSwapchain();
 
     m_nextFrameResourcesIndex = (m_nextFrameResourcesIndex + 1) % FRAME_RESOURCE_COUNT;
+    m_resourceManager->setSubresourceIndex(m_nextFrameResourcesIndex);
 }
 
 void vkgfx::Renderer::onWindowResized()
@@ -486,7 +484,13 @@ void vkgfx::Renderer::createCameraResources()
 
         m_frameDescriptorSetLayout = m_resourceManager->getOrCreateDescriptorSetLayout(key);
         m_data->frameDescriptorSetLayout = m_resourceManager->getDescriptorSetLayout(m_frameDescriptorSetLayout).getHandle();
-        m_data->frameDescriptorPool.allocateRaw({ &m_data->frameDescriptorSetLayout, 1 }, { &m_data->frameDescriptorSet, 1 });
+
+        nstl::array<VkDescriptorSetLayout, FRAME_RESOURCE_COUNT> layouts;
+        for (VkDescriptorSetLayout& layout : layouts)
+            layout = m_data->frameDescriptorSetLayout;
+
+        m_data->frameDescriptorSets.resize(FRAME_RESOURCE_COUNT);
+        m_data->frameDescriptorPool.allocateRaw(layouts, m_data->frameDescriptorSets);
 
         m_shadowSampler = m_resourceManager->createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
     }
@@ -503,9 +507,16 @@ void vkgfx::Renderer::createCameraResources()
 
         m_shadowmapFrameDescriptorSetLayout = m_resourceManager->getOrCreateDescriptorSetLayout(key);
         m_data->shadowmapFrameDescriptorSetLayout = m_resourceManager->getDescriptorSetLayout(m_shadowmapFrameDescriptorSetLayout).getHandle();
-        m_data->frameDescriptorPool.allocateRaw({ &m_data->shadowmapFrameDescriptorSetLayout, 1 }, { &m_data->shadowmapFrameDescriptorSet, 1 });
+
+        nstl::array<VkDescriptorSetLayout, FRAME_RESOURCE_COUNT> layouts;
+        for (VkDescriptorSetLayout& layout : layouts)
+            layout = m_data->shadowmapFrameDescriptorSetLayout;
+
+        m_data->shadowmapFrameDescriptorSets.resize(FRAME_RESOURCE_COUNT);
+        m_data->frameDescriptorPool.allocateRaw(layouts, m_data->shadowmapFrameDescriptorSets);
     }
 
+    for (size_t i = 0; i < FRAME_RESOURCE_COUNT; i++)
     {
         Buffer const* frameUniformBuffer = m_resourceManager->getBuffer(m_cameraBuffer);
         assert(frameUniformBuffer);
@@ -521,15 +532,17 @@ void vkgfx::Renderer::createCameraResources()
             .buffers = {
                 {
                     .binding = 0,
-                    .buffer = frameUniformBuffer->buffer.getHandle(),
+                    .buffer = frameUniformBuffer->buffers[i].getHandle(),
                     .offset = 0,
                     .size = frameUniformBuffer->size,
                 },
             },
         };
 
-        updateDescriptorSet(m_context->getDevice().getHandle(), m_data->frameDescriptorSet, config, *m_cache);
+        updateDescriptorSet(m_context->getDevice().getHandle(), m_data->frameDescriptorSets[i], config, *m_cache);
     }
+
+    for (size_t i = 0; i < FRAME_RESOURCE_COUNT; i++)
     {
         Buffer const* frameUniformBuffer = m_resourceManager->getBuffer(m_shadowmapCameraBuffer);
         assert(frameUniformBuffer);
@@ -538,14 +551,14 @@ void vkgfx::Renderer::createCameraResources()
             .buffers = {
                 {
                     .binding = 0,
-                    .buffer = frameUniformBuffer->buffer.getHandle(),
+                    .buffer = frameUniformBuffer->buffers[i].getHandle(),
                     .offset = 0,
                     .size = frameUniformBuffer->size,
                 },
             },
         };
 
-        updateDescriptorSet(m_context->getDevice().getHandle(), m_data->shadowmapFrameDescriptorSet, config, *m_cache);
+        updateDescriptorSet(m_context->getDevice().getHandle(), m_data->shadowmapFrameDescriptorSets[i], config, *m_cache);
     }
 }
 
@@ -582,12 +595,8 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
 
         if (currentPipelineLayoutForDescriptorSets != pipeline.getPipelineLayoutHandle())
         {
-            BufferHandle bufferHandle = isShadowmap ? m_shadowmapCameraBuffer : m_cameraBuffer;
-            auto buffer = m_resourceManager->getBuffer(bufferHandle);
-            assert(buffer);
-            auto frameUniformBufferOffset = static_cast<uint32_t>(buffer->getDynamicOffset(m_nextFrameResourcesIndex));
-            VkDescriptorSet frameDescriptorSet = isShadowmap ? m_data->shadowmapFrameDescriptorSet : m_data->frameDescriptorSet;
-            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 0, 1, &frameDescriptorSet, 1, &frameUniformBufferOffset);
+            VkDescriptorSet frameDescriptorSet = isShadowmap ? m_data->shadowmapFrameDescriptorSets[m_nextFrameResourcesIndex] : m_data->frameDescriptorSets[m_nextFrameResourcesIndex];
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 0, 1, &frameDescriptorSet, 0, nullptr);
 
             currentPipelineLayoutForDescriptorSets = pipeline.getPipelineLayoutHandle();
         }
@@ -623,7 +632,6 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
             // TODO refactor this hack
             m_cache->config1.clear();
             m_cache->config2.clear();
-            m_cache->dynamicBufferOffsets12.clear();
 
             m_cache->config1.buffers.reserve(1);
             m_cache->config1.images.reserve(2);
@@ -636,12 +644,10 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
 
                 m_cache->config1.buffers.push_back({
                     .binding = 0,
-                    .buffer = materialUniformBuffer->buffer.getHandle(),
+                    .buffer = materialUniformBuffer->getBuffer(m_nextFrameResourcesIndex).getHandle(),
                     .offset = 0,
                     .size = materialUniformBuffer->size,
                 });
-
-                m_cache->dynamicBufferOffsets12.push_back(static_cast<uint32_t>(materialUniformBuffer->getDynamicOffset(m_nextFrameResourcesIndex)));
             }
 
             if (object.uniformBuffer)
@@ -651,12 +657,10 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
 
                 m_cache->config2.buffers.push_back({
                     .binding = 0,
-                    .buffer = objectUniformBuffer->buffer.getHandle(),
+                    .buffer = objectUniformBuffer->getBuffer(m_nextFrameResourcesIndex).getHandle(),
                     .offset = 0,
                     .size = objectUniformBuffer->size,
                 });
-
-                m_cache->dynamicBufferOffsets12.push_back(static_cast<uint32_t>(objectUniformBuffer->getDynamicOffset(m_nextFrameResourcesIndex)));
             }
 
             if (material->albedo)
@@ -694,7 +698,7 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
             updateDescriptorSet(m_context->getDevice().getHandle(), m_cache->descriptorSets[0], m_cache->config1, *m_cache);
             updateDescriptorSet(m_context->getDevice().getHandle(), m_cache->descriptorSets[1], m_cache->config2, *m_cache);
 
-            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 1, m_cache->descriptorSets.size(), m_cache->descriptorSets.data(), m_cache->dynamicBufferOffsets12.size(), m_cache->dynamicBufferOffsets12.data());
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 1, m_cache->descriptorSets.size(), m_cache->descriptorSets.data(), 0, nullptr);
 
             boundMaterial = object.material;
         }
@@ -710,13 +714,13 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
         {
             Buffer const* vertexBuffer = m_resourceManager->getBuffer(bufferWithOffset.buffer);
             assert(vertexBuffer);
-            m_cache->vertexBuffers.push_back(vertexBuffer->buffer.getHandle());
-            m_cache->vertexBuffersOffsets.push_back(vertexBuffer->getDynamicOffset(m_nextFrameResourcesIndex) + bufferWithOffset.offset);
+            m_cache->vertexBuffers.push_back(vertexBuffer->getBuffer(m_nextFrameResourcesIndex).getHandle());
+            m_cache->vertexBuffersOffsets.push_back(bufferWithOffset.offset);
         }
 
         Buffer const* indexBuffer = m_resourceManager->getBuffer(mesh->indexBuffer.buffer);
         assert(indexBuffer);
-        VkDeviceSize indexBufferOffset = indexBuffer->getDynamicOffset(m_nextFrameResourcesIndex) + mesh->indexBuffer.offset;
+        VkDeviceSize indexBufferOffset = mesh->indexBuffer.offset;
 
         VkRect2D scissor;
         if (object.hasScissors)
@@ -736,7 +740,7 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
         vkCmdBindVertexBuffers(commandBuffer, 0, static_cast<uint32_t>(m_cache->vertexBuffersOffsets.size()), m_cache->vertexBuffers.data(), m_cache->vertexBuffersOffsets.data());
-        vkCmdBindIndexBuffer(commandBuffer, indexBuffer->buffer.getHandle(), indexBufferOffset, vulkanizeIndexType(mesh->indexType));
+        vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getBuffer(m_nextFrameResourcesIndex).getHandle(), indexBufferOffset, vulkanizeIndexType(mesh->indexType));
 
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh->indexCount), 1, static_cast<uint32_t>(mesh->indexOffset), static_cast<uint32_t>(mesh->vertexOffset), 0);
     };
@@ -851,7 +855,7 @@ void vkgfx::Renderer::updateCameraBuffer()
         };
         data.projection.data[1][1] *= -1; // TODO check if can be avoided
 
-        m_resourceManager->uploadDynamicBufferToStaging(m_shadowmapCameraBuffer, &data, sizeof(data));
+        m_resourceManager->uploadBuffer(m_shadowmapCameraBuffer, { &data, sizeof(data) });
     }
 
     // Main
@@ -868,7 +872,7 @@ void vkgfx::Renderer::updateCameraBuffer()
         };
         data.projection.data[1][1] *= -1; // TODO check if can be avoided
 
-        m_resourceManager->uploadDynamicBufferToStaging(m_cameraBuffer, &data, sizeof(data));
+        m_resourceManager->uploadBuffer(m_cameraBuffer, { &data, sizeof(data) });
     }
 }
 

@@ -65,6 +65,8 @@ namespace vkgfx
         ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, vko::RenderPass const& shadowmapRenderPass, size_t resourceCount);
         ~ResourceManager();
 
+        void setSubresourceIndex(size_t index);
+
         ImageHandle createImage(ImageMetadata metadata);
         void uploadImage(ImageHandle handle, void const* data, size_t dataSize);
         void uploadImage(ImageHandle handle, nstl::blob_view bytes);
@@ -74,9 +76,7 @@ namespace vkgfx
 
         void reserveMoreBuffers(size_t size);
         BufferHandle createBuffer(size_t size, BufferMetadata metadata);
-        void uploadBuffer(BufferHandle handle, nstl::blob_view bytes);
-        void uploadDynamicBufferToStaging(BufferHandle handle, void const* data, size_t dataSize, size_t offset = 0);
-        void transferDynamicBuffersFromStaging(size_t resourceIndex);
+        void uploadBuffer(BufferHandle handle, nstl::blob_view bytes, size_t offset = 0);
         size_t getBufferSize(BufferHandle handle) const;
         Buffer* getBuffer(BufferHandle handle);
         Buffer const* getBuffer(BufferHandle handle) const;
@@ -136,6 +136,8 @@ namespace vkgfx
         vko::RenderPass const& m_renderPass; // TODO remove
         vko::RenderPass const& m_shadowmapRenderPass; // TODO remove
         size_t m_resourceCount = 0; // TODO rename
+
+        size_t m_currentSubresourceIndex = 0;
 
         nstl::unique_ptr<vko::CommandPool> m_uploadCommandPool;
 

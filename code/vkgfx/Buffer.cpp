@@ -1,9 +1,7 @@
 #include "Buffer.h"
 
-size_t vkgfx::Buffer::getDynamicOffset(size_t resourceIndex) const
+vko::Buffer const& vkgfx::Buffer::getBuffer(size_t subresourceIndex) const
 {
-    if (!metadata.isMutable)
-        return 0;
-
-    return alignedSize * resourceIndex;
+    size_t index = metadata.isMutable ? subresourceIndex : 0;
+    return buffers[index];
 }

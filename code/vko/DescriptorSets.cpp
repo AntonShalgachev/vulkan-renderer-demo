@@ -34,7 +34,7 @@ void vko::DescriptorSets::update(UpdateConfig const& updateConfig)
         descriptorWrite.dstSet = m_handles[buffer.set];
         descriptorWrite.dstBinding = buffer.binding;
         descriptorWrite.dstArrayElement = 0;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         descriptorWrite.descriptorCount = 1;
         descriptorWrite.pBufferInfo = &bufferInfo;
     }
