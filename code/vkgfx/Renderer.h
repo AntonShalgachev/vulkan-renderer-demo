@@ -93,6 +93,7 @@ namespace vkgfx
 
         nstl::vector<RendererFrameResources> m_frameResources;
         size_t m_nextFrameResourcesIndex = 0;
+        uint64_t m_nextFrameIndex = 0;
 
         BufferHandle m_cameraBuffer;
         BufferHandle m_shadowmapCameraBuffer;

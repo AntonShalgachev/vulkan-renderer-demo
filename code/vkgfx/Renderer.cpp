@@ -450,7 +450,9 @@ void vkgfx::Renderer::draw()
         recreateSwapchain();
 
     m_nextFrameResourcesIndex = (m_nextFrameResourcesIndex + 1) % FRAME_RESOURCE_COUNT;
-    m_resourceManager->setSubresourceIndex(m_nextFrameResourcesIndex);
+
+    m_nextFrameIndex++;
+    m_resourceManager->setFrameIndex(m_nextFrameIndex);
 }
 
 void vkgfx::Renderer::onWindowResized()
@@ -644,7 +646,7 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
 
                 m_cache->config1.buffers.push_back({
                     .binding = 0,
-                    .buffer = materialUniformBuffer->getBuffer(m_nextFrameResourcesIndex).getHandle(),
+                    .buffer = materialUniformBuffer->getBuffer(FRAME_RESOURCE_COUNT).getHandle(),
                     .offset = 0,
                     .size = materialUniformBuffer->size,
                 });
@@ -657,7 +659,7 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
 
                 m_cache->config2.buffers.push_back({
                     .binding = 0,
-                    .buffer = objectUniformBuffer->getBuffer(m_nextFrameResourcesIndex).getHandle(),
+                    .buffer = objectUniformBuffer->getBuffer(FRAME_RESOURCE_COUNT).getHandle(),
                     .offset = 0,
                     .size = objectUniformBuffer->size,
                 });
@@ -714,7 +716,7 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
         {
             Buffer const* vertexBuffer = m_resourceManager->getBuffer(bufferWithOffset.buffer);
             assert(vertexBuffer);
-            m_cache->vertexBuffers.push_back(vertexBuffer->getBuffer(m_nextFrameResourcesIndex).getHandle());
+            m_cache->vertexBuffers.push_back(vertexBuffer->getBuffer(FRAME_RESOURCE_COUNT).getHandle());
             m_cache->vertexBuffersOffsets.push_back(bufferWithOffset.offset);
         }
 
@@ -740,7 +742,7 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
         vkCmdBindVertexBuffers(commandBuffer, 0, static_cast<uint32_t>(m_cache->vertexBuffersOffsets.size()), m_cache->vertexBuffers.data(), m_cache->vertexBuffersOffsets.data());
-        vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getBuffer(m_nextFrameResourcesIndex).getHandle(), indexBufferOffset, vulkanizeIndexType(mesh->indexType));
+        vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getBuffer(FRAME_RESOURCE_COUNT).getHandle(), indexBufferOffset, vulkanizeIndexType(mesh->indexType));
 
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh->indexCount), 1, static_cast<uint32_t>(mesh->indexOffset), static_cast<uint32_t>(mesh->vertexOffset), 0);
     };

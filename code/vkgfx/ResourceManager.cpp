@@ -211,9 +211,9 @@ vkgfx::ResourceManager::ResourceManager(vko::Device const& device, vko::Physical
 
 vkgfx::ResourceManager::~ResourceManager() = default;
 
-void vkgfx::ResourceManager::setSubresourceIndex(size_t index)
+void vkgfx::ResourceManager::setFrameIndex(uint64_t index)
 {
-    m_currentSubresourceIndex = index;
+    m_currentFrameIndex = index;
 }
 
 vkgfx::ImageHandle vkgfx::ResourceManager::createImage(ImageMetadata metadata)
@@ -382,7 +382,7 @@ void vkgfx::ResourceManager::uploadBuffer(BufferHandle handle, nstl::blob_view b
 
     assert(handle);
 
-    Buffer const* buffer = getBuffer(handle);
+    Buffer* buffer = getBuffer(handle);
     assert(buffer);
 
     return uploadBuffer(*buffer, bytes.data(), bytes.size(), offset);
@@ -633,11 +633,13 @@ vko::Pipeline const& vkgfx::ResourceManager::getPipeline(PipelineHandle handle) 
     return m_pipelines[handle.index];
 }
 
-void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, void const* data, size_t dataSize, size_t offset)
+void vkgfx::ResourceManager::uploadBuffer(Buffer& buffer, void const* data, size_t dataSize, size_t offset)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
     assert(buffer.size - offset >= dataSize);
+
+    buffer.lastUpdatedFrameIndex = m_currentFrameIndex;
 
     if (buffer.metadata.location == BufferLocation::DeviceLocal)
     {
@@ -645,20 +647,18 @@ void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, void const* data
         stagingBuffer.memory().copyFrom(data, dataSize);
 
         OneTimeCommandBuffer commandBuffer{ *m_uploadCommandPool, m_uploadQueue };
-        assert(!buffer.metadata.isMutable); // Not implemented yet
-        vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), 0, buffer.buffers[0], offset, dataSize);
+        vko::Buffer::copy(commandBuffer.getHandle(), stagingBuffer.buffer(), 0, buffer.getBuffer(m_resourceCount), offset, dataSize);
         commandBuffer.submit();
     }
     else
     {
-        size_t index = buffer.metadata.isMutable ? m_currentSubresourceIndex : 0;
-        size_t subresourceOffset = index * buffer.alignedSize;
+        size_t subresourceOffset = buffer.getSubresourceIndex(m_resourceCount) * buffer.alignedSize;
         assert(subresourceOffset + buffer.alignedSize <= buffer.memory.getRequirements().size);
         buffer.memory.copyFrom(data, dataSize, subresourceOffset + offset);
     }
 }
 
-void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, nstl::blob_view bytes, size_t offset)
+void vkgfx::ResourceManager::uploadBuffer(Buffer& buffer, nstl::blob_view bytes, size_t offset)
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 

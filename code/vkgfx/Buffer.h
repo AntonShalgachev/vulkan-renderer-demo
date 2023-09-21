@@ -17,6 +17,9 @@ namespace vkgfx
         size_t size = 0;
         size_t alignedSize = 0;
 
-        vko::Buffer const& getBuffer(size_t subresourceIndex) const;
+        uint64_t lastUpdatedFrameIndex = 0;
+
+        size_t getSubresourceIndex(size_t subresourceCount) const;
+        vko::Buffer const& getBuffer(size_t subresourceCount) const;
     };
 }

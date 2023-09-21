@@ -65,7 +65,7 @@ namespace vkgfx
         ResourceManager(vko::Device const& device, vko::PhysicalDevice const& physicalDevice, vko::Queue const& uploadQueue, vko::RenderPass const& renderPass, vko::RenderPass const& shadowmapRenderPass, size_t resourceCount);
         ~ResourceManager();
 
-        void setSubresourceIndex(size_t index);
+        void setFrameIndex(uint64_t index);
 
         ImageHandle createImage(ImageMetadata metadata);
         void uploadImage(ImageHandle handle, void const* data, size_t dataSize);
@@ -119,8 +119,8 @@ namespace vkgfx
         vko::Pipeline const& getPipeline(PipelineHandle handle) const;
 
     private:
-        void uploadBuffer(Buffer const& buffer, void const* data, size_t dataSize, size_t offset);
-        void uploadBuffer(Buffer const& buffer, nstl::blob_view bytes, size_t offset);
+        void uploadBuffer(Buffer& buffer, void const* data, size_t dataSize, size_t offset);
+        void uploadBuffer(Buffer& buffer, nstl::blob_view bytes, size_t offset);
         void uploadImage(Image const& image, void const* data, size_t dataSize);
 
         DescriptorSetLayoutHandle createDescriptorSetLayout(DescriptorSetLayoutKey const& key);
@@ -137,7 +137,7 @@ namespace vkgfx
         vko::RenderPass const& m_shadowmapRenderPass; // TODO remove
         size_t m_resourceCount = 0; // TODO rename
 
-        size_t m_currentSubresourceIndex = 0;
+        uint64_t m_currentFrameIndex = 0;
 
         nstl::unique_ptr<vko::CommandPool> m_uploadCommandPool;
 
