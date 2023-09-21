@@ -32,9 +32,9 @@ VkMemoryRequirements vko::Buffer::getMemoryRequirements() const
     return memoryRequirements;
 }
 
-void vko::Buffer::bindMemory(DeviceMemory const& memory) const
+void vko::Buffer::bindMemory(DeviceMemory const& memory, size_t offset) const
 {
-    VKO_VERIFY(vkBindBufferMemory(m_device, m_handle, memory.getHandle(), 0));
+    VKO_VERIFY(vkBindBufferMemory(m_device, m_handle, memory.getHandle(), offset));
 }
 
 void vko::Buffer::copy(VkCommandBuffer commandBuffer, Buffer const& source, size_t sourceOffset, Buffer const& destination, size_t destinationOffset, size_t size)

@@ -24,7 +24,7 @@ namespace vko
         Buffer& operator=(Buffer&&) = default;
 
         VkMemoryRequirements getMemoryRequirements() const;
-        void bindMemory(DeviceMemory const& memory) const;
+        void bindMemory(DeviceMemory const& memory, size_t offset = 0) const;
 
         VkBuffer getHandle() const { return m_handle; }
         VkDeviceSize getSize() const { return m_size; }

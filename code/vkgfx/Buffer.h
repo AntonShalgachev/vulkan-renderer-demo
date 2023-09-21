@@ -15,6 +15,7 @@ namespace vkgfx
         BufferMetadata metadata;
 
         size_t size = 0;
+        size_t alignedSize = 0;
 
         vko::Buffer const& getBuffer(size_t subresourceIndex) const;
     };

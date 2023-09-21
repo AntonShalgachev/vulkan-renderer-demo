@@ -343,6 +343,8 @@ vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(size_t size, BufferMeta
     size_t subresourceCount = metadata.isMutable ? m_resourceCount : 1;
     size_t totalBufferSize = alignedSize * subresourceCount;
 
+    buffers.reserve(subresourceCount);
+
     VkMemoryRequirements memoryRequirements{};
     for (size_t i = 0; i < subresourceCount; i++)
     {
@@ -360,14 +362,15 @@ vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(size_t size, BufferMeta
 
     vko::DeviceMemory memory{ m_device, m_physicalDevice, memoryRequirements, memoryPropertiesFlags };
 
-    for (vko::Buffer& buffer : buffers)
-        buffer.bindMemory(memory);
+    for (size_t i = 0; i < subresourceCount; i++)
+        buffers[i].bindMemory(memory, i * alignedSize);
 
     Buffer bufferResource{
         .memory = nstl::move(memory),
         .buffers = nstl::move(buffers),
         .metadata = nstl::move(metadata),
         .size = size,
+        .alignedSize = alignedSize,
     };
 
     return { m_buffers.add(nstl::move(bufferResource)) };
@@ -649,8 +652,8 @@ void vkgfx::ResourceManager::uploadBuffer(Buffer const& buffer, void const* data
     else
     {
         size_t index = buffer.metadata.isMutable ? m_currentSubresourceIndex : 0;
-        size_t subresourceOffset = index * buffer.size;
-        assert(subresourceOffset + buffer.size <= buffer.memory.getRequirements().size);
+        size_t subresourceOffset = index * buffer.alignedSize;
+        assert(subresourceOffset + buffer.alignedSize <= buffer.memory.getRequirements().size);
         buffer.memory.copyFrom(data, dataSize, subresourceOffset + offset);
     }
 }
