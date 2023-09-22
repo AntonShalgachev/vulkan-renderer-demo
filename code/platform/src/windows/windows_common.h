@@ -10,9 +10,6 @@
 
 namespace platform_win32
 {
-    uint64_t create_handle(HANDLE h);
-    HANDLE get_handle(uint64_t handle);
-
     struct error
     {
         DWORD code;

@@ -16,5 +16,8 @@ namespace mt
         thread();
 
         void join();
+
+    private:
+        platform::thread_storage_t m_storage;
     };
 }

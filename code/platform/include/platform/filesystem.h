@@ -1,5 +1,6 @@
 #pragma once
 
+#include "nstl/aligned_storage.h"
 #include "nstl/string_view.h"
 #include "nstl/optional.h"
 
@@ -12,13 +13,13 @@ namespace fs
 
 namespace platform
 {
-    using file_handle = uint64_t;
+    using file_storage_t = nstl::aligned_storage_t<8, 8>;
 
     void create_directory(nstl::string_view path);
 
-    nstl::optional<file_handle> open_file(nstl::string_view filename, fs::open_mode mode);
-    void close_file(file_handle handle);
-    size_t get_file_size(file_handle handle);
-    bool read_file(file_handle handle, void* data, size_t size, size_t offset);
-    bool write_file(file_handle handle, void const* data, size_t size, size_t offset);
+    [[nodiscard]] bool open_file(file_storage_t& storage, nstl::string_view filename, fs::open_mode mode);
+    void close_file(file_storage_t& storage);
+    [[nodiscard]] size_t get_file_size(file_storage_t& storage);
+    [[nodiscard]] bool read_file(file_storage_t& storage, void* data, size_t size, size_t offset);
+    [[nodiscard]] bool write_file(file_storage_t& storage, void const* data, size_t size, size_t offset);
 }

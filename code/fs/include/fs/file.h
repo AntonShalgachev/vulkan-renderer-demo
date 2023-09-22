@@ -24,14 +24,15 @@ namespace fs
         void close();
 
         bool is_open() const;
-        size_t size() const;
+        size_t size();
 
-        [[nodiscard]] bool try_read(void* data, size_t size, size_t offset = 0) const;
-        void read(void* data, size_t size, size_t offset = 0) const;
-        [[nodiscard]] bool try_write(void const* data, size_t size, size_t offset = 0) const;
-        void write(void const* data, size_t size, size_t offset = 0) const;
+        [[nodiscard]] bool try_read(void* data, size_t size, size_t offset = 0);
+        void read(void* data, size_t size, size_t offset = 0);
+        [[nodiscard]] bool try_write(void const* data, size_t size, size_t offset = 0);
+        void write(void const* data, size_t size, size_t offset = 0);
 
     private:
-        nstl::optional<platform::file_handle> m_handle;
+        platform::file_storage_t m_storage;
+        bool m_is_open = false;
     };
 }

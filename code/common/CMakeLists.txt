@@ -43,4 +43,5 @@ target_link_libraries(${PROJECT_NAME}
     tiny_ctti
     tglm
     picofmt
+    mt
 )
