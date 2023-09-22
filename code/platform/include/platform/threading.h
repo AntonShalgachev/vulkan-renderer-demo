@@ -11,6 +11,7 @@ namespace platform
     using thread_func_t = void(*)(void*);
 
     [[nodiscard]] bool create_thread(thread_storage_t& storage, thread_func_t func, void* arg);
+    uint64_t thread_get_current_id();
 
     // Mutex
     using mutex_storage_t = nstl::aligned_storage_t<40, 8>;

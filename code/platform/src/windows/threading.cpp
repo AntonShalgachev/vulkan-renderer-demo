@@ -61,6 +61,11 @@ bool platform::create_thread(thread_storage_t& storage, thread_func_t func, void
     return true;
 }
 
+uint64_t platform::thread_get_current_id()
+{
+    return GetCurrentThreadId();
+}
+
 bool platform::mutex_create(mutex_storage_t& storage)
 {
     storage.create<CRITICAL_SECTION>();
