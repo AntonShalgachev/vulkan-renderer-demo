@@ -1,13 +1,22 @@
 #pragma once
 
-#include "nstl/optional.h"
+#include "nstl/aligned_storage.h"
 
 #include <stdint.h>
 
 namespace platform
 {
-    using thread_handle = uint64_t;
+    // Thread
+    using thread_storage_t = nstl::aligned_storage_t<8, 8>;
     using thread_func_t = void(*)(void*);
 
-    nstl::optional<thread_handle> create_thread(thread_func_t func, void* arg);
+    [[nodiscard]] bool create_thread(thread_storage_t& storage, thread_func_t func, void* arg);
+
+    // Mutex
+    using mutex_storage_t = nstl::aligned_storage_t<40, 8>;
+
+    [[nodiscard]] bool mutex_create(mutex_storage_t& storage);
+    void mutex_destroy(mutex_storage_t& storage);
+    void mutex_lock(mutex_storage_t& storage);
+    void mutex_unlock(mutex_storage_t& storage);
 }

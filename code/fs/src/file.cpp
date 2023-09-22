@@ -17,54 +17,56 @@ bool fs::file::try_open(nstl::string_view filename, open_mode mode)
     if (is_open())
         return false;
 
-    m_handle = platform::open_file(filename, mode);
-    return m_handle.has_value();
+    m_is_open = platform::open_file(m_storage, filename, mode);
+    return m_is_open;
 }
 
 void fs::file::open(nstl::string_view filename, open_mode mode)
 {
     bool res = try_open(filename, mode);
     assert(res);
-    assert(is_open());
+    assert(m_is_open);
 }
 
 void fs::file::close()
 {
-    if (m_handle)
-        platform::close_file(*m_handle);
-    m_handle = {};
+    if (!is_open())
+        return;
+
+    platform::close_file(m_storage);
+    m_is_open = false;
 }
 
 bool fs::file::is_open() const
 {
-    return m_handle.has_value();
+    return m_is_open;
 }
 
-size_t fs::file::size() const
+size_t fs::file::size()
 {
-    assert(m_handle);
-    return platform::get_file_size(*m_handle);
+    assert(m_is_open);
+    return platform::get_file_size(m_storage);
 }
 
-bool fs::file::try_read(void* data, size_t size, size_t offset) const
+bool fs::file::try_read(void* data, size_t size, size_t offset)
 {
-    assert(m_handle);
-    return platform::read_file(*m_handle, data, size, offset);
+    assert(m_is_open);
+    return platform::read_file(m_storage, data, size, offset);
 }
 
-void fs::file::read(void* data, size_t size, size_t offset) const
+void fs::file::read(void* data, size_t size, size_t offset)
 {
     bool res = try_read(data, size, offset);
     assert(res);
 }
 
-bool fs::file::try_write(void const* data, size_t size, size_t offset) const
+bool fs::file::try_write(void const* data, size_t size, size_t offset)
 {
-    assert(m_handle);
-    return platform::write_file(*m_handle, data, size, offset);
+    assert(m_is_open);
+    return platform::write_file(m_storage, data, size, offset);
 }
 
-void fs::file::write(void const* data, size_t size, size_t offset) const
+void fs::file::write(void const* data, size_t size, size_t offset)
 {
     bool res = try_write(data, size, offset);
     assert(res);

@@ -36,7 +36,7 @@ static DWORD WINAPI win32_thread_func(void* param)
     return 0;
 }
 
-nstl::optional<platform::thread_handle> platform::create_thread(thread_func_t func, void* arg)
+bool platform::create_thread(thread_storage_t& storage, thread_func_t func, void* arg)
 {
     DWORD creationFlags = 0;
     SIZE_T stackSize = 0; // default
@@ -54,8 +54,36 @@ nstl::optional<platform::thread_handle> platform::create_thread(thread_func_t fu
         platform::deallocate(ptr);
         auto e = platform_win32::get_last_error(); // TODO make use of it
         assert(false);
-        return {};
+        return false;
     }
 
-    return platform_win32::create_handle(h);
+    storage.create<HANDLE>(h);
+    return true;
+}
+
+bool platform::mutex_create(mutex_storage_t& storage)
+{
+    storage.create<CRITICAL_SECTION>();
+
+    CRITICAL_SECTION& section = storage.get_as<CRITICAL_SECTION>();
+    InitializeCriticalSection(&section);
+
+    return true;
+}
+
+void platform::mutex_destroy(mutex_storage_t& storage)
+{
+    storage.destroy<CRITICAL_SECTION>();
+}
+
+void platform::mutex_lock(mutex_storage_t& storage)
+{
+    CRITICAL_SECTION& section = storage.get_as<CRITICAL_SECTION>();
+    EnterCriticalSection(&section);
+}
+
+void platform::mutex_unlock(mutex_storage_t& storage)
+{
+    CRITICAL_SECTION& section = storage.get_as<CRITICAL_SECTION>();
+    LeaveCriticalSection(&section);
 }

@@ -17,7 +17,7 @@ void platform::create_directory(nstl::string_view path)
         assert(GetLastError() == ERROR_ALREADY_EXISTS);
 }
 
-nstl::optional<platform::file_handle> platform::open_file(nstl::string_view filename, fs::open_mode mode)
+bool platform::open_file(file_storage_t& storage, nstl::string_view filename, fs::open_mode mode)
 {
     assert(filename.length() <= MAX_PATH);
     nstl::string filenameCopy = filename;
@@ -47,25 +47,29 @@ nstl::optional<platform::file_handle> platform::open_file(nstl::string_view file
     {
         auto e = platform_win32::get_last_error(); // TODO make use of it
         assert(false);
-        return {};
+        return false;
     }
 
-    return platform_win32::create_handle(h);
+    storage.create<HANDLE>(h);
+    return true;
 }
 
-void platform::close_file(file_handle handle)
+void platform::close_file(file_storage_t& storage)
 {
-    if (!CloseHandle(platform_win32::get_handle(handle)))
+    HANDLE handle = storage.get_as<HANDLE>();
+    if (!CloseHandle(handle))
     {
         auto e = platform_win32::get_last_error(); // TODO make use of it
         assert(false);
     }
 }
 
-size_t platform::get_file_size(file_handle handle)
+size_t platform::get_file_size(file_storage_t& storage)
 {
+    HANDLE handle = storage.get_as<HANDLE>();
+
     LARGE_INTEGER size;
-    if (!GetFileSizeEx(platform_win32::get_handle(handle), &size))
+    if (!GetFileSizeEx(handle, &size))
     {
         auto e = platform_win32::get_last_error(); // TODO make use of it
         assert(false);
@@ -75,13 +79,15 @@ size_t platform::get_file_size(file_handle handle)
     return static_cast<size_t>(size.QuadPart);
 }
 
-bool platform::read_file(file_handle handle, void* data, size_t size, size_t offset)
+bool platform::read_file(file_storage_t& storage, void* data, size_t size, size_t offset)
 {
+    HANDLE handle = storage.get_as<HANDLE>();
+
     OVERLAPPED o{};
     o.Offset = offset;
 
     DWORD bytesRead = 0;
-    if (!ReadFile(platform_win32::get_handle(handle), data, size, &bytesRead, &o))
+    if (!ReadFile(handle, data, size, &bytesRead, &o))
     {
         auto e = platform_win32::get_last_error(); // TODO make use of it
         assert(false);
@@ -91,13 +97,15 @@ bool platform::read_file(file_handle handle, void* data, size_t size, size_t off
     return bytesRead == size;
 }
 
-bool platform::write_file(file_handle handle, void const* data, size_t size, size_t offset)
+bool platform::write_file(file_storage_t& storage, void const* data, size_t size, size_t offset)
 {
+    HANDLE handle = storage.get_as<HANDLE>();
+
     OVERLAPPED o{};
     o.Offset = offset;
 
     DWORD bytesWritten = 0;
-    if (!WriteFile(platform_win32::get_handle(handle), data, size, &bytesWritten, &o))
+    if (!WriteFile(handle, data, size, &bytesWritten, &o))
     {
         auto e = platform_win32::get_last_error(); // TODO make use of it
         assert(false);

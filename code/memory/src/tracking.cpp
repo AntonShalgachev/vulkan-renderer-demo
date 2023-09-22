@@ -4,6 +4,9 @@
 
 #include "logging/logging.h"
 
+#include "mt/mutex.h"
+#include "mt/lock_guard.h"
+
 #include "nstl/vector.h"
 #include "nstl/unordered_map.h"
 
@@ -150,8 +153,12 @@ memory::tracking::scope_id memory::tracking::get_current_scope_id()
     return get_scope_stack().back();
 }
 
+static mt::mutex g_mutex;
+
 void memory::tracking::track_allocation(void* ptr, size_t size)
 {
+    mt::lock_guard lock{ g_mutex };
+
     assert(ptr);
     assert(size > 0);
     assert(get_allocation_metadata().find(ptr) == get_allocation_metadata().end());
@@ -164,6 +171,8 @@ void memory::tracking::track_allocation(void* ptr, size_t size)
 
 void memory::tracking::track_deallocation(void* ptr)
 {
+    mt::lock_guard lock{ g_mutex };
+
     assert(ptr);
     assert(get_allocation_metadata().find(ptr) != get_allocation_metadata().end());
 
