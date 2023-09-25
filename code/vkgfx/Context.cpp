@@ -62,8 +62,8 @@ namespace vkgfx
     struct ContextImpl
     {
     public:
-        ContextImpl(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage)
-            : instance(name, createInstanceExtensions(enableValidation, window), enableValidation, enableApiDump, enableValidation ? nstl::move(onDebugMessage) : nullptr)
+        ContextImpl(char const* name, bool enableValidation, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage)
+            : instance(name, createInstanceExtensions(enableValidation, window), enableValidation, enableValidation ? nstl::move(onDebugMessage) : nullptr)
             , surface(window.createSurface(instance))
             , physicalDevice(findPhysicalDevice(instance, surface))
             , params(vko::queryPhysicalDeviceSurfaceParameters(physicalDevice, surface))
@@ -87,9 +87,9 @@ namespace vkgfx
     };
 }
 
-vkgfx::Context::Context(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage)
+vkgfx::Context::Context(char const* name, bool enableValidation, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage)
 {
-    m_impl = nstl::make_unique<ContextImpl>(name, enableValidation, enableApiDump, window, nstl::move(onDebugMessage));
+    m_impl = nstl::make_unique<ContextImpl>(name, enableValidation, window, nstl::move(onDebugMessage));
 }
 
 vkgfx::Context::~Context() = default;

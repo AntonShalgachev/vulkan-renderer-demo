@@ -21,7 +21,7 @@ namespace vkgfx
     class Context
     {
     public:
-        Context(char const* name, bool enableValidation, bool enableApiDump, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage = {});
+        Context(char const* name, bool enableValidation, vko::Window const& window, nstl::function<void(vko::DebugMessage)> onDebugMessage = {});
         ~Context();
 
         vko::Instance const& getInstance() const;

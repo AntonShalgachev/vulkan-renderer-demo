@@ -59,7 +59,7 @@ namespace
     }
 }
 
-vko::Instance::Instance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump, nstl::function<void(DebugMessage)> onDebugMessage) : m_onDebugMessage(nstl::move(onDebugMessage))
+vko::Instance::Instance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation, nstl::function<void(DebugMessage)> onDebugMessage) : m_onDebugMessage(nstl::move(onDebugMessage))
 {
     m_availableLayers = getAvailableLayers();
     m_availableLayerNames.reserve(m_availableLayers.size());
@@ -71,7 +71,7 @@ vko::Instance::Instance(char const* appName, nstl::vector<char const*> const& ex
     for (const auto& extension : m_availableExtensions)
         m_availableExtensionNames.push_back(extension.extensionName);
 
-    createInstance(appName, extensions, enableValidation, enableApiDump);
+    createInstance(appName, extensions, enableValidation);
     findFunctions(enableValidation);
     createDebugMessenger();
 }
@@ -84,13 +84,11 @@ vko::Instance::~Instance()
     vkDestroyInstance(m_handle, &m_allocator.getCallbacks());
 }
 
-void vko::Instance::createInstance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump)
+void vko::Instance::createInstance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation)
 {
     nstl::vector<char const*> requestedLayers;
     if (enableValidation)
         requestedLayers.push_back("VK_LAYER_KHRONOS_validation");
-    if (enableApiDump)
-        requestedLayers.push_back("VK_LAYER_LUNARG_api_dump");
 
     assert(vkc::utils::hasEveryOption(m_availableLayerNames, requestedLayers));
     assert(vkc::utils::hasEveryOption(m_availableExtensionNames, extensions));

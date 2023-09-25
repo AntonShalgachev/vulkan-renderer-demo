@@ -17,7 +17,7 @@ namespace vko
     class Instance
     {
     public:
-    	Instance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump, nstl::function<void(DebugMessage)> onDebugMessage);
+        Instance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation, nstl::function<void(DebugMessage)> onDebugMessage);
     	~Instance();
 
         Instance(Instance const&) = default;
@@ -52,7 +52,7 @@ namespace vko
         void dispatchDebugMessage(DebugMessage message);
 
     private:
-        void createInstance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation, bool enableApiDump);
+        void createInstance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation);
         void findFunctions(bool enableValidation);
         void createDebugMessenger();
 

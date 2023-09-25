@@ -277,7 +277,7 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
 
     m_window.addFramebufferResizeCallback([this](int, int) { onWindowResized(); });
 
-    m_context = nstl::make_unique<Context>(name, enableValidationLayers, false, window, nstl::move(onDebugMessage));
+    m_context = nstl::make_unique<Context>(name, enableValidationLayers, window, nstl::move(onDebugMessage));
 
     vko::Instance const& instance = m_context->getInstance();
     vko::Device const& device = m_context->getDevice();
