@@ -48,6 +48,11 @@ namespace vkgfx
     struct TestObject;
 }
 
+namespace gfx
+{
+    class renderer;
+}
+
 struct cgltf_data;
 struct cgltf_scene;
 
@@ -236,4 +241,6 @@ private:
     vkgfx::TestLightParameters m_lightParameters;
 
     nstl::unique_ptr<editor::assets::AssetDatabase> m_assetDatabase;
+
+    nstl::unique_ptr<gfx::renderer> m_newRenderer;
 };

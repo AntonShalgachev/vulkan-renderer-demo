@@ -58,6 +58,7 @@ namespace gfx
     class renderer
     {
     public:
+        renderer(nstl::unique_ptr<backend> backend);
         void set_backend(nstl::unique_ptr<backend> backend);
 
         nstl::unique_ptr<buffer> create_buffer() { return m_backend->create_buffer(); }

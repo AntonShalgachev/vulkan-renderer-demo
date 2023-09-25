@@ -31,6 +31,10 @@
 #include "vkgfx/BufferMetadata.h"
 #include "vkgfx/TestObject.h"
 
+#include "gfx/renderer.h"
+
+#include "gfx_vk/backend.h"
+
 #include "services/DebugConsoleService.h"
 #include "services/CommandLineService.h"
 #include "services/DebugDrawService.h"
@@ -581,6 +585,9 @@ void DemoApplication::init()
     m_window = nstl::make_unique<GlfwWindow>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
     m_window->addOldKeyCallback([this](GlfwWindow::Action action, GlfwWindow::OldKey key, char c, GlfwWindow::Modifiers modifiers) { onKey(action, key, c, modifiers); });
     m_window->addOldMouseDeltaCallback([this](float deltaX, float deltaY) { onMouseMove({ deltaX, deltaY }); });
+
+    auto backend = nstl::make_unique<gfx_vk::backend>(*m_window, "Vulkan Demo", m_validationEnabled);
+    m_newRenderer = nstl::make_unique<gfx::renderer>(nstl::move(backend));
 
     auto messageCallback = [](vko::DebugMessage m)
     {

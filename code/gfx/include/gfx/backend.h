@@ -17,6 +17,8 @@ namespace gfx
     class backend
     {
     public:
+        virtual ~backend() = default;
+
         virtual nstl::unique_ptr<buffer> create_buffer() = 0;
         virtual nstl::unique_ptr<image> create_image() = 0;
         virtual nstl::unique_ptr<sampler> create_sampler() = 0;

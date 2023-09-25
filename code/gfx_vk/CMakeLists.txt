@@ -2,6 +2,10 @@ add_library(gfx_vk
     "include/gfx_vk/backend.h"
     
     "src/backend.cpp"
+    "src/context.h"
+    "src/context.cpp"
+    "src/swapchain.h"
+    "src/swapchain.cpp"
 )
 
 target_compile_features(gfx_vk PUBLIC cxx_std_20)
@@ -11,5 +15,7 @@ target_include_directories(gfx_vk PUBLIC
 )
 
 target_link_libraries(gfx_vk
-    nstl
+    gfx
+    vko # TODO remove
+    logging
 )

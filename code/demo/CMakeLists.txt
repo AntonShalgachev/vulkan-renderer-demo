@@ -77,4 +77,6 @@ target_link_libraries(${PROJECT_NAME}
     memory
     editor::assets
     mt
+    gfx
+    gfx_vk
 )
