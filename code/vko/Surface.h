@@ -12,7 +12,7 @@ namespace vko
     class Surface
     {
     public:
-        explicit Surface(VkSurfaceKHR handle, Instance const& instance, vko::Window const& window);
+        explicit Surface(VkSurfaceKHR handle, Instance const& instance);
         ~Surface();
 
         Surface(Surface const&) = default;
@@ -22,13 +22,9 @@ namespace vko
 
         VkSurfaceKHR getHandle() const { return m_handle; }
 
-        int getWidth() const;
-        int getHeight() const;
-
     private:
         UniqueHandle<VkSurfaceKHR> m_handle;
 
         Instance const& m_instance;
-        vko::Window const& m_window;
     };
 }

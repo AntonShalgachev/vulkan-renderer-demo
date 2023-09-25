@@ -249,7 +249,7 @@ vko::Surface GlfwWindow::createSurface(vko::Instance const& instance) const
     if (glfwCreateWindowSurface(instance.getHandle(), m_handle, nullptr, &handle) != VK_SUCCESS)
         assert(false);
 
-    return vko::Surface{ handle, instance, *this };
+    return vko::Surface{ handle, instance };
 }
 
 void GlfwWindow::waitUntilInForeground() const

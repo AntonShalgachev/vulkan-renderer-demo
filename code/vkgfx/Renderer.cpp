@@ -113,13 +113,13 @@ namespace
         return VK_PRESENT_MODE_FIFO_KHR;
     }
 
-    VkExtent2D chooseSwapchainExtent(vko::Surface const& surface, const VkSurfaceCapabilitiesKHR& capabilities)
+    VkExtent2D chooseSwapchainExtent(vko::Window const& window, const VkSurfaceCapabilitiesKHR& capabilities)
     {
         if (capabilities.currentExtent.width != UINT32_MAX)
             return capabilities.currentExtent;
 
-        auto width = static_cast<uint32_t>(surface.getWidth());
-        auto height = static_cast<uint32_t>(surface.getHeight());
+        auto width = static_cast<uint32_t>(window.getFramebufferWidth());
+        auto height = static_cast<uint32_t>(window.getFramebufferHeight());
 
         width = nstl::clamp(width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
         height = nstl::clamp(height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
@@ -889,7 +889,7 @@ void vkgfx::Renderer::createSwapchain()
     vko::QueueFamily const& graphicsQueueFamily = *parameters.graphicsQueueFamily;
     vko::QueueFamily const& presentQueueFamily = *parameters.presentQueueFamily;
 
-    VkExtent2D extent = chooseSwapchainExtent(m_context->getSurface(), capabilities);
+    VkExtent2D extent = chooseSwapchainExtent(m_window, capabilities);
 
     vko::Swapchain::Config config;
     config.surfaceFormat = m_data->m_surfaceFormat;
