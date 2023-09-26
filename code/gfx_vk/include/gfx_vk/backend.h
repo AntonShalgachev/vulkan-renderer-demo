@@ -19,15 +19,15 @@ namespace gfx_vk
         backend(vko::Window& window, char const* name, bool enable_validation);
         ~backend();
 
-        nstl::unique_ptr<gfx::buffer> create_buffer() override { return nullptr; }
-        nstl::unique_ptr<gfx::image> create_image() override { return nullptr; }
-        nstl::unique_ptr<gfx::sampler> create_sampler() override { return nullptr; }
-        nstl::unique_ptr<gfx::texture> create_texture() override { return nullptr; }
-        nstl::unique_ptr<gfx::framebuffer> create_framebuffer() override { return nullptr; }
-        nstl::unique_ptr<gfx::uniforms> create_uniforms() override { return nullptr; }
-        nstl::unique_ptr<gfx::shader> create_shader() override { return nullptr; }
-        nstl::unique_ptr<gfx::renderstate> create_renderstate() override { return nullptr; }
-        nstl::unique_ptr<gfx::renderpass> create_renderpass() override { return nullptr; }
+        [[nodiscard]] nstl::unique_ptr<gfx::buffer> create_buffer(gfx::buffer_params const& params) override;
+        [[nodiscard]] nstl::unique_ptr<gfx::image> create_image() override { return nullptr; }
+        [[nodiscard]] nstl::unique_ptr<gfx::sampler> create_sampler() override { return nullptr; }
+        [[nodiscard]] nstl::unique_ptr<gfx::texture> create_texture() override { return nullptr; }
+        [[nodiscard]] nstl::unique_ptr<gfx::framebuffer> create_framebuffer() override { return nullptr; }
+        [[nodiscard]] nstl::unique_ptr<gfx::uniforms> create_uniforms() override { return nullptr; }
+        [[nodiscard]] nstl::unique_ptr<gfx::shader> create_shader() override { return nullptr; }
+        [[nodiscard]] nstl::unique_ptr<gfx::renderstate> create_renderstate() override { return nullptr; }
+        [[nodiscard]] nstl::unique_ptr<gfx::renderpass> create_renderpass() override { return nullptr; }
 
     private:
         nstl::unique_ptr<context> m_context;

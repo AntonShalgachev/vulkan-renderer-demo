@@ -1698,6 +1698,14 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
     resourceManager.uploadBuffer(meshBufferHandle, data);
     m_editorGltfResources->meshBuffers[id] = meshBufferHandle;
 
+    auto meshBuffer = m_newRenderer->create_buffer({
+        .size = data.size(),
+        .usage = gfx::buffer_usage::vertex_index,
+        .location = gfx::buffer_location::device_local,
+        .is_mutable = false,
+    });
+    meshBuffer->upload_sync(data);
+
     editor::assets::MeshData meshData = m_assetDatabase->loadMesh(id);
 
     DemoMesh& demoMesh = m_editorGltfResources->meshes[id];

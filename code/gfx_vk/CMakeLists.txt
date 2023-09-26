@@ -6,6 +6,8 @@ add_library(gfx_vk
     "src/context.cpp"
     "src/swapchain.h"
     "src/swapchain.cpp"
+    "src/buffer.h"
+    "src/buffer.cpp"
 )
 
 target_compile_features(gfx_vk PUBLIC cxx_std_20)

@@ -3,6 +3,8 @@
 #include "context.h"
 #include "swapchain.h"
 
+#include "buffer.h"
+
 #include "vko/Device.h"
 #include "vko/Instance.h"
 #include "vko/PhysicalDevice.h"
@@ -65,3 +67,8 @@ gfx_vk::backend::backend(vko::Window& window, char const* name, bool enable_vali
 }
 
 gfx_vk::backend::~backend() = default;
+
+nstl::unique_ptr<gfx::buffer> gfx_vk::backend::create_buffer(gfx::buffer_params const& params)
+{
+    return nstl::make_unique<buffer>(*m_context, params);
+}
