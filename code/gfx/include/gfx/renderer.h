@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gfx/backend.h"
+#include "gfx/resources.h"
 
 #include "nstl/span.h"
 #include "nstl/unique_ptr.h"
@@ -9,51 +10,15 @@
 
 namespace gfx
 {
-    // TODO move to other file
-    class buffer
-    {
-
-    };
-
-    class image
-    {
-
-    };
-
-    class sampler
-    {
-
-    };
-
-    class texture
-    {
-
-    };
-
-    class framebuffer
-    {
-
-    };
-
-    class uniforms
-    {
-
-    };
-
-    class shader
-    {
-
-    };
-
-    class renderstate
-    {
-
-    };
-
-    class renderpass
-    {
-
-    };
+    class buffer;
+    class image;
+    class sampler;
+    class texture;
+    class framebuffer;
+    class uniforms;
+    class shader;
+    class renderstate;
+    class renderpass;
 
     class renderer
     {

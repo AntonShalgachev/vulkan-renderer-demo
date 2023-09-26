@@ -1,6 +1,7 @@
 add_library(gfx
     "include/gfx/backend.h"
     "include/gfx/renderer.h"
+    "include/gfx/resources.h"
     
     "src/backend.cpp"
     "src/renderer.cpp"
