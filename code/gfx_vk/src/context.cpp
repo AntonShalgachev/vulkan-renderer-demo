@@ -8,6 +8,7 @@
 #include "vko/Queue.h"
 #include "vko/Window.h"
 #include "vko/PhysicalDeviceSurfaceParameters.h"
+#include "vko/CommandPool.h"
 
 #include "nstl/vector.h"
 
@@ -85,6 +86,7 @@ namespace gfx_vk
             , physical_device(find_physical_device(instance, surface))
             , params(vko::queryPhysicalDeviceSurfaceParameters(physical_device, surface))
             , device(physical_device, *params.graphicsQueueFamily, *params.presentQueueFamily, get_device_extensions())
+            , transfer_command_pool(device, device.getGraphicsQueue().getFamily()) // TODO use transfer queue?
         {
             instance.setDebugName(device.getHandle(), device.getHandle(), "Device");
             if (device.getGraphicsQueue().getHandle() == device.getPresentQueue().getHandle())
@@ -110,6 +112,8 @@ namespace gfx_vk
         vko::PhysicalDeviceSurfaceParameters params;
 
         vko::Device device;
+
+        vko::CommandPool transfer_command_pool;
     };
 }
 
@@ -143,6 +147,16 @@ vko::PhysicalDevice const& gfx_vk::context::get_physical_device() const
 vko::PhysicalDeviceSurfaceParameters const& gfx_vk::context::get_physical_device_surface_parameters() const
 {
     return m_impl->params;
+}
+
+vko::Queue const& gfx_vk::context::get_transfer_queue() const
+{
+    return m_impl->device.getGraphicsQueue(); // TODO use transfer queue?
+}
+
+vko::CommandPool const& gfx_vk::context::get_transfer_command_pool() const
+{
+    return m_impl->transfer_command_pool;
 }
 
 void gfx_vk::context::on_surface_changed()

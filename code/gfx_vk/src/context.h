@@ -10,6 +10,8 @@ namespace vko
     class Device;
     class Window;
     struct PhysicalDeviceSurfaceParameters;
+    struct CommandPool;
+    struct Queue;
 }
 
 namespace gfx_vk
@@ -28,6 +30,9 @@ namespace gfx_vk
 
         vko::PhysicalDevice const& get_physical_device() const;
         vko::PhysicalDeviceSurfaceParameters const& get_physical_device_surface_parameters() const;
+
+        vko::Queue const& get_transfer_queue() const;
+        vko::CommandPool const& get_transfer_command_pool() const;
 
         void on_surface_changed();
 
