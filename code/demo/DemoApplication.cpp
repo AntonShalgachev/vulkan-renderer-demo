@@ -1603,6 +1603,13 @@ void DemoApplication::editorLoadImage(editor::assets::Uuid id)
     auto handle = resourceManager.createImage(metadata);
     resourceManager.uploadImage(handle, bytes);
     m_editorGltfResources->images[id] = handle;
+
+    auto image = m_newRenderer->create_image({
+        .width = imageData->width,
+        .height = imageData->height,
+        .format = static_cast<gfx::image_format>(static_cast<size_t>(imageData->format)), // TODO: remove
+    });
+    image->upload_sync(bytes);
 }
 
 void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)

@@ -78,6 +78,7 @@ void gfx_vk::buffer::upload_sync(nstl::blob_view bytes, size_t offset)
 {
     if (m_params.location == gfx::buffer_location::device_local)
     {
+        // TODO merge with image::upload_sync
         vko::Buffer staging_buffer{ m_context.get_device(), bytes.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT };
         VkMemoryRequirements requirements;
         vkGetBufferMemoryRequirements(m_context.get_device().getHandle(), staging_buffer.getHandle(), &requirements);

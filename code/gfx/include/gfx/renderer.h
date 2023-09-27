@@ -27,7 +27,7 @@ namespace gfx
         void set_backend(nstl::unique_ptr<backend> backend);
 
         [[nodiscard]] nstl::unique_ptr<buffer> create_buffer(buffer_params const& params) { return m_backend->create_buffer(params); }
-        [[nodiscard]] nstl::unique_ptr<image> create_image() { return m_backend->create_image(); }
+        [[nodiscard]] nstl::unique_ptr<image> create_image(image_params const& params) { return m_backend->create_image(params); }
         [[nodiscard]] nstl::unique_ptr<sampler> create_sampler() { return m_backend->create_sampler(); }
         [[nodiscard]] nstl::unique_ptr<texture> create_texture() { return m_backend->create_texture(); }
         [[nodiscard]] nstl::unique_ptr<framebuffer> create_framebuffer() { return m_backend->create_framebuffer(); }

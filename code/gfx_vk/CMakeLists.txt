@@ -8,6 +8,8 @@ add_library(gfx_vk
     "src/swapchain.cpp"
     "src/buffer.h"
     "src/buffer.cpp"
+    "src/image.h"
+    "src/image.cpp"
 )
 
 target_compile_features(gfx_vk PUBLIC cxx_std_20)

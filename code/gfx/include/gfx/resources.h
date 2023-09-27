@@ -36,11 +36,31 @@ namespace gfx
 
     //////////////////////////////////////////////////////////////////////////
 
+    enum class image_format
+    {
+        r8g8b8a8,
+        r8g8b8,
+        bc1_unorm,
+        bc3_unorm,
+        bc5_unorm,
+    };
+
+    struct image_params
+    {
+        size_t width = 0;
+        size_t height = 0;
+        image_format format = image_format::r8g8b8a8;
+    };
+
     class image
     {
     public:
         virtual ~image() = default;
+
+        virtual void upload_sync(nstl::blob_view bytes) = 0;
     };
+
+    //////////////////////////////////////////////////////////////////////////
 
     class sampler
     {

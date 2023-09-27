@@ -20,7 +20,7 @@ namespace gfx_vk
         ~backend();
 
         [[nodiscard]] nstl::unique_ptr<gfx::buffer> create_buffer(gfx::buffer_params const& params) override;
-        [[nodiscard]] nstl::unique_ptr<gfx::image> create_image() override { return nullptr; }
+        [[nodiscard]] nstl::unique_ptr<gfx::image> create_image(gfx::image_params const& params) override;
         [[nodiscard]] nstl::unique_ptr<gfx::sampler> create_sampler() override { return nullptr; }
         [[nodiscard]] nstl::unique_ptr<gfx::texture> create_texture() override { return nullptr; }
         [[nodiscard]] nstl::unique_ptr<gfx::framebuffer> create_framebuffer() override { return nullptr; }
