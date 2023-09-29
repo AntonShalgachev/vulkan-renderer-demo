@@ -10,8 +10,8 @@ namespace vko
     class Device;
     class Window;
     struct PhysicalDeviceSurfaceParameters;
-    struct CommandPool;
-    struct Queue;
+    class CommandPool;
+    class Queue;
 }
 
 namespace gfx_vk
