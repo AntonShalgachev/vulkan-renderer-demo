@@ -26,13 +26,15 @@ namespace gfx
         renderer(nstl::unique_ptr<backend> backend);
         void set_backend(nstl::unique_ptr<backend> backend);
 
+        // TODO add some basic validation before calling backend
+
         [[nodiscard]] nstl::unique_ptr<buffer> create_buffer(buffer_params const& params) { return m_backend->create_buffer(params); }
         [[nodiscard]] nstl::unique_ptr<image> create_image(image_params const& params) { return m_backend->create_image(params); }
-        [[nodiscard]] nstl::unique_ptr<sampler> create_sampler() { return m_backend->create_sampler(); }
-        [[nodiscard]] nstl::unique_ptr<texture> create_texture() { return m_backend->create_texture(); }
+        [[nodiscard]] nstl::unique_ptr<sampler> create_sampler(sampler_params const& params) { return m_backend->create_sampler(params); }
+        [[nodiscard]] nstl::unique_ptr<texture> create_texture(texture_params const& params) { return m_backend->create_texture(params); }
         [[nodiscard]] nstl::unique_ptr<framebuffer> create_framebuffer() { return m_backend->create_framebuffer(); }
         [[nodiscard]] nstl::unique_ptr<uniforms> create_uniforms() { return m_backend->create_uniforms(); }
-        [[nodiscard]] nstl::unique_ptr<shader> create_shader() { return m_backend->create_shader(); }
+        [[nodiscard]] nstl::unique_ptr<shader> create_shader(shader_params const& params) { return m_backend->create_shader(params); }
         [[nodiscard]] nstl::unique_ptr<renderstate> create_renderstate() { return m_backend->create_renderstate(); }
         [[nodiscard]] nstl::unique_ptr<renderpass> create_renderpass() { return m_backend->create_renderpass(); }
 

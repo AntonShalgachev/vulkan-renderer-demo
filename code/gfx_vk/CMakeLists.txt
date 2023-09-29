@@ -10,6 +10,12 @@ add_library(gfx_vk
     "src/buffer.cpp"
     "src/image.h"
     "src/image.cpp"
+    "src/sampler.h"
+    "src/sampler.cpp"
+    "src/texture.h"
+    "src/texture.cpp"
+    "src/shader.h"
+    "src/shader.cpp"
 )
 
 target_compile_features(gfx_vk PUBLIC cxx_std_20)

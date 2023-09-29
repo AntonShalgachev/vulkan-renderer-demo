@@ -5,6 +5,9 @@
 
 #include "buffer.h"
 #include "image.h"
+#include "sampler.h"
+#include "texture.h"
+#include "shader.h"
 
 #include "vko/Device.h"
 #include "vko/Instance.h"
@@ -77,4 +80,19 @@ nstl::unique_ptr<gfx::buffer> gfx_vk::backend::create_buffer(gfx::buffer_params 
 nstl::unique_ptr<gfx::image> gfx_vk::backend::create_image(gfx::image_params const& params)
 {
     return nstl::make_unique<image>(*m_context, params);
+}
+
+nstl::unique_ptr<gfx::sampler> gfx_vk::backend::create_sampler(gfx::sampler_params const& params)
+{
+    return nstl::make_unique<sampler>(*m_context, params);
+}
+
+nstl::unique_ptr<gfx::texture> gfx_vk::backend::create_texture(gfx::texture_params const& params)
+{
+    return nstl::make_unique<texture>(params);
+}
+
+nstl::unique_ptr<gfx::shader> gfx_vk::backend::create_shader(gfx::shader_params const& params)
+{
+    return nstl::make_unique<shader>(*m_context, params);
 }

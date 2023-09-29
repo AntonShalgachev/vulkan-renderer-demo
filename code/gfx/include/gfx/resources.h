@@ -4,6 +4,8 @@
 
 namespace gfx
 {
+    // TODO make resources opaque handles
+
     enum class buffer_usage
     {
         vertex_index,
@@ -62,10 +64,39 @@ namespace gfx
 
     //////////////////////////////////////////////////////////////////////////
 
+    enum class sampler_filter_mode
+    {
+        nearest,
+        linear,
+    };
+
+    enum class sampler_wrap_mode
+    {
+        repeat,
+        mirror,
+        clamp_to_edge,
+    };
+
+    struct sampler_params
+    {
+        sampler_filter_mode mag_filter = sampler_filter_mode::linear;
+        sampler_filter_mode min_filter = sampler_filter_mode::linear;
+        sampler_wrap_mode wrap_u = sampler_wrap_mode::repeat;
+        sampler_wrap_mode wrap_v = sampler_wrap_mode::repeat;
+    };
+
     class sampler
     {
     public:
         virtual ~sampler() = default;
+    };
+
+    //////////////////////////////////////////////////////////////////////////
+
+    struct texture_params
+    {
+        image* image = nullptr;
+        sampler* sampler = nullptr;
     };
 
     class texture
@@ -73,6 +104,8 @@ namespace gfx
     public:
         virtual ~texture() = default;
     };
+
+    //////////////////////////////////////////////////////////////////////////
 
     class framebuffer
     {
@@ -86,11 +119,29 @@ namespace gfx
         virtual ~uniforms() = default;
     };
 
+    //////////////////////////////////////////////////////////////////////////
+
+    enum class shader_stage
+    {
+        vertex,
+        geometry,
+        fragment,
+    };
+
+    struct shader_params
+    {
+        nstl::string_view filename; // TODO: replace with something less backend-dependent
+        shader_stage stage = shader_stage::vertex;
+        nstl::string_view entry_point = "main";
+    };
+
     class shader
     {
     public:
         virtual ~shader() = default;
     };
+
+    //////////////////////////////////////////////////////////////////////////
 
     class renderstate
     {
