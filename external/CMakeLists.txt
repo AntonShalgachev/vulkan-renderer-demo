@@ -32,7 +32,7 @@ FetchContent_Declare(
     cglm
     URL https://github.com/recp/cglm/archive/refs/tags/v0.9.1.tar.gz
 )
-set(CGLM_SHARED OFF)
-set(CGLM_STATIC ON)
+set(CGLM_SHARED OFF CACHE INTERNAL "")
+set(CGLM_STATIC ON CACHE INTERNAL "")
 FetchDependency(cglm)
 set_target_properties(cglm PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
