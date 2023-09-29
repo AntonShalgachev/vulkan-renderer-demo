@@ -32,7 +32,6 @@ vko::ShaderModule::ShaderModule(Device const& device, nstl::blob_view bytes, Sha
     , m_entryPoint(nstl::move(entryPoint))
 {
     assert(bytes.size() % 4 == 0);
-    static_assert(sizeof(uint32_t) == 4 * sizeof(unsigned char));
 
     nstl::vector<uint32_t> code;
     code.resize(bytes.size() / 4);
