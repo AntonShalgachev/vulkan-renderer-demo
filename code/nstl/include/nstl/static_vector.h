@@ -29,6 +29,9 @@ namespace nstl
         void push_back(T item);
         void pop_back();
 
+        template<typename... Args>
+        T& emplace_back(Args&&... args);
+
         T* data();
         T const* data() const;
         size_t size() const;
@@ -128,6 +131,17 @@ void nstl::static_vector<T, N>::pop_back()
     m_size--;
     if constexpr (!nstl::is_trivial_v<T>)
         reinterpret_cast<T*>(&m_storage[m_size])->~T();
+}
+
+template<typename T, size_t N>
+template<typename... Args>
+T& nstl::static_vector<T, N>::emplace_back(Args&&... args)
+{
+    NSTL_ASSERT(m_size < N);
+    T* obj = new (nstl::new_tag{}, &m_storage[m_size]) T{ nstl::forward<Args>(args)... };
+    m_size++;
+
+    return *obj;
 }
 
 template<typename T, size_t N>
