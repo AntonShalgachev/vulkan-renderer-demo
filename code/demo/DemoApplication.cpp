@@ -649,6 +649,7 @@ void DemoApplication::createResources()
     m_shadowmapVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shadowmap.vert");
 
     m_defaultSampler = resourceManager.createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
+    m_newDefaultSampler = m_newRenderer->create_sampler({});
 
     m_defaultAlbedoImage = resourceManager.createImage(vkgfx::ImageMetadata{
         .width = 1,
@@ -924,6 +925,8 @@ void DemoApplication::clearScene()
     if (m_editorGltfResources)
     {
         // TODO implement
+
+        m_editorGltfResources = {};
     }
 }
 
@@ -1410,6 +1413,10 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
         auto const& modulePath = pair.value();
         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
+        m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
+            .filename = modulePath,
+            .stage = gfx::shader_stage::vertex,
+        }));
     }
     // TODO implement
 //     for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
@@ -1421,6 +1428,10 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
         auto const& modulePath = pair.value();
         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Fragment, "main");
         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
+        m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
+            .filename = modulePath,
+            .stage = gfx::shader_stage::fragment,
+        }));
     }
 
     // TODO implement
@@ -1433,6 +1444,10 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
         auto const& modulePath = pair.value();
         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
+        m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
+            .filename = modulePath,
+            .stage = gfx::shader_stage::vertex,
+        }));
     }
 
     editor::assets::SceneData scene = m_assetDatabase->loadScene(id);
@@ -1610,6 +1625,7 @@ void DemoApplication::editorLoadImage(editor::assets::Uuid id)
         .format = static_cast<gfx::image_format>(static_cast<size_t>(imageData->format)), // TODO: remove
     });
     image->upload_sync(bytes);
+    m_editorGltfResources->newImages[id] = nstl::move(image);
 }
 
 void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
@@ -1656,6 +1672,12 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
             .image = m_editorGltfResources->images[imageId],
             .sampler = m_defaultSampler, // TODO create actual sampler
         });
+
+        auto texture = m_newRenderer->create_texture({
+            .image = m_editorGltfResources->newImages[imageId].get(),
+            .sampler = m_newDefaultSampler.get(),
+        });
+        texture = nullptr; // TODO find a place for a new texture
 
         material.albedo = textureHandle;
     }
@@ -1712,6 +1734,7 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
         .is_mutable = false,
     });
     meshBuffer->upload_sync(data);
+    m_editorGltfResources->newMeshBuffers[id] = nstl::move(meshBuffer);
 
     editor::assets::MeshData meshData = m_assetDatabase->loadMesh(id);
 

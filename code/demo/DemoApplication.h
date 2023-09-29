@@ -17,6 +17,8 @@
 
 #include "editor/assets/Uuid.h"
 
+#include "gfx/resources.h"
+
 #include "nstl/vector.h"
 #include "nstl/unordered_map.h"
 #include "nstl/optional.h"
@@ -120,11 +122,14 @@ struct GltfResources
 struct EditorGltfResources
 {
     nstl::unordered_map<editor::assets::Uuid, vkgfx::ImageHandle> images;
+    nstl::unordered_map<editor::assets::Uuid, nstl::unique_ptr<gfx::image>> newImages;
     nstl::unordered_map<editor::assets::Uuid, DemoMaterial> materials;
     nstl::unordered_map<editor::assets::Uuid, DemoMesh> meshes;
     nstl::unordered_map<editor::assets::Uuid, vkgfx::BufferHandle> meshBuffers;
+    nstl::unordered_map<editor::assets::Uuid, nstl::unique_ptr<gfx::buffer>> newMeshBuffers;
 
     nstl::unordered_map<nstl::string, vkgfx::ShaderModuleHandle> shaderModules;
+    nstl::unordered_map<nstl::string, nstl::unique_ptr<gfx::shader>> newShaderModules;
 
     nstl::vector<vkgfx::TestCameraParameters> cameraParameters;
 
@@ -180,6 +185,8 @@ private:
 private:
     Services m_services;
 
+    nstl::unique_ptr<gfx::renderer> m_newRenderer;
+
     ScopedDebugCommands m_commands{ m_services };
 
     nstl::unique_ptr<GlfwWindow> m_window;
@@ -203,6 +210,12 @@ private:
     vkgfx::TextureHandle m_defaultAlbedoTexture;
     vkgfx::ImageHandle m_defaultNormalMapImage;
     vkgfx::TextureHandle m_defaultNormalMapTexture;
+
+    nstl::unique_ptr<gfx::sampler> m_newDefaultSampler;
+    nstl::unique_ptr<gfx::image> m_newDefaultAlbedoImage;
+    nstl::unique_ptr<gfx::texture> m_newDefaultAlbedoTexture;
+    nstl::unique_ptr<gfx::image> m_newDefaultNormalMapImage;
+    nstl::unique_ptr<gfx::texture> m_newDefaultNormalMapTexture;
 
     vkc::Timer m_frameTimer;
     vkc::Timer m_appTime;
@@ -241,6 +254,4 @@ private:
     vkgfx::TestLightParameters m_lightParameters;
 
     nstl::unique_ptr<editor::assets::AssetDatabase> m_assetDatabase;
-
-    nstl::unique_ptr<gfx::renderer> m_newRenderer;
 };
