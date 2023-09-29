@@ -72,6 +72,7 @@ gfx_vk::buffer::~buffer()
         return;
 
     vkDestroyBuffer(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
+    m_handle = nullptr;
 }
 
 void gfx_vk::buffer::upload_sync(nstl::blob_view bytes, size_t offset)

@@ -70,6 +70,7 @@ gfx_vk::image::~image()
         return;
 
     vkDestroyImage(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
+    m_handle = nullptr;
 }
 
 void gfx_vk::image::upload_sync(nstl::blob_view bytes)
