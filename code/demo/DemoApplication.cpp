@@ -660,6 +660,13 @@ void DemoApplication::createResources()
     resourceManager.uploadImage(m_defaultAlbedoImage, nstl::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
     m_defaultAlbedoTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultAlbedoImage, m_defaultSampler });
 
+    m_newDefaultAlbedoImage = m_newRenderer->create_image({
+        .width = 1,
+        .height = 1,
+        .format = gfx::image_format::r8g8b8a8,
+    });
+    m_newDefaultAlbedoImage->upload_sync(nstl::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
+
     m_defaultNormalMapImage = resourceManager.createImage(vkgfx::ImageMetadata{
         .width = 1,
         .height = 1,
@@ -668,6 +675,13 @@ void DemoApplication::createResources()
     });
     resourceManager.uploadImage(m_defaultNormalMapImage, nstl::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff });
     m_defaultNormalMapTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultNormalMapImage, m_defaultSampler });
+
+    m_newDefaultNormalMapImage = m_newRenderer->create_image({
+        .width = 1,
+        .height = 1,
+        .format = gfx::image_format::r8g8b8a8,
+    });
+    m_newDefaultNormalMapImage->upload_sync(nstl::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff });
 }
 
 void DemoApplication::loadImgui()
