@@ -213,9 +213,7 @@ private:
 
     nstl::unique_ptr<gfx::sampler> m_newDefaultSampler;
     nstl::unique_ptr<gfx::image> m_newDefaultAlbedoImage;
-    nstl::unique_ptr<gfx::texture> m_newDefaultAlbedoTexture;
     nstl::unique_ptr<gfx::image> m_newDefaultNormalMapImage;
-    nstl::unique_ptr<gfx::texture> m_newDefaultNormalMapTexture;
 
     vkc::Timer m_frameTimer;
     vkc::Timer m_appTime;

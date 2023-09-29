@@ -12,8 +12,6 @@ add_library(gfx_vk
     "src/image.cpp"
     "src/sampler.h"
     "src/sampler.cpp"
-    "src/texture.h"
-    "src/texture.cpp"
     "src/shader.h"
     "src/shader.cpp"
 )

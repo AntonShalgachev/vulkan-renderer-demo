@@ -1673,12 +1673,6 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
             .sampler = m_defaultSampler, // TODO create actual sampler
         });
 
-        auto texture = m_newRenderer->create_texture({
-            .image = m_editorGltfResources->newImages[imageId].get(),
-            .sampler = m_newDefaultSampler.get(),
-        });
-        texture = nullptr; // TODO find a place for a new texture
-
         material.albedo = textureHandle;
     }
 

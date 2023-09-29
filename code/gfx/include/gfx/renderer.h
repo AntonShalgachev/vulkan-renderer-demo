@@ -31,7 +31,6 @@ namespace gfx
         [[nodiscard]] nstl::unique_ptr<buffer> create_buffer(buffer_params const& params) { return m_backend->create_buffer(params); }
         [[nodiscard]] nstl::unique_ptr<image> create_image(image_params const& params) { return m_backend->create_image(params); }
         [[nodiscard]] nstl::unique_ptr<sampler> create_sampler(sampler_params const& params) { return m_backend->create_sampler(params); }
-        [[nodiscard]] nstl::unique_ptr<texture> create_texture(texture_params const& params) { return m_backend->create_texture(params); }
         [[nodiscard]] nstl::unique_ptr<framebuffer> create_framebuffer() { return m_backend->create_framebuffer(); }
         [[nodiscard]] nstl::unique_ptr<uniforms> create_uniforms() { return m_backend->create_uniforms(); }
         [[nodiscard]] nstl::unique_ptr<shader> create_shader(shader_params const& params) { return m_backend->create_shader(params); }

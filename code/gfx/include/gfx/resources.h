@@ -93,20 +93,6 @@ namespace gfx
 
     //////////////////////////////////////////////////////////////////////////
 
-    struct texture_params
-    {
-        image* image = nullptr;
-        sampler* sampler = nullptr;
-    };
-
-    class texture
-    {
-    public:
-        virtual ~texture() = default;
-    };
-
-    //////////////////////////////////////////////////////////////////////////
-
     class framebuffer
     {
     public:
