@@ -20,8 +20,6 @@ target_include_directories(common PUBLIC "include")
 
 demo_set_common_properties(common)
 
-target_compile_definitions(common PRIVATE _CRT_SECURE_NO_WARNINGS) # TODO remove?
-
 target_link_libraries(common
     nstl
     memory
