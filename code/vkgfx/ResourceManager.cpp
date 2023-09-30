@@ -725,8 +725,8 @@ vkgfx::PipelineLayoutHandle vkgfx::ResourceManager::createPipelineLayout(Pipelin
     {
         VkPushConstantRange& vkRange = pushConstantRanges.emplace_back();
         vkRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT; // TODO configure
-        vkRange.offset = range.offset;
-        vkRange.size = range.size;
+        vkRange.offset = static_cast<uint32_t>(range.offset);
+        vkRange.size = static_cast<uint32_t>(range.size);
     }
 
     m_pipelineLayouts.emplace_back(m_device, nstl::move(descriptorSetLayouts), nstl::move(pushConstantRanges));
@@ -757,18 +757,18 @@ vkgfx::PipelineHandle vkgfx::ResourceManager::createPipeline(PipelineKey const& 
     {
         VertexConfiguration::Binding const& binding = key.vertexConfig.bindings[i];
         VkVertexInputBindingDescription& desc = config.bindingDescriptions.emplace_back();
-        desc.binding = i;
-        desc.stride = binding.stride;
+        desc.binding = static_cast<uint32_t>(i);
+        desc.stride = static_cast<uint32_t>(binding.stride);
         desc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX; // TODO configure
     }
 
     for (VertexConfiguration::Attribute const& attribute : key.vertexConfig.attributes)
     {
         VkVertexInputAttributeDescription& desc = config.attributeDescriptions.emplace_back();
-        desc.binding = attribute.binding;
-        desc.location = attribute.location;
+        desc.binding = static_cast<uint32_t>(attribute.binding);
+        desc.location = static_cast<uint32_t>(attribute.location);
         desc.format = ::vulkanizeAttributeFormat(attribute.type);
-        desc.offset = attribute.offset;
+        desc.offset = static_cast<uint32_t>(attribute.offset);
     }
 
     PipelineLayoutKey layoutKey;
@@ -778,10 +778,10 @@ vkgfx::PipelineHandle vkgfx::ResourceManager::createPipeline(PipelineKey const& 
     PipelineLayoutHandle pipelineLayoutHandle = getOrCreatePipelineLayout(layoutKey);
 
     nstl::vector<vko::ShaderModule const*> shaderModules;
-    for (ShaderModuleHandle const& handle : key.shaderHandles)
+    for (ShaderModuleHandle const& shaderModuleHandle : key.shaderHandles)
     {
-        assert(handle);
-        vko::ShaderModule const* shaderModule = m_shaderModules.get(handle);
+        assert(shaderModuleHandle);
+        vko::ShaderModule const* shaderModule = m_shaderModules.get(shaderModuleHandle);
         assert(shaderModule);
         shaderModules.push_back(shaderModule);
     }

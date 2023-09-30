@@ -447,8 +447,8 @@ namespace
 
         nstl::vector<editor::assets::PrimitiveDescription> primitives;
         primitives.reserve(mesh.primitives_count);
-        for (size_t i = 0; i < mesh.primitives_count; i++)
-            primitives.push_back(appendPrimitive(mesh.primitives[i], data, resources, buffer));
+        for (size_t j = 0; j < mesh.primitives_count; j++)
+            primitives.push_back(appendPrimitive(mesh.primitives[j], data, resources, buffer));
 
         editor::assets::MeshData meshData = {
             .version = editor::assets::meshAssetVersion,
@@ -650,11 +650,11 @@ nstl::vector<editor::assets::Uuid> editor::assets::AssetImporterGltf::parseGltfD
        f.open(path, fs::open_mode::read);
        assert(f.is_open());
 
-       nstl::blob data{ f.size() };
-       f.read(data.data(), data.size());
+       nstl::blob bytes{ f.size() };
+       f.read(bytes.data(), bytes.size());
        f.close();
 
-       resources.bufferData.push_back(nstl::move(data));
+       resources.bufferData.push_back(nstl::move(bytes));
     }
 
     result.reserve(result.size() + data.images_count);

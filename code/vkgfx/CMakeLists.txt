@@ -31,6 +31,10 @@ target_include_directories(vkgfx PUBLIC
 
 demo_set_common_properties(vkgfx)
 
+if(MSVC)
+    target_compile_options(vkgfx PRIVATE /wd4324) # structure was padded due to alignment specifier
+endif()
+
 if(DEMO_PCH)
     target_precompile_headers(vkgfx PRIVATE "pch.h")
 endif()

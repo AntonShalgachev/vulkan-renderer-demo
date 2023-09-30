@@ -240,9 +240,10 @@ nstl::optional<nstl::string_view> ui::DebugConsoleWidget::onInputHistory(nstl::s
 {
     auto const& inputHistory = services().debugConsole().history();
 
-    assert(inputHistory.size() <= INT_MAX);
+    assert(inputHistory.size() < INT_MAX);
+    assert(m_suggestions.size() <= INT_MAX);
     int minIndex = -static_cast<int>(inputHistory.size());
-    int maxIndex = m_suggestions.size();
+    int maxIndex = static_cast<int>(m_suggestions.size());
     m_replacementIndex = nstl::clamp(m_replacementIndex + delta, minIndex, maxIndex);
 
     if (m_replacementIndex != 0 && !m_oldInput)

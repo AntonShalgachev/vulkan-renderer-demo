@@ -146,8 +146,10 @@ namespace
         static auto scopeId = memory::tracking::create_scope_id("Image/Load/STBI");
         MEMORY_TRACKING_SCOPE(scopeId);
 
+        assert(bytes.size() <= INT_MAX);
+
         int w = 0, h = 0, comp = 0, req_comp = 4;
-        unsigned char* data = stbi_load_from_memory(bytes.ucdata(), bytes.size(), &w, &h, &comp, req_comp);
+        unsigned char* data = stbi_load_from_memory(bytes.ucdata(), static_cast<int>(bytes.size()), &w, &h, &comp, req_comp);
         int bits = 8;
 
         if (!data)
@@ -194,8 +196,10 @@ namespace
         static auto scopeId = memory::tracking::create_scope_id("Image/Load/DDS");
         MEMORY_TRACKING_SCOPE(scopeId);
 
+        assert(bytes.size() <= INT_MAX);
+
         ddsktx_texture_info info{};
-        if (!ddsktx_parse(&info, bytes.data(), bytes.size(), nullptr))
+        if (!ddsktx_parse(&info, bytes.data(), static_cast<int>(bytes.size()), nullptr))
             return {};
 
         assert(info.bpp > 0);
@@ -231,7 +235,7 @@ namespace
         for (int mip = 0; mip < info.num_mips; mip++)
         {
             ddsktx_sub_data mipInfo;
-            ddsktx_get_sub(&info, &mipInfo, bytes.data(), bytes.size(), 0, 0, mip);
+            ddsktx_get_sub(&info, &mipInfo, bytes.data(), static_cast<int>(bytes.size()), 0, 0, mip);
 
             assert(mipInfo.buff > bytes.data());
             size_t offset = static_cast<unsigned char const*>(mipInfo.buff) - bytes.ucdata();
@@ -692,7 +696,6 @@ void DemoApplication::loadImgui()
     {
         ImGui::SetAllocatorFunctions([](size_t size, void*)
         {
-            static auto scopeId = memory::tracking::create_scope_id("UI/ImGui/Internal");
             MEMORY_TRACKING_SCOPE(scopeId);
 
             return memory::allocate(size);
@@ -1402,7 +1405,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     return true;
 }
 
-bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
+bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
 {
     static auto scopeId = memory::tracking::create_scope_id("Scene/Load/Editor");
     static auto shadersScopeId = memory::tracking::create_scope_id("Scene/Load/Editor/Shader");
@@ -1459,7 +1462,7 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
         }));
     }
 
-    editor::assets::SceneData scene = m_assetDatabase->loadScene(id);
+    editor::assets::SceneData scene = m_assetDatabase->loadScene(sceneId);
 
     for (editor::assets::ObjectDescription const& object : scene.objects)
     {
@@ -1582,14 +1585,14 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
                 DemoObjectPushConstants pushConstants;
                 pushConstants.model = calculateTransform();
 
-                vkgfx::TestObject& object = m_demoScene.objects.emplace_back();
-                object.mesh = primitive.handle;
-                object.material = material.handle;
-                object.pipeline = pipeline;
-                object.shadowmapPipeline = shadowmapPipeline;
-                object.uniformBuffer = uniformBuffer;
-                object.pushConstants.resize(sizeof(pushConstants));
-                memcpy(object.pushConstants.data(), &pushConstants, object.pushConstants.size());
+                vkgfx::TestObject& testObject = m_demoScene.objects.emplace_back();
+                testObject.mesh = primitive.handle;
+                testObject.material = material.handle;
+                testObject.pipeline = pipeline;
+                testObject.shadowmapPipeline = shadowmapPipeline;
+                testObject.uniformBuffer = uniformBuffer;
+                testObject.pushConstants.resize(sizeof(pushConstants));
+                memcpy(testObject.pushConstants.data(), &pushConstants, testObject.pushConstants.size());
             }
         }
     }

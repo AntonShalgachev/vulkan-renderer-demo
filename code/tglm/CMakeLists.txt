@@ -27,6 +27,10 @@ add_library(tglm
 
 demo_set_common_properties(tglm)
 
+if(MSVC)
+    target_compile_options(tglm PUBLIC /wd4201) # nonstandard extension used : nameless struct/union
+endif()
+
 target_include_directories(tglm
     PUBLIC "include"
 )

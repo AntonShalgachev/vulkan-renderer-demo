@@ -441,7 +441,8 @@ void GlfwWindow::onScroll(double xoffset, double yoffset)
 
 void GlfwWindow::onChar(unsigned int c)
 {
-    m_onChar(c);
+    assert(c <= CHAR_MAX);
+    m_onChar(static_cast<char>(c));
 }
 
 bool GlfwWindow::shouldClose() const

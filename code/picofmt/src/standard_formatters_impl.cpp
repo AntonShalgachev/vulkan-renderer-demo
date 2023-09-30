@@ -27,6 +27,18 @@ namespace
 
     template<typename T> using make_unsigned_t = typename make_unsigned<T>::type;
 
+    template<typename T> constexpr void* is_unsigned_v = nullptr;
+    template<> constexpr bool is_unsigned_v<signed char> = false;
+    template<> constexpr bool is_unsigned_v<unsigned char> = true;
+    template<> constexpr bool is_unsigned_v<short> = false;
+    template<> constexpr bool is_unsigned_v<unsigned short> = true;
+    template<> constexpr bool is_unsigned_v<int> = false;
+    template<> constexpr bool is_unsigned_v<unsigned int> = true;
+    template<> constexpr bool is_unsigned_v<long> = false;
+    template<> constexpr bool is_unsigned_v<unsigned long> = true;
+    template<> constexpr bool is_unsigned_v<long long> = false;
+    template<> constexpr bool is_unsigned_v<unsigned long long> = true;
+
     struct integer_formats_data
     {
         char const* dec_fmt = nullptr;
@@ -259,7 +271,13 @@ namespace
         constexpr size_t value_buffer_size = sizeof(T) * 8 + 1; // binary representation is the most extreme case, including NULL
         char value_buffer[value_buffer_size];
 
-        int written_chars = snprintf(value_buffer, value_buffer_size, params.fmt, static_cast<UT>(is_negative ? -value : value));
+        UT abs_value = 0;
+        if constexpr (is_unsigned_v<T>)
+            abs_value = static_cast<UT>(value);
+        else
+            abs_value = static_cast<UT>(is_negative ? -value : value);
+
+        int written_chars = snprintf(value_buffer, value_buffer_size, params.fmt, abs_value);
         if (written_chars < 0)
         {
             ctx.report_error("Unknown error"); // TODO test how it can happen

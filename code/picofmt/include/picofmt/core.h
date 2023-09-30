@@ -52,8 +52,10 @@ namespace picofmt
                     value = static_cast<int>(m_value);
                     return true;
                 }
-
-                return false;
+                else
+                {
+                    return false;
+                }
             }
 
             bool format(context& ctx) const override

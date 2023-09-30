@@ -54,4 +54,8 @@ namespace memory
     }
 }
 
-#define MEMORY_TRACKING_SCOPE(id) memory::tracking::scope_guard memory_tracking_scope_guard{id}
+// TODO move somewhere
+#define MEMORY_CONCATENATE(x, y) x ## y
+#define MEMORY_CONCATENATE2(x, y) MEMORY_CONCATENATE(x, y)
+
+#define MEMORY_TRACKING_SCOPE(id) memory::tracking::scope_guard MEMORY_CONCATENATE2(memory_tracking_scope_guard, __LINE__){id}

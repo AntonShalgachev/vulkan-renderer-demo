@@ -43,7 +43,7 @@ namespace
         if (value.get_type() != yyjsoncpp::type::number)
             return {};
 
-        return value.get_uint();
+        return static_cast<T>(value.get_uint());
     }
 
     template<typename T>
@@ -52,7 +52,7 @@ namespace
         if (value.get_type() != yyjsoncpp::type::number)
             return {};
 
-        return value.get_real();
+        return static_cast<T>(value.get_real());
     }
 
     //////////////////////////////////////////////////////////////////////////

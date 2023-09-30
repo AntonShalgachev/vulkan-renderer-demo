@@ -238,9 +238,11 @@ namespace
             bufferInfo.offset = buffer.offset;
             bufferInfo.range = buffer.size;
 
+            assert(buffer.binding <= UINT32_MAX);
+
             descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrite.dstSet = set;
-            descriptorWrite.dstBinding = buffer.binding;
+            descriptorWrite.dstBinding = static_cast<uint32_t>(buffer.binding);
             descriptorWrite.dstArrayElement = 0;
             descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             descriptorWrite.descriptorCount = 1;
@@ -258,9 +260,11 @@ namespace
             imageInfo.imageView = image.imageView;
             imageInfo.sampler = image.sampler;
 
+            assert(image.binding <= UINT32_MAX);
+
             descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrite.dstSet = set;
-            descriptorWrite.dstBinding = image.binding;
+            descriptorWrite.dstBinding = static_cast<uint32_t>(image.binding);
             descriptorWrite.dstArrayElement = 0;
             descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             descriptorWrite.descriptorCount = 1;
@@ -604,7 +608,10 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
         }
 
         if (!object.pushConstants.empty())
-            vkCmdPushConstants(commandBuffer, pipeline.getPipelineLayoutHandle(), VK_SHADER_STAGE_VERTEX_BIT, 0, object.pushConstants.size(), object.pushConstants.data()); // TODO configure shader stage
+        {
+            assert(object.pushConstants.size() <= UINT32_MAX);
+            vkCmdPushConstants(commandBuffer, pipeline.getPipelineLayoutHandle(), VK_SHADER_STAGE_VERTEX_BIT, 0, static_cast<uint32_t>(object.pushConstants.size()), object.pushConstants.data()); // TODO configure shader stage
+        }
 
         if (!isShadowmap && object.material && boundMaterial != object.material)
         {
@@ -700,7 +707,8 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
             updateDescriptorSet(m_context->getDevice().getHandle(), m_cache->descriptorSets[0], m_cache->config1, *m_cache);
             updateDescriptorSet(m_context->getDevice().getHandle(), m_cache->descriptorSets[1], m_cache->config2, *m_cache);
 
-            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 1, m_cache->descriptorSets.size(), m_cache->descriptorSets.data(), 0, nullptr);
+            assert(m_cache->descriptorSets.size() <= UINT32_MAX);
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayoutHandle(), 1, static_cast<uint32_t>(m_cache->descriptorSets.size()), m_cache->descriptorSets.data(), 0, nullptr);
 
             boundMaterial = object.material;
         }
@@ -734,10 +742,13 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
         }
         else
         {
+            assert(m_width <= UINT32_MAX);
+            assert(m_height <= UINT32_MAX);
+
             scissor.offset.x = 0;
             scissor.offset.y = 0;
-            scissor.extent.width = isShadowmap ? SHADOWMAP_RESOLUTION : m_width;
-            scissor.extent.height = isShadowmap ? SHADOWMAP_RESOLUTION : m_height;
+            scissor.extent.width = isShadowmap ? SHADOWMAP_RESOLUTION : static_cast<uint32_t>(m_width);
+            scissor.extent.height = isShadowmap ? SHADOWMAP_RESOLUTION : static_cast<uint32_t>(m_height);
         }
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 

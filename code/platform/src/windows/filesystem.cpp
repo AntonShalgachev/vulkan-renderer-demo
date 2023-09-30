@@ -84,10 +84,13 @@ bool platform::read_file(file_storage_t& storage, void* data, size_t size, size_
     HANDLE handle = storage.get_as<HANDLE>();
 
     OVERLAPPED o{};
-    o.Offset = offset;
+    assert(offset <= UINT32_MAX);
+    o.Offset = static_cast<uint32_t>(offset);
+
+    assert(size <= UINT32_MAX);
 
     DWORD bytesRead = 0;
-    if (!ReadFile(handle, data, size, &bytesRead, &o))
+    if (!ReadFile(handle, data, static_cast<uint32_t>(size), &bytesRead, &o))
     {
         auto e = platform_win32::get_last_error(); // TODO make use of it
         assert(false);
@@ -102,10 +105,13 @@ bool platform::write_file(file_storage_t& storage, void const* data, size_t size
     HANDLE handle = storage.get_as<HANDLE>();
 
     OVERLAPPED o{};
-    o.Offset = offset;
+    assert(offset <= UINT32_MAX);
+    o.Offset = static_cast<uint32_t>(offset);
+
+        assert(size <= UINT32_MAX);
 
     DWORD bytesWritten = 0;
-    if (!WriteFile(handle, data, size, &bytesWritten, &o))
+    if (!WriteFile(handle, data, static_cast<uint32_t>(size), &bytesWritten, &o))
     {
         auto e = platform_win32::get_last_error(); // TODO make use of it
         assert(false);
