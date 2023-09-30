@@ -68,7 +68,7 @@ namespace
             return m_ptr;
         }
 
-        void* realloc(void* ptr, size_t old_size, size_t size)
+        void* realloc(void* ptr, size_t, size_t size)
         {
             if (ptr != m_ptr)
             {

@@ -17,7 +17,7 @@ add_library(yyjsoncpp
     "src/default_serializer.cpp"
 )
 
-target_compile_features(yyjsoncpp PUBLIC cxx_std_20)
+demo_set_common_properties(yyjsoncpp)
 
 target_include_directories(yyjsoncpp PUBLIC
     "include"
