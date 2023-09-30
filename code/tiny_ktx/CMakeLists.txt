@@ -5,7 +5,7 @@ add_library(tiny_ktx
     "src/tiny_ktx.cpp"
 )
 
-target_compile_features(tiny_ktx PUBLIC cxx_std_20)
+demo_set_common_properties(tiny_ktx)
 
 target_include_directories(tiny_ktx PUBLIC
     "include"

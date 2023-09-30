@@ -320,7 +320,6 @@ nstl::optional<nstl::string_view> DebugConsoleService::autoComplete(nstl::string
     {
         nstl::string_view prefix = baseCandidate.substr(0, s);
 
-        bool isPrefixValid = true;
         for (nstl::string_view candidate : candidates)
             if (!candidate.starts_with(prefix))
                 return longestPrefix;

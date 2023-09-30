@@ -12,8 +12,9 @@ namespace
             return true;
         }
 
-        void report_error(nstl::string_view str) override
+        void report_error(nstl::string_view) override
         {
+            // TODO make use of the error message
             assert(false);
         }
 
@@ -39,7 +40,7 @@ bool common::detail::string_case_formatter::format(nstl::string_view const& valu
     {
         nstl::string uppercase_copy = value;
         for (char& c : uppercase_copy)
-            c = toupper(c);
+            c = static_cast<char>(toupper(c));
 
         return picofmt::formatter<nstl::string_view>::format(uppercase_copy, ctx);
     }

@@ -32,7 +32,8 @@ void vko::DescriptorSets::update(UpdateConfig const& updateConfig)
 
         descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrite.dstSet = m_handles[buffer.set];
-        descriptorWrite.dstBinding = buffer.binding;
+        assert(buffer.binding <= UINT32_MAX);
+        descriptorWrite.dstBinding = static_cast<uint32_t>(buffer.binding);
         descriptorWrite.dstArrayElement = 0;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         descriptorWrite.descriptorCount = 1;
@@ -52,7 +53,8 @@ void vko::DescriptorSets::update(UpdateConfig const& updateConfig)
 
         descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrite.dstSet = m_handles[image.set];
-        descriptorWrite.dstBinding = image.binding;
+        assert(image.binding <= UINT32_MAX);
+        descriptorWrite.dstBinding = static_cast<uint32_t>(image.binding);
         descriptorWrite.dstArrayElement = 0;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descriptorWrite.descriptorCount = 1;

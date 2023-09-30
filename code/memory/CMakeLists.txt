@@ -9,7 +9,7 @@ add_library(memory
     "src/memory.cpp"
 )
 
-target_compile_features(memory PUBLIC cxx_std_20)
+demo_set_common_properties(memory)
 
 target_include_directories(memory PUBLIC
     "include"

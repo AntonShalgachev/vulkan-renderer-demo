@@ -186,13 +186,10 @@ DebugDrawService::DebugDrawService(vkgfx::Renderer& renderer)
 
 DebugDrawService::~DebugDrawService() = default;
 
-void DebugDrawService::sphere(tglm::vec3 const& center, tglm::vec3 const& scale, tglm::vec3 const& color, float duration)
+void DebugDrawService::box(tglm::vec3 const& center, tglm::quat const& rotation, tglm::vec3 const& scale, tglm::vec3 const&, float)
 {
-    MEMORY_TRACKING_SCOPE(debugDrawScopeId);
-}
+    // TODO use color parameter and duration
 
-void DebugDrawService::box(tglm::vec3 const& center, tglm::quat const& rotation, tglm::vec3 const& scale, tglm::vec3 const& color, float duration)
-{
     MEMORY_TRACKING_SCOPE(debugDrawScopeId);
 
     auto matrix = tglm::mat4::identity();

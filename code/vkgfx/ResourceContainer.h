@@ -73,7 +73,8 @@ namespace vkgfx
             header.reincarnation++;
 
             ResourceHandle handle;
-            handle.index = headerIndex;
+            assert(headerIndex <= UINT32_MAX);
+            handle.index = static_cast<uint32_t>(headerIndex);
             handle.reincarnation = header.reincarnation;
 
             m_objects.push_back(nstl::move(value));

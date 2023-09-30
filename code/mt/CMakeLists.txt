@@ -8,7 +8,7 @@ add_library(mt
     "src/lock_guard.cpp"
 )
 
-target_compile_features(mt PUBLIC cxx_std_20)
+demo_set_common_properties(mt)
 
 target_include_directories(mt PUBLIC
     "include"

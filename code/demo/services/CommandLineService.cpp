@@ -59,7 +59,7 @@ CommandLineService::CommandLineService(Services& services) : ServiceContainer(se
 void CommandLineService::add(int argc, char** argv)
 {
     m_arguments.reserve(m_arguments.size() + argc);
-    for (size_t i = 0; i < argc; i++)
+    for (int i = 0; i < argc; i++)
         add(argv[i]);
 }
 

@@ -18,7 +18,7 @@ namespace
     };
 }
 
-void* operator new(size_t size, ::new_tag, void* p) { return p; }
+void* operator new(size_t, ::new_tag, void* p) { return p; }
 void operator delete(void*, ::new_tag, void*) {}
 
 static DWORD WINAPI win32_thread_func(void* param)

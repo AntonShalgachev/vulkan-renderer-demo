@@ -1,5 +1,3 @@
-set(PROJECT_NAME demo)
-
 set(ALL_FILES
     "pch.h"
 
@@ -48,21 +46,21 @@ set(ALL_FILES
     "ui/MemoryViewerWindow.cpp"
 )
 
-add_executable(${PROJECT_NAME} WIN32 ${ALL_FILES})
+add_executable(demo WIN32 ${ALL_FILES})
 
-target_include_directories(${PROJECT_NAME} PRIVATE
+target_include_directories(demo PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+demo_set_common_properties(demo)
 
 if(DEMO_PCH)
-    target_precompile_headers(${PROJECT_NAME} PRIVATE "pch.h")
+    target_precompile_headers(demo PRIVATE "pch.h")
 endif()
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+set_property(TARGET demo PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(demo
     vko # TODO remove
     vkgfx # TODO remove
     glfw

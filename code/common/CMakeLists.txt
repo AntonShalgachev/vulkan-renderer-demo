@@ -1,5 +1,3 @@
-set(PROJECT_NAME common)
-
 set(ALL_FILES
     "tiny_ctti.h"
     "fmt.h"
@@ -20,9 +18,9 @@ set(ALL_FILES
     "align.cpp"
 )
 
-add_library(${PROJECT_NAME} ${ALL_FILES})
+add_library(common ${ALL_FILES})
 
-target_include_directories(${PROJECT_NAME}
+target_include_directories(common
     PRIVATE
     "${CMAKE_SOURCE_DIR}/include"
 
@@ -31,11 +29,11 @@ target_include_directories(${PROJECT_NAME}
     "${CMAKE_CURRENT_SOURCE_DIR}/.."
 )
 
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+demo_set_common_properties(common)
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS) # TODO remove?
+target_compile_definitions(common PRIVATE _CRT_SECURE_NO_WARNINGS) # TODO remove?
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(common
     nstl
     memory
     yyjsoncpp

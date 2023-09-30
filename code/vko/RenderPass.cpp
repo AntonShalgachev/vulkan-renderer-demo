@@ -50,7 +50,8 @@ vko::RenderPass::RenderPass(Device const& device, nstl::optional<VkFormat> color
 
     VkSubpassDescription subpass{};
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass.colorAttachmentCount = colorAttachmentRefs.size();
+    assert(colorAttachmentRefs.size() <= UINT32_MAX);
+    subpass.colorAttachmentCount = static_cast<uint32_t>(colorAttachmentRefs.size());
     subpass.pColorAttachments = colorAttachmentRefs.data();
     subpass.pDepthStencilAttachment = depthStencilAttachmentRef ? &*depthStencilAttachmentRef : nullptr;
 

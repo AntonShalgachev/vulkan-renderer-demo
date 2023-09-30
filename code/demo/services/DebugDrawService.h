@@ -33,7 +33,6 @@ public:
     DebugDrawService(vkgfx::Renderer& renderer);
     ~DebugDrawService();
 
-    void sphere(tglm::vec3 const& center, tglm::vec3 const& scale, tglm::vec3 const& color, float duration);
     void box(tglm::vec3 const& center, tglm::quat const& rotation, tglm::vec3 const& scale, tglm::vec3 const& color, float duration);
 
     void queueGeometry(vkgfx::Renderer& renderer);

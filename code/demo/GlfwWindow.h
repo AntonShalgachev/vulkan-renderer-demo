@@ -58,7 +58,7 @@ enum class MouseCursorIcon
 };
 TINY_CTTI_DESCRIBE_ENUM(MouseCursorIcon, Arrow, TextInput, ResizeAll, ResizeNS, ResizeEW, ResizeNESW, ResizeNWSE, NotAllowed, Hand);
 
-class GlfwWindow : public vko::Window
+class GlfwWindow final : public vko::Window
 {
 public:
     // TODO remove this enum

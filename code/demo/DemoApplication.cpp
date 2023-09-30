@@ -228,7 +228,7 @@ namespace
         imageData.bytes.resize(bytes.size());
         memcpy(imageData.bytes.data(), bytes.data(), bytes.size());
 
-        for (size_t mip = 0; mip < info.num_mips; mip++)
+        for (int mip = 0; mip < info.num_mips; mip++)
         {
             ddsktx_sub_data mipInfo;
             ddsktx_get_sub(&info, &mipInfo, bytes.data(), bytes.size(), 0, 0, mip);
@@ -461,7 +461,7 @@ DemoApplication::~DemoApplication()
     m_services = Services{};
 }
 
-void DemoApplication::registerCommandLineOptions(CommandLineService& commandLine)
+void DemoApplication::registerCommandLineOptions(CommandLineService&)
 {
     // TODO implement
 //     commandLine.add("--execute")
@@ -781,7 +781,7 @@ void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, siz
     // TODO is there a better way?
     auto findIndex = [](auto const* object, auto const* firstObject, size_t count) -> size_t
     {
-        auto index = object - firstObject;
+        size_t index = object - firstObject;
         assert(index >= 0);
         assert(index < count);
         return static_cast<size_t>(index);
@@ -1015,13 +1015,13 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     // TODO is there a better way?
     auto findIndex = [](auto const* object, auto const* firstObject, size_t count) -> size_t
     {
-        auto index = object - firstObject;
+        size_t index = object - firstObject;
         assert(index >= 0);
         assert(index < count);
         return static_cast<size_t>(index);
     };
 
-    for (auto i = 0; i < model.extensions_required_count; i++)
+    for (size_t i = 0; i < model.extensions_required_count; i++)
         logging::warn("GLTF requires extension '{}'", model.extensions_required[i]);
 
     // TODO move somewhere else? Doesn't seem to be related to the GLTF model
@@ -1031,7 +1031,6 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     {
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
-        auto const& configuration = pair.key();
         auto const& modulePath = pair.value();
         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
         m_gltfResources->shaderModules.insert_or_assign(modulePath, handle);
@@ -1042,14 +1041,13 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     {
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
-        auto const& configuration = pair.key();
         auto const& modulePath = pair.value();
         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Fragment, "main");
         m_gltfResources->shaderModules.insert_or_assign(modulePath, handle);
     }
 
     m_gltfResources->buffers.reserve(model.buffers_count);
-    for (auto i = 0; i < model.buffers_count; i++)
+    for (size_t i = 0; i < model.buffers_count; i++)
     {
         MEMORY_TRACKING_SCOPE(buffersScopeId);
 
@@ -1072,7 +1070,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     }
 
     m_gltfResources->samplers.reserve(model.samplers_count);
-    for (auto i = 0; i < model.samplers_count; i++)
+    for (size_t i = 0; i < model.samplers_count; i++)
     {
         MEMORY_TRACKING_SCOPE(samplersScopeId);
 
@@ -1128,7 +1126,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     }
 
     m_gltfResources->images.reserve(model.images_count);
-    for (auto i = 0; i < model.images_count; i++)
+    for (size_t i = 0; i < model.images_count; i++)
     {
         MEMORY_TRACKING_SCOPE(imagesScopeId);
 
@@ -1163,7 +1161,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     }
 
     m_gltfResources->textures.reserve(model.textures_count);
-    for (auto i = 0; i < model.textures_count; i++)
+    for (size_t i = 0; i < model.textures_count; i++)
     {
         MEMORY_TRACKING_SCOPE(texturesScopeId);
 
@@ -1189,7 +1187,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     }
 
     m_gltfResources->materials.reserve(model.materials_count);
-    for (auto i = 0; i < model.materials_count; i++)
+    for (size_t i = 0; i < model.materials_count; i++)
     {
         MEMORY_TRACKING_SCOPE(materialsScopeId);
 
@@ -1248,7 +1246,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     }
 
     m_gltfResources->meshes.reserve(model.meshes_count);
-    for (auto meshIndex = 0; meshIndex < model.meshes_count; meshIndex++)
+    for (size_t meshIndex = 0; meshIndex < model.meshes_count; meshIndex++)
     {
         MEMORY_TRACKING_SCOPE(meshesScopeId);
 
@@ -1256,7 +1254,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
         DemoMesh& demoMesh = m_gltfResources->meshes.emplace_back();
         demoMesh.primitives.reserve(gltfMesh.primitives_count);
-        for (auto primitiveIndex = 0; primitiveIndex < gltfMesh.primitives_count; primitiveIndex++)
+        for (size_t primitiveIndex = 0; primitiveIndex < gltfMesh.primitives_count; primitiveIndex++)
         {
             cgltf_primitive const& gltfPrimitive = gltfMesh.primitives[primitiveIndex];
 
@@ -1423,7 +1421,6 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
     {
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
-        auto const& configuration = pair.key();
         auto const& modulePath = pair.value();
         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
@@ -1438,7 +1435,6 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
     {
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
-        auto const& configuration = pair.key();
         auto const& modulePath = pair.value();
         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Fragment, "main");
         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
@@ -1454,7 +1450,6 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid id)
     {
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
-        auto const& configuration = pair.key();
         auto const& modulePath = pair.value();
         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);

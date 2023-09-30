@@ -12,9 +12,9 @@ void platform::create_directory(nstl::string_view path)
 
     bool result = CreateDirectoryA(pathCopy.c_str(), nullptr);
 
-    auto lastError = GetLastError();
+    [[maybe_unused]] auto lastError = GetLastError();
     if (!result)
-        assert(GetLastError() == ERROR_ALREADY_EXISTS);
+        assert(lastError == ERROR_ALREADY_EXISTS);
 }
 
 bool platform::open_file(file_storage_t& storage, nstl::string_view filename, fs::open_mode mode)

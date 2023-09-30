@@ -6,7 +6,7 @@ add_library(fs
     "src/file.cpp"
 )
 
-target_compile_features(fs PUBLIC cxx_std_20)
+demo_set_common_properties(fs)
 
 target_include_directories(fs PUBLIC
     "include"

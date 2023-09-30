@@ -380,7 +380,7 @@ void GlfwWindow::onFramebufferResized(int width, int height)
     m_onFramebufferResize(width, height);
 }
 
-void GlfwWindow::onKey(int glfwKey, int gltfScancode, int glfwAction, int glfwMods)
+void GlfwWindow::onKey(int glfwKey, int, int glfwAction, int glfwMods)
 {
     m_onKey(getAction(glfwAction), getKey(glfwKey), getModifiers(glfwMods));
 
@@ -409,13 +409,16 @@ void GlfwWindow::onMouseButton(int glfwButton, int glfwAction, int glfwMods)
 
 void GlfwWindow::onCursorPosition(double xpos, double ypos)
 {
-    m_onCursorPosition(static_cast<float>(xpos), static_cast<float>(ypos));
+    float x = static_cast<float>(xpos);
+    float y = static_cast<float>(ypos);
 
-    float deltaX = xpos - m_lastCursorPositionX;
-    float deltaY = ypos - m_lastCursorPositionY;
+    m_onCursorPosition(x, y);
 
-    m_lastCursorPositionX = xpos;
-    m_lastCursorPositionY = ypos;
+    float deltaX = x - m_lastCursorPositionX;
+    float deltaY = y - m_lastCursorPositionY;
+
+    m_lastCursorPositionX = x;
+    m_lastCursorPositionY = y;
 
     if (m_cursorCaptured)
         m_onMouseDeltaOld(deltaX, deltaY);

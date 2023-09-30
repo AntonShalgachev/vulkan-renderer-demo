@@ -14,7 +14,7 @@ add_library(editor_assets
 )
 add_library(editor::assets ALIAS editor_assets)
 
-target_compile_features(editor_assets PUBLIC cxx_std_20)
+demo_set_common_properties(editor_assets)
 
 target_link_libraries(editor_assets
     nstl

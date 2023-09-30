@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-static void thread_main(void* arg)
+static void thread_main(void*)
 {
     
 }

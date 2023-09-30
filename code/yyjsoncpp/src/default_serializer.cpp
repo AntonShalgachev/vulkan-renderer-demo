@@ -34,7 +34,7 @@ namespace
         if (value.get_type() != yyjsoncpp::type::number)
             return {};
 
-        return value.get_sint();
+        return static_cast<T>(value.get_sint());
     }
 
     template<typename T>

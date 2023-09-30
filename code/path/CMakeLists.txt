@@ -6,7 +6,7 @@ add_library(path
     "src/walker.cpp"
 )
 
-target_compile_features(path PUBLIC cxx_std_20)
+demo_set_common_properties(path)
 
 target_include_directories(path PUBLIC
     "include"

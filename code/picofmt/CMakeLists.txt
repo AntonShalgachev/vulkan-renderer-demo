@@ -23,6 +23,4 @@ add_library(picofmt
 )
 
 target_include_directories(picofmt PUBLIC include)
-target_compile_features(picofmt PUBLIC cxx_std_20)
-
-
+demo_set_common_properties(picofmt)

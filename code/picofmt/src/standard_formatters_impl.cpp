@@ -153,7 +153,7 @@ namespace
         size_t middle_fill_length = 0;
         size_t right_fill_length = 0;
 
-        if (format_spec.width > 0 && format_spec.width > prefix_value_length)
+        if (format_spec.width > 0 && static_cast<size_t>(format_spec.width) > prefix_value_length)
         {
             size_t fill_width = static_cast<size_t>(format_spec.width) - prefix_value_length;
 
@@ -188,7 +188,7 @@ namespace
                 break;
             }
 
-            assert(left_fill_length + middle_fill_length + right_fill_length + prefix_value_length == format_spec.width);
+            assert(left_fill_length + middle_fill_length + right_fill_length + prefix_value_length == static_cast<size_t>(format_spec.width));
         }
 
         if (left_fill_length > 0)

@@ -25,7 +25,7 @@ add_library(tglm
     "src/vec3.cpp"
     "src/vec4.cpp")
 
-target_compile_features(tglm PUBLIC cxx_std_17)
+demo_set_common_properties(tglm)
 
 target_include_directories(tglm
     PUBLIC "include"

@@ -21,8 +21,10 @@ namespace
             return true;
         }
 
-        void report_error(nstl::string_view str) override
+        void report_error(nstl::string_view) override
         {
+            // TODO replace with something that would crash in Release
+            // TODO make use of the error string
             assert(false);
         }
     };

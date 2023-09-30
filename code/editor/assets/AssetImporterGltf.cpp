@@ -41,7 +41,7 @@ namespace
     template<typename T>
     size_t findIndex(T const* object, T const* first, size_t count)
     {
-        auto index = object - first;
+        size_t index = object - first;
         assert(index >= 0);
         assert(index < count);
         return static_cast<size_t>(index);
@@ -63,14 +63,12 @@ namespace
 // Textures
 namespace
 {
-    editor::assets::Uuid importImage(size_t i, cgltf_data const& data, editor::assets::ImportDescription const& desc, GltfResources const& resources, editor::assets::AssetDatabase& database)
+    editor::assets::Uuid importImage(size_t i, cgltf_data const& data, editor::assets::ImportDescription const& desc, GltfResources const&, editor::assets::AssetDatabase& database)
     {
         cgltf_image const& image = data.images[i];
 
         if (image.uri)
         {
-            nstl::string_view mimeType = image.mime_type;
-
             nstl::string_view uri = image.uri;
             assert(!uri.starts_with("data:")); // TODO implement
 
@@ -678,7 +676,7 @@ nstl::vector<editor::assets::Uuid> editor::assets::AssetImporterGltf::parseGltfD
         logging::info("Imported material {} ({}) as {}", i, data.materials[i].name, asset);
     }
 
-    for (auto i = 0; i < data.meshes_count; i++)
+    for (size_t i = 0; i < data.meshes_count; i++)
     {
         Uuid asset = importMesh(i, data, desc, resources, m_database);
         resources.meshes.push_back(asset);
@@ -687,7 +685,7 @@ nstl::vector<editor::assets::Uuid> editor::assets::AssetImporterGltf::parseGltfD
         logging::info("Imported mesh {} ({}) as {}", i, data.meshes[i].name, asset);
     }
 
-    for (auto i = 0; i < data.scenes_count; i++)
+    for (size_t i = 0; i < data.scenes_count; i++)
     {
         Uuid asset = importScene(i, data, desc, resources, m_database);
         resources.scenes.push_back(asset);

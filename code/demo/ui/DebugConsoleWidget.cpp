@@ -9,6 +9,8 @@
 #include "nstl/algorithm.h"
 #include "nstl/string_builder.h"
 
+#include "limits.h"
+
 namespace
 {
     size_t outputLinesCount = 15;
@@ -202,7 +204,7 @@ void ui::DebugConsoleWidget::drawCommandHelp(nstl::string_view name)
 	ImGui::PushStyleColor(ImGuiCol_Text, commandHelpColor);
     for (nstl::string_view line : vkc::utils::split(commandHelp))
         ImGui::Text("  %.*s", line.slength(), line.data());
-	ImGui::PopStyleColor();
+    ImGui::PopStyleColor();
 }
 
 void ui::DebugConsoleWidget::onInputChanged(nstl::string_view input)
@@ -238,7 +240,8 @@ nstl::optional<nstl::string_view> ui::DebugConsoleWidget::onInputHistory(nstl::s
 {
     auto const& inputHistory = services().debugConsole().history();
 
-    int minIndex = -inputHistory.size();
+    assert(inputHistory.size() <= INT_MAX);
+    int minIndex = -static_cast<int>(inputHistory.size());
     int maxIndex = m_suggestions.size();
     m_replacementIndex = nstl::clamp(m_replacementIndex + delta, minIndex, maxIndex);
 
@@ -312,7 +315,7 @@ nstl::string_view ui::DebugConsoleWidget::getInputCommandName() const
     if (auto pos = input.find(' '); pos != nstl::string_view::npos)
         return input.substr(0, pos);
 
-	return {};
+    return {};
 }
 
 void ui::DebugConsoleWidget::clearInput()

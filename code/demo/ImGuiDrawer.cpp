@@ -152,7 +152,7 @@ void ImGuiDrawer::queueGeometry(vkgfx::Renderer& renderer)
     {
         ImDrawList const* cmdList = drawData->CmdLists[listIndex];
 
-        for (size_t commandIndex = 0; commandIndex < cmdList->CmdBuffer.Size; commandIndex++)
+        for (int commandIndex = 0; commandIndex < cmdList->CmdBuffer.Size; commandIndex++)
         {
             const ImDrawCmd* drawCommand = &cmdList->CmdBuffer[commandIndex];
             if (drawCommand->UserCallback != NULL)

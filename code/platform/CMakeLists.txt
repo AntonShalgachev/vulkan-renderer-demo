@@ -18,7 +18,7 @@ add_library(platform
     "src/windows/time.cpp"
 )
 
-target_compile_features(platform PUBLIC cxx_std_20)
+demo_set_common_properties(platform)
 
 target_include_directories(platform PUBLIC
     "include"
