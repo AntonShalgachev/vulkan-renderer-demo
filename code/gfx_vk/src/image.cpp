@@ -1,6 +1,7 @@
 #include "image.h"
 
 #include "context.h"
+#include "conversions.h"
 
 #include "vko/Assert.h"
 #include "vko/Buffer.h"
@@ -10,28 +11,6 @@
 #include "vko/DeviceMemory.h"
 #include "vko/Queue.h"
 
-namespace
-{
-    VkFormat get_format(gfx::image_format format)
-    {
-        switch (format)
-        {
-        case gfx::image_format::r8g8b8a8:
-            return VK_FORMAT_R8G8B8A8_UNORM;
-        case gfx::image_format::r8g8b8:
-            return VK_FORMAT_R8G8B8_UNORM;
-        case gfx::image_format::bc1_unorm:
-            return VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
-        case gfx::image_format::bc3_unorm:
-            return VK_FORMAT_BC3_UNORM_BLOCK;
-        case gfx::image_format::bc5_unorm:
-            return VK_FORMAT_BC5_UNORM_BLOCK;
-        }
-
-        assert(false);
-        return VK_FORMAT_R8G8B8A8_UNORM;
-    }
-}
 
 gfx_vk::image::image(context& context, gfx::image_params const& params)
     : m_context(context)
@@ -48,7 +27,7 @@ gfx_vk::image::image(context& context, gfx::image_params const& params)
     imageCreateInfo.extent.depth = 1;
     imageCreateInfo.mipLevels = 1;
     imageCreateInfo.arrayLayers = 1;
-    imageCreateInfo.format = get_format(params.format);
+    imageCreateInfo.format = utils::get_format(params.format);
     imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
     imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT; // TODO configure externally
