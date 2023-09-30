@@ -40,7 +40,7 @@ namespace
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugMessageCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-        VkDebugUtilsMessageTypeFlagsEXT messageType,
+        VkDebugUtilsMessageTypeFlagsEXT,
         const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
         void* userData)
     {

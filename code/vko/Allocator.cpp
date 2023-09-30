@@ -112,7 +112,7 @@ vko::Allocator::Allocator(AllocatorScope scope)
     };
 }
 
-void* vko::Allocator::allocate(void* userData, size_t size, size_t alignment, VkSystemAllocationScope allocationScope)
+void* vko::Allocator::allocate(void* userData, size_t size, size_t alignment, VkSystemAllocationScope)
 {
     auto scopeId = parseUserData(userData);
     MEMORY_TRACKING_SCOPE(scopeId);
@@ -123,7 +123,7 @@ void* vko::Allocator::allocate(void* userData, size_t size, size_t alignment, Vk
     return memory::allocate(size);
 }
 
-void* vko::Allocator::reallocate(void* userData, void* ptr, size_t size, size_t alignment, VkSystemAllocationScope allocationScope)
+void* vko::Allocator::reallocate(void* userData, void* ptr, size_t size, size_t alignment, VkSystemAllocationScope)
 {
     auto scopeId = parseUserData(userData);
     MEMORY_TRACKING_SCOPE(scopeId);
@@ -136,5 +136,8 @@ void* vko::Allocator::reallocate(void* userData, void* ptr, size_t size, size_t 
 
 void vko::Allocator::deallocate(void* userData, void* ptr)
 {
+    auto scopeId = parseUserData(userData);
+    MEMORY_TRACKING_SCOPE(scopeId);
+
     return memory::deallocate(ptr);
 }

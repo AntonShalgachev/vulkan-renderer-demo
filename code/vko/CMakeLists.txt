@@ -65,7 +65,7 @@ target_include_directories(vko PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/.."
 )
 
-target_compile_features(vko PUBLIC cxx_std_20)
+demo_set_common_properties(vko)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(vko PUBLIC -Wno-defaulted-function-deleted)
