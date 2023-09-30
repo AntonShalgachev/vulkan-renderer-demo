@@ -105,8 +105,8 @@ namespace
         barrier.srcAccessMask = 0;
         barrier.dstAccessMask = 0;
 
-        VkPipelineStageFlags sourceStage;
-        VkPipelineStageFlags destinationStage;
+        VkPipelineStageFlags sourceStage = VK_PIPELINE_STAGE_NONE;
+        VkPipelineStageFlags destinationStage = VK_PIPELINE_STAGE_NONE;
 
         if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
         {
@@ -341,7 +341,6 @@ vkgfx::BufferHandle vkgfx::ResourceManager::createBuffer(size_t size, BufferMeta
     nstl::vector<vko::Buffer> buffers;
 
     size_t subresourceCount = metadata.isMutable ? m_resourceCount : 1;
-    size_t totalBufferSize = alignedSize * subresourceCount;
 
     buffers.reserve(subresourceCount);
 

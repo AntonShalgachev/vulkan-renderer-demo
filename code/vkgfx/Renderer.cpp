@@ -791,7 +791,7 @@ void vkgfx::Renderer::recordCommandBuffer(size_t imageIndex, RendererFrameResour
 
         nstl::array<VkClearValue, 2> clearValues{{
             {
-                .color = { 0.0f, 0.0f, 0.0f, 1.0f },
+                .color = { .float32 = {0.0f, 0.0f, 0.0f, 1.0f} },
             },
             {
                 .depthStencil = { 1.0f, 0 },

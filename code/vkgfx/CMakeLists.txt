@@ -29,7 +29,7 @@ target_include_directories(vkgfx PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/.."
 )
 
-target_compile_features(vkgfx PUBLIC cxx_std_20)
+demo_set_common_properties(vkgfx)
 
 if(DEMO_PCH)
     target_precompile_headers(vkgfx PRIVATE "pch.h")
