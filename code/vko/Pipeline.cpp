@@ -21,10 +21,6 @@ namespace
 	{
 		VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo{};
 		vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInputCreateInfo.vertexBindingDescriptionCount = 0;
-		vertexInputCreateInfo.pVertexBindingDescriptions = nullptr;
-		vertexInputCreateInfo.vertexAttributeDescriptionCount = 0;
-		vertexInputCreateInfo.pVertexAttributeDescriptions = nullptr;
 
 		vertexInputCreateInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
 		vertexInputCreateInfo.pVertexBindingDescriptions = bindingDescriptions.data();
@@ -45,14 +41,14 @@ namespace
         return inputAssemblyCreateInfo;
     }
 
-    VkPipelineViewportStateCreateInfo initViewportStateCreateInfo(VkViewport const& viewport, VkRect2D const& scissor)
+    VkPipelineViewportStateCreateInfo initViewportStateCreateInfo()
     {
 		VkPipelineViewportStateCreateInfo viewportStateCreateInfo{};
 		viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 		viewportStateCreateInfo.viewportCount = 1;
-		viewportStateCreateInfo.pViewports = &viewport;
+		viewportStateCreateInfo.pViewports = nullptr;
 		viewportStateCreateInfo.scissorCount = 1;
-		viewportStateCreateInfo.pScissors = &scissor;
+		viewportStateCreateInfo.pScissors = nullptr;
 
         return viewportStateCreateInfo;
     }
@@ -151,9 +147,7 @@ vko::Pipeline::Pipeline(Device const& device, PipelineLayout const& layout, Rend
 
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = initInputAssemblyCreateInfo();
 
-	VkViewport viewport{};
-	VkRect2D scissor{};
-    VkPipelineViewportStateCreateInfo viewportStateCreateInfo = initViewportStateCreateInfo(viewport, scissor);
+    VkPipelineViewportStateCreateInfo viewportStateCreateInfo = initViewportStateCreateInfo();
 
     VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo = initRasterizerCreateInfo(config.cullBackFaces, config.wireframe, config.depthBias);
 
