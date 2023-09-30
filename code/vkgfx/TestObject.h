@@ -6,6 +6,11 @@
 
 #include "nstl/static_vector.h"
 
+namespace gfx
+{
+    class renderstate;
+}
+
 namespace vkgfx
 {
     constexpr size_t MaxPushConstantsSize = 64;
@@ -15,6 +20,9 @@ namespace vkgfx
     {
         vkgfx::PipelineHandle pipeline;
         vkgfx::PipelineHandle shadowmapPipeline;
+
+        gfx::renderstate const* state;
+        gfx::renderstate const* shadowmapState;
 
         vkgfx::MeshHandle mesh;
         vkgfx::MaterialHandle material;

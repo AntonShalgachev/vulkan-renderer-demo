@@ -7,6 +7,10 @@
 #include "image.h"
 #include "sampler.h"
 #include "shader.h"
+#include "descriptor_set_layout.h"
+#include "pipeline_layout.h"
+#include "renderstate.h"
+#include "renderpass.h"
 
 #include "vko/Device.h"
 #include "vko/Instance.h"
@@ -14,6 +18,8 @@
 #include "vko/PhysicalDeviceSurfaceParameters.h"
 #include "vko/RenderPass.h"
 #include "vko/Window.h"
+
+#include "nstl/array.h"
 
 namespace
 {
@@ -57,13 +63,22 @@ gfx_vk::backend::backend(vko::Window& window, char const* name, bool enable_vali
 {
     m_context = nstl::make_unique<context>(window, name, enable_validation);
 
+    // TODO use gfx::image_format
     VkSurfaceFormatKHR surface_format = find_surface_format(m_context->get_physical_device_surface_parameters().formats);
     VkFormat depth_format = find_depth_format(m_context->get_physical_device());
 
     vko::Device const& device = m_context->get_device();
 
-    m_renderpass = nstl::make_unique<vko::RenderPass>(device, surface_format.format, depth_format, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-    m_context->get_instance().setDebugName(device.getHandle(), m_renderpass->getHandle(), "Main renderpass");
+    // TODO use create_renderpass?
+    m_renderpass = nstl::make_unique<renderpass>(*m_context, gfx::renderpass_params{
+        .color_attachment_formats = nstl::array{ gfx::image_format::r8g8b8a8_srgb },
+        .depth_stencil_attachment_format = gfx::image_format::d32_float,
+
+        .has_presentable_images = true,
+        .keep_depth_values_after_renderpass = false,
+    });
+
+    m_context->get_instance().setDebugName(device.getHandle(), m_renderpass->get_handle(), "Main renderpass");
 
     // disabled while the old renderer creates its own swapchain
 //     m_swapchain = nstl::make_unique<swapchain>(*m_context, window, *m_renderpass, surface_format, depth_format);
@@ -86,7 +101,47 @@ nstl::unique_ptr<gfx::sampler> gfx_vk::backend::create_sampler(gfx::sampler_para
     return nstl::make_unique<sampler>(*m_context, params);
 }
 
+nstl::unique_ptr<gfx::renderpass> gfx_vk::backend::create_renderpass(gfx::renderpass_params const& params)
+{
+    return nstl::make_unique<renderpass>(*m_context, params);
+}
+
 nstl::unique_ptr<gfx::shader> gfx_vk::backend::create_shader(gfx::shader_params const& params)
 {
     return nstl::make_unique<shader>(*m_context, params);
+}
+
+nstl::unique_ptr<gfx::renderstate> gfx_vk::backend::create_renderstate(gfx::renderstate_params const& params)
+{
+    // WTF: implement properly
+
+    nstl::vector<VkDescriptorSetLayout> set_layout_handles;
+
+    for (gfx::uniform_group_configuration const& p : params.uniform_groups_config)
+    {
+        auto set_layout = nstl::make_unique<descriptor_set_layout>(*m_context, p);
+        set_layout_handles.push_back(set_layout->get_handle());
+
+        m_descriptor_set_layouts.push_back(nstl::move(set_layout));
+    }
+
+    auto layout = nstl::make_unique<pipeline_layout>(*m_context, set_layout_handles);
+    VkPipelineLayout layout_handle = layout->get_handle();
+    m_pipeline_layouts.push_back(nstl::move(layout));
+
+    renderstate_init_params init_params = {
+        .shaders = params.shaders,
+        .vertex_config = params.vertex_config,
+        .flags = params.flags,
+
+        .layout = layout_handle,
+        .renderpass = static_cast<renderpass const*>(params.renderpass)->get_handle(),
+    };
+
+    return nstl::make_unique<renderstate>(*m_context, init_params);
+}
+
+gfx::renderpass* gfx_vk::backend::get_main_renderpass()
+{
+    return m_renderpass.get();
 }

@@ -372,6 +372,19 @@ namespace
         return vkgfx::AttributeType::Vec4f;
     }
 
+    gfx::attribute_type newFindAttributeType(editor::assets::DataType dataType, editor::assets::DataComponentType componentType)
+    {
+        if (dataType == editor::assets::DataType::Vec2 && componentType == editor::assets::DataComponentType::Float)
+            return gfx::attribute_type::vec2f;
+        if (dataType == editor::assets::DataType::Vec3 && componentType == editor::assets::DataComponentType::Float)
+            return gfx::attribute_type::vec3f;
+        if (dataType == editor::assets::DataType::Vec4 && componentType == editor::assets::DataComponentType::Float)
+            return gfx::attribute_type::vec4f;
+
+        assert(false);
+        return gfx::attribute_type::vec4f;
+    }
+
     size_t getAttributeByteSize(vkgfx::AttributeType type)
     {
         size_t gltfFloatSize = 4;
@@ -592,6 +605,14 @@ void DemoApplication::init()
 
     auto backend = nstl::make_unique<gfx_vk::backend>(*m_window, "Vulkan Demo", m_validationEnabled);
     m_newRenderer = nstl::make_unique<gfx::renderer>(nstl::move(backend));
+
+    m_shadowRenderpass = m_newRenderer->create_renderpass({
+        .color_attachment_formats = {},
+        .depth_stencil_attachment_format = gfx::image_format::d32_float,
+
+        .has_presentable_images = false,
+        .keep_depth_values_after_renderpass = true,
+    });
 
     auto messageCallback = [](vko::DebugMessage m)
     {
@@ -1345,13 +1366,13 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
                 attributeConfig.location = *location;
                 attributeConfig.offset = 0; // TODO can be improved
                 attributeConfig.type = attributeType;
-
-                // TODO implement
-                assert(gltfPrimitive.type == cgltf_primitive_type_triangles);
-                demoPrimitive.metadata.vertexConfig.topology = vkgfx::VertexTopology::Triangles;
-
-                demoPrimitive.metadata.materialIndex = findIndex(gltfPrimitive.material, model.materials, model.materials_count); // TODO check
             }
+
+            // TODO implement
+            assert(gltfPrimitive.type == cgltf_primitive_type_triangles);
+            demoPrimitive.metadata.vertexConfig.topology = vkgfx::VertexTopology::Triangles;
+
+            demoPrimitive.metadata.materialIndex = findIndex(gltfPrimitive.material, model.materials, model.materials_count); // TODO check
 
             demoPrimitive.handle = resourceManager.createMesh(nstl::move(mesh));
         }
@@ -1526,6 +1547,32 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
 
                 vkgfx::PipelineHandle pipeline = resourceManager.getOrCreatePipeline(pipelineKey);
 
+                gfx::shader const* vertexShader = m_editorGltfResources->newShaderModules[*vertexShaderPath].get();
+                gfx::shader const* fragmentShader = m_editorGltfResources->newShaderModules[*fragmentShaderPath].get();
+                m_renderstates.push_back(m_newRenderer->create_renderstate({
+                    .shaders = nstl::array{ vertexShader, fragmentShader },
+                    .renderpass = m_newRenderer->get_main_renderpass(),
+                    .vertex_config = primitive.metadata.newVertexConfig,
+                    .uniform_groups_config = nstl::array{
+                        gfx::uniform_group_configuration {
+                            .has_buffer = true,
+                            .has_albedo_texture = false,
+                            .has_normal_map = false,
+                            .has_shadow_map = true,
+                        },
+                        material.metadata.newUniformConfig,
+                        gfx::uniform_group_configuration {
+                            .has_buffer = true,
+                            .has_albedo_texture = false,
+                            .has_normal_map = false,
+                            .has_shadow_map = false,
+                        },
+                    },
+                    .flags = material.metadata.newRenderConfig,
+                }));
+
+                gfx::renderstate const* state = m_renderstates.back().get();
+
                 nstl::string const* shadowmapVertexShaderPath = m_shadowmapVertexShader->get({});
                 assert(shadowmapVertexShaderPath);
                 vkgfx::ShaderModuleHandle shadowmapVertexShaderModule = m_editorGltfResources->shaderModules[*shadowmapVertexShaderPath];
@@ -1548,6 +1595,26 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                 };
 
                 vkgfx::PipelineHandle shadowmapPipeline = resourceManager.getOrCreatePipeline(shadowmapPipelineKey);
+
+                gfx::shader const* shadowmapVertexShader = m_editorGltfResources->newShaderModules[*shadowmapVertexShaderPath].get();
+                m_renderstates.push_back(m_newRenderer->create_renderstate({
+                    .shaders = nstl::array{ shadowmapVertexShader },
+                    .renderpass = m_shadowRenderpass.get(),
+                    .vertex_config = primitive.metadata.newVertexConfig,
+                    .uniform_groups_config = nstl::array{
+                        gfx::uniform_group_configuration {
+                            .has_buffer = true,
+                            .has_albedo_texture = false,
+                            .has_normal_map = false,
+                            .has_shadow_map = false,
+                        },
+                    },
+                    .flags = {
+                        .depth_bias = true,
+                    },
+                }));
+
+                gfx::renderstate const* shadowmapState = m_renderstates.back().get();
 
                 struct DemoObjectUniformBuffer
                 {
@@ -1590,6 +1657,8 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                 testObject.material = material.handle;
                 testObject.pipeline = pipeline;
                 testObject.shadowmapPipeline = shadowmapPipeline;
+                testObject.state = state;
+                testObject.shadowmapState = shadowmapState;
                 testObject.uniformBuffer = uniformBuffer;
                 testObject.pushConstants.resize(sizeof(pushConstants));
                 memcpy(testObject.pushConstants.data(), &pushConstants, testObject.pushConstants.size());
@@ -1711,6 +1780,12 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
     demoMaterial.metadata.uniformConfig.hasBuffer = true;
     demoMaterial.metadata.uniformConfig.hasAlbedoTexture = true;
     demoMaterial.metadata.uniformConfig.hasNormalMap = true;
+
+    demoMaterial.metadata.newRenderConfig.wireframe = false;
+    demoMaterial.metadata.newRenderConfig.cull_backfaces = !materialData.doubleSided;
+    demoMaterial.metadata.newUniformConfig.has_buffer = true;
+    demoMaterial.metadata.newUniformConfig.has_albedo_texture = true;
+    demoMaterial.metadata.newUniformConfig.has_normal_map = true;
 }
 
 void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
@@ -1808,6 +1883,7 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
                 demoPrimitive.metadata.attributeSemanticsConfig.hasTangent = true;
 
             vkgfx::AttributeType attributeType = findAttributeType(attributeData.accessor.type, attributeData.accessor.componentType);
+            gfx::attribute_type newAttributeType = newFindAttributeType(attributeData.accessor.type, attributeData.accessor.componentType);
 
             vkgfx::VertexConfiguration::Binding& bindingConfig = demoPrimitive.metadata.vertexConfig.bindings.emplace_back();
             bindingConfig.stride = attributeData.accessor.stride;
@@ -1819,12 +1895,20 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
             attributeConfig.offset = 0; // TODO can be improved
             attributeConfig.type = attributeType;
 
-            // TODO implement
-            assert(primitiveData.topology == editor::assets::Topology::Triangles);
-            demoPrimitive.metadata.vertexConfig.topology = vkgfx::VertexTopology::Triangles;
-
-            demoPrimitive.metadata.materialUuid = materialId;
+            demoPrimitive.metadata.newVertexConfig.attributes.push_back({
+                .location = *location,
+                .offset = 0,
+                .stride = attributeData.accessor.stride,
+                .type = newAttributeType,
+            });
         }
+
+        // TODO implement
+        assert(primitiveData.topology == editor::assets::Topology::Triangles);
+        demoPrimitive.metadata.vertexConfig.topology = vkgfx::VertexTopology::Triangles;
+        demoPrimitive.metadata.newVertexConfig.topology = gfx::vertex_topology::triangles;
+
+        demoPrimitive.metadata.materialUuid = materialId;
 
         demoPrimitive.handle = resourceManager.createMesh(nstl::move(mesh));
     }

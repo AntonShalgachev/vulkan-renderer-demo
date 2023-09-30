@@ -70,11 +70,29 @@ struct DemoMaterialMetadata
 {
     vkgfx::UniformConfiguration uniformConfig;
     vkgfx::RenderConfiguration renderConfig;
+
+    gfx::uniform_group_configuration newUniformConfig;
+    gfx::renderstate_flags newRenderConfig;
+};
+
+struct VertexConfigurationStorage
+{
+    nstl::vector<gfx::attribute_description> attributes;
+    gfx::vertex_topology topology;
+
+    operator gfx::vertex_configuration() const
+    {
+        return {
+            .attributes = attributes,
+            .topology = topology,
+        };
+    }
 };
 
 struct DemoMeshMetadata
 {
     vkgfx::VertexConfiguration vertexConfig;
+    VertexConfigurationStorage newVertexConfig;
     DemoAttributeSemanticsConfiguration attributeSemanticsConfig;
     size_t materialIndex = 0;
     editor::assets::Uuid materialUuid;
@@ -187,6 +205,8 @@ private:
 
     nstl::unique_ptr<gfx::renderer> m_newRenderer;
 
+    nstl::unique_ptr<gfx::renderpass> m_shadowRenderpass;
+
     ScopedDebugCommands m_commands{ m_services };
 
     nstl::unique_ptr<GlfwWindow> m_window;
@@ -214,6 +234,8 @@ private:
     nstl::unique_ptr<gfx::sampler> m_newDefaultSampler;
     nstl::unique_ptr<gfx::image> m_newDefaultAlbedoImage;
     nstl::unique_ptr<gfx::image> m_newDefaultNormalMapImage;
+
+    nstl::vector<nstl::unique_ptr<gfx::renderstate>> m_renderstates;
 
     vkc::Timer m_frameTimer;
     vkc::Timer m_appTime;

@@ -17,6 +17,14 @@ add_library(gfx_vk
     "src/sampler.cpp"
     "src/shader.h"
     "src/shader.cpp"
+    "src/descriptor_set_layout.h"
+    "src/descriptor_set_layout.cpp"
+    "src/pipeline_layout.h"
+    "src/pipeline_layout.cpp"
+    "src/renderstate.h"
+    "src/renderstate.cpp"
+    "src/renderpass.h"
+    "src/renderpass.cpp"
 )
 
 demo_set_common_properties(gfx_vk)

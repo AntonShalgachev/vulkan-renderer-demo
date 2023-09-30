@@ -1,6 +1,8 @@
 #pragma once
 
 #include "nstl/blob_view.h"
+#include "nstl/span.h"
+#include "nstl/optional.h"
 
 namespace gfx
 {
@@ -41,10 +43,12 @@ namespace gfx
     enum class image_format
     {
         r8g8b8a8,
+        r8g8b8a8_srgb,
         r8g8b8,
         bc1_unorm,
         bc3_unorm,
         bc5_unorm,
+        d32_float,
     };
 
     struct image_params
@@ -93,6 +97,24 @@ namespace gfx
 
     //////////////////////////////////////////////////////////////////////////
 
+    struct renderpass_params
+    {
+        nstl::span<image_format> color_attachment_formats;
+        nstl::optional<image_format> depth_stencil_attachment_format;
+
+        // TODO rework
+        bool has_presentable_images = true;
+        bool keep_depth_values_after_renderpass = false;
+    };
+
+    class renderpass
+    {
+    public:
+        virtual ~renderpass() = default;
+    };
+
+    //////////////////////////////////////////////////////////////////////////
+
     class framebuffer
     {
     public:
@@ -129,15 +151,70 @@ namespace gfx
 
     //////////////////////////////////////////////////////////////////////////
 
+    enum class attribute_type
+    {
+        vec2f,
+        vec3f,
+        vec4f,
+        uint32,
+        mat2f,
+        mat3f,
+        mat4f,
+    };
+
+    struct attribute_description
+    {
+        size_t location = 0;
+        size_t offset = 0;
+        size_t stride = 0;
+        attribute_type type = attribute_type::vec4f;
+    };
+
+    enum class vertex_topology
+    {
+        triangles,
+        triangle_strip,
+        triangle_fan,
+    };
+
+    struct vertex_configuration
+    {
+        nstl::span<attribute_description const> attributes;
+        vertex_topology topology = vertex_topology::triangles;
+    };
+
+    struct uniform_group_configuration
+    {
+        // TODO rework
+        bool has_buffer = true;
+        bool has_albedo_texture = true;
+        bool has_normal_map = false;
+        bool has_shadow_map = false;
+    };
+
+    struct renderstate_flags
+    {
+        // TODO rework
+        // TODO some flags have additional parameters; add ability to specify them
+        bool cull_backfaces = true;
+        bool wireframe = false;
+        bool depth_test = true;
+        bool alpha_blending = false;
+        bool depth_bias = false;
+    };
+
+    struct renderstate_params
+    {
+        nstl::span<shader const* const> shaders;
+        renderpass const* renderpass = nullptr;
+        vertex_configuration vertex_config;
+        nstl::span<uniform_group_configuration> uniform_groups_config;
+        renderstate_flags flags;
+    };
+
     class renderstate
     {
     public:
         virtual ~renderstate() = default;
-    };
-
-    class renderpass
-    {
-    public:
-        virtual ~renderpass() = default;
     };
 }
