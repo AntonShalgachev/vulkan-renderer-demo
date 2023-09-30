@@ -1,4 +1,4 @@
-#include "Uuid.h"
+#include "editor/assets/Uuid.h"
 
 #include "platform/uuid.h"
 

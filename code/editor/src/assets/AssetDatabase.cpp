@@ -1,10 +1,9 @@
-#include "AssetDatabase.h"
+#include "editor/assets/AssetDatabase.h"
 
-#include "ImportDescription.h"
-
-#include "AssetImporterGltf.h"
-#include "AssetImporterImage.h"
-#include "AssetData.h"
+#include "editor/assets/ImportDescription.h"
+#include "editor/assets/AssetImporterGltf.h"
+#include "editor/assets/AssetImporterImage.h"
+#include "editor/assets/AssetData.h"
 
 #include "common/Utils.h"
 #include "common/json-nstl.h"

@@ -1,7 +1,7 @@
-#include "AssetImporterImage.h"
+#include "editor/assets/AssetImporterImage.h"
 
-#include "AssetDatabase.h"
-#include "ImportDescription.h"
+#include "editor/assets/AssetDatabase.h"
+#include "editor/assets/ImportDescription.h"
 
 #include "path/path.h"
 

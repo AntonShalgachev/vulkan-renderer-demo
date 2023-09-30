@@ -1,33 +1,22 @@
-set(ALL_FILES
-    "tiny_ctti.h"
-    "fmt.h"
-    "fmt.cpp"
+add_library(common
+    "include/common/tiny_ctti.h"
+    "include/common/fmt.h"
+    "include/common/json-nstl.h"
+    "include/common/json-tiny-ctti.h"
+    "include/common/json-glm.h"
+    "include/common/Timer.h"
+    "include/common/Utils.h"
+    "include/common/align.h"
 
-    "json-nstl.h"
-    "json-nstl.cpp"
-    "json-tiny-ctti.h"
-    "json-glm.h"
-    "json-glm.cpp"
-    
-    "Timer.cpp"
-    "Timer.h"
-    "Utils.cpp"
-    "Utils.h"
-
-    "align.h"
-    "align.cpp"
+    "src/fmt.cpp"
+    "src/json-nstl.cpp"
+    "src/json-glm.cpp"
+    "src/Timer.cpp"
+    "src/Utils.cpp"
+    "src/align.cpp"
 )
 
-add_library(common ${ALL_FILES})
-
-target_include_directories(common
-    PRIVATE
-    "${CMAKE_SOURCE_DIR}/include"
-
-    PUBLIC
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/.."
-)
+target_include_directories(common PUBLIC "include")
 
 demo_set_common_properties(common)
 

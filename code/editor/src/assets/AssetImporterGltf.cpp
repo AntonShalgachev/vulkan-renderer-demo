@@ -1,8 +1,8 @@
-#include "AssetImporterGltf.h"
+#include "editor/assets/AssetImporterGltf.h"
 
-#include "AssetDatabase.h"
-#include "ImportDescription.h"
-#include "AssetData.h"
+#include "editor/assets/AssetDatabase.h"
+#include "editor/assets/ImportDescription.h"
+#include "editor/assets/AssetData.h"
 
 #include "memory/tracking.h"
 #include "common/align.h"

@@ -1,4 +1,4 @@
-set(ALL_FILES
+add_executable(demo WIN32
     "pch.h"
 
     "main.cpp"
@@ -46,11 +46,7 @@ set(ALL_FILES
     "ui/MemoryViewerWindow.cpp"
 )
 
-add_executable(demo WIN32 ${ALL_FILES})
-
-target_include_directories(demo PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-)
+target_include_directories(demo PRIVATE ".")
 
 demo_set_common_properties(demo)
 
@@ -73,7 +69,7 @@ target_link_libraries(demo
     dds-ktx::dds-ktx
     cgltf
     memory
-    editor::assets
+    editor
     mt
     gfx
     gfx_vk
