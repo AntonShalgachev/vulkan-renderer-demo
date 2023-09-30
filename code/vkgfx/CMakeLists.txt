@@ -25,7 +25,7 @@ add_library(vkgfx
     "TestObject.h"
 )
 
-target_include_directories(vkgfx PUBLIC
+target_include_directories(vkgfx PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/.."
 )
 
