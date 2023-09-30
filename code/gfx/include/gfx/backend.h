@@ -8,13 +8,13 @@ namespace gfx
     class buffer;
     struct image_params;
     class image;
-    class sampler_params;
+    struct sampler_params;
     class sampler;
-    class texture_params;
+    struct texture_params;
     class texture;
     class framebuffer;
     class uniforms;
-    class shader_params;
+    struct shader_params;
     class shader;
     class renderstate;
     class renderpass;

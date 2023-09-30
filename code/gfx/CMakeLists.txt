@@ -7,7 +7,7 @@ add_library(gfx
     "src/renderer.cpp"
 )
 
-target_compile_features(gfx PUBLIC cxx_std_20)
+demo_set_common_properties(gfx)
 
 target_include_directories(gfx PUBLIC
     "include"

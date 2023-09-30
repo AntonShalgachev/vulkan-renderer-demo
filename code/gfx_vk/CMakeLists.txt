@@ -16,7 +16,7 @@ add_library(gfx_vk
     "src/shader.cpp"
 )
 
-target_compile_features(gfx_vk PUBLIC cxx_std_20)
+demo_set_common_properties(gfx_vk)
 
 target_include_directories(gfx_vk PUBLIC
     "include"

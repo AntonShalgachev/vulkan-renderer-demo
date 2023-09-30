@@ -57,12 +57,7 @@ target_include_directories(nstl
     PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
-target_compile_features(nstl PUBLIC cxx_std_20)
-if(MSVC)
-  target_compile_options(nstl PRIVATE /W4 /WX)
-else()
-  target_compile_options(nstl PRIVATE -Wall -Wextra -Wpedantic -Werror)
-endif()
+demo_set_common_properties(nstl)
 
 if(DEMO_PCH)
     target_precompile_headers(nstl PRIVATE "pch.h")

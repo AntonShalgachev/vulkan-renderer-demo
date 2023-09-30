@@ -10,12 +10,23 @@ set(CMAKE_CONFIGURATION_TYPES
     CACHE STRING "" FORCE
 )
 
+# TODO get rid of all "demo" names
+
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
 	cmake_policy(SET CMP0135 NEW)
 endif()
 
 option(DEMO_CLANG_TRACE "Generate Clang trace files" OFF)
 option(DEMO_PCH "Use precompiled headers" OFF)
+
+macro(demo_set_common_properties name)
+    target_compile_features(${name} PUBLIC cxx_std_20)
+    if(MSVC)
+      target_compile_options(${name} PRIVATE /W4 /WX)
+    else()
+      target_compile_options(${name} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+    endif()
+endmacro()
 
 if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
     set(OLD_FLAGS ${CMAKE_CXX_FLAGS})
@@ -24,7 +35,6 @@ if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    add_compile_options(-Wno-unused-command-line-argument)
     if (DEMO_CLANG_TRACE)
         add_compile_options(-ftime-trace -ftime-trace-granularity=0)
     endif()
