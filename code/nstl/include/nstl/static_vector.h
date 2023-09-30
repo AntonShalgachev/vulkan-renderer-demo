@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nstl/aligned_storage.h"
+#include "nstl/span.h"
 
 #include <initializer_list>
 
@@ -37,6 +38,9 @@ namespace nstl
         size_t size() const;
         size_t capacity() const;
         bool empty() const;
+
+        operator span<T>();
+        operator span<T const>() const;
 
     private:
         nstl::aligned_storage_t<sizeof(T), alignof(T)> m_storage[N];
@@ -168,4 +172,16 @@ template<typename T, size_t N>
 bool nstl::static_vector<T, N>::empty() const
 {
     return m_size == 0;
+}
+
+template<typename T, size_t N>
+nstl::static_vector<T, N>::operator nstl::span<T>()
+{
+    return span<T>{ data(), size() };
+}
+
+template<typename T, size_t N>
+nstl::static_vector<T, N>::operator nstl::span<T const>() const
+{
+    return span<T const>{ data(), size() };
 }
