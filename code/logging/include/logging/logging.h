@@ -20,7 +20,11 @@ namespace logging
 
 namespace logging
 {
-    inline auto scope_id = memory::tracking::create_scope_id("System/Logging");
+    inline auto get_scope_id()
+    {
+        static auto scope_id = memory::tracking::create_scope_id("System/Logging");
+        return scope_id;
+    }
 
     enum class level
     {
@@ -46,28 +50,28 @@ namespace logging
     template<picofmt::formattable... Ts>
     void logf(level level, nstl::string_view format, Ts const&... args)
     {
-        MEMORY_TRACKING_SCOPE(scope_id);
+        MEMORY_TRACKING_SCOPE(get_scope_id());
         return vlogf(level, format, { args... });
     }
 
     template<picofmt::formattable... Ts>
     void info(format_with_location format_location, Ts const&... args)
     {
-        MEMORY_TRACKING_SCOPE(scope_id);
+        MEMORY_TRACKING_SCOPE(get_scope_id());
         return vlogf(level::info, format_location.format, { args... }, format_location.location);
     }
 
     template<picofmt::formattable... Ts>
     void warn(format_with_location format_location, Ts const&... args)
     {
-        MEMORY_TRACKING_SCOPE(scope_id);
+        MEMORY_TRACKING_SCOPE(get_scope_id());
         return vlogf(level::warn, format_location.format, { args... }, format_location.location);
     }
 
     template<picofmt::formattable... Ts>
     void error(format_with_location format_location, Ts const&... args)
     {
-        MEMORY_TRACKING_SCOPE(scope_id);
+        MEMORY_TRACKING_SCOPE(get_scope_id());
         return vlogf(level::error, format_location.format, { args... }, format_location.location);
     }
 }

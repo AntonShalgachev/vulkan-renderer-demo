@@ -14,6 +14,7 @@ namespace picofmt
         {
         public:
             context_base(writer_base& writer_base, args_list const& args) : writer_base(writer_base), args(args) {}
+            virtual ~context_base() = default;
 
             bool write(simple_string_view str) const { return writer_base.write(str); }
             bool write(char c, size_t count) const { return writer_base.write(c, count); }

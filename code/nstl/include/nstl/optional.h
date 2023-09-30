@@ -113,7 +113,7 @@ nstl::optional<T>::optional(optional&& rhs) : optional()
 }
 
 template<typename T>
-nstl::optional<T>::~optional()
+nstl::optional<T>::~optional<T>()
 {
     destroy();
 }

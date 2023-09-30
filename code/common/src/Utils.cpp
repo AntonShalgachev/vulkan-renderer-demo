@@ -8,13 +8,9 @@
 
 #include <assert.h>
 
-namespace
-{
-    auto fileScopeId = memory::tracking::create_scope_id("IO/ReadFile");
-}
-
 nstl::blob vkc::utils::readBinaryFile(nstl::string_view filename)
 {
+    static auto fileScopeId = memory::tracking::create_scope_id("IO/ReadFile");
     MEMORY_TRACKING_SCOPE(fileScopeId);
 
     fs::file f{ filename, fs::open_mode::read };
@@ -42,7 +38,7 @@ nstl::vector<nstl::string_view> vkc::utils::split(nstl::string_view str)
         bool isNextCR = hasMoreChars && rest[pos] == '\n' && rest[pos + 1] == '\r';
         bool isNextLF = hasMoreChars && rest[pos] == '\r' && rest[pos + 1] == '\n';
 
-        auto charsToSkip = 1;
+        size_t charsToSkip = 1;
         if (isNextCR || isNextLF)
             charsToSkip++;
 

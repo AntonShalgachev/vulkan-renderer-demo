@@ -27,7 +27,10 @@ add_library(tglm
 
 demo_set_common_properties(tglm)
 
-if(MSVC)
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(tglm PUBLIC -Wno-gnu-anonymous-struct) # anonymous structs are a GNU extension
+    target_compile_options(tglm PUBLIC -Wno-nested-anon-types) # anonymous types declared in an anonymous union are an extension
+elseif(MSVC)
     target_compile_options(tglm PUBLIC /wd4201) # nonstandard extension used : nameless struct/union
 endif()
 

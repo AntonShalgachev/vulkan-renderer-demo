@@ -160,7 +160,7 @@ void ui::MemoryViewerWindow::drawTable()
 
         size_t parentNodeIndex = static_cast<size_t>(-1);
 
-        for (ScopePart const& scopePart : ScopeWalker{ scopePath })
+        for (ScopePart scopePart : ScopeWalker{ scopePath })
         {
             auto it = m_nameToNodeIndexMap.find(scopePart.path);
             if (it == m_nameToNodeIndexMap.end())
@@ -226,9 +226,6 @@ void ui::MemoryViewerWindow::drawTreeNode(size_t index)
     case SizeUnit::Megabytes:
         unitName = "MB";
         sizeDenominator = 1024 * 1024;
-        break;
-    default:
-        assert(false);
         break;
     }
 

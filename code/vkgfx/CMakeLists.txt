@@ -31,7 +31,9 @@ target_include_directories(vkgfx PUBLIC
 
 demo_set_common_properties(vkgfx)
 
-if(MSVC)
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    #
+elseif(MSVC)
     target_compile_options(vkgfx PRIVATE /wd4324) # structure was padded due to alignment specifier
 endif()
 

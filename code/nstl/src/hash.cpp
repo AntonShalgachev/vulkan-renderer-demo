@@ -9,7 +9,7 @@ size_t nstl::hash_string(char const* bytes, size_t size)
     size_t hash = 5381;
 
     for (size_t i = 0; i < size; i++)
-        hash = ((hash << 5) + hash) + bytes[i]; /* hash * 33 + c */
+        hash = hash * 33 + static_cast<size_t>(bytes[i]);
 
     return hash;
 }

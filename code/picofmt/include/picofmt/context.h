@@ -11,7 +11,7 @@ namespace picofmt
     class context final : public detail::context_base
     {
     public:
-        context(writer& writer, args_list const& args) : detail::context_base(writer, args), writer(writer) {}
+        context(writer& writer, args_list const& args_list) : detail::context_base(writer, args_list), writer(writer) {}
 
         bool write(string_view str) { return writer.write(str); }
         bool write(char c, size_t count) { return writer.write(c, count); }

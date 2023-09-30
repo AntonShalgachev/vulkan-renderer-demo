@@ -11,6 +11,7 @@ namespace vko
     class Window
     {
     public:
+        virtual ~Window() = default;
         virtual Surface createSurface(vko::Instance const& instance) const = 0;
         virtual size_t getFramebufferWidth() const = 0;
         virtual size_t getFramebufferHeight() const = 0;

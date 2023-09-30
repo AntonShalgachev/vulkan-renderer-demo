@@ -37,11 +37,14 @@ gfx_vk::image::image(context& context, gfx::image_params const& params)
     : m_context(context)
     , m_params(params)
 {
+    assert(params.width <= UINT32_MAX);
+    assert(params.height <= UINT32_MAX);
+
     VkImageCreateInfo imageCreateInfo{};
     imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageCreateInfo.extent.width = params.width;
-    imageCreateInfo.extent.height = params.height;
+    imageCreateInfo.extent.width = static_cast<uint32_t>(params.width);
+    imageCreateInfo.extent.height = static_cast<uint32_t>(params.height);
     imageCreateInfo.extent.depth = 1;
     imageCreateInfo.mipLevels = 1;
     imageCreateInfo.arrayLayers = 1;

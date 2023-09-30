@@ -8,5 +8,5 @@
 namespace nstl
 {
     NSTL_PRINTF_LIKE(1, 2) string sprintf(char const* format, ...);
-    string vsprintf(char const* format, va_list args);
+    NSTL_PRINTF_LIKE(1, 0) string vsprintf(char const* format, va_list args);
 }

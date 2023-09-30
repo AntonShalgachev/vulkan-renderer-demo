@@ -34,7 +34,7 @@ namespace logging
 {
     void log(level level, nstl::string_view str, nstl::source_location loc)
     {
-        MEMORY_TRACKING_SCOPE(scope_id);
+        MEMORY_TRACKING_SCOPE(get_scope_id());
 
         log_writer out{};
         bool res = picofmt::format_to(out, "{}({},{}): [{:!}] {}\n", loc.file_name(), loc.line(), loc.column(), level, str);
@@ -43,7 +43,7 @@ namespace logging
 
     void vlogf(level level, nstl::string_view format, picofmt::args_list const& args, nstl::source_location loc)
     {
-        MEMORY_TRACKING_SCOPE(scope_id);
+        MEMORY_TRACKING_SCOPE(get_scope_id());
         return log(level, common::vformat(format, args), loc);
     }
 }

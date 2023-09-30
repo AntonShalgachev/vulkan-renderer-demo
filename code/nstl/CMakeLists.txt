@@ -59,6 +59,10 @@ target_include_directories(nstl
 
 demo_set_common_properties(nstl)
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(nstl PUBLIC -Wno-unsafe-buffer-usage) # TODO: revisit
+endif()
+
 if(DEMO_PCH)
     target_precompile_headers(nstl PRIVATE "pch.h")
 endif()

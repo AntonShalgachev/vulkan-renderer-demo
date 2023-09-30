@@ -24,7 +24,7 @@ namespace utils
         return builder.build();
     }
 
-    bool caseInsensitivePredicate(nstl::string_view lhs, nstl::string_view rhs)
+    inline bool caseInsensitivePredicate(nstl::string_view lhs, nstl::string_view rhs)
     {
         if (lhs.length() != rhs.length())
             return false;

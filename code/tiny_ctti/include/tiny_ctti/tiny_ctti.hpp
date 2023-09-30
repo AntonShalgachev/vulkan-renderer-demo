@@ -92,7 +92,7 @@ namespace tiny_ctti
     }
 
     template<typename E> concept described_enum = is_enum<E>();
-    template<typename E> constexpr auto enum_entries_v = tiny_ctti_get_enum_entries(type_tag<E>{});
+    template<typename E> inline constexpr auto enum_entries_v = tiny_ctti_get_enum_entries(type_tag<E>{});
     template<typename E> constexpr size_t enum_size_v = enum_entries_v<E>.size;
 
     namespace detail
