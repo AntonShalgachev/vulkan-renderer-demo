@@ -8,7 +8,7 @@
 #include <assert.h>
 namespace vko
 {
-    inline void do_assert(VkResult result, char const* command)
+    inline void do_assert(VkResult result, char const*)
     {
         assert(result == VK_SUCCESS);
     }
