@@ -33,7 +33,7 @@ namespace gfx_vk
         [[nodiscard]] nstl::unique_ptr<gfx::shader> create_shader(gfx::shader_params const& params) override;
         [[nodiscard]] nstl::unique_ptr<gfx::renderstate> create_renderstate(gfx::renderstate_params const& params) override;
 
-        [[nodiscard]] gfx::renderpass* get_main_renderpass() override;;
+        [[nodiscard]] gfx::renderpass* get_main_renderpass() override;
 
     private:
         nstl::unique_ptr<context> m_context;

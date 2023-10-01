@@ -8,7 +8,7 @@
 
 #include "nstl/static_vector.h"
 
-vko::Framebuffer::Framebuffer(Device const& device, vko::ImageView const* colorImageView, vko::ImageView const* depthImageView, vko::RenderPass const& renderPass, VkExtent2D extent)
+vko::Framebuffer::Framebuffer(Device const& device, vko::ImageView const* colorImageView, vko::ImageView const* depthImageView, VkRenderPass renderPass, VkExtent2D extent)
     : m_device(device)
 {
     nstl::static_vector<VkImageView, 2> attachments;
@@ -20,7 +20,7 @@ vko::Framebuffer::Framebuffer(Device const& device, vko::ImageView const* colorI
 
     VkFramebufferCreateInfo framebufferCreateInfo{};
     framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    framebufferCreateInfo.renderPass = renderPass.getHandle();
+    framebufferCreateInfo.renderPass = renderPass;
     framebufferCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
     framebufferCreateInfo.pAttachments = attachments.data();
     framebufferCreateInfo.width = extent.width;

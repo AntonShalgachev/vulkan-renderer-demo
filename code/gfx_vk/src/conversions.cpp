@@ -8,8 +8,8 @@ VkFormat gfx_vk::utils::get_format(gfx::image_format format)
     {
     case gfx::image_format::r8g8b8a8:
         return VK_FORMAT_R8G8B8A8_UNORM;
-    case gfx::image_format::r8g8b8a8_srgb:
-        return VK_FORMAT_R8G8B8A8_SRGB;
+    case gfx::image_format::b8g8r8a8_srgb:
+        return VK_FORMAT_B8G8R8A8_SRGB;
     case gfx::image_format::r8g8b8:
         return VK_FORMAT_R8G8B8_UNORM;
     case gfx::image_format::bc1_unorm:

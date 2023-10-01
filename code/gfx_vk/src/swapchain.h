@@ -23,7 +23,7 @@ namespace gfx_vk
     class swapchain
     {
     public:
-        swapchain(context& context, vko::Window& window, vko::RenderPass const& render_pass, VkSurfaceFormatKHR surface_format, VkFormat depth_format);
+        swapchain(context& context, vko::Window& window, VkRenderPass render_pass, VkSurfaceFormatKHR surface_format, VkFormat depth_format);
         ~swapchain();
 
     private:
@@ -36,7 +36,7 @@ namespace gfx_vk
     private:
         context& m_context;
         vko::Window& m_window;
-        vko::RenderPass const& m_renderpass;
+        VkRenderPass m_renderpass;
 
         VkSurfaceFormatKHR m_surface_format;
         VkFormat m_depth_format;

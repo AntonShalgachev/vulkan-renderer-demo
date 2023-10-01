@@ -43,7 +43,7 @@ namespace gfx
     enum class image_format
     {
         r8g8b8a8,
-        r8g8b8a8_srgb,
+        b8g8r8a8_srgb,
         r8g8b8,
         bc1_unorm,
         bc3_unorm,

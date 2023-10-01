@@ -41,7 +41,7 @@ namespace
     }
 }
 
-gfx_vk::swapchain::swapchain(context& context, vko::Window& window, vko::RenderPass const& render_pass, VkSurfaceFormatKHR surface_format, VkFormat depth_format)
+gfx_vk::swapchain::swapchain(context& context, vko::Window& window, VkRenderPass render_pass, VkSurfaceFormatKHR surface_format, VkFormat depth_format)
     : m_context(context)
     , m_window(window)
     , m_renderpass(render_pass)

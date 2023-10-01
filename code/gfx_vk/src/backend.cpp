@@ -11,12 +11,12 @@
 #include "pipeline_layout.h"
 #include "renderstate.h"
 #include "renderpass.h"
+#include "conversions.h"
 
 #include "vko/Device.h"
 #include "vko/Instance.h"
 #include "vko/PhysicalDevice.h"
 #include "vko/PhysicalDeviceSurfaceParameters.h"
-#include "vko/RenderPass.h"
 #include "vko/Window.h"
 
 #include "nstl/array.h"
@@ -69,9 +69,13 @@ gfx_vk::backend::backend(vko::Window& window, char const* name, bool enable_vali
 
     vko::Device const& device = m_context->get_device();
 
+    // TODO remove hardcoded values are removed
+    assert(utils::get_format(gfx::image_format::b8g8r8a8_srgb) == surface_format.format);
+    assert(utils::get_format(gfx::image_format::d32_float) == depth_format);
+
     // TODO use create_renderpass?
     m_renderpass = nstl::make_unique<renderpass>(*m_context, gfx::renderpass_params{
-        .color_attachment_formats = nstl::array{ gfx::image_format::r8g8b8a8_srgb },
+        .color_attachment_formats = nstl::array{ gfx::image_format::b8g8r8a8_srgb },
         .depth_stencil_attachment_format = gfx::image_format::d32_float,
 
         .has_presentable_images = true,
@@ -81,7 +85,7 @@ gfx_vk::backend::backend(vko::Window& window, char const* name, bool enable_vali
     m_context->get_instance().setDebugName(device.getHandle(), m_renderpass->get_handle(), "Main renderpass");
 
     // disabled while the old renderer creates its own swapchain
-//     m_swapchain = nstl::make_unique<swapchain>(*m_context, window, *m_renderpass, surface_format, depth_format);
+//     m_swapchain = nstl::make_unique<swapchain>(*m_context, window, m_renderpass->get_handle(), surface_format, depth_format);
 }
 
 gfx_vk::backend::~backend() = default;

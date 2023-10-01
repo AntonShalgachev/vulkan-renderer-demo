@@ -319,7 +319,7 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
     instance.setDebugName(device.getHandle(), m_shadowDepthImageView->getHandle(), "Shadow map depth");
 
     m_shadowRenderPass = nstl::make_unique<vko::RenderPass>(device, nstl::optional<VkFormat>{}, m_data->m_depthFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, true);
-    m_shadowFramebuffer = nstl::make_unique<vko::Framebuffer>(device, nullptr, m_shadowDepthImageView.get(), *m_shadowRenderPass, VkExtent2D{SHADOWMAP_RESOLUTION, SHADOWMAP_RESOLUTION});
+    m_shadowFramebuffer = nstl::make_unique<vko::Framebuffer>(device, nullptr, m_shadowDepthImageView.get(), m_shadowRenderPass->getHandle(), VkExtent2D{SHADOWMAP_RESOLUTION, SHADOWMAP_RESOLUTION});
 
     for (auto i = 0; i < FRAME_RESOURCE_COUNT; i++)
     {
@@ -947,7 +947,7 @@ void vkgfx::Renderer::createSwapchain()
     for (size_t i = 0; i < m_swapchainImageViews.size(); i++)
     {
         nstl::unique_ptr<vko::ImageView> const& colorImageView = m_swapchainImageViews[i];
-        m_swapchainFramebuffers.push_back(nstl::make_unique<vko::Framebuffer>(device, colorImageView.get(), m_depthImageView.get(), *m_renderPass, m_swapchain->getExtent()));
+        m_swapchainFramebuffers.push_back(nstl::make_unique<vko::Framebuffer>(device, colorImageView.get(), m_depthImageView.get(), m_renderPass->getHandle(), m_swapchain->getExtent()));
 
         instance.setDebugName(device.getHandle(), m_swapchainFramebuffers.back()->getHandle(), nstl::sprintf("Main %zu", i));
     }
