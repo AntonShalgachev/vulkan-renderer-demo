@@ -206,6 +206,8 @@ private:
     nstl::unique_ptr<gfx::renderer> m_newRenderer;
 
     nstl::unique_ptr<gfx::renderpass> m_shadowRenderpass;
+    nstl::unique_ptr<gfx::image> m_shadowImage;
+    nstl::unique_ptr<gfx::framebuffer> m_shadowFramebuffer;
 
     ScopedDebugCommands m_commands{ m_services };
 

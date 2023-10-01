@@ -28,7 +28,7 @@ namespace gfx_vk
         [[nodiscard]] nstl::unique_ptr<gfx::image> create_image(gfx::image_params const& params) override;
         [[nodiscard]] nstl::unique_ptr<gfx::sampler> create_sampler(gfx::sampler_params const& params) override;
         [[nodiscard]] nstl::unique_ptr<gfx::renderpass> create_renderpass(gfx::renderpass_params const& params) override;
-        [[nodiscard]] nstl::unique_ptr<gfx::framebuffer> create_framebuffer() override { return nullptr; }
+        [[nodiscard]] nstl::unique_ptr<gfx::framebuffer> create_framebuffer(gfx::framebuffer_params const& params) override;
         [[nodiscard]] nstl::unique_ptr<gfx::uniforms> create_uniforms() override { return nullptr; }
         [[nodiscard]] nstl::unique_ptr<gfx::shader> create_shader(gfx::shader_params const& params) override;
         [[nodiscard]] nstl::unique_ptr<gfx::renderstate> create_renderstate(gfx::renderstate_params const& params) override;

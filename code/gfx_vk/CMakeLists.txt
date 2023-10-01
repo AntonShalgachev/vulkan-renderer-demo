@@ -25,6 +25,8 @@ add_library(gfx_vk
     "src/renderstate.cpp"
     "src/renderpass.h"
     "src/renderpass.cpp"
+    "src/framebuffer.h"
+    "src/framebuffer.cpp"
 )
 
 demo_set_common_properties(gfx_vk)

@@ -23,5 +23,35 @@ VkFormat gfx_vk::utils::get_format(gfx::image_format format)
     }
 
     assert(false);
-    return VK_FORMAT_R8G8B8A8_UNORM;
+    return VK_FORMAT_UNDEFINED;
+}
+
+VkImageAspectFlags gfx_vk::utils::get_aspect_flags(gfx::image_type type)
+{
+    switch (type)
+    {
+    case gfx::image_type::color:
+        return VK_IMAGE_ASPECT_COLOR_BIT;
+    case gfx::image_type::depth:
+        return VK_IMAGE_ASPECT_DEPTH_BIT;
+    }
+
+    assert(false);
+    return VK_IMAGE_ASPECT_NONE;
+}
+
+VkImageUsageFlags gfx_vk::utils::get_usage_flags(gfx::image_usage usage)
+{
+    switch (usage)
+    {
+    case gfx::image_usage::depth_sampled:
+        return VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    case gfx::image_usage::depth:
+        return VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    case gfx::image_usage::upload_sampled:
+        return VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    }
+
+    assert(false);
+    return 0;
 }

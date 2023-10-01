@@ -51,11 +51,27 @@ namespace gfx
         d32_float,
     };
 
+    enum class image_type
+    {
+        color,
+        depth,
+    };
+
+    // TODO change to bit flags
+    enum class image_usage
+    {
+        depth_sampled,
+        depth,
+        upload_sampled,
+    };
+
     struct image_params
     {
         size_t width = 0;
         size_t height = 0;
         image_format format = image_format::r8g8b8a8;
+        image_type type = image_type::color; // TODO shouldn't belong to the image
+        image_usage usage = image_usage::upload_sampled;
     };
 
     class image
@@ -115,11 +131,19 @@ namespace gfx
 
     //////////////////////////////////////////////////////////////////////////
 
+    struct framebuffer_params
+    {
+        nstl::span<image const* const> attachments;
+        renderpass const* renderpass = nullptr;
+    };
+
     class framebuffer
     {
     public:
         virtual ~framebuffer() = default;
     };
+
+    //////////////////////////////////////////////////////////////////////////
 
     class uniforms
     {

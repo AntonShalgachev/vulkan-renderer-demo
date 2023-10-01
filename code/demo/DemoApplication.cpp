@@ -68,6 +68,8 @@ namespace
     const uint32_t TARGET_WINDOW_WIDTH = 1900;
     const uint32_t TARGET_WINDOW_HEIGHT = 1000;
 
+    constexpr uint32_t SHADOWMAP_RESOLUTION = 1024;
+
 #ifdef _DEBUG
     bool const VALIDATION_ENABLED = true;
 #else
@@ -614,6 +616,19 @@ void DemoApplication::init()
         .keep_depth_values_after_renderpass = true,
     });
 
+    m_shadowImage = m_newRenderer->create_image({
+        .width = SHADOWMAP_RESOLUTION,
+        .height = SHADOWMAP_RESOLUTION,
+        .format = gfx::image_format::d32_float,
+        .type = gfx::image_type::depth,
+        .usage = gfx::image_usage::depth_sampled,
+    });
+
+    m_shadowFramebuffer = m_newRenderer->create_framebuffer({
+        .attachments = nstl::array{ static_cast<gfx::image const*>(m_shadowImage.get()) },
+        .renderpass = m_shadowRenderpass.get(),
+    });
+
     auto messageCallback = [](vko::DebugMessage m)
     {
         // TODO don't log "Info" level to the console
@@ -691,6 +706,8 @@ void DemoApplication::createResources()
         .width = 1,
         .height = 1,
         .format = gfx::image_format::r8g8b8a8,
+        .type = gfx::image_type::color,
+        .usage = gfx::image_usage::upload_sampled,
     });
     m_newDefaultAlbedoImage->upload_sync(nstl::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
 
@@ -707,6 +724,8 @@ void DemoApplication::createResources()
         .width = 1,
         .height = 1,
         .format = gfx::image_format::r8g8b8a8,
+        .type = gfx::image_type::color,
+        .usage = gfx::image_usage::upload_sampled,
     });
     m_newDefaultNormalMapImage->upload_sync(nstl::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff });
 }
@@ -1753,6 +1772,8 @@ void DemoApplication::editorLoadImage(editor::assets::Uuid id)
         .width = imageData->width,
         .height = imageData->height,
         .format = static_cast<gfx::image_format>(static_cast<size_t>(imageData->format)), // TODO: remove
+        .type = gfx::image_type::color,
+        .usage = gfx::image_usage::upload_sampled,
     });
     image->upload_sync(bytes);
     m_editorGltfResources->newImages[id] = nstl::move(image);

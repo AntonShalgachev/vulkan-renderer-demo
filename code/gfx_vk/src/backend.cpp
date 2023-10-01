@@ -2,6 +2,7 @@
 
 #include "context.h"
 #include "swapchain.h"
+#include "conversions.h"
 
 #include "buffer.h"
 #include "image.h"
@@ -11,7 +12,7 @@
 #include "pipeline_layout.h"
 #include "renderstate.h"
 #include "renderpass.h"
-#include "conversions.h"
+#include "framebuffer.h"
 
 #include "vko/Device.h"
 #include "vko/Instance.h"
@@ -69,7 +70,7 @@ gfx_vk::backend::backend(vko::Window& window, char const* name, bool enable_vali
 
     vko::Device const& device = m_context->get_device();
 
-    // TODO remove hardcoded values are removed
+    // TODO remove when hardcoded values are removed
     assert(utils::get_format(gfx::image_format::b8g8r8a8_srgb) == surface_format.format);
     assert(utils::get_format(gfx::image_format::d32_float) == depth_format);
 
@@ -108,6 +109,11 @@ nstl::unique_ptr<gfx::sampler> gfx_vk::backend::create_sampler(gfx::sampler_para
 nstl::unique_ptr<gfx::renderpass> gfx_vk::backend::create_renderpass(gfx::renderpass_params const& params)
 {
     return nstl::make_unique<renderpass>(*m_context, params);
+}
+
+nstl::unique_ptr<gfx::framebuffer> gfx_vk::backend::create_framebuffer(gfx::framebuffer_params const& params)
+{
+    return nstl::make_unique<framebuffer>(*m_context, params);
 }
 
 nstl::unique_ptr<gfx::shader> gfx_vk::backend::create_shader(gfx::shader_params const& params)
