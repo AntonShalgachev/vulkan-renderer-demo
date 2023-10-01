@@ -65,19 +65,21 @@ gfx_vk::backend::backend(vko::Window& window, char const* name, bool enable_vali
     m_context = nstl::make_unique<context>(window, name, enable_validation);
 
     // TODO use gfx::image_format
-    VkSurfaceFormatKHR surface_format = find_surface_format(m_context->get_physical_device_surface_parameters().formats);
-    VkFormat depth_format = find_depth_format(m_context->get_physical_device());
+    VkSurfaceFormatKHR vk_surface_format = find_surface_format(m_context->get_physical_device_surface_parameters().formats);
+    VkFormat vk_depth_format = find_depth_format(m_context->get_physical_device());
 
     vko::Device const& device = m_context->get_device();
 
-    // TODO remove when hardcoded values are removed
-    assert(utils::get_format(gfx::image_format::b8g8r8a8_srgb) == surface_format.format);
-    assert(utils::get_format(gfx::image_format::d32_float) == depth_format);
+    // TODO remove
+    gfx::image_format surface_format = gfx::image_format::b8g8r8a8_srgb;
+    gfx::image_format depth_format = gfx::image_format::d32_float;
+    assert(utils::get_format(surface_format) == vk_surface_format.format);
+    assert(utils::get_format(depth_format) == vk_depth_format);
 
     // TODO use create_renderpass?
     m_renderpass = nstl::make_unique<renderpass>(*m_context, gfx::renderpass_params{
-        .color_attachment_formats = nstl::array{ gfx::image_format::b8g8r8a8_srgb },
-        .depth_stencil_attachment_format = gfx::image_format::d32_float,
+        .color_attachment_formats = nstl::array{ surface_format },
+        .depth_stencil_attachment_format = depth_format,
 
         .has_presentable_images = true,
         .keep_depth_values_after_renderpass = false,
@@ -87,6 +89,35 @@ gfx_vk::backend::backend(vko::Window& window, char const* name, bool enable_vali
 
     // disabled while the old renderer creates its own swapchain
 //     m_swapchain = nstl::make_unique<swapchain>(*m_context, window, m_renderpass->get_handle(), surface_format, depth_format);
+
+    size_t swapchain_images_count = 3; // TODO: should be retrieved from the swapchain
+
+    for (size_t i = 0; i < swapchain_images_count; i++)
+    {
+        m_fake_color_images.push_back(create_image({
+            .width = window.getFramebufferWidth(),
+            .height = window.getFramebufferHeight(),
+            .format = surface_format,
+            .type = gfx::image_type::color,
+            .usage = gfx::image_usage::color,
+        }));
+    }
+
+    m_fake_depth_image = create_image({
+        .width = window.getFramebufferWidth(),
+        .height = window.getFramebufferHeight(),
+        .format = depth_format,
+        .type = gfx::image_type::depth,
+        .usage = gfx::image_usage::depth,
+    });
+
+    for (size_t i = 0; i < swapchain_images_count; i++)
+    {
+        m_fake_framebuffers.push_back(create_framebuffer({
+            .attachments = nstl::array{ static_cast<gfx::image const*>(m_fake_color_images[i].get()), static_cast<gfx::image const*>(m_fake_depth_image.get()) },
+            .renderpass = m_renderpass.get(),
+        }));
+    }
 }
 
 gfx_vk::backend::~backend() = default;

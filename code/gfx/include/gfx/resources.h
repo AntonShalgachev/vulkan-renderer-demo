@@ -60,6 +60,7 @@ namespace gfx
     // TODO change to bit flags
     enum class image_usage
     {
+        color,
         depth_sampled,
         depth,
         upload_sampled,

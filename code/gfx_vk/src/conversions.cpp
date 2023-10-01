@@ -44,6 +44,8 @@ VkImageUsageFlags gfx_vk::utils::get_usage_flags(gfx::image_usage usage)
 {
     switch (usage)
     {
+    case gfx::image_usage::color:
+        return VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     case gfx::image_usage::depth_sampled:
         return VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
     case gfx::image_usage::depth:
