@@ -669,9 +669,11 @@ void DemoApplication::createResources()
     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
 
     m_defaultVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shader.vert");
+    m_newDefaultVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/new/shader.vert");
     m_defaultFragmentShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shader.frag");
 
     m_shadowmapVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shadowmap.vert");
+    m_newShadowmapVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/new/shadowmap.vert");
 
     m_defaultSampler = resourceManager.createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
     m_newDefaultSampler = m_newRenderer->create_sampler({});
@@ -1453,6 +1455,22 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
             .stage = gfx::shader_stage::vertex,
         }));
     }
+
+    // TODO implement
+//     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
+    for (auto const& pair : m_newDefaultVertexShader->getAll())
+    {
+        MEMORY_TRACKING_SCOPE(shadersScopeId);
+
+        auto const& modulePath = pair.value();
+        auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
+        m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
+        m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
+            .filename = modulePath,
+            .stage = gfx::shader_stage::vertex,
+        }));
+    }
+
     // TODO implement
 //     for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
     for (auto const& pair : m_defaultFragmentShader->getAll())
@@ -1471,6 +1489,21 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
     // TODO implement
 //     for (auto const& [configuration, modulePath] : m_shadowmapVertexShader->getAll())
     for (auto const& pair : m_shadowmapVertexShader->getAll())
+    {
+        MEMORY_TRACKING_SCOPE(shadersScopeId);
+
+        auto const& modulePath = pair.value();
+        auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
+        m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
+        m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
+            .filename = modulePath,
+            .stage = gfx::shader_stage::vertex,
+        }));
+    }
+
+    // TODO implement
+//     for (auto const& [configuration, modulePath] : m_shadowmapVertexShader->getAll())
+    for (auto const& pair : m_newShadowmapVertexShader->getAll())
     {
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
@@ -1536,9 +1569,11 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                 shaderConfiguration.hasTangent = primitive.metadata.attributeSemanticsConfig.hasTangent;
 
                 nstl::string const* vertexShaderPath = m_defaultVertexShader->get(shaderConfiguration);
+                nstl::string const* newVertexShaderPath = m_newDefaultVertexShader->get(shaderConfiguration);
                 nstl::string const* fragmentShaderPath = m_defaultFragmentShader->get(shaderConfiguration);
 
                 assert(vertexShaderPath && fragmentShaderPath);
+                assert(newVertexShaderPath && fragmentShaderPath);
 
                 vkgfx::ShaderModuleHandle vertexShaderModule = m_editorGltfResources->shaderModules[*vertexShaderPath];
                 vkgfx::ShaderModuleHandle fragmentShaderModule = m_editorGltfResources->shaderModules[*fragmentShaderPath];
@@ -1547,7 +1582,7 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
 
                 vkgfx::PipelineHandle pipeline = resourceManager.getOrCreatePipeline(pipelineKey);
 
-                gfx::shader const* vertexShader = m_editorGltfResources->newShaderModules[*vertexShaderPath].get();
+                gfx::shader const* vertexShader = m_editorGltfResources->newShaderModules[*newVertexShaderPath].get();
                 gfx::shader const* fragmentShader = m_editorGltfResources->newShaderModules[*fragmentShaderPath].get();
                 m_renderstates.push_back(m_newRenderer->create_renderstate({
                     .shaders = nstl::array{ vertexShader, fragmentShader },
@@ -1574,7 +1609,9 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                 gfx::renderstate const* state = m_renderstates.back().get();
 
                 nstl::string const* shadowmapVertexShaderPath = m_shadowmapVertexShader->get({});
+                nstl::string const* newShadowmapVertexShaderPath = m_newShadowmapVertexShader->get({});
                 assert(shadowmapVertexShaderPath);
+                assert(newShadowmapVertexShaderPath);
                 vkgfx::ShaderModuleHandle shadowmapVertexShaderModule = m_editorGltfResources->shaderModules[*shadowmapVertexShaderPath];
 
                 vkgfx::PipelineKey shadowmapPipelineKey = {
@@ -1596,12 +1633,24 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
 
                 vkgfx::PipelineHandle shadowmapPipeline = resourceManager.getOrCreatePipeline(shadowmapPipelineKey);
 
-                gfx::shader const* shadowmapVertexShader = m_editorGltfResources->newShaderModules[*shadowmapVertexShaderPath].get();
+                gfx::shader const* shadowmapVertexShader = m_editorGltfResources->newShaderModules[*newShadowmapVertexShaderPath].get();
                 m_renderstates.push_back(m_newRenderer->create_renderstate({
                     .shaders = nstl::array{ shadowmapVertexShader },
                     .renderpass = m_shadowRenderpass.get(),
                     .vertex_config = primitive.metadata.newVertexConfig,
                     .uniform_groups_config = nstl::array{
+                        gfx::uniform_group_configuration {
+                            .has_buffer = true,
+                            .has_albedo_texture = false,
+                            .has_normal_map = false,
+                            .has_shadow_map = false,
+                        },
+                        gfx::uniform_group_configuration {
+                            .has_buffer = false,
+                            .has_albedo_texture = false,
+                            .has_normal_map = false,
+                            .has_shadow_map = false,
+                        },
                         gfx::uniform_group_configuration {
                             .has_buffer = true,
                             .has_albedo_texture = false,

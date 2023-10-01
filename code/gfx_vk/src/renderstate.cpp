@@ -219,8 +219,7 @@ gfx_vk::renderstate::renderstate(context& context, renderstate_init_params const
         .basePipelineIndex = -1,
     };
 
-    // WTF
-//     VKO_VERIFY(vkCreateGraphicsPipelines(m_context.get_device().getHandle(), VK_NULL_HANDLE, 1, &info, &m_allocator.getCallbacks(), &m_handle.get()));
+    VKO_VERIFY(vkCreateGraphicsPipelines(m_context.get_device().getHandle(), VK_NULL_HANDLE, 1, &info, &m_allocator.getCallbacks(), &m_handle.get()));
 }
 
 gfx_vk::renderstate::~renderstate()
@@ -228,6 +227,6 @@ gfx_vk::renderstate::~renderstate()
     if (!m_handle)
         return;
 
-//     vkDestroyPipeline(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
+    vkDestroyPipeline(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
     m_handle = nullptr;
 }
