@@ -1,0 +1,16 @@
+options:
+  HAS_VERTEX_COLOR: [null, ""]
+  HAS_TEX_COORD: [null, ""]
+  HAS_NORMAL: [null, ""]
+  HAS_TANGENT: [null, ""]
+  HAS_TEXTURE: [""]
+  HAS_NORMAL_MAP: [""]
+
+# TODO make use of it
+metadata:
+  attribute-locations:
+    position: 0
+    color: 1
+    texcoord: 2
+    normal: 3
+    tangent: 4
