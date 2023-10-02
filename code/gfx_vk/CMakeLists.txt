@@ -6,6 +6,8 @@ add_library(gfx_vk
     "src/context.cpp"
     "src/conversions.h"
     "src/conversions.cpp"
+    "src/resource_container.h"
+    "src/resource_container.cpp"
 
     "src/swapchain.h"
     "src/swapchain.cpp"

@@ -4,15 +4,10 @@
 #include "swapchain.h"
 #include "conversions.h"
 
-#include "buffer.h"
-#include "image.h"
-#include "sampler.h"
-#include "shader.h"
 #include "descriptor_set_layout.h"
 #include "pipeline_layout.h"
 #include "renderstate.h"
 #include "renderpass.h"
-#include "framebuffer.h"
 
 #include "vko/Device.h"
 #include "vko/Instance.h"
@@ -61,9 +56,8 @@ namespace
 }
 
 gfx_vk::backend::backend(vko::Window& window, char const* name, bool enable_validation)
+    : m_context(nstl::make_unique<context>(window, name, enable_validation))
 {
-    m_context = nstl::make_unique<context>(window, name, enable_validation);
-
     // TODO use gfx::image_format
     VkSurfaceFormatKHR vk_surface_format = find_surface_format(m_context->get_physical_device_surface_parameters().formats);
     VkFormat vk_depth_format = find_depth_format(m_context->get_physical_device());
@@ -114,7 +108,7 @@ gfx_vk::backend::backend(vko::Window& window, char const* name, bool enable_vali
     for (size_t i = 0; i < swapchain_images_count; i++)
     {
         m_fake_framebuffers.push_back(create_framebuffer({
-            .attachments = nstl::array{ static_cast<gfx::image const*>(m_fake_color_images[i].get()), static_cast<gfx::image const*>(m_fake_depth_image.get()) },
+            .attachments = nstl::array{ static_cast<gfx::image const*>(m_fake_color_images[i]), static_cast<gfx::image const*>(m_fake_depth_image) },
             .renderpass = m_renderpass.get(),
         }));
     }
@@ -122,37 +116,37 @@ gfx_vk::backend::backend(vko::Window& window, char const* name, bool enable_vali
 
 gfx_vk::backend::~backend() = default;
 
-nstl::unique_ptr<gfx::buffer> gfx_vk::backend::create_buffer(gfx::buffer_params const& params)
+gfx::buffer* gfx_vk::backend::create_buffer(gfx::buffer_params const& params)
 {
-    return nstl::make_unique<buffer>(*m_context, params);
+    return m_context->get_resources().create_buffer(params);
 }
 
-nstl::unique_ptr<gfx::image> gfx_vk::backend::create_image(gfx::image_params const& params)
+gfx::image* gfx_vk::backend::create_image(gfx::image_params const& params)
 {
-    return nstl::make_unique<image>(*m_context, params);
+    return m_context->get_resources().create_image(params);
 }
 
-nstl::unique_ptr<gfx::sampler> gfx_vk::backend::create_sampler(gfx::sampler_params const& params)
+gfx::sampler* gfx_vk::backend::create_sampler(gfx::sampler_params const& params)
 {
-    return nstl::make_unique<sampler>(*m_context, params);
+    return m_context->get_resources().create_sampler(params);
 }
 
-nstl::unique_ptr<gfx::renderpass> gfx_vk::backend::create_renderpass(gfx::renderpass_params const& params)
+gfx::renderpass* gfx_vk::backend::create_renderpass(gfx::renderpass_params const& params)
 {
-    return nstl::make_unique<renderpass>(*m_context, params);
+    return m_context->get_resources().create_renderpass(params);
 }
 
-nstl::unique_ptr<gfx::framebuffer> gfx_vk::backend::create_framebuffer(gfx::framebuffer_params const& params)
+gfx::framebuffer* gfx_vk::backend::create_framebuffer(gfx::framebuffer_params const& params)
 {
-    return nstl::make_unique<framebuffer>(*m_context, params);
+    return m_context->get_resources().create_framebuffer(params);
 }
 
-nstl::unique_ptr<gfx::shader> gfx_vk::backend::create_shader(gfx::shader_params const& params)
+gfx::shader* gfx_vk::backend::create_shader(gfx::shader_params const& params)
 {
-    return nstl::make_unique<shader>(*m_context, params);
+    return m_context->get_resources().create_shader(params);
 }
 
-nstl::unique_ptr<gfx::renderstate> gfx_vk::backend::create_renderstate(gfx::renderstate_params const& params)
+gfx::renderstate* gfx_vk::backend::create_renderstate(gfx::renderstate_params const& params)
 {
     // WTF: implement properly
 
@@ -179,7 +173,7 @@ nstl::unique_ptr<gfx::renderstate> gfx_vk::backend::create_renderstate(gfx::rend
         .renderpass = static_cast<renderpass const*>(params.renderpass)->get_handle(),
     };
 
-    return nstl::make_unique<renderstate>(*m_context, init_params);
+    return m_context->get_resources().create_renderstate(init_params);
 }
 
 gfx::renderpass* gfx_vk::backend::get_main_renderpass()

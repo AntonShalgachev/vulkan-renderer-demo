@@ -24,14 +24,14 @@ namespace gfx_vk
         backend(vko::Window& window, char const* name, bool enable_validation);
         ~backend();
 
-        [[nodiscard]] nstl::unique_ptr<gfx::buffer> create_buffer(gfx::buffer_params const& params) override;
-        [[nodiscard]] nstl::unique_ptr<gfx::image> create_image(gfx::image_params const& params) override;
-        [[nodiscard]] nstl::unique_ptr<gfx::sampler> create_sampler(gfx::sampler_params const& params) override;
-        [[nodiscard]] nstl::unique_ptr<gfx::renderpass> create_renderpass(gfx::renderpass_params const& params) override;
-        [[nodiscard]] nstl::unique_ptr<gfx::framebuffer> create_framebuffer(gfx::framebuffer_params const& params) override;
-        [[nodiscard]] nstl::unique_ptr<gfx::uniforms> create_uniforms() override { return nullptr; }
-        [[nodiscard]] nstl::unique_ptr<gfx::shader> create_shader(gfx::shader_params const& params) override;
-        [[nodiscard]] nstl::unique_ptr<gfx::renderstate> create_renderstate(gfx::renderstate_params const& params) override;
+        [[nodiscard]] gfx::buffer* create_buffer(gfx::buffer_params const& params) override;
+        [[nodiscard]] gfx::image* create_image(gfx::image_params const& params) override;
+        [[nodiscard]] gfx::sampler* create_sampler(gfx::sampler_params const& params) override;
+        [[nodiscard]] gfx::renderpass* create_renderpass(gfx::renderpass_params const& params) override;
+        [[nodiscard]] gfx::framebuffer* create_framebuffer(gfx::framebuffer_params const& params) override;
+        [[nodiscard]] gfx::uniforms* create_uniforms() override { return nullptr; }
+        [[nodiscard]] gfx::shader* create_shader(gfx::shader_params const& params) override;
+        [[nodiscard]] gfx::renderstate* create_renderstate(gfx::renderstate_params const& params) override;
 
         [[nodiscard]] gfx::renderpass* get_main_renderpass() override;
 
@@ -41,9 +41,9 @@ namespace gfx_vk
         nstl::unique_ptr<swapchain> m_swapchain;
 
         // Temporary images that mimic swapchain images during the transition to the new API
-        nstl::vector<nstl::unique_ptr<gfx::image>> m_fake_color_images;
-        nstl::unique_ptr<gfx::image> m_fake_depth_image;
-        nstl::vector<nstl::unique_ptr<gfx::framebuffer>> m_fake_framebuffers;
+        nstl::vector<gfx::image*> m_fake_color_images;
+        gfx::image* m_fake_depth_image;
+        nstl::vector<gfx::framebuffer*> m_fake_framebuffers;
 
         nstl::vector<nstl::unique_ptr<descriptor_set_layout>> m_descriptor_set_layouts;
         nstl::vector<nstl::unique_ptr<pipeline_layout>> m_pipeline_layouts;

@@ -27,14 +27,14 @@ namespace gfx
 
         // TODO add some basic validation before calling backend
 
-        [[nodiscard]] nstl::unique_ptr<buffer> create_buffer(buffer_params const& params) { return m_backend->create_buffer(params); }
-        [[nodiscard]] nstl::unique_ptr<image> create_image(image_params const& params) { return m_backend->create_image(params); }
-        [[nodiscard]] nstl::unique_ptr<sampler> create_sampler(sampler_params const& params) { return m_backend->create_sampler(params); }
-        [[nodiscard]] nstl::unique_ptr<renderpass> create_renderpass(renderpass_params const& params) { return m_backend->create_renderpass(params); }
-        [[nodiscard]] nstl::unique_ptr<framebuffer> create_framebuffer(framebuffer_params const& params) { return m_backend->create_framebuffer(params); }
-        [[nodiscard]] nstl::unique_ptr<uniforms> create_uniforms() { return m_backend->create_uniforms(); }
-        [[nodiscard]] nstl::unique_ptr<shader> create_shader(shader_params const& params) { return m_backend->create_shader(params); }
-        [[nodiscard]] nstl::unique_ptr<renderstate> create_renderstate(renderstate_params const& params) { return m_backend->create_renderstate(params); }
+        [[nodiscard]] buffer* create_buffer(buffer_params const& params) { return m_backend->create_buffer(params); }
+        [[nodiscard]] image* create_image(image_params const& params) { return m_backend->create_image(params); }
+        [[nodiscard]] sampler* create_sampler(sampler_params const& params) { return m_backend->create_sampler(params); }
+        [[nodiscard]] renderpass* create_renderpass(renderpass_params const& params) { return m_backend->create_renderpass(params); }
+        [[nodiscard]] framebuffer* create_framebuffer(framebuffer_params const& params) { return m_backend->create_framebuffer(params); }
+        [[nodiscard]] uniforms* create_uniforms() { return m_backend->create_uniforms(); }
+        [[nodiscard]] shader* create_shader(shader_params const& params) { return m_backend->create_shader(params); }
+        [[nodiscard]] renderstate* create_renderstate(renderstate_params const& params) { return m_backend->create_renderstate(params); }
         // TODO add API for sharing renderstates (i.e. to avoid creating renderstates with the same parameters)
 
         [[nodiscard]] renderpass* get_main_renderpass() { return m_backend->get_main_renderpass(); }

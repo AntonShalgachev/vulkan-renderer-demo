@@ -1,5 +1,7 @@
 #pragma once
 
+#include "resource_container.h"
+
 #include "vko/Instance.h"
 #include "vko/Surface.h"
 #include "vko/PhysicalDevice.h"
@@ -33,6 +35,9 @@ namespace gfx_vk
         vko::Queue const& get_transfer_queue() const;
         vko::CommandPool const& get_transfer_command_pool() const;
 
+        resource_container& get_resources() { return m_resources; }
+        resource_container const& get_resources() const { return m_resources; }
+
         void on_surface_changed();
 
     private:
@@ -45,5 +50,7 @@ namespace gfx_vk
         vko::Device m_device;
 
         vko::CommandPool m_transfer_command_pool;
+
+        resource_container m_resources;
     };
 }

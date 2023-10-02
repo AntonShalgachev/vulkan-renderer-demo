@@ -33,7 +33,6 @@ namespace gfx
     public:
         virtual ~buffer() = default;
 
-        [[nodiscard]] virtual size_t get_size() const = 0;
         virtual void upload_sync(nstl::blob_view bytes, size_t offset = 0) = 0;
         // TODO: add async upload
     };

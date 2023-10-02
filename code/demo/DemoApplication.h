@@ -140,14 +140,14 @@ struct GltfResources
 struct EditorGltfResources
 {
     nstl::unordered_map<editor::assets::Uuid, vkgfx::ImageHandle> images;
-    nstl::unordered_map<editor::assets::Uuid, nstl::unique_ptr<gfx::image>> newImages;
+    nstl::unordered_map<editor::assets::Uuid, gfx::image*> newImages;
     nstl::unordered_map<editor::assets::Uuid, DemoMaterial> materials;
     nstl::unordered_map<editor::assets::Uuid, DemoMesh> meshes;
     nstl::unordered_map<editor::assets::Uuid, vkgfx::BufferHandle> meshBuffers;
-    nstl::unordered_map<editor::assets::Uuid, nstl::unique_ptr<gfx::buffer>> newMeshBuffers;
+    nstl::unordered_map<editor::assets::Uuid, gfx::buffer*> newMeshBuffers;
 
     nstl::unordered_map<nstl::string, vkgfx::ShaderModuleHandle> shaderModules;
-    nstl::unordered_map<nstl::string, nstl::unique_ptr<gfx::shader>> newShaderModules;
+    nstl::unordered_map<nstl::string, gfx::shader*> newShaderModules;
 
     nstl::vector<vkgfx::TestCameraParameters> cameraParameters;
 
@@ -205,9 +205,9 @@ private:
 
     nstl::unique_ptr<gfx::renderer> m_newRenderer;
 
-    nstl::unique_ptr<gfx::renderpass> m_shadowRenderpass;
-    nstl::unique_ptr<gfx::image> m_shadowImage;
-    nstl::unique_ptr<gfx::framebuffer> m_shadowFramebuffer;
+    gfx::renderpass* m_shadowRenderpass;
+    gfx::image* m_shadowImage;
+    gfx::framebuffer* m_shadowFramebuffer;
 
     ScopedDebugCommands m_commands{ m_services };
 
@@ -235,11 +235,11 @@ private:
     vkgfx::ImageHandle m_defaultNormalMapImage;
     vkgfx::TextureHandle m_defaultNormalMapTexture;
 
-    nstl::unique_ptr<gfx::sampler> m_newDefaultSampler;
-    nstl::unique_ptr<gfx::image> m_newDefaultAlbedoImage;
-    nstl::unique_ptr<gfx::image> m_newDefaultNormalMapImage;
+    gfx::sampler* m_newDefaultSampler;
+    gfx::image* m_newDefaultAlbedoImage;
+    gfx::image* m_newDefaultNormalMapImage;
 
-    nstl::vector<nstl::unique_ptr<gfx::renderstate>> m_renderstates;
+    nstl::vector<gfx::renderstate*> m_renderstates;
 
     vkc::Timer m_frameTimer;
     vkc::Timer m_appTime;

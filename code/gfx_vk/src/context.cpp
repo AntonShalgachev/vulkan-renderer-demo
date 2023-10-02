@@ -75,6 +75,7 @@ gfx_vk::context::context(vko::Window const& window, char const* name, bool enabl
     , m_params(vko::queryPhysicalDeviceSurfaceParameters(m_physical_device, m_surface))
     , m_device(m_physical_device, *m_params.graphicsQueueFamily, *m_params.presentQueueFamily, get_device_extensions())
     , m_transfer_command_pool(m_device, m_device.getGraphicsQueue().getFamily()) // TODO use transfer queue?
+    , m_resources(*this)
 {
 
 }

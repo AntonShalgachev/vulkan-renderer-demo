@@ -625,8 +625,8 @@ void DemoApplication::init()
     });
 
     m_shadowFramebuffer = m_newRenderer->create_framebuffer({
-        .attachments = nstl::array{ static_cast<gfx::image const*>(m_shadowImage.get()) },
-        .renderpass = m_shadowRenderpass.get(),
+        .attachments = nstl::array{ static_cast<gfx::image const*>(m_shadowImage) },
+        .renderpass = m_shadowRenderpass,
     });
 
     auto messageCallback = [](vko::DebugMessage m)
@@ -1601,8 +1601,8 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
 
                 vkgfx::PipelineHandle pipeline = resourceManager.getOrCreatePipeline(pipelineKey);
 
-                gfx::shader const* vertexShader = m_editorGltfResources->newShaderModules[*newVertexShaderPath].get();
-                gfx::shader const* fragmentShader = m_editorGltfResources->newShaderModules[*fragmentShaderPath].get();
+                gfx::shader const* vertexShader = m_editorGltfResources->newShaderModules[*newVertexShaderPath];
+                gfx::shader const* fragmentShader = m_editorGltfResources->newShaderModules[*fragmentShaderPath];
                 m_renderstates.push_back(m_newRenderer->create_renderstate({
                     .shaders = nstl::array{ vertexShader, fragmentShader },
                     .renderpass = m_newRenderer->get_main_renderpass(),
@@ -1625,7 +1625,7 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                     .flags = material.metadata.newRenderConfig,
                 }));
 
-                gfx::renderstate const* state = m_renderstates.back().get();
+                gfx::renderstate const* state = m_renderstates.back();
 
                 nstl::string const* shadowmapVertexShaderPath = m_shadowmapVertexShader->get({});
                 nstl::string const* newShadowmapVertexShaderPath = m_newShadowmapVertexShader->get({});
@@ -1652,10 +1652,10 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
 
                 vkgfx::PipelineHandle shadowmapPipeline = resourceManager.getOrCreatePipeline(shadowmapPipelineKey);
 
-                gfx::shader const* shadowmapVertexShader = m_editorGltfResources->newShaderModules[*newShadowmapVertexShaderPath].get();
+                gfx::shader const* shadowmapVertexShader = m_editorGltfResources->newShaderModules[*newShadowmapVertexShaderPath];
                 m_renderstates.push_back(m_newRenderer->create_renderstate({
                     .shaders = nstl::array{ shadowmapVertexShader },
-                    .renderpass = m_shadowRenderpass.get(),
+                    .renderpass = m_shadowRenderpass,
                     .vertex_config = primitive.metadata.newVertexConfig,
                     .uniform_groups_config = nstl::array{
                         gfx::uniform_group_configuration {
@@ -1682,7 +1682,7 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                     },
                 }));
 
-                gfx::renderstate const* shadowmapState = m_renderstates.back().get();
+                gfx::renderstate const* shadowmapState = m_renderstates.back();
 
                 struct DemoObjectUniformBuffer
                 {
