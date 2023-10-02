@@ -1,14 +1,7 @@
 #include "context.h"
 
 #include "vko/DebugMessage.h"
-#include "vko/Instance.h"
-#include "vko/Surface.h"
-#include "vko/PhysicalDevice.h"
-#include "vko/Device.h"
 #include "vko/Queue.h"
-#include "vko/Window.h"
-#include "vko/PhysicalDeviceSurfaceParameters.h"
-#include "vko/CommandPool.h"
 
 #include "nstl/vector.h"
 
@@ -75,91 +68,55 @@ namespace
     }
 }
 
-namespace gfx_vk
-{
-    struct context_impl
-    {
-    public:
-        context_impl(vko::Window const& window, char const* name, bool enable_validation)
-            : instance(name, create_instance_extensions(enable_validation, window), enable_validation, enable_validation ? on_debug_message : nullptr)
-            , surface(window.createSurface(instance))
-            , physical_device(find_physical_device(instance, surface))
-            , params(vko::queryPhysicalDeviceSurfaceParameters(physical_device, surface))
-            , device(physical_device, *params.graphicsQueueFamily, *params.presentQueueFamily, get_device_extensions())
-            , transfer_command_pool(device, device.getGraphicsQueue().getFamily()) // TODO use transfer queue?
-        {
-            instance.setDebugName(device.getHandle(), device.getHandle(), "Device");
-            if (device.getGraphicsQueue().getHandle() == device.getPresentQueue().getHandle())
-            {
-                instance.setDebugName(device.getHandle(), device.getGraphicsQueue().getHandle(), "Graphics/Present");
-            }
-            else
-            {
-                instance.setDebugName(device.getHandle(), device.getGraphicsQueue().getHandle(), "Graphics");
-                instance.setDebugName(device.getHandle(), device.getPresentQueue().getHandle(), "Present");
-            }
-        }
-
-        void update_physical_device_surface_parameters()
-        {
-            params = vko::queryPhysicalDeviceSurfaceParameters(physical_device, surface);
-        }
-
-        vko::Instance instance;
-        vko::Surface surface;
-
-        vko::PhysicalDevice physical_device;
-        vko::PhysicalDeviceSurfaceParameters params;
-
-        vko::Device device;
-
-        vko::CommandPool transfer_command_pool;
-    };
-}
-
 gfx_vk::context::context(vko::Window const& window, char const* name, bool enable_validation)
+    : m_instance(name, create_instance_extensions(enable_validation, window), enable_validation, enable_validation ? on_debug_message : nullptr)
+    , m_surface(window.createSurface(m_instance))
+    , m_physical_device(find_physical_device(m_instance, m_surface))
+    , m_params(vko::queryPhysicalDeviceSurfaceParameters(m_physical_device, m_surface))
+    , m_device(m_physical_device, *m_params.graphicsQueueFamily, *m_params.presentQueueFamily, get_device_extensions())
+    , m_transfer_command_pool(m_device, m_device.getGraphicsQueue().getFamily()) // TODO use transfer queue?
 {
-    m_impl = nstl::make_unique<context_impl>(window, name, enable_validation);
+
 }
 
 gfx_vk::context::~context() = default;
 
 vko::Instance const& gfx_vk::context::get_instance() const
 {
-    return m_impl->instance;
+    return m_instance;
 }
 
 vko::Surface const& gfx_vk::context::get_surface() const
 {
-    return m_impl->surface;
+    return m_surface;
 }
 
 vko::Device const& gfx_vk::context::get_device() const
 {
-    return m_impl->device;
+    return m_device;
 }
 
 vko::PhysicalDevice const& gfx_vk::context::get_physical_device() const
 {
-    return m_impl->physical_device;
+    return m_physical_device;
 }
 
 vko::PhysicalDeviceSurfaceParameters const& gfx_vk::context::get_physical_device_surface_parameters() const
 {
-    return m_impl->params;
+    return m_params;
 }
 
 vko::Queue const& gfx_vk::context::get_transfer_queue() const
 {
-    return m_impl->device.getGraphicsQueue(); // TODO use transfer queue?
+    return m_device.getGraphicsQueue(); // TODO use transfer queue?
 }
 
 vko::CommandPool const& gfx_vk::context::get_transfer_command_pool() const
 {
-    return m_impl->transfer_command_pool;
+    return m_transfer_command_pool;
 }
 
 void gfx_vk::context::on_surface_changed()
 {
-    return m_impl->update_physical_device_surface_parameters();
+    m_params = vko::queryPhysicalDeviceSurfaceParameters(m_physical_device, m_surface);
 }

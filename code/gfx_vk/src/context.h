@@ -1,23 +1,22 @@
 #pragma once
 
+#include "vko/Instance.h"
+#include "vko/Surface.h"
+#include "vko/PhysicalDevice.h"
+#include "vko/Device.h"
+#include "vko/Window.h"
+#include "vko/PhysicalDeviceSurfaceParameters.h"
+#include "vko/CommandPool.h"
+
 #include "nstl/unique_ptr.h"
 
 namespace vko
 {
-    class Instance;
-    class Surface;
-    class PhysicalDevice;
-    class Device;
-    class Window;
-    struct PhysicalDeviceSurfaceParameters;
-    class CommandPool;
     class Queue;
 }
 
 namespace gfx_vk
 {
-    struct context_impl;
-
     class context
     {
     public:
@@ -37,6 +36,14 @@ namespace gfx_vk
         void on_surface_changed();
 
     private:
-        nstl::unique_ptr<context_impl> m_impl;
+        vko::Instance m_instance;
+        vko::Surface m_surface;
+
+        vko::PhysicalDevice m_physical_device;
+        vko::PhysicalDeviceSurfaceParameters m_params;
+
+        vko::Device m_device;
+
+        vko::CommandPool m_transfer_command_pool;
     };
 }
