@@ -24,7 +24,7 @@ namespace gfx
 
         [[nodiscard]] virtual framebuffer_handle create_framebuffer(framebuffer_params const& params) = 0;
 
-        [[nodiscard]] virtual uniforms_handle create_uniforms() = 0;
+        [[nodiscard]] virtual descriptorgroup_handle create_descriptorgroup() = 0;
 
         [[nodiscard]] virtual shader_handle create_shader(shader_params const& params) = 0;
 

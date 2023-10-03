@@ -15,7 +15,7 @@ namespace gfx
     class sampler;
     class renderpass;
     class framebuffer;
-    class uniforms;
+    class descriptorgroup;
     class shader;
     class renderstate;
 
@@ -40,7 +40,7 @@ namespace gfx
 
         [[nodiscard]] framebuffer_handle create_framebuffer(framebuffer_params const& params) { return m_backend->create_framebuffer(params); }
 
-        [[nodiscard]] uniforms_handle create_uniforms() { return m_backend->create_uniforms(); }
+        [[nodiscard]] descriptorgroup_handle create_descriptorgroup() { return m_backend->create_descriptorgroup(); }
 
         [[nodiscard]] shader_handle create_shader(shader_params const& params) { return m_backend->create_shader(params); }
 
@@ -54,7 +54,7 @@ namespace gfx
 //         void end_renderpass(renderpass& renderpass);
 // 
 //         void set_renderstate(renderstate& renderstate);
-//         void set_uniforms(uint8_t slot_index, uniforms& uniforms);
+//         void set_descriptorgroup(uint8_t slot_index, descriptorgroup& descriptorgroup);
 //         void set_index_buffer(buffer& buffer, size_t offset);
 //         void set_vertex_buffers(nstl::span<buffer const> buffers, nstl::span<size_t const> offsets);
 //         void set_scissor();

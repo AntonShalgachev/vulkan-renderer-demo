@@ -36,7 +36,7 @@ namespace gfx_vk
 
         [[nodiscard]] gfx::framebuffer_handle create_framebuffer(gfx::framebuffer_params const& params) override;
 
-        [[nodiscard]] gfx::uniforms_handle create_uniforms() override { return nullptr; }
+        [[nodiscard]] gfx::descriptorgroup_handle create_descriptorgroup() override { return nullptr; }
 
         [[nodiscard]] gfx::shader_handle create_shader(gfx::shader_params const& params) override;
 

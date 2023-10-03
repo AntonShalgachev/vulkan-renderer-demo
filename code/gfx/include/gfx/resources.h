@@ -150,13 +150,14 @@ namespace gfx
 
     //////////////////////////////////////////////////////////////////////////
 
-    class uniforms
+    // TODO rename?
+    class descriptorgroup
     {
     public:
-        virtual ~uniforms() = default;
+        virtual ~descriptorgroup() = default;
     };
 
-    using uniforms_handle = uniforms*;
+    using descriptorgroup_handle = descriptorgroup*;
 
     //////////////////////////////////////////////////////////////////////////
 
