@@ -40,7 +40,7 @@ namespace gfx
 
         [[nodiscard]] framebuffer_handle create_framebuffer(framebuffer_params const& params) { return m_backend->create_framebuffer(params); }
 
-        [[nodiscard]] descriptorgroup_handle create_descriptorgroup() { return m_backend->create_descriptorgroup(); }
+        [[nodiscard]] descriptorgroup_handle create_descriptorgroup(descriptorgroup_params const& params) { return m_backend->create_descriptorgroup(params); }
 
         [[nodiscard]] shader_handle create_shader(shader_params const& params) { return m_backend->create_shader(params); }
 
@@ -49,6 +49,7 @@ namespace gfx
         // TODO add API for sharing renderstates (i.e. to avoid creating renderstates with the same parameters)
 
         [[nodiscard]] renderpass_handle get_main_renderpass() { return m_backend->get_main_renderpass(); }
+        [[nodiscard]] float get_main_framebuffer_aspect() { return m_backend->get_main_framebuffer_aspect(); }
 
 //         void begin_renderpass(renderpass& renderpass);
 //         void end_renderpass(renderpass& renderpass);

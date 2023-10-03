@@ -54,6 +54,12 @@ if(DEMO_PCH)
     target_precompile_headers(demo PRIVATE "pch.h")
 endif()
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    #
+elseif(MSVC)
+    target_compile_options(demo PRIVATE /wd4324) # structure was padded due to alignment specifier
+endif()
+
 set_property(TARGET demo PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 
 target_link_libraries(demo

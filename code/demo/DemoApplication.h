@@ -205,6 +205,10 @@ private:
 
     nstl::unique_ptr<gfx::renderer> m_newRenderer;
 
+    gfx::buffer_handle m_viewProjectionData;
+    gfx::buffer_handle m_lightData;
+    gfx::descriptorgroup_handle m_cameraDescriptorGroup;
+
     gfx::renderpass_handle m_shadowRenderpass;
     gfx::image_handle m_shadowImage;
     gfx::framebuffer_handle m_shadowFramebuffer;

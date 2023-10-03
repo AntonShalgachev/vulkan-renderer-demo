@@ -8,6 +8,18 @@ namespace gfx
 {
     // TODO make resources opaque handles
 
+    struct handle
+    {
+        handle() = default;
+        handle(nullptr_t) {}
+        handle(void* ptr) : ptr(ptr) {}
+        explicit operator bool() const { return ptr != nullptr; }
+
+        void* ptr = nullptr;
+    };
+
+    //////////////////////////////////////////////////////////////////////////
+
     enum class buffer_usage
     {
         vertex_index,
@@ -28,7 +40,10 @@ namespace gfx
         bool is_mutable = false;
     };
 
-    using buffer_handle = void*;
+    struct buffer_handle : handle
+    {
+        using handle::handle;
+    };
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -67,7 +82,10 @@ namespace gfx
         image_usage usage = image_usage::upload_sampled;
     };
 
-    using image_handle = void*;
+    struct image_handle : handle
+    {
+        using handle::handle;
+    };
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -92,7 +110,10 @@ namespace gfx
         sampler_wrap_mode wrap_v = sampler_wrap_mode::repeat;
     };
 
-    using sampler_handle = void*;
+    struct sampler_handle : handle
+    {
+        using handle::handle;
+    };
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -106,7 +127,10 @@ namespace gfx
         bool keep_depth_values_after_renderpass = false;
     };
 
-    using renderpass_handle = void*;
+    struct renderpass_handle : handle
+    {
+        using handle::handle;
+    };
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -116,18 +140,57 @@ namespace gfx
         renderpass_handle renderpass = nullptr;
     };
 
-    using framebuffer_handle = void*;
+    struct framebuffer_handle : handle
+    {
+        using handle::handle;
+    };
 
     //////////////////////////////////////////////////////////////////////////
 
     // TODO rename?
-    class descriptorgroup
+
+    enum class descriptor_type
     {
-    public:
-        virtual ~descriptorgroup() = default;
+        buffer,
+        combined_image_sampler,
     };
 
-    using descriptorgroup_handle = void*;
+    struct descriptorgroup_ref
+    {
+        descriptorgroup_ref(buffer_handle buffer) : type(descriptor_type::buffer), buffer(buffer) {}
+        descriptorgroup_ref(image_handle image, sampler_handle sampler) : type(descriptor_type::combined_image_sampler), combined_image_sampler({image, sampler}) {}
+
+        descriptor_type type = descriptor_type::buffer;
+
+        union
+        {
+            buffer_handle buffer;
+
+            struct 
+            {
+                image_handle image;
+                sampler_handle sampler;
+
+            } combined_image_sampler;
+        };
+    };
+
+    struct descriptorgroup_entry
+    {
+        size_t location = 0;
+        descriptorgroup_ref resource;
+
+    };
+
+    struct descriptorgroup_params
+    {
+        nstl::span<descriptorgroup_entry const> entries;
+    };
+
+    struct descriptorgroup_handle : handle
+    {
+        using handle::handle;
+    };
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -145,7 +208,10 @@ namespace gfx
         nstl::string_view entry_point = "main";
     };
 
-    using shader_handle = void*;
+    struct shader_handle : handle
+    {
+        using handle::handle;
+    };
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -210,5 +276,8 @@ namespace gfx
         renderstate_flags flags;
     };
 
-    using renderstate_handle = void*;
+    struct renderstate_handle : handle
+    {
+        using handle::handle;
+    };
 }

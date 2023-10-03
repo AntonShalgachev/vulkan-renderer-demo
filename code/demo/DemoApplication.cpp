@@ -69,6 +69,7 @@ namespace
     const uint32_t TARGET_WINDOW_HEIGHT = 1000;
 
     constexpr uint32_t SHADOWMAP_RESOLUTION = 1024;
+    constexpr uint32_t SHADOWMAP_FOV = 90;
 
 #ifdef _DEBUG
     bool const VALIDATION_ENABLED = true;
@@ -81,6 +82,19 @@ namespace
     const float LIGHT_INTENSITY = 30.0f;
     const tglm::vec3 CAMERA_POS = tglm::vec3(0.0f, 0.0f, 4.0f);
     const tglm::vec3 CAMERA_ANGLES = tglm::vec3(0.0f, 0.0f, 0.0f);
+
+    struct ShaderViewProjectionData
+    {
+        tglm::mat4 view;
+        tglm::mat4 projection;
+    };
+
+    struct ShaderLightData
+    {
+        tglm::mat4 lightViewProjection;
+        alignas(16) tglm::vec3 lightPosition;
+        alignas(16) tglm::vec3 lightColor;
+    };
 
     tglm::quat createRotation(tglm::vec3 const& eulerDegrees)
     {
@@ -554,6 +568,23 @@ void DemoApplication::run()
 
 void DemoApplication::init()
 {
+    m_cameraTransform = {
+        .position = CAMERA_POS,
+        .rotation = createRotation(CAMERA_ANGLES),
+    };
+
+    m_cameraParameters = {
+        .fov = 45.0f,
+        .nearZ = 0.1f,
+        .farZ = 10000.0f,
+    };
+
+    m_lightParameters = {
+        .position = LIGHT_POS,
+        .color = LIGHT_COLOR,
+        .intensity = LIGHT_INTENSITY,
+    };
+
     m_validationEnabled = VALIDATION_ENABLED;
 
     m_commands["imgui.demo"] = ::toggle(&m_drawImguiDemo);
@@ -605,8 +636,62 @@ void DemoApplication::init()
     m_window->addOldKeyCallback([this](GlfwWindow::Action action, GlfwWindow::OldKey key, char c, GlfwWindow::Modifiers modifiers) { onKey(action, key, c, modifiers); });
     m_window->addOldMouseDeltaCallback([this](float deltaX, float deltaY) { onMouseMove({ deltaX, deltaY }); });
 
-    auto backend = nstl::make_unique<gfx_vk::backend>(*m_window, "Vulkan Demo", m_validationEnabled);
+    gfx_vk::config config = {
+        .descriptors = {},
+        .name = "Vulkan Demo",
+        .enable_validation = m_validationEnabled,
+    };
+    auto backend = nstl::make_unique<gfx_vk::backend>(*m_window, config);
     m_newRenderer = nstl::make_unique<gfx::renderer>(nstl::move(backend));
+
+    m_viewProjectionData = m_newRenderer->create_buffer({
+        .size = sizeof(ShaderViewProjectionData),
+        .usage = gfx::buffer_usage::uniform,
+        .location = gfx::buffer_location::host_visible,
+        .is_mutable = false, // TODO change
+    });
+
+    m_lightData = m_newRenderer->create_buffer({
+        .size = sizeof(ShaderLightData),
+        .usage = gfx::buffer_usage::uniform,
+        .location = gfx::buffer_location::host_visible,
+        .is_mutable = false, // TODO change
+    });
+
+    {
+        auto aspectRatio = m_newRenderer->get_main_framebuffer_aspect();
+
+        ShaderViewProjectionData viewProjectionData = {
+            .view = (tglm::translated(tglm::mat4::identity(), m_cameraTransform.position) * m_cameraTransform.rotation.to_mat4()).inversed(), // TODO rewrite this operation
+            .projection = tglm::perspective(tglm::radians(m_cameraParameters.fov), aspectRatio, m_cameraParameters.nearZ, m_cameraParameters.farZ),
+        };
+
+        m_newRenderer->buffer_upload_sync(m_viewProjectionData, { &viewProjectionData, sizeof(viewProjectionData) });
+
+        auto rotation = tglm::quat::from_euler_xyz(tglm::radians({ 0, 0, 0 })); // TODO fix
+
+        auto lightAspectRatio = 1.0f * SHADOWMAP_RESOLUTION / SHADOWMAP_RESOLUTION;
+        auto nearZ = 0.1f;
+        auto farZ = 10000.0f;
+
+        tglm::mat4 lightView = (tglm::translated(tglm::mat4::identity(), m_lightParameters.position) * rotation.to_mat4()).inversed(); // TODO rewrite this operation
+        tglm::mat4 lightProjection = tglm::perspective(tglm::radians(SHADOWMAP_FOV), lightAspectRatio, nearZ, farZ);
+
+        ShaderLightData lightData = {
+            .lightViewProjection = lightProjection * lightView,
+            .lightPosition = viewProjectionData.view * tglm::vec4(m_lightParameters.position, 1.0f),
+            .lightColor = m_lightParameters.intensity * m_lightParameters.color,
+        };
+
+        m_newRenderer->buffer_upload_sync(m_lightData, { &lightData, sizeof(lightData) });
+    }
+
+    m_cameraDescriptorGroup = m_newRenderer->create_descriptorgroup({
+        .entries = nstl::array{
+            gfx::descriptorgroup_entry{0, {m_viewProjectionData}},
+            gfx::descriptorgroup_entry{1, {m_lightData}},
+        }
+    });
 
     m_shadowRenderpass = m_newRenderer->create_renderpass({
         .color_attachment_formats = {},
@@ -658,23 +743,6 @@ void DemoApplication::init()
     };
     m_commands["scene.reload"] = [this]() { loadScene(m_currentScenePath); };
     m_commands["scene.unload"] = coil::bind(&DemoApplication::clearScene, this);
-
-    m_cameraTransform = {
-        .position = CAMERA_POS,
-        .rotation = createRotation(CAMERA_ANGLES),
-    };
-
-    m_cameraParameters = {
-        .fov = 45.0f,
-        .nearZ = 0.1f,
-        .farZ = 10000.0f,
-    };
-
-    m_lightParameters = {
-        .position = LIGHT_POS,
-        .color = LIGHT_COLOR,
-        .intensity = LIGHT_INTENSITY,
-    };
 
     createResources();
 }

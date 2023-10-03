@@ -57,8 +57,8 @@ namespace
     }
 }
 
-gfx_vk::backend::backend(vko::Window& window, char const* name, bool enable_validation)
-    : m_context(nstl::make_unique<context>(window, name, enable_validation))
+gfx_vk::backend::backend(vko::Window& window, config const& config)
+    : m_context(nstl::make_unique<context>(window, config))
 {
     // TODO use gfx::image_format
     VkSurfaceFormatKHR vk_surface_format = find_surface_format(m_context->get_physical_device_surface_parameters().formats);
@@ -153,6 +153,11 @@ gfx::framebuffer_handle gfx_vk::backend::create_framebuffer(gfx::framebuffer_par
     return m_context->get_resources().create_framebuffer(params);
 }
 
+gfx::descriptorgroup_handle gfx_vk::backend::create_descriptorgroup(gfx::descriptorgroup_params const& params)
+{
+    return m_context->get_resources().create_descriptorgroup(params);
+}
+
 gfx::shader_handle gfx_vk::backend::create_shader(gfx::shader_params const& params)
 {
     return m_context->get_resources().create_shader(params);
@@ -186,4 +191,13 @@ gfx::renderstate_handle gfx_vk::backend::create_renderstate(gfx::renderstate_par
     };
 
     return m_context->get_resources().create_renderstate(init_params);
+}
+
+float gfx_vk::backend::get_main_framebuffer_aspect()
+{
+    if (!m_swapchain)
+        return 1.0f * 1900 / 1000; // WTF
+
+    VkExtent2D extent = m_swapchain->get_extent();
+    return 1.0f * extent.width / extent.height;
 }

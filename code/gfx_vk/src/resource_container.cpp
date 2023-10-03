@@ -5,6 +5,7 @@
 #include "sampler.h"
 #include "renderpass.h"
 #include "framebuffer.h"
+#include "descriptorgroup.h"
 #include "shader.h"
 #include "renderstate.h"
 
@@ -14,14 +15,14 @@ namespace
     H create_resource(nstl::vector<nstl::unique_ptr<T>>& container, gfx_vk::context& context, P const& params)
     {
         container.push_back(nstl::make_unique<T>(context, params));
-        return container.back().get();
+        return { container.back().get() };
     }
 
     template<typename T, typename H>
-    T& get_resource(nstl::vector<nstl::unique_ptr<T>> const& container, H handle)
+    T& get_resource(nstl::vector<nstl::unique_ptr<T>> const&, H handle)
     {
         assert(handle);
-        return *static_cast<T*>(handle);
+        return *static_cast<T*>(handle.ptr);
     }
 
     template<typename T, typename H>
@@ -29,7 +30,7 @@ namespace
     {
         for (auto& resource : container)
         {
-            if (resource.get() == static_cast<T*>(handle))
+            if (resource.get() == static_cast<T*>(handle.ptr))
             {
                 resource = nullptr;
                 return true;
@@ -117,6 +118,21 @@ gfx_vk::framebuffer& gfx_vk::resource_container::get_framebuffer(gfx::framebuffe
 bool gfx_vk::resource_container::destroy_framebuffer(gfx::framebuffer_handle handle)
 {
     return destroy_resource(m_framebuffers, handle);
+}
+
+gfx::descriptorgroup_handle gfx_vk::resource_container::create_descriptorgroup(gfx::descriptorgroup_params const& params)
+{
+    return create_resource<descriptorgroup, gfx::descriptorgroup_handle>(m_descriptorgroups, m_context, params);
+}
+
+gfx_vk::descriptorgroup& gfx_vk::resource_container::get_descriptorgroup(gfx::descriptorgroup_handle handle) const
+{
+    return get_resource(m_descriptorgroups, handle);
+}
+
+bool gfx_vk::resource_container::destroy_descriptorgroup(gfx::descriptorgroup_handle handle)
+{
+    return destroy_resource(m_descriptorgroups, handle);
 }
 
 gfx::shader_handle gfx_vk::resource_container::create_shader(gfx::shader_params const& params)

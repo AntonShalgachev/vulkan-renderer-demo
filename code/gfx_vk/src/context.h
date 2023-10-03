@@ -1,6 +1,8 @@
 #pragma once
 
+#include "gfx_vk/config.h"
 #include "resource_container.h"
+#include "descriptor_allocator.h"
 
 #include "vko/Instance.h"
 #include "vko/Surface.h"
@@ -22,7 +24,7 @@ namespace gfx_vk
     class context
     {
     public:
-        context(vko::Window const& window, char const* name, bool enable_validation);
+        context(vko::Window const& window, config const& config);
         ~context();
 
         vko::Instance const& get_instance() const;
@@ -38,6 +40,8 @@ namespace gfx_vk
         resource_container& get_resources() { return m_resources; }
         resource_container const& get_resources() const { return m_resources; }
 
+        descriptor_allocator& get_descriptor_allocator() { return m_descriptor_allocator; }
+
         void on_surface_changed();
 
     private:
@@ -52,5 +56,6 @@ namespace gfx_vk
         vko::CommandPool m_transfer_command_pool;
 
         resource_container m_resources;
+        descriptor_allocator m_descriptor_allocator;
     };
 }

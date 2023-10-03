@@ -24,12 +24,13 @@ namespace gfx
 
         [[nodiscard]] virtual framebuffer_handle create_framebuffer(framebuffer_params const& params) = 0;
 
-        [[nodiscard]] virtual descriptorgroup_handle create_descriptorgroup() = 0;
+        [[nodiscard]] virtual descriptorgroup_handle create_descriptorgroup(descriptorgroup_params const& params) = 0;
 
         [[nodiscard]] virtual shader_handle create_shader(shader_params const& params) = 0;
 
         [[nodiscard]] virtual renderstate_handle create_renderstate(renderstate_params const& params) = 0;
 
         [[nodiscard]] virtual renderpass_handle get_main_renderpass() = 0;
+        [[nodiscard]] virtual float get_main_framebuffer_aspect() = 0;
     };
 }

@@ -1,5 +1,6 @@
 add_library(gfx_vk
     "include/gfx_vk/backend.h"
+    "include/gfx_vk/config.h"
     
     "src/backend.cpp"
     "src/context.h"
@@ -8,6 +9,8 @@ add_library(gfx_vk
     "src/conversions.cpp"
     "src/resource_container.h"
     "src/resource_container.cpp"
+    "src/descriptor_allocator.h"
+    "src/descriptor_allocator.cpp"
 
     "src/swapchain.h"
     "src/swapchain.cpp"
@@ -29,6 +32,8 @@ add_library(gfx_vk
     "src/renderpass.cpp"
     "src/framebuffer.h"
     "src/framebuffer.cpp"
+    "src/descriptorgroup.h"
+    "src/descriptorgroup.cpp"
 )
 
 demo_set_common_properties(gfx_vk)

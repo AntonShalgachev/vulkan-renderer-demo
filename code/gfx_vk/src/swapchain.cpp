@@ -58,6 +58,11 @@ gfx_vk::swapchain::~swapchain()
     destroy();
 }
 
+VkExtent2D gfx_vk::swapchain::get_extent() const
+{
+    return m_swapchain->getExtent();
+}
+
 void gfx_vk::swapchain::on_window_resized()
 {
     recreate();

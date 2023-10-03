@@ -14,6 +14,7 @@ namespace gfx_vk
     class sampler;
     class renderpass;
     class framebuffer;
+    class descriptorgroup;
     class shader;
     class renderstate;
 
@@ -46,6 +47,10 @@ namespace gfx_vk
         [[nodiscard]] framebuffer& get_framebuffer(gfx::framebuffer_handle handle) const;
         [[nodiscard]] bool destroy_framebuffer(gfx::framebuffer_handle handle);
 
+        [[nodiscard]] gfx::descriptorgroup_handle create_descriptorgroup(gfx::descriptorgroup_params const& params);
+        [[nodiscard]] descriptorgroup& get_descriptorgroup(gfx::descriptorgroup_handle handle) const;
+        [[nodiscard]] bool destroy_descriptorgroup(gfx::descriptorgroup_handle handle);
+
         [[nodiscard]] gfx::shader_handle create_shader(gfx::shader_params const& params);
         [[nodiscard]] shader& get_shader(gfx::shader_handle handle) const;
         [[nodiscard]] bool destroy_shader(gfx::shader_handle handle);
@@ -62,6 +67,7 @@ namespace gfx_vk
         nstl::vector<nstl::unique_ptr<sampler>> m_samplers;
         nstl::vector<nstl::unique_ptr<renderpass>> m_renderpasses;
         nstl::vector<nstl::unique_ptr<framebuffer>> m_framebuffers;
+        nstl::vector<nstl::unique_ptr<descriptorgroup>> m_descriptorgroups;
         nstl::vector<nstl::unique_ptr<shader>> m_shaders;
         nstl::vector<nstl::unique_ptr<renderstate>> m_renderstates;
     };

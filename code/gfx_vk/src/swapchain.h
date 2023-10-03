@@ -26,6 +26,8 @@ namespace gfx_vk
         swapchain(context& context, vko::Window& window, VkRenderPass render_pass, VkSurfaceFormatKHR surface_format, VkFormat depth_format);
         ~swapchain();
 
+        VkExtent2D get_extent() const;
+
     private:
         void on_window_resized();
 
