@@ -746,10 +746,23 @@ DemoScene DemoApplication::createDemoScene(cgltf_data const& gltfModel, cgltf_sc
     static auto scopeId = memory::tracking::create_scope_id("Scene/Load/GLTF/Hierarchy");
     MEMORY_TRACKING_SCOPE(scopeId);
 
+    // TODO is there a better way?
+    auto findIndex = [](auto const* object, auto const* firstObject, size_t count) -> size_t
+    {
+        auto index = object - firstObject;
+        assert(index >= 0);
+        assert(index < count);
+        return static_cast<size_t>(index);
+    };
+
     DemoScene scene;
 
     for (size_t i = 0; i < gltfScene.nodes_count; i++)
-        createDemoObjectRecursive(gltfModel, i, tglm::mat4::identity(), scene);
+    {
+        cgltf_node* node = gltfScene.nodes[i];
+        size_t nodeIndex = findIndex(gltfScene.nodes[i], gltfModel.nodes, gltfModel.nodes_count);
+        createDemoObjectRecursive(gltfModel, nodeIndex, tglm::mat4::identity(), scene);
+    }
 
     return scene;
 }
