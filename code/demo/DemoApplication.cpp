@@ -816,7 +816,7 @@ DemoScene DemoApplication::createDemoScene(cgltf_data const& gltfModel, cgltf_sc
     // TODO is there a better way?
     auto findIndex = [](auto const* object, auto const* firstObject, size_t count) -> size_t
     {
-        auto index = object - firstObject;
+        size_t index = object - firstObject;
         assert(index >= 0);
         assert(index < count);
         return static_cast<size_t>(index);
@@ -826,7 +826,6 @@ DemoScene DemoApplication::createDemoScene(cgltf_data const& gltfModel, cgltf_sc
 
     for (size_t i = 0; i < gltfScene.nodes_count; i++)
     {
-        cgltf_node* node = gltfScene.nodes[i];
         size_t nodeIndex = findIndex(gltfScene.nodes[i], gltfModel.nodes, gltfModel.nodes_count);
         createDemoObjectRecursive(gltfModel, nodeIndex, tglm::mat4::identity(), scene);
     }
