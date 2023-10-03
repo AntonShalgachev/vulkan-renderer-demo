@@ -59,32 +59,92 @@ bool gfx_vk::resource_container::destroy_buffer(gfx::buffer_handle handle)
     return destroy_resource(m_buffers, handle);
 }
 
-gfx::image* gfx_vk::resource_container::create_image(gfx::image_params const& params)
+gfx::image_handle gfx_vk::resource_container::create_image(gfx::image_params const& params)
 {
-    return create_resource<image, gfx::image*>(m_images, m_context, params);
+    return create_resource<image, gfx::image_handle>(m_images, m_context, params);
 }
 
-gfx::sampler* gfx_vk::resource_container::create_sampler(gfx::sampler_params const& params)
+gfx_vk::image& gfx_vk::resource_container::get_image(gfx::image_handle handle) const
 {
-    return create_resource<sampler, gfx::sampler*>(m_samplers, m_context, params);
+    return get_resource(m_images, handle);
 }
 
-gfx::renderpass* gfx_vk::resource_container::create_renderpass(gfx::renderpass_params const& params)
+bool gfx_vk::resource_container::destroy_image(gfx::image_handle handle)
 {
-    return create_resource<renderpass, gfx::renderpass*>(m_renderpasses, m_context, params);
+    return destroy_resource(m_images, handle);
 }
 
-gfx::framebuffer* gfx_vk::resource_container::create_framebuffer(gfx::framebuffer_params const& params)
+gfx::sampler_handle gfx_vk::resource_container::create_sampler(gfx::sampler_params const& params)
 {
-    return create_resource<framebuffer, gfx::framebuffer*>(m_framebuffers, m_context, params);
+    return create_resource<sampler, gfx::sampler_handle>(m_samplers, m_context, params);
 }
 
-gfx::shader* gfx_vk::resource_container::create_shader(gfx::shader_params const& params)
+gfx_vk::sampler& gfx_vk::resource_container::get_sampler(gfx::sampler_handle handle) const
 {
-    return create_resource<shader, gfx::shader*>(m_shaders, m_context, params);
+    return get_resource(m_samplers, handle);
 }
 
-gfx::renderstate* gfx_vk::resource_container::create_renderstate(renderstate_init_params const& params)
+bool gfx_vk::resource_container::destroy_sampler(gfx::sampler_handle handle)
 {
-    return create_resource<renderstate, gfx::renderstate*>(m_renderstates, m_context, params);
+    return destroy_resource(m_samplers, handle);
+}
+
+gfx::renderpass_handle gfx_vk::resource_container::create_renderpass(gfx::renderpass_params const& params)
+{
+    return create_resource<renderpass, gfx::renderpass_handle>(m_renderpasses, m_context, params);
+}
+
+gfx_vk::renderpass& gfx_vk::resource_container::get_renderpass(gfx::renderpass_handle handle) const
+{
+    return get_resource(m_renderpasses, handle);
+}
+
+bool gfx_vk::resource_container::destroy_renderpass(gfx::renderpass_handle handle)
+{
+    return destroy_resource(m_renderpasses, handle);
+}
+
+gfx::framebuffer_handle gfx_vk::resource_container::create_framebuffer(gfx::framebuffer_params const& params)
+{
+    return create_resource<framebuffer, gfx::framebuffer_handle>(m_framebuffers, m_context, params);
+}
+
+gfx_vk::framebuffer& gfx_vk::resource_container::get_framebuffer(gfx::framebuffer_handle handle) const
+{
+    return get_resource(m_framebuffers, handle);
+}
+
+bool gfx_vk::resource_container::destroy_framebuffer(gfx::framebuffer_handle handle)
+{
+    return destroy_resource(m_framebuffers, handle);
+}
+
+gfx::shader_handle gfx_vk::resource_container::create_shader(gfx::shader_params const& params)
+{
+    return create_resource<shader, gfx::shader_handle>(m_shaders, m_context, params);
+}
+
+gfx_vk::shader& gfx_vk::resource_container::get_shader(gfx::shader_handle handle) const
+{
+    return get_resource(m_shaders, handle);
+}
+
+bool gfx_vk::resource_container::destroy_shader(gfx::shader_handle handle)
+{
+    return destroy_resource(m_shaders, handle);
+}
+
+gfx::renderstate_handle gfx_vk::resource_container::create_renderstate(renderstate_init_params const& params)
+{
+    return create_resource<renderstate, gfx::renderstate_handle>(m_renderstates, m_context, params);
+}
+
+gfx_vk::renderstate& gfx_vk::resource_container::get_renderstate(gfx::renderstate_handle handle) const
+{
+    return get_resource(m_renderstates, handle);
+}
+
+bool gfx_vk::resource_container::destroy_renderstate(gfx::renderstate_handle handle)
+{
+    return destroy_resource(m_renderstates, handle);
 }

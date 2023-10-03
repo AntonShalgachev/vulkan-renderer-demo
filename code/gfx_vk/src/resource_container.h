@@ -25,21 +25,34 @@ namespace gfx_vk
         resource_container(context& context);
         ~resource_container();
 
+        // TODO get rid of these functions
         [[nodiscard]] gfx::buffer_handle create_buffer(gfx::buffer_params const& params);
         [[nodiscard]] buffer& get_buffer(gfx::buffer_handle handle) const;
         [[nodiscard]] bool destroy_buffer(gfx::buffer_handle handle);
 
-        gfx::image* create_image(gfx::image_params const& params);
+        [[nodiscard]] gfx::image_handle create_image(gfx::image_params const& params);
+        [[nodiscard]] image& get_image(gfx::image_handle handle) const;
+        [[nodiscard]] bool destroy_image(gfx::image_handle handle);
 
-        gfx::sampler* create_sampler(gfx::sampler_params const& params);
+        [[nodiscard]] gfx::sampler_handle create_sampler(gfx::sampler_params const& params);
+        [[nodiscard]] sampler& get_sampler(gfx::sampler_handle handle) const;
+        [[nodiscard]] bool destroy_sampler(gfx::sampler_handle handle);
 
-        gfx::renderpass* create_renderpass(gfx::renderpass_params const& params);
+        [[nodiscard]] gfx::renderpass_handle create_renderpass(gfx::renderpass_params const& params);
+        [[nodiscard]] renderpass& get_renderpass(gfx::renderpass_handle handle) const;
+        [[nodiscard]] bool destroy_renderpass(gfx::renderpass_handle handle);
 
-        gfx::framebuffer* create_framebuffer(gfx::framebuffer_params const& params);
+        [[nodiscard]] gfx::framebuffer_handle create_framebuffer(gfx::framebuffer_params const& params);
+        [[nodiscard]] framebuffer& get_framebuffer(gfx::framebuffer_handle handle) const;
+        [[nodiscard]] bool destroy_framebuffer(gfx::framebuffer_handle handle);
 
-        gfx::shader* create_shader(gfx::shader_params const& params);
+        [[nodiscard]] gfx::shader_handle create_shader(gfx::shader_params const& params);
+        [[nodiscard]] shader& get_shader(gfx::shader_handle handle) const;
+        [[nodiscard]] bool destroy_shader(gfx::shader_handle handle);
 
-        gfx::renderstate* create_renderstate(renderstate_init_params const& params);
+        [[nodiscard]] gfx::renderstate_handle create_renderstate(renderstate_init_params const& params);
+        [[nodiscard]] renderstate& get_renderstate(gfx::renderstate_handle handle) const;
+        [[nodiscard]] bool destroy_renderstate(gfx::renderstate_handle handle);
 
     private:
         context& m_context;

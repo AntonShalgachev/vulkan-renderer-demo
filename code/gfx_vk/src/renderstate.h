@@ -14,7 +14,7 @@ namespace gfx_vk
 
     struct renderstate_init_params
     {
-        nstl::span<gfx::shader* const> shaders;
+        nstl::span<gfx::shader_handle const> shaders;
         gfx::vertex_configuration vertex_config;
         gfx::renderstate_flags flags;
 

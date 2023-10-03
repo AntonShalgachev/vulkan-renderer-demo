@@ -133,9 +133,9 @@ gfx::image_handle gfx_vk::backend::create_image(gfx::image_params const& params)
     return m_context->get_resources().create_image(params);
 }
 
-void gfx_vk::backend::image_upload_sync(gfx::image* handle, nstl::blob_view bytes)
+void gfx_vk::backend::image_upload_sync(gfx::image_handle handle, nstl::blob_view bytes)
 {
-    return static_cast<image*>(handle)->upload_sync(bytes);
+    return m_context->get_resources().get_image(handle).upload_sync(bytes);
 }
 
 gfx::sampler_handle gfx_vk::backend::create_sampler(gfx::sampler_params const& params)
@@ -182,7 +182,7 @@ gfx::renderstate_handle gfx_vk::backend::create_renderstate(gfx::renderstate_par
         .flags = params.flags,
 
         .layout = layout_handle,
-        .renderpass = static_cast<renderpass const*>(params.renderpass)->get_handle(),
+        .renderpass = m_context->get_resources().get_renderpass(params.renderpass).get_handle(),
     };
 
     return m_context->get_resources().create_renderstate(init_params);

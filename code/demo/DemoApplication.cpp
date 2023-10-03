@@ -1625,7 +1625,7 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                     .flags = material.metadata.newRenderConfig,
                 }));
 
-                gfx::renderstate const* state = m_renderstates.back();
+                gfx::renderstate_handle state = m_renderstates.back();
 
                 nstl::string const* shadowmapVertexShaderPath = m_shadowmapVertexShader->get({});
                 nstl::string const* newShadowmapVertexShaderPath = m_newShadowmapVertexShader->get({});
@@ -1682,7 +1682,7 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                     },
                 }));
 
-                gfx::renderstate const* shadowmapState = m_renderstates.back();
+                gfx::renderstate_handle shadowmapState = m_renderstates.back();
 
                 struct DemoObjectUniformBuffer
                 {

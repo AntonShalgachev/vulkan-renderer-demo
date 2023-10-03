@@ -14,23 +14,23 @@ gfx_vk::framebuffer::framebuffer(context& context, gfx::framebuffer_params const
     size_t height = 0;
 
     nstl::vector<VkImageView> attachments;
-    for (gfx::image const* attachment : params.attachments)
+    for (gfx::image_handle attachment : params.attachments)
     {
-        image const* vk_image = static_cast<image const*>(attachment);
+        image const& vk_image = m_context.get_resources().get_image(attachment);
         if (width > 0)
-            assert(vk_image->get_width() == width);
+            assert(vk_image.get_width() == width);
         if (height > 0)
-            assert(vk_image->get_height() == height);
+            assert(vk_image.get_height() == height);
 
-        width = vk_image->get_width();
-        height = vk_image->get_height();
+        width = vk_image.get_width();
+        height = vk_image.get_height();
 
-        attachments.push_back(vk_image->get_view_handle());
+        attachments.push_back(vk_image.get_view_handle());
     }
 
     VkFramebufferCreateInfo info{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        .renderPass = static_cast<renderpass const*>(params.renderpass)->get_handle(),
+        .renderPass = m_context.get_resources().get_renderpass(params.renderpass).get_handle(),
         .attachmentCount = static_cast<uint32_t>(attachments.size()),
         .pAttachments = attachments.data(),
         .width = static_cast<uint32_t>(width),

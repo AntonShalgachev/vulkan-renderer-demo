@@ -44,4 +44,5 @@ endif()
 target_link_libraries(vkgfx
     vko
     common
+    gfx
 )

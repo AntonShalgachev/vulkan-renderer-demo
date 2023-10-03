@@ -16,14 +16,6 @@ namespace
         nstl::vector<VkDynamicState> dynamic_states;
     };
 
-    nstl::vector<VkPipelineShaderStageCreateInfo> create_shader_stages(gfx_vk::renderstate_init_params const& params)
-    {
-        nstl::vector<VkPipelineShaderStageCreateInfo> descs;
-        for (gfx::shader const* shaderModule : params.shaders)
-            descs.push_back(static_cast<gfx_vk::shader const*>(shaderModule)->create_stage_create_info());
-        return descs;
-    }
-
     VkFormat get_attribute_type(gfx::attribute_type type)
     {
         switch (type)
@@ -190,7 +182,10 @@ gfx_vk::renderstate::renderstate(context& context, renderstate_init_params const
 {
     temporary_resources resources;
 
-    nstl::vector<VkPipelineShaderStageCreateInfo> shader_stages = create_shader_stages(params);
+    nstl::vector<VkPipelineShaderStageCreateInfo> shader_stages;
+    for (gfx::shader_handle shader : params.shaders)
+        shader_stages.push_back(m_context.get_resources().get_shader(shader).create_stage_create_info());
+    
     VkPipelineVertexInputStateCreateInfo vertex_input = create_vertex_input_state(params, resources);
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = create_input_assembly_state();
     VkPipelineViewportStateCreateInfo viewportStateCreateInfo = create_viewport_state();

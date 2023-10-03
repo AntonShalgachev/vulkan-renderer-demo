@@ -2,14 +2,11 @@
 
 #include "vkgfx/Handles.h"
 
+#include "gfx/resources.h"
+
 #include "tglm/types.h"
 
 #include "nstl/static_vector.h"
-
-namespace gfx
-{
-    class renderstate;
-}
 
 namespace vkgfx
 {
@@ -21,8 +18,8 @@ namespace vkgfx
         vkgfx::PipelineHandle pipeline;
         vkgfx::PipelineHandle shadowmapPipeline;
 
-        gfx::renderstate const* state;
-        gfx::renderstate const* shadowmapState;
+        gfx::renderstate_handle state;
+        gfx::renderstate_handle shadowmapState;
 
         vkgfx::MeshHandle mesh;
         vkgfx::MaterialHandle material;
