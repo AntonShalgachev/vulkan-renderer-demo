@@ -18,7 +18,7 @@ namespace gfx_vk
 {
     class context;
 
-    class image final : public gfx::image
+    class image final
     {
     public:
         image(context& context, gfx::image_params const& params);

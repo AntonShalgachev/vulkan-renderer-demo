@@ -11,7 +11,7 @@ namespace gfx_vk
 {
     class context;
 
-    class shader final : public gfx::shader
+    class shader final
     {
     public:
         shader(context& context, gfx::shader_params const& params);

@@ -28,13 +28,7 @@ namespace gfx
         bool is_mutable = false;
     };
 
-    class buffer
-    {
-    public:
-        virtual ~buffer() = default;
-    };
-
-    using buffer_handle = buffer*;
+    using buffer_handle = void*;
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -73,13 +67,7 @@ namespace gfx
         image_usage usage = image_usage::upload_sampled;
     };
 
-    class image
-    {
-    public:
-        virtual ~image() = default;
-    };
-
-    using image_handle = image*;
+    using image_handle = void*;
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -104,13 +92,7 @@ namespace gfx
         sampler_wrap_mode wrap_v = sampler_wrap_mode::repeat;
     };
 
-    class sampler
-    {
-    public:
-        virtual ~sampler() = default;
-    };
-
-    using sampler_handle = sampler*;
+    using sampler_handle = void*;
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -124,13 +106,7 @@ namespace gfx
         bool keep_depth_values_after_renderpass = false;
     };
 
-    class renderpass
-    {
-    public:
-        virtual ~renderpass() = default;
-    };
-
-    using renderpass_handle = renderpass*;
+    using renderpass_handle = void*;
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -140,13 +116,7 @@ namespace gfx
         renderpass_handle renderpass = nullptr;
     };
 
-    class framebuffer
-    {
-    public:
-        virtual ~framebuffer() = default;
-    };
-
-    using framebuffer_handle = framebuffer*;
+    using framebuffer_handle = void*;
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -157,7 +127,7 @@ namespace gfx
         virtual ~descriptorgroup() = default;
     };
 
-    using descriptorgroup_handle = descriptorgroup*;
+    using descriptorgroup_handle = void*;
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -175,13 +145,7 @@ namespace gfx
         nstl::string_view entry_point = "main";
     };
 
-    class shader
-    {
-    public:
-        virtual ~shader() = default;
-    };
-
-    using shader_handle = shader*;
+    using shader_handle = void*;
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -246,11 +210,5 @@ namespace gfx
         renderstate_flags flags;
     };
 
-    class renderstate
-    {
-    public:
-        virtual ~renderstate() = default;
-    };
-
-    using renderstate_handle = renderstate*;
+    using renderstate_handle = void*;
 }

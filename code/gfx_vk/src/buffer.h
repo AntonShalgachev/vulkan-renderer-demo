@@ -18,7 +18,7 @@ namespace gfx_vk
 {
     class context;
 
-    class buffer final : public gfx::buffer
+    class buffer final
     {
     public:
         buffer(context& context, gfx::buffer_params const& params);

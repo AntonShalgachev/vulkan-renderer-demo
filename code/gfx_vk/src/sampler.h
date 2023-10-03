@@ -11,7 +11,7 @@ namespace gfx_vk
 {
     class context;
 
-    class sampler final : public gfx::sampler
+    class sampler final
     {
     public:
         sampler(context& context, gfx::sampler_params const& params);

@@ -22,7 +22,7 @@ namespace gfx_vk
         VkRenderPass renderpass;
     };
 
-    class renderstate final : public gfx::renderstate
+    class renderstate final
     {
     public:
         renderstate(context& context, renderstate_init_params const& params);

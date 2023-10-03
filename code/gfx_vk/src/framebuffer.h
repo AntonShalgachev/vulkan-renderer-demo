@@ -11,7 +11,7 @@ namespace gfx_vk
 {
     class context;
 
-    class framebuffer final : public gfx::framebuffer
+    class framebuffer final
     {
     public:
         framebuffer(context& context, gfx::framebuffer_params const& params);

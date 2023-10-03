@@ -11,7 +11,7 @@ namespace gfx_vk
 {
     class context;
 
-    class renderpass final : public gfx::renderpass
+    class renderpass final
     {
     public:
         renderpass(context& context, gfx::renderpass_params const& params);
