@@ -1,5 +1,6 @@
 #pragma once
 
+#include "nstl/blob_view.h"
 #include "nstl/unique_ptr.h"
 
 namespace gfx
@@ -26,12 +27,21 @@ namespace gfx
         virtual ~backend() = default;
 
         [[nodiscard]] virtual buffer* create_buffer(buffer_params const& params) = 0;
+        virtual void buffer_upload_sync(buffer* handle, nstl::blob_view bytes, size_t offset) = 0;
+
         [[nodiscard]] virtual image* create_image(image_params const& params) = 0;
+        virtual void image_upload_sync(gfx::image* handle, nstl::blob_view bytes) = 0;
+
         [[nodiscard]] virtual sampler* create_sampler(sampler_params const& params) = 0;
+
         [[nodiscard]] virtual renderpass* create_renderpass(renderpass_params const& params) = 0;
+
         [[nodiscard]] virtual framebuffer* create_framebuffer(framebuffer_params const& params) = 0;
+
         [[nodiscard]] virtual uniforms* create_uniforms() = 0;
+
         [[nodiscard]] virtual shader* create_shader(shader_params const& params) = 0;
+
         [[nodiscard]] virtual renderstate* create_renderstate(renderstate_params const& params) = 0;
 
         [[nodiscard]] virtual renderpass* get_main_renderpass() = 0;

@@ -25,12 +25,21 @@ namespace gfx_vk
         ~backend();
 
         [[nodiscard]] gfx::buffer* create_buffer(gfx::buffer_params const& params) override;
+        void buffer_upload_sync(gfx::buffer* handle, nstl::blob_view bytes, size_t offset) override;
+
         [[nodiscard]] gfx::image* create_image(gfx::image_params const& params) override;
+        void image_upload_sync(gfx::image* handle, nstl::blob_view bytes) override;
+
         [[nodiscard]] gfx::sampler* create_sampler(gfx::sampler_params const& params) override;
+
         [[nodiscard]] gfx::renderpass* create_renderpass(gfx::renderpass_params const& params) override;
+
         [[nodiscard]] gfx::framebuffer* create_framebuffer(gfx::framebuffer_params const& params) override;
+
         [[nodiscard]] gfx::uniforms* create_uniforms() override { return nullptr; }
+
         [[nodiscard]] gfx::shader* create_shader(gfx::shader_params const& params) override;
+
         [[nodiscard]] gfx::renderstate* create_renderstate(gfx::renderstate_params const& params) override;
 
         [[nodiscard]] gfx::renderpass* get_main_renderpass() override;

@@ -28,13 +28,24 @@ namespace gfx
         // TODO add some basic validation before calling backend
 
         [[nodiscard]] buffer* create_buffer(buffer_params const& params) { return m_backend->create_buffer(params); }
+        void buffer_upload_sync(buffer* handle, nstl::blob_view bytes, size_t offset = 0) { return m_backend->buffer_upload_sync(handle, bytes, offset); }
+        // TODO: add async upload
+
         [[nodiscard]] image* create_image(image_params const& params) { return m_backend->create_image(params); }
+        void image_upload_sync(gfx::image* handle, nstl::blob_view bytes) { return m_backend->image_upload_sync(handle, bytes); }
+
         [[nodiscard]] sampler* create_sampler(sampler_params const& params) { return m_backend->create_sampler(params); }
+
         [[nodiscard]] renderpass* create_renderpass(renderpass_params const& params) { return m_backend->create_renderpass(params); }
+
         [[nodiscard]] framebuffer* create_framebuffer(framebuffer_params const& params) { return m_backend->create_framebuffer(params); }
+
         [[nodiscard]] uniforms* create_uniforms() { return m_backend->create_uniforms(); }
+
         [[nodiscard]] shader* create_shader(shader_params const& params) { return m_backend->create_shader(params); }
+
         [[nodiscard]] renderstate* create_renderstate(renderstate_params const& params) { return m_backend->create_renderstate(params); }
+
         // TODO add API for sharing renderstates (i.e. to avoid creating renderstates with the same parameters)
 
         [[nodiscard]] renderpass* get_main_renderpass() { return m_backend->get_main_renderpass(); }

@@ -30,7 +30,7 @@ namespace gfx_vk
         size_t get_width() const { return m_params.width; }
         size_t get_height() const { return m_params.height; }
 
-        void upload_sync(nstl::blob_view bytes) override;
+        void upload_sync(nstl::blob_view bytes);
 
     private:
         context& m_context;

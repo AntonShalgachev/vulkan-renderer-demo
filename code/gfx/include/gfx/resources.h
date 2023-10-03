@@ -32,9 +32,6 @@ namespace gfx
     {
     public:
         virtual ~buffer() = default;
-
-        virtual void upload_sync(nstl::blob_view bytes, size_t offset = 0) = 0;
-        // TODO: add async upload
     };
 
     //////////////////////////////////////////////////////////////////////////
@@ -78,8 +75,6 @@ namespace gfx
     {
     public:
         virtual ~image() = default;
-
-        virtual void upload_sync(nstl::blob_view bytes) = 0;
     };
 
     //////////////////////////////////////////////////////////////////////////

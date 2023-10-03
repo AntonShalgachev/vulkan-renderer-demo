@@ -709,7 +709,7 @@ void DemoApplication::createResources()
         .type = gfx::image_type::color,
         .usage = gfx::image_usage::upload_sampled,
     });
-    m_newDefaultAlbedoImage->upload_sync(nstl::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
+    m_newRenderer->image_upload_sync(m_newDefaultAlbedoImage, nstl::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
 
     m_defaultNormalMapImage = resourceManager.createImage(vkgfx::ImageMetadata{
         .width = 1,
@@ -727,7 +727,7 @@ void DemoApplication::createResources()
         .type = gfx::image_type::color,
         .usage = gfx::image_usage::upload_sampled,
     });
-    m_newDefaultNormalMapImage->upload_sync(nstl::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff });
+    m_newRenderer->image_upload_sync(m_newDefaultNormalMapImage, nstl::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff });
 }
 
 void DemoApplication::loadImgui()
@@ -1775,7 +1775,7 @@ void DemoApplication::editorLoadImage(editor::assets::Uuid id)
         .type = gfx::image_type::color,
         .usage = gfx::image_usage::upload_sampled,
     });
-    image->upload_sync(bytes);
+    m_newRenderer->image_upload_sync(image, bytes);
     m_editorGltfResources->newImages[id] = nstl::move(image);
 }
 
@@ -1884,7 +1884,7 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
         .location = gfx::buffer_location::device_local,
         .is_mutable = false,
     });
-    meshBuffer->upload_sync(data);
+    m_newRenderer->buffer_upload_sync(meshBuffer, data);
     m_editorGltfResources->newMeshBuffers[id] = nstl::move(meshBuffer);
 
     editor::assets::MeshData meshData = m_assetDatabase->loadMesh(id);

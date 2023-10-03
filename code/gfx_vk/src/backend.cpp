@@ -4,6 +4,8 @@
 #include "swapchain.h"
 #include "conversions.h"
 
+#include "buffer.h"
+#include "image.h"
 #include "descriptor_set_layout.h"
 #include "pipeline_layout.h"
 #include "renderstate.h"
@@ -121,9 +123,19 @@ gfx::buffer* gfx_vk::backend::create_buffer(gfx::buffer_params const& params)
     return m_context->get_resources().create_buffer(params);
 }
 
+void gfx_vk::backend::buffer_upload_sync(gfx::buffer* handle, nstl::blob_view bytes, size_t offset)
+{
+    return static_cast<buffer*>(handle)->upload_sync(bytes, offset);
+}
+
 gfx::image* gfx_vk::backend::create_image(gfx::image_params const& params)
 {
     return m_context->get_resources().create_image(params);
+}
+
+void gfx_vk::backend::image_upload_sync(gfx::image* handle, nstl::blob_view bytes)
+{
+    return static_cast<image*>(handle)->upload_sync(bytes);
 }
 
 gfx::sampler* gfx_vk::backend::create_sampler(gfx::sampler_params const& params)

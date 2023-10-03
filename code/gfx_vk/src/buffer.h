@@ -24,7 +24,7 @@ namespace gfx_vk
         buffer(context& context, gfx::buffer_params const& params);
         ~buffer();
 
-        void upload_sync(nstl::blob_view bytes, size_t offset) override;
+        void upload_sync(nstl::blob_view bytes, size_t offset);
 
     private:
         context& m_context;
