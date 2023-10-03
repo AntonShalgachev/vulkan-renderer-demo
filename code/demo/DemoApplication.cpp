@@ -625,7 +625,7 @@ void DemoApplication::init()
     });
 
     m_shadowFramebuffer = m_newRenderer->create_framebuffer({
-        .attachments = nstl::array{ static_cast<gfx::image const*>(m_shadowImage) },
+        .attachments = nstl::array{ m_shadowImage },
         .renderpass = m_shadowRenderpass,
     });
 
@@ -1601,8 +1601,8 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
 
                 vkgfx::PipelineHandle pipeline = resourceManager.getOrCreatePipeline(pipelineKey);
 
-                gfx::shader const* vertexShader = m_editorGltfResources->newShaderModules[*newVertexShaderPath];
-                gfx::shader const* fragmentShader = m_editorGltfResources->newShaderModules[*fragmentShaderPath];
+                gfx::shader_handle vertexShader = m_editorGltfResources->newShaderModules[*newVertexShaderPath];
+                gfx::shader_handle fragmentShader = m_editorGltfResources->newShaderModules[*fragmentShaderPath];
                 m_renderstates.push_back(m_newRenderer->create_renderstate({
                     .shaders = nstl::array{ vertexShader, fragmentShader },
                     .renderpass = m_newRenderer->get_main_renderpass(),
@@ -1652,7 +1652,7 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
 
                 vkgfx::PipelineHandle shadowmapPipeline = resourceManager.getOrCreatePipeline(shadowmapPipelineKey);
 
-                gfx::shader const* shadowmapVertexShader = m_editorGltfResources->newShaderModules[*newShadowmapVertexShaderPath];
+                gfx::shader_handle shadowmapVertexShader = m_editorGltfResources->newShaderModules[*newShadowmapVertexShaderPath];
                 m_renderstates.push_back(m_newRenderer->create_renderstate({
                     .shaders = nstl::array{ shadowmapVertexShader },
                     .renderpass = m_shadowRenderpass,

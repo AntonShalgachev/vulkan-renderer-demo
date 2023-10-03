@@ -34,6 +34,8 @@ namespace gfx
         virtual ~buffer() = default;
     };
 
+    using buffer_handle = buffer*;
+
     //////////////////////////////////////////////////////////////////////////
 
     enum class image_format
@@ -77,6 +79,8 @@ namespace gfx
         virtual ~image() = default;
     };
 
+    using image_handle = image*;
+
     //////////////////////////////////////////////////////////////////////////
 
     enum class sampler_filter_mode
@@ -106,6 +110,8 @@ namespace gfx
         virtual ~sampler() = default;
     };
 
+    using sampler_handle = sampler*;
+
     //////////////////////////////////////////////////////////////////////////
 
     struct renderpass_params
@@ -124,12 +130,14 @@ namespace gfx
         virtual ~renderpass() = default;
     };
 
+    using renderpass_handle = renderpass*;
+
     //////////////////////////////////////////////////////////////////////////
 
     struct framebuffer_params
     {
-        nstl::span<image const* const> attachments;
-        renderpass const* renderpass = nullptr;
+        nstl::span<image_handle const> attachments;
+        renderpass_handle renderpass = nullptr;
     };
 
     class framebuffer
@@ -138,6 +146,8 @@ namespace gfx
         virtual ~framebuffer() = default;
     };
 
+    using framebuffer_handle = framebuffer*;
+
     //////////////////////////////////////////////////////////////////////////
 
     class uniforms
@@ -145,6 +155,8 @@ namespace gfx
     public:
         virtual ~uniforms() = default;
     };
+
+    using uniforms_handle = uniforms*;
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -167,6 +179,8 @@ namespace gfx
     public:
         virtual ~shader() = default;
     };
+
+    using shader_handle = shader*;
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -224,8 +238,8 @@ namespace gfx
 
     struct renderstate_params
     {
-        nstl::span<shader const* const> shaders;
-        renderpass const* renderpass = nullptr;
+        nstl::span<shader_handle const> shaders;
+        renderpass_handle renderpass = nullptr;
         vertex_configuration vertex_config;
         nstl::span<uniform_group_configuration> uniform_groups_config;
         renderstate_flags flags;
@@ -236,4 +250,6 @@ namespace gfx
     public:
         virtual ~renderstate() = default;
     };
+
+    using renderstate_handle = renderstate*;
 }

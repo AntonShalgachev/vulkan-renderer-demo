@@ -25,23 +25,31 @@ namespace gfx_vk
         resource_container(context& context);
         ~resource_container();
 
-        gfx::buffer* create_buffer(gfx::buffer_params const& params);
-        gfx::image* create_image(gfx::image_params const& params);
-        gfx::sampler* create_sampler(gfx::sampler_params const& params);
-        gfx::renderpass* create_renderpass(gfx::renderpass_params const& params);
-        gfx::framebuffer* create_framebuffer(gfx::framebuffer_params const& params);
-        gfx::shader* create_shader(gfx::shader_params const& params);
-        gfx::renderstate* create_renderstate(renderstate_init_params const& params);
+        [[nodiscard]] gfx::buffer_handle create_buffer(gfx::buffer_params const& params);
+        [[nodiscard]] buffer& get_buffer(gfx::buffer_handle handle) const;
+        [[nodiscard]] bool destroy_buffer(gfx::buffer_handle handle);
 
-        nstl::vector<nstl::unique_ptr<buffer>> buffers;
-        nstl::vector<nstl::unique_ptr<image>> images;
-        nstl::vector<nstl::unique_ptr<sampler>> samplers;
-        nstl::vector<nstl::unique_ptr<renderpass>> renderpasses;
-        nstl::vector<nstl::unique_ptr<framebuffer>> framebuffers;
-        nstl::vector<nstl::unique_ptr<shader>> shaders;
-        nstl::vector<nstl::unique_ptr<renderstate>> renderstates;
+        gfx::image* create_image(gfx::image_params const& params);
+
+        gfx::sampler* create_sampler(gfx::sampler_params const& params);
+
+        gfx::renderpass* create_renderpass(gfx::renderpass_params const& params);
+
+        gfx::framebuffer* create_framebuffer(gfx::framebuffer_params const& params);
+
+        gfx::shader* create_shader(gfx::shader_params const& params);
+
+        gfx::renderstate* create_renderstate(renderstate_init_params const& params);
 
     private:
         context& m_context;
+
+        nstl::vector<nstl::unique_ptr<buffer>> m_buffers;
+        nstl::vector<nstl::unique_ptr<image>> m_images;
+        nstl::vector<nstl::unique_ptr<sampler>> m_samplers;
+        nstl::vector<nstl::unique_ptr<renderpass>> m_renderpasses;
+        nstl::vector<nstl::unique_ptr<framebuffer>> m_framebuffers;
+        nstl::vector<nstl::unique_ptr<shader>> m_shaders;
+        nstl::vector<nstl::unique_ptr<renderstate>> m_renderstates;
     };
 }

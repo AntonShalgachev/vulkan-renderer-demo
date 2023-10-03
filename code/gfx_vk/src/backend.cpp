@@ -110,7 +110,7 @@ gfx_vk::backend::backend(vko::Window& window, char const* name, bool enable_vali
     for (size_t i = 0; i < swapchain_images_count; i++)
     {
         m_fake_framebuffers.push_back(create_framebuffer({
-            .attachments = nstl::array{ static_cast<gfx::image const*>(m_fake_color_images[i]), static_cast<gfx::image const*>(m_fake_depth_image) },
+            .attachments = nstl::array{ m_fake_color_images[i], m_fake_depth_image },
             .renderpass = m_renderpass.get(),
         }));
     }
@@ -118,17 +118,17 @@ gfx_vk::backend::backend(vko::Window& window, char const* name, bool enable_vali
 
 gfx_vk::backend::~backend() = default;
 
-gfx::buffer* gfx_vk::backend::create_buffer(gfx::buffer_params const& params)
+gfx::buffer_handle gfx_vk::backend::create_buffer(gfx::buffer_params const& params)
 {
     return m_context->get_resources().create_buffer(params);
 }
 
-void gfx_vk::backend::buffer_upload_sync(gfx::buffer* handle, nstl::blob_view bytes, size_t offset)
+void gfx_vk::backend::buffer_upload_sync(gfx::buffer_handle handle, nstl::blob_view bytes, size_t offset)
 {
-    return static_cast<buffer*>(handle)->upload_sync(bytes, offset);
+    return m_context->get_resources().get_buffer(handle).upload_sync(bytes, offset);
 }
 
-gfx::image* gfx_vk::backend::create_image(gfx::image_params const& params)
+gfx::image_handle gfx_vk::backend::create_image(gfx::image_params const& params)
 {
     return m_context->get_resources().create_image(params);
 }
@@ -138,27 +138,27 @@ void gfx_vk::backend::image_upload_sync(gfx::image* handle, nstl::blob_view byte
     return static_cast<image*>(handle)->upload_sync(bytes);
 }
 
-gfx::sampler* gfx_vk::backend::create_sampler(gfx::sampler_params const& params)
+gfx::sampler_handle gfx_vk::backend::create_sampler(gfx::sampler_params const& params)
 {
     return m_context->get_resources().create_sampler(params);
 }
 
-gfx::renderpass* gfx_vk::backend::create_renderpass(gfx::renderpass_params const& params)
+gfx::renderpass_handle gfx_vk::backend::create_renderpass(gfx::renderpass_params const& params)
 {
     return m_context->get_resources().create_renderpass(params);
 }
 
-gfx::framebuffer* gfx_vk::backend::create_framebuffer(gfx::framebuffer_params const& params)
+gfx::framebuffer_handle gfx_vk::backend::create_framebuffer(gfx::framebuffer_params const& params)
 {
     return m_context->get_resources().create_framebuffer(params);
 }
 
-gfx::shader* gfx_vk::backend::create_shader(gfx::shader_params const& params)
+gfx::shader_handle gfx_vk::backend::create_shader(gfx::shader_params const& params)
 {
     return m_context->get_resources().create_shader(params);
 }
 
-gfx::renderstate* gfx_vk::backend::create_renderstate(gfx::renderstate_params const& params)
+gfx::renderstate_handle gfx_vk::backend::create_renderstate(gfx::renderstate_params const& params)
 {
     // WTF: implement properly
 
@@ -188,7 +188,7 @@ gfx::renderstate* gfx_vk::backend::create_renderstate(gfx::renderstate_params co
     return m_context->get_resources().create_renderstate(init_params);
 }
 
-gfx::renderpass* gfx_vk::backend::get_main_renderpass()
+gfx::renderpass_handle gfx_vk::backend::get_main_renderpass()
 {
     return m_renderpass.get();
 }

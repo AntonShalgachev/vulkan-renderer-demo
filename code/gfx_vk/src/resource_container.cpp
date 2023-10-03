@@ -10,11 +10,33 @@
 
 namespace
 {
-    template<typename T, typename P>
-    T* create_resource(gfx_vk::context& context, nstl::vector<nstl::unique_ptr<T>>& container, P const& params)
+    template<typename T, typename H, typename P>
+    H create_resource(nstl::vector<nstl::unique_ptr<T>>& container, gfx_vk::context& context, P const& params)
     {
         container.push_back(nstl::make_unique<T>(context, params));
         return container.back().get();
+    }
+
+    template<typename T, typename H>
+    T& get_resource(nstl::vector<nstl::unique_ptr<T>> const& container, H handle)
+    {
+        assert(handle);
+        return *static_cast<T*>(handle);
+    }
+
+    template<typename T, typename H>
+    bool destroy_resource(nstl::vector<nstl::unique_ptr<T>>& container, H handle)
+    {
+        for (auto& resource : container)
+        {
+            if (resource.get() == static_cast<T*>(handle))
+            {
+                resource = nullptr;
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 
@@ -22,37 +44,47 @@ gfx_vk::resource_container::resource_container(context& context) : m_context(con
 
 gfx_vk::resource_container::~resource_container() = default;
 
-gfx::buffer* gfx_vk::resource_container::create_buffer(gfx::buffer_params const& params)
+gfx::buffer_handle gfx_vk::resource_container::create_buffer(gfx::buffer_params const& params)
 {
-    return create_resource<buffer>(m_context, buffers, params);
+    return create_resource<buffer, gfx::buffer_handle>(m_buffers, m_context, params);
+}
+
+gfx_vk::buffer& gfx_vk::resource_container::get_buffer(gfx::buffer_handle handle) const
+{
+    return get_resource(m_buffers, handle);
+}
+
+bool gfx_vk::resource_container::destroy_buffer(gfx::buffer_handle handle)
+{
+    return destroy_resource(m_buffers, handle);
 }
 
 gfx::image* gfx_vk::resource_container::create_image(gfx::image_params const& params)
 {
-    return create_resource<image>(m_context, images, params);
+    return create_resource<image, gfx::image*>(m_images, m_context, params);
 }
 
 gfx::sampler* gfx_vk::resource_container::create_sampler(gfx::sampler_params const& params)
 {
-    return create_resource<sampler>(m_context, samplers, params);
+    return create_resource<sampler, gfx::sampler*>(m_samplers, m_context, params);
 }
 
 gfx::renderpass* gfx_vk::resource_container::create_renderpass(gfx::renderpass_params const& params)
 {
-    return create_resource<renderpass>(m_context, renderpasses, params);
+    return create_resource<renderpass, gfx::renderpass*>(m_renderpasses, m_context, params);
 }
 
 gfx::framebuffer* gfx_vk::resource_container::create_framebuffer(gfx::framebuffer_params const& params)
 {
-    return create_resource<framebuffer>(m_context, framebuffers, params);
+    return create_resource<framebuffer, gfx::framebuffer*>(m_framebuffers, m_context, params);
 }
 
 gfx::shader* gfx_vk::resource_container::create_shader(gfx::shader_params const& params)
 {
-    return create_resource<shader>(m_context, shaders, params);
+    return create_resource<shader, gfx::shader*>(m_shaders, m_context, params);
 }
 
 gfx::renderstate* gfx_vk::resource_container::create_renderstate(renderstate_init_params const& params)
 {
-    return create_resource<renderstate>(m_context, renderstates, params);
+    return create_resource<renderstate, gfx::renderstate*>(m_renderstates, m_context, params);
 }
