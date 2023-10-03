@@ -42,11 +42,11 @@ namespace gfx_vk
 
         [[nodiscard]] gfx::renderstate_handle create_renderstate(gfx::renderstate_params const& params) override;
 
-        [[nodiscard]] gfx::renderpass_handle get_main_renderpass() override;
+        [[nodiscard]] gfx::renderpass_handle get_main_renderpass() override { return m_renderpass; }
 
     private:
         nstl::unique_ptr<context> m_context;
-        nstl::unique_ptr<renderpass> m_renderpass;
+        gfx::renderpass_handle m_renderpass;
         nstl::unique_ptr<swapchain> m_swapchain;
 
         // Temporary images that mimic swapchain images during the transition to the new API

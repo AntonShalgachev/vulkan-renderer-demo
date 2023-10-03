@@ -73,7 +73,7 @@ gfx_vk::backend::backend(vko::Window& window, char const* name, bool enable_vali
     assert(utils::get_format(depth_format) == vk_depth_format);
 
     // TODO use create_renderpass?
-    m_renderpass = nstl::make_unique<renderpass>(*m_context, gfx::renderpass_params{
+    m_renderpass = create_renderpass({
         .color_attachment_formats = nstl::array{ surface_format },
         .depth_stencil_attachment_format = depth_format,
 
@@ -81,7 +81,7 @@ gfx_vk::backend::backend(vko::Window& window, char const* name, bool enable_vali
         .keep_depth_values_after_renderpass = false,
     });
 
-    m_context->get_instance().setDebugName(device.getHandle(), m_renderpass->get_handle(), "Main renderpass");
+    m_context->get_instance().setDebugName(device.getHandle(), m_context->get_resources().get_renderpass(m_renderpass).get_handle(), "Main renderpass");
 
     // disabled while the old renderer creates its own swapchain
 //     m_swapchain = nstl::make_unique<swapchain>(*m_context, window, m_renderpass->get_handle(), surface_format, depth_format);
@@ -111,7 +111,7 @@ gfx_vk::backend::backend(vko::Window& window, char const* name, bool enable_vali
     {
         m_fake_framebuffers.push_back(create_framebuffer({
             .attachments = nstl::array{ m_fake_color_images[i], m_fake_depth_image },
-            .renderpass = m_renderpass.get(),
+            .renderpass = m_renderpass,
         }));
     }
 }
@@ -186,9 +186,4 @@ gfx::renderstate_handle gfx_vk::backend::create_renderstate(gfx::renderstate_par
     };
 
     return m_context->get_resources().create_renderstate(init_params);
-}
-
-gfx::renderpass_handle gfx_vk::backend::get_main_renderpass()
-{
-    return m_renderpass.get();
 }
