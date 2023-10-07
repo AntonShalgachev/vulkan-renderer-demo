@@ -71,28 +71,14 @@ struct DemoMaterialMetadata
     vkgfx::UniformConfiguration uniformConfig;
     vkgfx::RenderConfiguration renderConfig;
 
-    gfx::uniform_group_configuration newUniformConfig;
+    gfx::descriptorgroup_layout_storage newUniformConfig;
     gfx::renderstate_flags newRenderConfig;
-};
-
-struct VertexConfigurationStorage
-{
-    nstl::vector<gfx::attribute_description> attributes;
-    gfx::vertex_topology topology;
-
-    operator gfx::vertex_configuration() const
-    {
-        return {
-            .attributes = attributes,
-            .topology = topology,
-        };
-    }
 };
 
 struct DemoMeshMetadata
 {
     vkgfx::VertexConfiguration vertexConfig;
-    VertexConfigurationStorage newVertexConfig;
+    gfx::vertex_configuration_storage newVertexConfig;
     DemoAttributeSemanticsConfiguration attributeSemanticsConfig;
     size_t materialIndex = 0;
     editor::assets::Uuid materialUuid;
@@ -102,6 +88,9 @@ struct DemoMaterial
 {
     vkgfx::MaterialHandle handle;
     DemoMaterialMetadata metadata;
+
+    gfx::buffer_handle buffer;
+    gfx::descriptorgroup_handle descriptorgroup;
 };
 
 struct DemoPrimitive

@@ -1,57 +1,28 @@
 #include "descriptor_set_layout.h"
 
 #include "context.h"
+#include "conversions.h"
 
 #include "vko/Assert.h"
 #include "vko/Device.h"
 
 #include "nstl/static_vector.h"
 
-gfx_vk::descriptor_set_layout::descriptor_set_layout(context& context, gfx::uniform_group_configuration const& params)
+gfx_vk::descriptor_set_layout::descriptor_set_layout(context& context, gfx::descriptorgroup_layout_view const& layout)
     : m_context(context)
+    , m_layout(gfx::descriptorgroup_layout_storage::from_view(layout))
 {
-    // TODO pass configuration externally
+    nstl::vector<VkDescriptorSetLayoutBinding> bindings;
 
-    nstl::static_vector<VkDescriptorSetLayoutBinding, 4> bindings;
-
-    if (params.has_buffer)
+    for (gfx::descriptor_layout_entry const& entry : layout.entries)
     {
-        VkDescriptorSetLayoutBinding& desc = bindings.emplace_back();
-        desc.binding = 0;
-        desc.descriptorCount = 1;
-        desc.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        desc.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT; // TODO specify dynamically
-        desc.pImmutableSamplers = nullptr;
-    }
-
-    if (params.has_albedo_texture)
-    {
-        VkDescriptorSetLayoutBinding& desc = bindings.emplace_back();
-        desc.binding = 1;
-        desc.descriptorCount = 1;
-        desc.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        desc.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-        desc.pImmutableSamplers = nullptr;
-    }
-
-    if (params.has_normal_map)
-    {
-        VkDescriptorSetLayoutBinding& desc = bindings.emplace_back();
-        desc.binding = 2;
-        desc.descriptorCount = 1;
-        desc.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        desc.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-        desc.pImmutableSamplers = nullptr;
-    }
-
-    if (params.has_shadow_map)
-    {
-        VkDescriptorSetLayoutBinding& desc = bindings.emplace_back();
-        desc.binding = 3;
-        desc.descriptorCount = 1;
-        desc.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        desc.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-        desc.pImmutableSamplers = nullptr;
+        bindings.push_back({
+            .binding = static_cast<uint32_t>(entry.location),
+            .descriptorType = utils::get_descriptor_type(entry.type),
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_ALL_GRAPHICS, // TODO restrict to only necessary stages
+            .pImmutableSamplers = nullptr, // TODO make use of immutable samplers
+        });
     }
 
     VkDescriptorSetLayoutCreateInfo info {

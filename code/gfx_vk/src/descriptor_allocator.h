@@ -5,6 +5,8 @@
 #include "vko/Allocator.h"
 #include "vko/UniqueHandle.h"
 
+#include "nstl/span.h"
+
 #include <vulkan/vulkan.h>
 
 namespace gfx_vk
@@ -16,6 +18,8 @@ namespace gfx_vk
     public:
         descriptor_allocator(context& context, descriptors_config const& config);
         ~descriptor_allocator();
+
+        bool allocate(nstl::span<VkDescriptorSetLayout const> layouts, nstl::span<VkDescriptorSet> handles);
 
         VkDescriptorPool get_handle() const { return m_handle; }
 

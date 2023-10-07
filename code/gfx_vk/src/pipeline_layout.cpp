@@ -5,13 +5,14 @@
 #include "vko/Assert.h"
 #include "vko/Device.h"
 
-gfx_vk::pipeline_layout::pipeline_layout(context& context, nstl::span<VkDescriptorSetLayout const> set_layouts)
+gfx_vk::pipeline_layout::pipeline_layout(context& context, nstl::span<VkDescriptorSetLayout const> layouts)
     : m_context(context)
+    , m_layouts(layouts.begin(), layouts.end())
 {
     VkPipelineLayoutCreateInfo info {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = static_cast<uint32_t>(set_layouts.size()),
-        .pSetLayouts = set_layouts.data(),
+        .setLayoutCount = static_cast<uint32_t>(layouts.size()),
+        .pSetLayouts = layouts.data(),
         .pushConstantRangeCount = 0,
         .pPushConstantRanges = nullptr,
     };

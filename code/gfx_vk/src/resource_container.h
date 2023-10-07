@@ -5,6 +5,8 @@
 #include "nstl/unique_ptr.h"
 #include "nstl/vector.h"
 
+#include <vulkan/vulkan.h>
+
 namespace gfx_vk
 {
     class context;
@@ -16,6 +18,8 @@ namespace gfx_vk
     class framebuffer;
     class descriptorgroup;
     class shader;
+    class descriptor_set_layout;
+    class pipeline_layout;
     class renderstate;
 
     struct renderstate_init_params;
@@ -55,9 +59,12 @@ namespace gfx_vk
         [[nodiscard]] shader& get_shader(gfx::shader_handle handle) const;
         [[nodiscard]] bool destroy_shader(gfx::shader_handle handle);
 
-        [[nodiscard]] gfx::renderstate_handle create_renderstate(renderstate_init_params const& params);
+        [[nodiscard]] gfx::renderstate_handle create_renderstate(gfx::renderstate_params const& params);
         [[nodiscard]] renderstate& get_renderstate(gfx::renderstate_handle handle) const;
         [[nodiscard]] bool destroy_renderstate(gfx::renderstate_handle handle);
+
+        [[nodiscard]] VkDescriptorSetLayout create_descriptor_set_layout(gfx::descriptorgroup_layout_view const& layout);
+        [[nodiscard]] VkPipelineLayout create_pipeline_layout(nstl::span<VkDescriptorSetLayout const> layouts);
 
     private:
         context& m_context;
@@ -69,6 +76,9 @@ namespace gfx_vk
         nstl::vector<nstl::unique_ptr<framebuffer>> m_framebuffers;
         nstl::vector<nstl::unique_ptr<descriptorgroup>> m_descriptorgroups;
         nstl::vector<nstl::unique_ptr<shader>> m_shaders;
+
+        nstl::vector<nstl::unique_ptr<descriptor_set_layout>> m_descriptor_set_layouts;
+        nstl::vector<nstl::unique_ptr<pipeline_layout>> m_pipeline_layouts;
         nstl::vector<nstl::unique_ptr<renderstate>> m_renderstates;
     };
 }

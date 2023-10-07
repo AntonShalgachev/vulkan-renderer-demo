@@ -1687,19 +1687,18 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                     .shaders = nstl::array{ vertexShader, fragmentShader },
                     .renderpass = m_newRenderer->get_main_renderpass(),
                     .vertex_config = primitive.metadata.newVertexConfig,
-                    .uniform_groups_config = nstl::array{
-                        gfx::uniform_group_configuration {
-                            .has_buffer = true,
-                            .has_albedo_texture = false,
-                            .has_normal_map = false,
-                            .has_shadow_map = true,
+                    .descriptorgroup_layouts = nstl::array{
+                        gfx::descriptorgroup_layout_view {
+                            .entries = nstl::array{
+                                gfx::descriptor_layout_entry{0, gfx::descriptor_type::buffer},
+                                gfx::descriptor_layout_entry{3, gfx::descriptor_type::combined_image_sampler},
+                            },
                         },
                         material.metadata.newUniformConfig,
-                        gfx::uniform_group_configuration {
-                            .has_buffer = true,
-                            .has_albedo_texture = false,
-                            .has_normal_map = false,
-                            .has_shadow_map = false,
+                        gfx::descriptorgroup_layout_view {
+                            .entries = nstl::array{
+                                gfx::descriptor_layout_entry{0, gfx::descriptor_type::buffer},
+                            },
                         },
                     },
                     .flags = material.metadata.newRenderConfig,
@@ -1737,24 +1736,19 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                     .shaders = nstl::array{ shadowmapVertexShader },
                     .renderpass = m_shadowRenderpass,
                     .vertex_config = primitive.metadata.newVertexConfig,
-                    .uniform_groups_config = nstl::array{
-                        gfx::uniform_group_configuration {
-                            .has_buffer = true,
-                            .has_albedo_texture = false,
-                            .has_normal_map = false,
-                            .has_shadow_map = false,
+                    .descriptorgroup_layouts = nstl::array{
+                        gfx::descriptorgroup_layout_view {
+                            .entries = nstl::array{
+                                gfx::descriptor_layout_entry{0, gfx::descriptor_type::buffer},
+                            },
                         },
-                        gfx::uniform_group_configuration {
-                            .has_buffer = false,
-                            .has_albedo_texture = false,
-                            .has_normal_map = false,
-                            .has_shadow_map = false,
+                        gfx::descriptorgroup_layout_view {
+                            .entries = {},
                         },
-                        gfx::uniform_group_configuration {
-                            .has_buffer = true,
-                            .has_albedo_texture = false,
-                            .has_normal_map = false,
-                            .has_shadow_map = false,
+                        gfx::descriptorgroup_layout_view {
+                            .entries = nstl::array{
+                                gfx::descriptor_layout_entry{0, gfx::descriptor_type::buffer},
+                            },
                         },
                     },
                     .flags = {
@@ -1887,11 +1881,23 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
         .location = vkgfx::BufferLocation::HostVisible,
         .isMutable = false,
     };
-    auto buffer = resourceManager.createBuffer(sizeof(MaterialUniformBuffer), nstl::move(metadata));
-    resourceManager.uploadBuffer(buffer, nstl::blob_view{ &values, sizeof(MaterialUniformBuffer) });
+    auto buffer = resourceManager.createBuffer(sizeof(values), nstl::move(metadata));
+    resourceManager.uploadBuffer(buffer, { &values, sizeof(values) });
     m_editorGltfResources->additionalBuffers.push_back(buffer);
 
     material.uniformBuffer = buffer;
+
+    auto newBuffer = m_newRenderer->create_buffer({
+        .size = sizeof(values),
+        .usage = gfx::buffer_usage::uniform,
+        .location = gfx::buffer_location::host_visible,
+        .is_mutable = false,
+    });
+
+    m_newRenderer->buffer_upload_sync(newBuffer, { &values, sizeof(values) });
+
+    nstl::vector<gfx::descriptorgroup_entry> descriptor_entries;
+    descriptor_entries.push_back({ 0, newBuffer });
 
     if (materialData.baseColorTexture)
     {
@@ -1905,6 +1911,9 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
         });
 
         material.albedo = textureHandle;
+
+        // TODO create actual sampler
+        descriptor_entries.push_back({ 1, {m_editorGltfResources->newImages[imageId], m_newDefaultSampler} });
     }
 
     if (materialData.normalTexture)
@@ -1919,11 +1928,19 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
             });
 
         material.normalMap = textureHandle;
+
+        // TODO create actual sampler
+        descriptor_entries.push_back({ 2, {m_editorGltfResources->newImages[imageId], m_newDefaultSampler} });
     }
 
     DemoMaterial& demoMaterial = m_editorGltfResources->materials[id];
 
     demoMaterial.handle = resourceManager.createMaterial(nstl::move(material));
+
+    demoMaterial.buffer = newBuffer;
+    demoMaterial.descriptorgroup = m_newRenderer->create_descriptorgroup({
+        .entries = descriptor_entries,
+    });
 
     demoMaterial.metadata.renderConfig.wireframe = false;
     demoMaterial.metadata.renderConfig.cullBackfaces = !materialData.doubleSided;
@@ -1933,9 +1950,11 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
 
     demoMaterial.metadata.newRenderConfig.wireframe = false;
     demoMaterial.metadata.newRenderConfig.cull_backfaces = !materialData.doubleSided;
-    demoMaterial.metadata.newUniformConfig.has_buffer = true;
-    demoMaterial.metadata.newUniformConfig.has_albedo_texture = true;
-    demoMaterial.metadata.newUniformConfig.has_normal_map = true;
+    demoMaterial.metadata.newUniformConfig = {{
+        gfx::descriptor_layout_entry{0, gfx::descriptor_type::buffer},
+        gfx::descriptor_layout_entry{1, gfx::descriptor_type::combined_image_sampler},
+        gfx::descriptor_layout_entry{2, gfx::descriptor_type::combined_image_sampler},
+    }};
 }
 
 void DemoApplication::editorLoadMesh(editor::assets::Uuid id)

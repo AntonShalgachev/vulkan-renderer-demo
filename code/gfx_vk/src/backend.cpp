@@ -165,32 +165,7 @@ gfx::shader_handle gfx_vk::backend::create_shader(gfx::shader_params const& para
 
 gfx::renderstate_handle gfx_vk::backend::create_renderstate(gfx::renderstate_params const& params)
 {
-    // WTF: implement properly
-
-    nstl::vector<VkDescriptorSetLayout> set_layout_handles;
-
-    for (gfx::uniform_group_configuration const& p : params.uniform_groups_config)
-    {
-        auto set_layout = nstl::make_unique<descriptor_set_layout>(*m_context, p);
-        set_layout_handles.push_back(set_layout->get_handle());
-
-        m_descriptor_set_layouts.push_back(nstl::move(set_layout));
-    }
-
-    auto layout = nstl::make_unique<pipeline_layout>(*m_context, set_layout_handles);
-    VkPipelineLayout layout_handle = layout->get_handle();
-    m_pipeline_layouts.push_back(nstl::move(layout));
-
-    renderstate_init_params init_params = {
-        .shaders = params.shaders,
-        .vertex_config = params.vertex_config,
-        .flags = params.flags,
-
-        .layout = layout_handle,
-        .renderpass = m_context->get_resources().get_renderpass(params.renderpass).get_handle(),
-    };
-
-    return m_context->get_resources().create_renderstate(init_params);
+    return m_context->get_resources().create_renderstate(params);
 }
 
 float gfx_vk::backend::get_main_framebuffer_aspect()

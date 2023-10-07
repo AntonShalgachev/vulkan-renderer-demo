@@ -179,6 +179,7 @@ namespace
 
 gfx_vk::renderstate::renderstate(context& context, renderstate_init_params const& params)
     : m_context(context)
+    , m_params(renderstate_init_params_storage::from_view(params))
 {
     temporary_resources resources;
 

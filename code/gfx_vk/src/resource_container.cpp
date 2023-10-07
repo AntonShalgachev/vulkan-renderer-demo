@@ -7,10 +7,18 @@
 #include "framebuffer.h"
 #include "descriptorgroup.h"
 #include "shader.h"
+#include "descriptor_set_layout.h"
+#include "pipeline_layout.h"
 #include "renderstate.h"
 
 namespace
 {
+    template<typename T, typename H>
+    H create_handle(T& resource)
+    {
+        return { &resource };
+    }
+
     template<typename T, typename H, typename P>
     H create_resource(nstl::vector<nstl::unique_ptr<T>>& container, gfx_vk::context& context, P const& params)
     {
@@ -150,9 +158,34 @@ bool gfx_vk::resource_container::destroy_shader(gfx::shader_handle handle)
     return destroy_resource(m_shaders, handle);
 }
 
-gfx::renderstate_handle gfx_vk::resource_container::create_renderstate(renderstate_init_params const& params)
+gfx::renderstate_handle gfx_vk::resource_container::create_renderstate(gfx::renderstate_params const& params)
 {
-    return create_resource<renderstate, gfx::renderstate_handle>(m_renderstates, m_context, params);
+    nstl::vector<VkDescriptorSetLayout> set_layout_handles;
+
+    for (gfx::descriptorgroup_layout_view const& layout : params.descriptorgroup_layouts)
+    {
+        set_layout_handles.push_back(create_descriptor_set_layout(layout));
+    }
+
+    renderstate_init_params init_params = {
+        .shaders = params.shaders,
+        .vertex_config = params.vertex_config,
+        .flags = params.flags,
+
+        .layout = create_pipeline_layout(set_layout_handles),
+        .renderpass = get_renderpass(params.renderpass).get_handle(),
+    };
+
+    for (auto const& state : m_renderstates)
+    {
+        if (state->get_params() == init_params)
+        {
+            // TODO increase ref counter
+            return create_handle<renderstate, gfx::renderstate_handle>(*state.get());
+        }
+    }
+
+    return create_resource<renderstate, gfx::renderstate_handle>(m_renderstates, m_context, init_params);
 }
 
 gfx_vk::renderstate& gfx_vk::resource_container::get_renderstate(gfx::renderstate_handle handle) const
@@ -160,7 +193,40 @@ gfx_vk::renderstate& gfx_vk::resource_container::get_renderstate(gfx::renderstat
     return get_resource(m_renderstates, handle);
 }
 
-bool gfx_vk::resource_container::destroy_renderstate(gfx::renderstate_handle handle)
+bool gfx_vk::resource_container::destroy_renderstate(gfx::renderstate_handle)
 {
-    return destroy_resource(m_renderstates, handle);
+    // TODO check the ref counter first before destroying the resource
+    // TODO also destroy descriptor set layouts and the pipeline layout
+//     return destroy_resource(m_renderstates, handle);
+    return false;
+}
+
+VkDescriptorSetLayout gfx_vk::resource_container::create_descriptor_set_layout(gfx::descriptorgroup_layout_view const& layout)
+{
+    for (auto const& set_layout : m_descriptor_set_layouts)
+    {
+        if (set_layout->get_layout() == layout)
+        {
+            // TODO increase ref counter
+            return set_layout->get_handle();
+        }
+    }
+
+    m_descriptor_set_layouts.push_back(nstl::make_unique<descriptor_set_layout>(m_context, layout));
+    return m_descriptor_set_layouts.back()->get_handle();
+}
+
+VkPipelineLayout gfx_vk::resource_container::create_pipeline_layout(nstl::span<VkDescriptorSetLayout const> layouts)
+{
+    for (auto const& layout : m_pipeline_layouts)
+    {
+        if (layout->get_layouts() == layouts)
+        {
+            // TODO increase ref counter
+            return layout->get_handle();
+        }
+    }
+
+    m_pipeline_layouts.push_back(nstl::make_unique<pipeline_layout>(m_context, layouts));
+    return m_pipeline_layouts.back()->get_handle();
 }

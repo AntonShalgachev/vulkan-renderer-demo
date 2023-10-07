@@ -42,3 +42,23 @@ gfx_vk::descriptor_allocator::~descriptor_allocator()
     vkDestroyDescriptorPool(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
     m_handle = nullptr;
 }
+
+bool gfx_vk::descriptor_allocator::allocate(nstl::span<VkDescriptorSetLayout const> layouts, nstl::span<VkDescriptorSet> handles)
+{
+    assert(layouts.size() == handles.size());
+
+    VkDescriptorSetAllocateInfo info{
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+        .descriptorPool = m_handle,
+        .descriptorSetCount = static_cast<uint32_t>(layouts.size()),
+        .pSetLayouts = layouts.data(),
+    };
+
+    VkResult result = vkAllocateDescriptorSets(m_context.get_device().getHandle(), &info, handles.data());
+
+    if (result == VK_ERROR_OUT_OF_POOL_MEMORY)
+        return false;
+
+    assert(result == VK_SUCCESS);
+    return true;
+}

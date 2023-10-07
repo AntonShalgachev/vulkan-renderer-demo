@@ -7,6 +7,7 @@ namespace gfx
     enum class image_format;
     enum class image_type;
     enum class image_usage;
+    enum class descriptor_type;
 }
 
 namespace gfx_vk::utils
@@ -14,4 +15,5 @@ namespace gfx_vk::utils
     VkFormat get_format(gfx::image_format format);
     VkImageAspectFlags get_aspect_flags(gfx::image_type type);
     VkImageUsageFlags get_usage_flags(gfx::image_usage usage);
+    VkDescriptorType get_descriptor_type(gfx::descriptor_type type);
 }

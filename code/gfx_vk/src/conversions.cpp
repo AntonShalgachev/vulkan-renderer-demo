@@ -57,3 +57,15 @@ VkImageUsageFlags gfx_vk::utils::get_usage_flags(gfx::image_usage usage)
     assert(false);
     return 0;
 }
+
+VkDescriptorType gfx_vk::utils::get_descriptor_type(gfx::descriptor_type type)
+{
+    switch (type)
+    {
+    case gfx::descriptor_type::buffer: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    case gfx::descriptor_type::combined_image_sampler: return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    }
+
+    assert(false);
+    return VK_DESCRIPTOR_TYPE_MAX_ENUM;
+}

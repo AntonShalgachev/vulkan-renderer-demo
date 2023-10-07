@@ -17,6 +17,8 @@ namespace gfx_vk
         sampler(context& context, gfx::sampler_params const& params);
         ~sampler();
 
+        VkSampler get_handle() const { return m_handle; }
+
     private:
         context& m_context;
 

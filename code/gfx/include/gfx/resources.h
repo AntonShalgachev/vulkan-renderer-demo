@@ -3,6 +3,7 @@
 #include "nstl/blob_view.h"
 #include "nstl/span.h"
 #include "nstl/optional.h"
+#include "nstl/vector.h"
 
 namespace gfx
 {
@@ -14,6 +15,8 @@ namespace gfx
         handle(nullptr_t) {}
         handle(void* ptr) : ptr(ptr) {}
         explicit operator bool() const { return ptr != nullptr; }
+
+        bool operator==(handle const& rhs) const = default;
 
         void* ptr = nullptr;
     };
@@ -232,6 +235,8 @@ namespace gfx
         size_t offset = 0;
         size_t stride = 0;
         attribute_type type = attribute_type::vec4f;
+
+        bool operator==(attribute_description const& rhs) const = default;
     };
 
     enum class vertex_topology
@@ -241,19 +246,68 @@ namespace gfx
         triangle_fan,
     };
 
-    struct vertex_configuration
+    struct vertex_configuration_view
     {
         nstl::span<attribute_description const> attributes;
         vertex_topology topology = vertex_topology::triangles;
+
+        bool operator==(vertex_configuration_view const& rhs) const = default;
     };
 
-    struct uniform_group_configuration
+    struct vertex_configuration_storage
     {
-        // TODO rework
-        bool has_buffer = true;
-        bool has_albedo_texture = true;
-        bool has_normal_map = false;
-        bool has_shadow_map = false;
+        nstl::vector<attribute_description> attributes;
+        vertex_topology topology;
+
+        static vertex_configuration_storage from_view(vertex_configuration_view const& view)
+        {
+            return {
+                .attributes = {view.attributes.begin(), view.attributes.end()},
+                .topology = view.topology,
+            };
+        }
+
+        operator vertex_configuration_view() const
+        {
+            return {
+                .attributes = attributes,
+                .topology = topology,
+            };
+        }
+    };
+
+    struct descriptor_layout_entry
+    {
+        size_t location = 0;
+        descriptor_type type = descriptor_type::buffer;
+
+        bool operator==(descriptor_layout_entry const& rhs) const = default;
+    };
+
+    struct descriptorgroup_layout_view
+    {
+        nstl::span<descriptor_layout_entry const> entries;
+
+        bool operator==(descriptorgroup_layout_view const& rhs) const = default;
+    };
+
+    struct descriptorgroup_layout_storage
+    {
+        nstl::vector<descriptor_layout_entry> entries;
+
+        static descriptorgroup_layout_storage from_view(descriptorgroup_layout_view const& view)
+        {
+            return descriptorgroup_layout_storage{
+                .entries = {view.entries.begin(), view.entries.end()}
+            };
+        }
+
+        operator descriptorgroup_layout_view() const
+        {
+            return {
+                .entries = entries,
+            };
+        }
     };
 
     struct renderstate_flags
@@ -265,14 +319,16 @@ namespace gfx
         bool depth_test = true;
         bool alpha_blending = false;
         bool depth_bias = false;
+
+        bool operator==(renderstate_flags const& rhs) const = default;
     };
 
     struct renderstate_params
     {
         nstl::span<shader_handle const> shaders;
         renderpass_handle renderpass = nullptr;
-        vertex_configuration vertex_config;
-        nstl::span<uniform_group_configuration> uniform_groups_config;
+        vertex_configuration_view vertex_config;
+        nstl::span<descriptorgroup_layout_view const> descriptorgroup_layouts; // TODO infer from the shader metadata?
         renderstate_flags flags;
     };
 

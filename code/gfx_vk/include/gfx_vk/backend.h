@@ -57,8 +57,5 @@ namespace gfx_vk
         nstl::vector<gfx::image_handle> m_fake_color_images;
         gfx::image_handle m_fake_depth_image;
         nstl::vector<gfx::framebuffer_handle> m_fake_framebuffers;
-
-        nstl::vector<nstl::unique_ptr<descriptor_set_layout>> m_descriptor_set_layouts;
-        nstl::vector<nstl::unique_ptr<pipeline_layout>> m_pipeline_layouts;
     };
 }
