@@ -31,6 +31,15 @@ namespace gfx
         [[nodiscard]] virtual renderstate_handle create_renderstate(renderstate_params const& params) = 0;
 
         [[nodiscard]] virtual renderpass_handle get_main_renderpass() = 0;
+        [[nodiscard]] virtual framebuffer_handle acquire_main_framebuffer() = 0;
         [[nodiscard]] virtual float get_main_framebuffer_aspect() = 0;
+
+        virtual void wait_for_next_frame() = 0;
+        virtual void begin_frame() = 0;
+
+        virtual void renderpass_begin(renderpass_begin_params const& params) = 0;
+        virtual void renderpass_end() = 0;
+
+        virtual void submit() = 0;
     };
 }

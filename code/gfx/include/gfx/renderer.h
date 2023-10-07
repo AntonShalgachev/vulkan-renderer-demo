@@ -49,10 +49,16 @@ namespace gfx
         // TODO add API for sharing renderstates (i.e. to avoid creating renderstates with the same parameters)
 
         [[nodiscard]] renderpass_handle get_main_renderpass() { return m_backend->get_main_renderpass(); }
+        [[nodiscard]] framebuffer_handle acquire_main_framebuffer() { return m_backend->acquire_main_framebuffer(); }
         [[nodiscard]] float get_main_framebuffer_aspect() { return m_backend->get_main_framebuffer_aspect(); }
 
-//         void begin_renderpass(renderpass& renderpass);
-//         void end_renderpass(renderpass& renderpass);
+        void wait_for_next_frame() { return m_backend->wait_for_next_frame(); }
+        void begin_frame() { return m_backend->begin_frame(); }
+
+        void renderpass_begin(renderpass_begin_params const& params) { return m_backend->renderpass_begin(params); }
+        void renderpass_end() { return m_backend->renderpass_end(); }
+
+        void submit() { return m_backend->submit(); }
 // 
 //         void set_renderstate(renderstate& renderstate);
 //         void set_descriptorgroup(uint8_t slot_index, descriptorgroup& descriptorgroup);

@@ -19,8 +19,14 @@ namespace gfx_vk
 
         VkFramebuffer get_handle() const { return m_handle; }
 
+        VkExtent2D get_extent() const { return m_extent; }
+        nstl::span<gfx::image_type const> get_attachment_types() const { return m_attachment_types; }
+
     private:
         context& m_context;
+
+        VkExtent2D m_extent{};
+        nstl::vector<gfx::image_type> m_attachment_types;
 
         vko::Allocator m_allocator{ vko::AllocatorScope::Framebuffer };
         vko::UniqueHandle<VkFramebuffer> m_handle;

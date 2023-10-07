@@ -68,15 +68,16 @@ namespace
     }
 }
 
-gfx_vk::context::context(vko::Window const& window, config const& config)
+gfx_vk::context::context(vko::Window& window, config const& config)
     : m_instance(config.name, create_instance_extensions(config.enable_validation, window), config.enable_validation, config.enable_validation ? on_debug_message : nullptr)
     , m_surface(window.createSurface(m_instance))
     , m_physical_device(find_physical_device(m_instance, m_surface))
     , m_params(vko::queryPhysicalDeviceSurfaceParameters(m_physical_device, m_surface))
     , m_device(m_physical_device, *m_params.graphicsQueueFamily, *m_params.presentQueueFamily, get_device_extensions())
-    , m_transfer_command_pool(m_device, m_device.getGraphicsQueue().getFamily()) // TODO use transfer queue?
+    , m_transfer_command_pool(m_device.getHandle(), m_device.getGraphicsQueue().getFamily()) // TODO use transfer queue?
     , m_resources(*this)
     , m_descriptor_allocator(*this, config.descriptors)
+    , m_renderer(*this, window, config.renderer)
 {
 
 }

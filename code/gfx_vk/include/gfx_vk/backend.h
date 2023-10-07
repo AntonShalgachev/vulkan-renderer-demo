@@ -6,19 +6,16 @@
 
 #include "nstl/vector.h"
 
+// TODO restructure backend, context and other global objects
+
 namespace vko
 {
-    class RenderPass;
     class Window;
 }
 
 namespace gfx_vk
 {
     class context;
-    class swapchain;
-    class renderpass;
-    class descriptor_set_layout;
-    class pipeline_layout;
 
     class backend final : public gfx::backend
     {
@@ -45,17 +42,19 @@ namespace gfx_vk
 
         [[nodiscard]] gfx::renderstate_handle create_renderstate(gfx::renderstate_params const& params) override;
 
-        [[nodiscard]] gfx::renderpass_handle get_main_renderpass() override { return m_renderpass; }
+        [[nodiscard]] gfx::renderpass_handle get_main_renderpass() override;
+        [[nodiscard]] gfx::framebuffer_handle acquire_main_framebuffer() override;
         [[nodiscard]] float get_main_framebuffer_aspect() override;
+
+        void wait_for_next_frame() override;
+        void begin_frame() override;
+
+        void renderpass_begin(gfx::renderpass_begin_params const& params) override;
+        void renderpass_end() override;
+
+        void submit() override;
 
     private:
         nstl::unique_ptr<context> m_context;
-        gfx::renderpass_handle m_renderpass;
-        nstl::unique_ptr<swapchain> m_swapchain;
-
-        // Temporary images that mimic swapchain images during the transition to the new API
-        nstl::vector<gfx::image_handle> m_fake_color_images;
-        gfx::image_handle m_fake_depth_image;
-        nstl::vector<gfx::framebuffer_handle> m_fake_framebuffers;
     };
 }

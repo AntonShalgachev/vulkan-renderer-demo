@@ -11,6 +11,8 @@ add_library(gfx_vk
     "src/resource_container.cpp"
     "src/descriptor_allocator.h"
     "src/descriptor_allocator.cpp"
+    "src/renderer.h"
+    "src/renderer.cpp"
 
     "src/swapchain.h"
     "src/swapchain.cpp"

@@ -26,6 +26,7 @@ gfx_vk::framebuffer::framebuffer(context& context, gfx::framebuffer_params const
         height = vk_image.get_height();
 
         attachments.push_back(vk_image.get_view_handle());
+        m_attachment_types.push_back(vk_image.get_type());
     }
 
     VkFramebufferCreateInfo info{
@@ -39,6 +40,8 @@ gfx_vk::framebuffer::framebuffer(context& context, gfx::framebuffer_params const
     };
 
     VKO_VERIFY(vkCreateFramebuffer(m_context.get_device().getHandle(), &info, &m_allocator.getCallbacks(), &m_handle.get()));
+
+    m_extent = { info.width, info.height };
 }
 
 gfx_vk::framebuffer::~framebuffer()

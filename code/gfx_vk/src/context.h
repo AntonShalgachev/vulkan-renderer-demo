@@ -3,6 +3,7 @@
 #include "gfx_vk/config.h"
 #include "resource_container.h"
 #include "descriptor_allocator.h"
+#include "renderer.h"
 
 #include "vko/Instance.h"
 #include "vko/Surface.h"
@@ -24,7 +25,7 @@ namespace gfx_vk
     class context
     {
     public:
-        context(vko::Window const& window, config const& config);
+        context(vko::Window& window, config const& config);
         ~context();
 
         vko::Instance const& get_instance() const;
@@ -41,6 +42,7 @@ namespace gfx_vk
         resource_container const& get_resources() const { return m_resources; }
 
         descriptor_allocator& get_descriptor_allocator() { return m_descriptor_allocator; }
+        renderer& get_renderer() { return m_renderer; }
 
         void on_surface_changed();
 
@@ -57,5 +59,6 @@ namespace gfx_vk
 
         resource_container m_resources;
         descriptor_allocator m_descriptor_allocator;
+        renderer m_renderer;
     };
 }

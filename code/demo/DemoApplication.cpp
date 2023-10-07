@@ -2405,5 +2405,15 @@ void DemoApplication::createTestResources()
 
 void DemoApplication::drawTest()
 {
+    m_newRenderer->wait_for_next_frame();
+    m_newRenderer->begin_frame();
 
+    m_newRenderer->renderpass_begin({
+        .renderpass = m_newRenderer->get_main_renderpass(),
+        .framebuffer = m_newRenderer->acquire_main_framebuffer(),
+    });
+
+    m_newRenderer->renderpass_end();
+
+    m_newRenderer->submit();
 }

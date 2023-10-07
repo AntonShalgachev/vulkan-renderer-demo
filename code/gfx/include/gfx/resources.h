@@ -336,4 +336,15 @@ namespace gfx
     {
         using handle::handle;
     };
+
+    //////////////////////////////////////////////////////////////////////////
+    // Drawing
+    // TODO: restructure, this shouldn't belong to the resources
+    //////////////////////////////////////////////////////////////////////////
+
+    struct renderpass_begin_params
+    {
+        renderpass_handle renderpass = nullptr;
+        framebuffer_handle framebuffer = nullptr;
+    };
 }
