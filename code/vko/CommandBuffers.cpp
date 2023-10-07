@@ -10,8 +10,8 @@
 
 #include "nstl/static_vector.h"
 
-vko::CommandBuffers::CommandBuffers(Device const& device, CommandPool const& commandPool, size_t size)
-    : m_device(device.getHandle())
+vko::CommandBuffers::CommandBuffers(VkDevice device, CommandPool const& commandPool, size_t size)
+    : m_device(device)
     , m_commandPool(commandPool.getHandle())
 {
     VkCommandBufferAllocateInfo commandBufferAllocateInfo{};

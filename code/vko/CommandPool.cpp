@@ -5,7 +5,7 @@
 #include "vko/QueueFamily.h"
 #include "vko/CommandBuffers.h"
 
-vko::CommandPool::CommandPool(Device const& device, QueueFamily const& queueFamily)
+vko::CommandPool::CommandPool(VkDevice device, QueueFamily const& queueFamily)
     : m_device(device)
 {
     VkCommandPoolCreateInfo poolCreateInfo{};
@@ -13,19 +13,19 @@ vko::CommandPool::CommandPool(Device const& device, QueueFamily const& queueFami
     poolCreateInfo.queueFamilyIndex = queueFamily.getIndex();
     poolCreateInfo.flags = 0; // TODO make use of it
 
-    VKO_VERIFY(vkCreateCommandPool(m_device.getHandle(), &poolCreateInfo, &m_allocator.getCallbacks(), &m_handle.get()));
+    VKO_VERIFY(vkCreateCommandPool(m_device, &poolCreateInfo, &m_allocator.getCallbacks(), &m_handle.get()));
 }
 
 void vko::CommandPool::reset() const
 {
     VkCommandPoolResetFlags flags = 0;
-    VKO_VERIFY(vkResetCommandPool(m_device.getHandle(), m_handle, flags));
+    VKO_VERIFY(vkResetCommandPool(m_device, m_handle, flags));
 }
 
 vko::CommandPool::~CommandPool()
 {
     if (m_handle)
-        vkDestroyCommandPool(m_device.getHandle(), m_handle, &m_allocator.getCallbacks());
+        vkDestroyCommandPool(m_device, m_handle, &m_allocator.getCallbacks());
 }
 
 vko::CommandBuffers vko::CommandPool::allocate(size_t size) const

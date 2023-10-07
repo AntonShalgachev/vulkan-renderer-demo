@@ -16,7 +16,7 @@ namespace vko
     class CommandPool
     {
     public:
-    	explicit CommandPool(Device const& device, QueueFamily const& queueFamily);
+    	explicit CommandPool(VkDevice device, QueueFamily const& queueFamily);
         ~CommandPool();
 
         vko::CommandBuffers allocate(size_t size) const;
@@ -32,7 +32,7 @@ namespace vko
 
     private:
         Allocator m_allocator{ AllocatorScope::CommandPool };
-        Device const& m_device;
+        VkDevice m_device;
 
         UniqueHandle<VkCommandPool> m_handle;
     };

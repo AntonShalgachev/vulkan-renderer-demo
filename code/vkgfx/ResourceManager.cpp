@@ -9,6 +9,7 @@
 #include "vko/Pipeline.h"
 #include "vko/PhysicalDevice.h"
 #include "vko/Sampler.h"
+#include "vko/Device.h"
 
 #include "vkgfx/Image.h"
 #include "vkgfx/Buffer.h"
@@ -206,7 +207,7 @@ vkgfx::ResourceManager::ResourceManager(vko::Device const& device, vko::Physical
 {
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    m_uploadCommandPool = nstl::make_unique<vko::CommandPool>(device, uploadQueue.getFamily()); // TODO set debug name for it
+    m_uploadCommandPool = nstl::make_unique<vko::CommandPool>(device.getHandle(), uploadQueue.getFamily()); // TODO set debug name for it
 }
 
 vkgfx::ResourceManager::~ResourceManager() = default;

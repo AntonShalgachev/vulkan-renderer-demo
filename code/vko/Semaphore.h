@@ -12,7 +12,7 @@ namespace vko
     class Semaphore
     {
     public:
-    	Semaphore(Device const& device);
+    	Semaphore(VkDevice device);
     	~Semaphore();
 
         Semaphore(Semaphore const&) = default;
@@ -24,7 +24,7 @@ namespace vko
 
     private:
         Allocator m_allocator{ AllocatorScope::Semaphore };
-        Device const& m_device;
+        VkDevice m_device;
     	UniqueHandle<VkSemaphore> m_handle;
     };
 }

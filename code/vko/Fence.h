@@ -12,7 +12,7 @@ namespace vko
     class Fence
     {
     public:
-    	Fence(Device const& device);
+    	Fence(VkDevice device);
     	~Fence();
 
         Fence(Fence const&) = default;
@@ -28,7 +28,7 @@ namespace vko
 
     private:
         Allocator m_allocator{ AllocatorScope::Fence };
-        Device const& m_device;
+        VkDevice m_device;
     	UniqueHandle<VkFence> m_handle;
     };
 }

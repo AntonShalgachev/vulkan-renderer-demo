@@ -323,14 +323,14 @@ vkgfx::Renderer::Renderer(char const* name, bool enableValidationLayers, vko::Wi
 
     for (auto i = 0; i < FRAME_RESOURCE_COUNT; i++)
     {
-        vko::CommandPool commandPool{ device, graphicsQueueFamily };
+        vko::CommandPool commandPool{ device.getHandle(), graphicsQueueFamily};
         vko::CommandBuffers commandBuffers{ commandPool.allocate(1) };
 
         RendererFrameResources resources
         {
-            .imageAvailableSemaphore{device},
-            .renderFinishedSemaphore{device},
-            .inFlightFence{device},
+            .imageAvailableSemaphore{device.getHandle()},
+            .renderFinishedSemaphore{device.getHandle()},
+            .inFlightFence{device.getHandle()},
             .commandPool{nstl::move(commandPool)},
             .commandBuffers{nstl::move(commandBuffers)},
         };

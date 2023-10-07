@@ -21,7 +21,7 @@ namespace vko
         friend class CommandPool;
 
     public:
-    	CommandBuffers(Device const& device, CommandPool const& commandPool, size_t size);
+    	CommandBuffers(VkDevice device, CommandPool const& commandPool, size_t size);
     	~CommandBuffers();
 
         CommandBuffers(CommandBuffers const&) = default;
