@@ -39,6 +39,16 @@ namespace nstl
         size_t capacity() const;
         bool empty() const;
 
+        T* begin();
+        T const* begin() const;
+        T* end();
+        T const* end() const;
+
+        T& front();
+        T const& front() const;
+        T& back();
+        T const& back() const;
+
         operator span<T>();
         operator span<T const>() const;
 
@@ -172,6 +182,52 @@ template<typename T, size_t N>
 bool nstl::static_vector<T, N>::empty() const
 {
     return m_size == 0;
+}
+
+template<typename T, size_t N>
+T* nstl::static_vector<T, N>::begin()
+{
+    return data();
+}
+template<typename T, size_t N>
+T const* nstl::static_vector<T, N>::begin() const
+{
+    return data();
+}
+template<typename T, size_t N>
+T* nstl::static_vector<T, N>::end()
+{
+    return data() + size();
+}
+template<typename T, size_t N>
+T const* nstl::static_vector<T, N>::end() const
+{
+    return data() + size();
+}
+
+template<typename T, size_t N>
+T& nstl::static_vector<T, N>::front()
+{
+    NSTL_ASSERT(!empty());
+    return *begin();
+}
+template<typename T, size_t N>
+T const& nstl::static_vector<T, N>::front() const
+{
+    NSTL_ASSERT(!empty());
+    return *begin();
+}
+template<typename T, size_t N>
+T& nstl::static_vector<T, N>::back()
+{
+    NSTL_ASSERT(!empty());
+    return *(begin() + size() - 1);
+}
+template<typename T, size_t N>
+T const& nstl::static_vector<T, N>::back() const
+{
+    NSTL_ASSERT(!empty());
+    return *(begin() + size() - 1);
 }
 
 template<typename T, size_t N>

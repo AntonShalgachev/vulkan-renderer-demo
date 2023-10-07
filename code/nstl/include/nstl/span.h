@@ -31,6 +31,8 @@ namespace nstl
 
         operator span<T const>() const;
 
+        bool operator==(span<T> const& rhs) const;
+
     private:
         T* m_data = nullptr;
         size_t m_size = 0;
@@ -106,4 +108,17 @@ template<typename T>
 nstl::span<T>::operator span<T const>() const
 {
     return { m_data, m_size };
+}
+
+template<typename T>
+bool nstl::span<T>::operator==(span<T> const& rhs) const
+{
+    if (size() != rhs.size())
+        return false;
+
+    for (size_t i = 0; i < size(); i++)
+        if ((*this)[i] != rhs[i])
+            return false;
+
+    return true;
 }
