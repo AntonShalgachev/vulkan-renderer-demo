@@ -189,6 +189,9 @@ private:
     void updateScene(float);
     void updateCamera(float dt);
 
+    void createTestResources();
+    void drawTest();
+
 private:
     Services m_services;
 

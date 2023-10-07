@@ -745,6 +745,7 @@ void DemoApplication::init()
     m_commands["scene.unload"] = coil::bind(&DemoApplication::clearScene, this);
 
     createResources();
+    createTestResources();
 }
 
 void DemoApplication::createResources()
@@ -2155,6 +2156,8 @@ void DemoApplication::drawFrame()
 {
     update();
 
+    drawTest();
+
     m_renderer->setCameraTransform(m_cameraTransform);
     m_renderer->setCameraParameters(m_cameraParameters);
     m_renderer->setLightParameters(m_lightParameters);
@@ -2218,4 +2221,189 @@ void DemoApplication::updateCamera(float dt)
         posDelta += up;
 
     m_cameraTransform.position += m_cameraSpeed * dt * posDelta.normalized();
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+namespace
+{
+    struct Vertex
+    {
+        tglm::vec3 position;
+        tglm::vec3 color;
+    };
+
+    using IndexT = uint16_t;
+
+    struct FrameUniformBuffer
+    {
+        tglm::mat4 view = tglm::mat4::identity();
+        tglm::mat4 projection = tglm::mat4::identity();
+    };
+
+    struct MaterialUniformBuffer
+    {
+        tglm::vec4 color = { 1, 1, 1, 1 };
+    };
+
+    struct ObjectUniformBuffer
+    {
+        tglm::mat4 model = tglm::mat4::identity();
+        tglm::vec4 color = { 1, 1, 1, 1 };
+    };
+
+    struct TestResources
+    {
+        gfx::buffer_handle vertexBuffer;
+        gfx::buffer_handle indexBuffer;
+
+        gfx::buffer_handle frameBuffer;
+        gfx::descriptorgroup_handle frameDescriptors;
+        gfx::buffer_handle materialBuffer;
+        gfx::descriptorgroup_handle materialDescriptors;
+        gfx::buffer_handle objectBuffer;
+        gfx::descriptorgroup_handle objectDescriptors;
+
+        gfx::shader_handle vertexShader;
+        gfx::shader_handle fragmentShader;
+        gfx::renderstate_handle renderstate;
+    };
+
+    TestResources testResources;
+}
+
+void DemoApplication::createTestResources()
+{
+    auto createTestBuffer = [this](gfx::buffer_usage usage, nstl::blob_view data)
+    {
+        gfx::buffer_handle buffer = m_newRenderer->create_buffer({
+            .size = data.size(),
+            .usage = usage,
+            .location = gfx::buffer_location::device_local,
+            .is_mutable = false,
+        });
+
+        m_newRenderer->buffer_upload_sync(buffer, data);
+
+        return buffer;
+    };
+
+    // Vertex buffer
+    {
+        nstl::array<Vertex, 3> vertices = { {
+            { {0.0f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f} },
+            { {0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f} },
+            { {-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f }}
+        } };
+
+        testResources.vertexBuffer = createTestBuffer(gfx::buffer_usage::vertex_index, { vertices.data(), vertices.size() * sizeof(Vertex)});
+    }
+
+    // Index buffer
+    {
+        nstl::array<IndexT, 3> indices = { 0, 1, 2 };
+
+        testResources.indexBuffer = createTestBuffer(gfx::buffer_usage::vertex_index, { indices.data(), indices.size() * sizeof(IndexT)});
+    }
+
+    // Frame uniform buffer and descriptor group
+    {
+        FrameUniformBuffer data = {
+
+        };
+
+        testResources.frameBuffer = createTestBuffer(gfx::buffer_usage::uniform, { &data, sizeof(data) });
+
+        testResources.frameDescriptors = m_newRenderer->create_descriptorgroup({
+            .entries = nstl::array{
+                gfx::descriptorgroup_entry{ 0, testResources.frameBuffer },
+            },
+        });
+    }
+
+    // Material uniform buffer and descriptor group
+    {
+        MaterialUniformBuffer data = {
+
+        };
+
+        testResources.materialBuffer = createTestBuffer(gfx::buffer_usage::uniform, { &data, sizeof(data) });
+
+        testResources.materialDescriptors = m_newRenderer->create_descriptorgroup({
+            .entries = nstl::array{
+                gfx::descriptorgroup_entry{ 0, testResources.materialBuffer },
+            },
+        });
+    }
+
+    // Object uniform buffer and descriptor group
+    {
+        ObjectUniformBuffer data = {
+
+        };
+
+        testResources.objectBuffer = createTestBuffer(gfx::buffer_usage::uniform, { &data, sizeof(data) });
+
+        testResources.objectDescriptors = m_newRenderer->create_descriptorgroup({
+            .entries = nstl::array{
+                gfx::descriptorgroup_entry{ 0, testResources.objectBuffer },
+            },
+        });
+    }
+
+    // Shaders
+    {
+        {
+            ShaderPackage shaders{ "data/shaders/packaged/test/test.vert" };
+            testResources.vertexShader = m_newRenderer->create_shader({
+                .filename = *shaders.get({}),
+                .stage = gfx::shader_stage::vertex,
+            });
+        }
+        {
+            ShaderPackage shaders{ "data/shaders/packaged/test/test.frag" };
+            testResources.fragmentShader = m_newRenderer->create_shader({
+                .filename = *shaders.get({}),
+                .stage = gfx::shader_stage::fragment,
+            });
+        }
+    }
+
+    // Render state
+    {
+        testResources.renderstate = m_newRenderer->create_renderstate({
+            .shaders = nstl::array{ testResources.vertexShader, testResources.fragmentShader },
+            .renderpass = m_newRenderer->get_main_renderpass(),
+            .vertex_config = {
+                .attributes = nstl::array{
+                    gfx::attribute_description{ 0, offsetof(Vertex, position), sizeof(Vertex), gfx::attribute_type::vec3f },
+                    gfx::attribute_description{ 1, offsetof(Vertex, color), sizeof(Vertex), gfx::attribute_type::vec3f },
+                },
+                .topology = gfx::vertex_topology::triangles,
+            },
+            .descriptorgroup_layouts = nstl::array{
+                gfx::descriptorgroup_layout_view {
+                    .entries = nstl::array{
+                        gfx::descriptor_layout_entry{0, gfx::descriptor_type::buffer},
+                    },
+                },
+                gfx::descriptorgroup_layout_view {
+                    .entries = nstl::array{
+                        gfx::descriptor_layout_entry{0, gfx::descriptor_type::buffer},
+                    },
+                },
+                gfx::descriptorgroup_layout_view {
+                    .entries = nstl::array{
+                        gfx::descriptor_layout_entry{0, gfx::descriptor_type::buffer},
+                    },
+                },
+            },
+            .flags = {},
+        });
+    }
+}
+
+void DemoApplication::drawTest()
+{
+
 }
