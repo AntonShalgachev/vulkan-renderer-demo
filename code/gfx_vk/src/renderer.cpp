@@ -271,10 +271,12 @@ void gfx_vk::renderer::create_swapchain(vko::Window& window)
         .keep_depth_values_after_renderpass = false,
     });
 
-    m_context.get_instance().setDebugName(device.getHandle(), m_context.get_resources().get_renderpass(m_renderpass).get_handle(), "Main renderpass");
+    VkRenderPass vk_renderpass = m_context.get_resources().get_renderpass(m_renderpass).get_handle();
+
+    m_context.get_instance().setDebugName(device.getHandle(), vk_renderpass, "Main renderpass");
 
     // disabled while the old renderer creates its own swapchain
-//     m_swapchain = nstl::make_unique<swapchain>(*m_context, window, m_renderpass->get_handle(), surface_format, depth_format);
+//     m_swapchain = nstl::make_unique<swapchain>(m_context, window, vk_renderpass, vk_surface_format, vk_depth_format);
 
     size_t swapchain_images_count = 4; // TODO: should be retrieved from the swapchain
 
