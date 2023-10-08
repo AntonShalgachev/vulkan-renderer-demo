@@ -376,14 +376,20 @@ namespace gfx
         tglm::ivec2 size{};
     };
 
+    struct buffer_with_offset
+    {
+        buffer_handle buffer = nullptr;
+        size_t offset = 0;
+    };
+
     struct draw_indexed_args
     {
         renderstate_handle renderstate = nullptr;
         nstl::span<descriptorgroup_handle const> descriptorgroups;
         nstl::optional<rect> scissor;
 
-        nstl::span<buffer_handle const> vertex_buffers;
-        buffer_handle index_buffer = nullptr;
+        nstl::span<buffer_with_offset const> vertex_buffers;
+        buffer_with_offset index_buffer;
         index_type index_type = index_type::uint16;
 
         size_t index_count = 0;

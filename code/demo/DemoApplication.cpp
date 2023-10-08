@@ -2428,8 +2428,8 @@ void DemoApplication::drawTest()
         .renderstate = testResources.renderstate,
         .descriptorgroups = nstl::array{ testResources.frameDescriptors, testResources.materialDescriptors, testResources.objectDescriptors },
 
-        .vertex_buffers = nstl::array{ testResources.vertexBuffer },
-        .index_buffer = testResources.indexBuffer,
+        .vertex_buffers = nstl::array{ gfx::buffer_with_offset{ testResources.vertexBuffer } },
+        .index_buffer = { testResources.indexBuffer },
         .index_type = gfx::index_type::uint16,
 
         .index_count = 3,

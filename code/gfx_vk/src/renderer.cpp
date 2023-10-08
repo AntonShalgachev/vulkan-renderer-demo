@@ -165,14 +165,14 @@ void gfx_vk::renderer::draw_indexed(gfx::draw_indexed_args const& args)
 
     nstl::vector<VkBuffer> vertex_buffers;
     nstl::vector<VkDeviceSize> vertex_buffers_offset;
-    for (gfx::buffer_handle handle : args.vertex_buffers)
+    for (auto&& [buffer, offset] : args.vertex_buffers)
     {
-        vertex_buffers.push_back(m_context.get_resources().get_buffer(handle).get_handle());
-        vertex_buffers_offset.push_back(0);
+        vertex_buffers.push_back(m_context.get_resources().get_buffer(buffer).get_handle());
+        vertex_buffers_offset.push_back(offset);
     }
     vkCmdBindVertexBuffers(command_buffer, 0, args.vertex_buffers.size(), vertex_buffers.data(), vertex_buffers_offset.data());
 
-    vkCmdBindIndexBuffer(command_buffer, m_context.get_resources().get_buffer(args.index_buffer).get_handle(), 0, utils::get_index_type(args.index_type));
+    vkCmdBindIndexBuffer(command_buffer, m_context.get_resources().get_buffer(args.index_buffer.buffer).get_handle(), args.index_buffer.offset, utils::get_index_type(args.index_type));
 
     VkRect2D scissor{};
     if (args.scissor)
