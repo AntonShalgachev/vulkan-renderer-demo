@@ -1,0 +1,7 @@
+options:
+  HAS_VERTEX_COLOR: [null, ""]
+  HAS_TEX_COORD: [null, ""]
+  HAS_NORMAL: [null, ""]
+  HAS_TANGENT: [null, ""]
+  HAS_TEXTURE: [""]
+  HAS_NORMAL_MAP: [""]
