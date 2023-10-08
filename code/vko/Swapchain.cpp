@@ -66,7 +66,7 @@ size_t vko::Swapchain::getImageCount() const
     return m_images.size();
 }
 
-nstl::vector<vko::Image> const& vko::Swapchain::getImages() const
+nstl::span<vko::Image const> vko::Swapchain::getImages() const
 {
     return m_images;
 }
@@ -76,11 +76,10 @@ void vko::Swapchain::retrieveImages()
     uint32_t finalImageCount = 0;
     VKO_VERIFY(vkGetSwapchainImagesKHR(m_device.getHandle(), m_handle, &finalImageCount, nullptr));
 
-    nstl::vector<VkImage> imageHandles;
-    imageHandles.resize(finalImageCount);
-    VKO_VERIFY(vkGetSwapchainImagesKHR(m_device.getHandle(), m_handle, &finalImageCount, imageHandles.data()));
+    m_rawImages.resize(finalImageCount);
+    VKO_VERIFY(vkGetSwapchainImagesKHR(m_device.getHandle(), m_handle, &finalImageCount, m_rawImages.data()));
 
     m_images.reserve(finalImageCount);
-    for (VkImage const& handle : imageHandles)
+    for (VkImage const& handle : m_rawImages)
         m_images.emplace_back(m_device, handle, m_config.surfaceFormat.format);
 }

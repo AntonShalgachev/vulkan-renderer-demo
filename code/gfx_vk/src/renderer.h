@@ -48,16 +48,11 @@ namespace gfx_vk
         gfx::renderpass_handle m_renderpass;
         nstl::unique_ptr<swapchain> m_swapchain;
 
-        // Temporary images that mimic swapchain images during the transition to the new API
-        nstl::vector<gfx::image_handle> m_fake_color_images;
-        gfx::image_handle m_fake_depth_image;
-        nstl::vector<gfx::framebuffer_handle> m_fake_framebuffers;
-
         struct frame_resources;
         nstl::vector<frame_resources> m_frame_resources;
 
         bool m_in_frame = false;
-        size_t m_swapchain_image_index = 0;
+        uint32_t m_swapchain_image_index = 0;
         size_t m_resources_index = 0;
         size_t m_next_resources_index = 0;
 

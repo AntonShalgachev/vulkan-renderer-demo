@@ -21,7 +21,7 @@ namespace gfx_vk
     class image final
     {
     public:
-        image(context& context, gfx::image_params const& params);
+        image(context& context, gfx::image_params const& params, VkImage handle = VK_NULL_HANDLE);
         ~image();
 
         VkImage get_handle() const { return m_handle; }
@@ -39,6 +39,8 @@ namespace gfx_vk
         gfx::image_params m_params;
 
         vko::Allocator m_allocator{ vko::AllocatorScope::Image };
+
+        bool m_owns_image = false;
         vko::UniqueHandle<VkImage> m_handle;
         vko::UniqueHandle<VkImageView> m_view_handle;
 

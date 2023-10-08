@@ -35,7 +35,7 @@ namespace gfx_vk
         [[nodiscard]] buffer& get_buffer(gfx::buffer_handle handle) const;
         [[nodiscard]] bool destroy_buffer(gfx::buffer_handle handle);
 
-        [[nodiscard]] gfx::image_handle create_image(gfx::image_params const& params);
+        [[nodiscard]] gfx::image_handle create_image(gfx::image_params const& params, VkImage handle = VK_NULL_HANDLE);
         [[nodiscard]] image& get_image(gfx::image_handle handle) const;
         [[nodiscard]] bool destroy_image(gfx::image_handle handle);
 

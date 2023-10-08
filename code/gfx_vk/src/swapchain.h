@@ -1,5 +1,7 @@
 #pragma once
 
+#include "gfx/resources.h"
+
 #include "nstl/unique_ptr.h"
 #include "nstl/vector.h"
 
@@ -20,13 +22,27 @@ namespace gfx_vk
 {
     class context;
 
+    enum class color_space
+    {
+        srgb,
+    };
+
+    struct surface_format
+    {
+        gfx::image_format format;
+        color_space color_space;
+    };
+
     class swapchain
     {
     public:
-        swapchain(context& context, vko::Window& window, VkRenderPass render_pass, VkSurfaceFormatKHR surface_format, VkFormat depth_format);
+        swapchain(context& context, vko::Window& window, gfx::renderpass_handle renderpass, surface_format surface_format, gfx::image_format depth_format);
         ~swapchain();
 
+        VkSwapchainKHR get_handle() const;
         VkExtent2D get_extent() const;
+
+        nstl::span<gfx::framebuffer_handle const> get_framebuffers() const { return m_framebuffers; }
 
     private:
         void on_window_resized();
@@ -38,18 +54,15 @@ namespace gfx_vk
     private:
         context& m_context;
         vko::Window& m_window;
-        VkRenderPass m_renderpass;
+        gfx::renderpass_handle m_renderpass;
 
-        VkSurfaceFormatKHR m_surface_format;
-        VkFormat m_depth_format;
+        surface_format m_surface_format;
+        gfx::image_format m_depth_format;
 
         nstl::unique_ptr<vko::Swapchain> m_swapchain;
 
-        nstl::vector<nstl::unique_ptr<vko::Framebuffer>> m_framebuffers;
-        nstl::vector<nstl::unique_ptr<vko::ImageView>> m_image_views;
-
-        nstl::unique_ptr<vko::Image> m_depth_image;
-        nstl::unique_ptr<vko::DeviceMemory> m_depth_image_memory;
-        nstl::unique_ptr<vko::ImageView> m_depth_image_view;
+        gfx::image_handle m_depth_image;
+        nstl::vector<gfx::image_handle> m_swapchain_images;
+        nstl::vector<gfx::framebuffer_handle> m_framebuffers;
     };
 }

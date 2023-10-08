@@ -2300,8 +2300,8 @@ void DemoApplication::createTestResources()
     {
         nstl::array<Vertex, 3> vertices = { {
             { {0.0f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f} },
+            { {-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f} },
             { {0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f} },
-            { {-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f }}
         } };
 
         testResources.vertexBuffer = createTestBuffer(gfx::buffer_usage::vertex_index, { vertices.data(), vertices.size() * sizeof(Vertex)});

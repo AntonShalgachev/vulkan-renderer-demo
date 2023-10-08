@@ -11,7 +11,7 @@
 #include "vko/DeviceMemory.h"
 #include "vko/Queue.h"
 
-gfx_vk::image::image(context& context, gfx::image_params const& params)
+gfx_vk::image::image(context& context, gfx::image_params const& params, VkImage handle)
     : m_context(context)
     , m_params(params)
 {
@@ -20,30 +20,39 @@ gfx_vk::image::image(context& context, gfx::image_params const& params)
 
     VkFormat format = utils::get_format(params.format);
 
-    VkImageCreateInfo info {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-        .imageType = VK_IMAGE_TYPE_2D,
-        .format = format,
-        .extent = { static_cast<uint32_t>(params.width), static_cast<uint32_t>(params.height), 1 },
-        .mipLevels = 1,
-        .arrayLayers = 1,
-        .samples = VK_SAMPLE_COUNT_1_BIT,
-        .tiling = VK_IMAGE_TILING_OPTIMAL,
-        .usage = utils::get_usage_flags(params.usage),
-        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-    };
+    m_owns_image = handle == VK_NULL_HANDLE;
 
-    VKO_VERIFY(vkCreateImage(m_context.get_device().getHandle(), &info, &m_allocator.getCallbacks(), &m_handle.get()));
+    if (m_owns_image)
+    {
+        VkImageCreateInfo info{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+            .imageType = VK_IMAGE_TYPE_2D,
+            .format = format,
+            .extent = { static_cast<uint32_t>(params.width), static_cast<uint32_t>(params.height), 1 },
+            .mipLevels = 1,
+            .arrayLayers = 1,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .usage = utils::get_usage_flags(params.usage),
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        };
 
-    VkMemoryRequirements requirements;
-    vkGetImageMemoryRequirements(m_context.get_device().getHandle(), m_handle, &requirements);
+        VKO_VERIFY(vkCreateImage(m_context.get_device().getHandle(), &info, &m_allocator.getCallbacks(), &m_handle.get()));
 
-    m_memory_size = requirements.size;
+        VkMemoryRequirements requirements;
+        vkGetImageMemoryRequirements(m_context.get_device().getHandle(), m_handle, &requirements);
 
-    m_memory = nstl::make_unique<vko::DeviceMemory>(m_context.get_device(), m_context.get_physical_device(), requirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        m_memory_size = requirements.size;
 
-    VKO_VERIFY(vkBindImageMemory(m_context.get_device().getHandle(), m_handle, m_memory->getHandle(), 0));
+        m_memory = nstl::make_unique<vko::DeviceMemory>(m_context.get_device(), m_context.get_physical_device(), requirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+        VKO_VERIFY(vkBindImageMemory(m_context.get_device().getHandle(), m_handle, m_memory->getHandle(), 0));
+    }
+    else
+    {
+        m_handle = handle;
+    }
 
     // TODO: image view shouldn't probably be created here. Revisit later
     VkImageViewCreateInfo view_info{
@@ -65,7 +74,7 @@ gfx_vk::image::image(context& context, gfx::image_params const& params)
 
 gfx_vk::image::~image()
 {
-    if (m_handle)
+    if (m_owns_image && m_handle)
         vkDestroyImage(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
     m_handle = nullptr;
 

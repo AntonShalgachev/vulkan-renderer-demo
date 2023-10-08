@@ -19,10 +19,10 @@ namespace
         return { &resource };
     }
 
-    template<typename T, typename H, typename P>
-    H create_resource(nstl::vector<nstl::unique_ptr<T>>& container, gfx_vk::context& context, P const& params)
+    template<typename T, typename H, typename... Args>
+    H create_resource(nstl::vector<nstl::unique_ptr<T>>& container, gfx_vk::context& context, Args&&... params)
     {
-        container.push_back(nstl::make_unique<T>(context, params));
+        container.push_back(nstl::make_unique<T>(context, nstl::forward<Args>(params)...));
         return { container.back().get() };
     }
 
@@ -68,9 +68,9 @@ bool gfx_vk::resource_container::destroy_buffer(gfx::buffer_handle handle)
     return destroy_resource(m_buffers, handle);
 }
 
-gfx::image_handle gfx_vk::resource_container::create_image(gfx::image_params const& params)
+gfx::image_handle gfx_vk::resource_container::create_image(gfx::image_params const& params, VkImage handle)
 {
-    return create_resource<image, gfx::image_handle>(m_images, m_context, params);
+    return create_resource<image, gfx::image_handle>(m_images, m_context, params, handle);
 }
 
 gfx_vk::image& gfx_vk::resource_container::get_image(gfx::image_handle handle) const

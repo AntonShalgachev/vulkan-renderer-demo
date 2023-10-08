@@ -1,5 +1,7 @@
 #include "conversions.h"
 
+#include "swapchain.h"
+
 #include "gfx/resources.h"
 
 VkFormat gfx_vk::utils::get_format(gfx::image_format format)
@@ -24,6 +26,17 @@ VkFormat gfx_vk::utils::get_format(gfx::image_format format)
 
     assert(false);
     return VK_FORMAT_UNDEFINED;
+}
+
+VkColorSpaceKHR gfx_vk::utils::get_color_space(gfx_vk::color_space space)
+{
+    switch (space)
+    {
+    case color_space::srgb: return VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+    }
+
+    assert(false);
+    return VK_COLOR_SPACE_MAX_ENUM_KHR;
 }
 
 VkImageAspectFlags gfx_vk::utils::get_aspect_flags(gfx::image_type type)
