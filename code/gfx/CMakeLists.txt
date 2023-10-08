@@ -15,4 +15,5 @@ target_include_directories(gfx PUBLIC
 
 target_link_libraries(gfx
     nstl
+    tglm
 )

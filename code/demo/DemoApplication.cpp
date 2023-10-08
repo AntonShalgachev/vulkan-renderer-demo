@@ -2065,10 +2065,18 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
             attributeConfig.offset = 0; // TODO can be improved
             attributeConfig.type = attributeType;
 
+            // TODO probably a single buffer can be used
+            size_t buffer_index = demoPrimitive.metadata.newVertexConfig.buffer_bindings.size();
+            demoPrimitive.metadata.newVertexConfig.buffer_bindings.push_back({
+                .buffer_index = buffer_index,
+                .stride = attributeData.accessor.stride,
+            });
+
+            size_t binding_index = buffer_index;
             demoPrimitive.metadata.newVertexConfig.attributes.push_back({
                 .location = *location,
+                .buffer_binding_index = binding_index,
                 .offset = 0,
-                .stride = attributeData.accessor.stride,
                 .type = newAttributeType,
             });
         }
@@ -2375,9 +2383,12 @@ void DemoApplication::createTestResources()
             .shaders = nstl::array{ testResources.vertexShader, testResources.fragmentShader },
             .renderpass = m_newRenderer->get_main_renderpass(),
             .vertex_config = {
+                .buffer_bindings = nstl::array{
+                    gfx::buffer_binding_description{ .buffer_index = 0, .stride = sizeof(Vertex) },
+                },
                 .attributes = nstl::array{
-                    gfx::attribute_description{ 0, offsetof(Vertex, position), sizeof(Vertex), gfx::attribute_type::vec3f },
-                    gfx::attribute_description{ 1, offsetof(Vertex, color), sizeof(Vertex), gfx::attribute_type::vec3f },
+                    gfx::attribute_description{ .location = 0, .buffer_binding_index = 0, .offset = offsetof(Vertex, position), .type = gfx::attribute_type::vec3f },
+                    gfx::attribute_description{ .location = 1, .buffer_binding_index = 0, .offset = offsetof(Vertex, color), .type = gfx::attribute_type::vec3f },
                 },
                 .topology = gfx::vertex_topology::triangles,
             },
@@ -2411,6 +2422,19 @@ void DemoApplication::drawTest()
     m_newRenderer->renderpass_begin({
         .renderpass = m_newRenderer->get_main_renderpass(),
         .framebuffer = m_newRenderer->acquire_main_framebuffer(),
+    });
+
+    m_newRenderer->draw_indexed({
+        .renderstate = testResources.renderstate,
+        .descriptorgroups = nstl::array{ testResources.frameDescriptors, testResources.materialDescriptors, testResources.objectDescriptors },
+
+        .vertex_buffers = nstl::array{ testResources.vertexBuffer },
+        .index_buffer = testResources.indexBuffer,
+        .index_type = gfx::index_type::uint16,
+
+        .index_count = 3,
+        .first_index = 0,
+        .vertex_offset = 0,
     });
 
     m_newRenderer->renderpass_end();

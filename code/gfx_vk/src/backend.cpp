@@ -101,6 +101,11 @@ void gfx_vk::backend::renderpass_end()
     return m_context->get_renderer().renderpass_end();
 }
 
+void gfx_vk::backend::draw_indexed(gfx::draw_indexed_args const& args)
+{
+    return m_context->get_renderer().draw_indexed(args);
+}
+
 void gfx_vk::backend::submit()
 {
     return m_context->get_renderer().submit();

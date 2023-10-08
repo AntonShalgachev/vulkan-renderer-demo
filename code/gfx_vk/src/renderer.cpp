@@ -1,9 +1,13 @@
 #include "renderer.h"
 
 #include "context.h"
+#include "conversions.h"
+
 #include "renderpass.h"
 #include "framebuffer.h"
-#include "conversions.h"
+#include "renderstate.h"
+#include "descriptorgroup.h"
+#include "buffer.h"
 
 #include "vko/Semaphore.h"
 #include "vko/Fence.h"
@@ -152,13 +156,84 @@ void gfx_vk::renderer::renderpass_begin(gfx::renderpass_begin_params const& para
     };
 
     vkCmdBeginRenderPass(resources.command_buffers.getHandle(0), &info, VK_SUBPASS_CONTENTS_INLINE);
+
+    VkViewport viewport = {
+        .x = 0.0f,
+        .y = 0.0f,
+        .width = 1.0f * fb.get_extent().width,
+        .height = 1.0f * fb.get_extent().height,
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f,
+    };
+    vkCmdSetViewport(resources.command_buffers.getHandle(0), 0, 1, &viewport);
+
+    m_current_renderpass = params.renderpass;
+    m_current_framebuffer = params.framebuffer;
 }
 
 void gfx_vk::renderer::renderpass_end()
 {
+    m_current_renderpass = nullptr;
+    m_current_framebuffer = nullptr;
+
     frame_resources& resources = m_frame_resources[m_resources_index];
 
     vkCmdEndRenderPass(resources.command_buffers.getHandle(0));
+}
+
+void gfx_vk::renderer::draw_indexed(gfx::draw_indexed_args const& args)
+{
+    assert(m_current_renderpass != nullptr);
+
+    frame_resources& resources = m_frame_resources[m_resources_index];
+
+    VkCommandBuffer command_buffer = resources.command_buffers.getHandle(0);
+
+    renderstate& rs = m_context.get_resources().get_renderstate(args.renderstate);
+
+    // TODO track what's already bound
+
+    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, rs.get_handle());
+
+    nstl::vector<VkDescriptorSet> sets;
+    for (gfx::descriptorgroup_handle handle : args.descriptorgroups)
+        sets.push_back(m_context.get_resources().get_descriptorgroup(handle).get_handle());
+    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, rs.get_params().layout, 0, sets.size(), sets.data(), 0, nullptr);
+
+    nstl::vector<VkBuffer> vertex_buffers;
+    nstl::vector<VkDeviceSize> vertex_buffers_offset;
+    for (gfx::buffer_handle handle : args.vertex_buffers)
+    {
+        vertex_buffers.push_back(m_context.get_resources().get_buffer(handle).get_handle());
+        vertex_buffers_offset.push_back(0);
+    }
+    vkCmdBindVertexBuffers(command_buffer, 0, args.vertex_buffers.size(), vertex_buffers.data(), vertex_buffers_offset.data());
+
+    vkCmdBindIndexBuffer(command_buffer, m_context.get_resources().get_buffer(args.index_buffer).get_handle(), 0, utils::get_index_type(args.index_type));
+
+    VkRect2D scissor{};
+    if (args.scissor)
+    {
+        assert(args.scissor->size.x > 0);
+        assert(args.scissor->size.y > 0);
+
+        scissor = {
+            .offset = { args.scissor->offset.x, args.scissor->offset.y },
+            .extent = { static_cast<uint32_t>(args.scissor->size.x), static_cast<uint32_t>(args.scissor->size.y) },
+        };
+    }
+    else
+    {
+        framebuffer& fb = m_context.get_resources().get_framebuffer(m_current_framebuffer);
+
+        scissor = {
+            .offset = { 0, 0 },
+            .extent = fb.get_extent(),
+        };
+    }
+    vkCmdSetScissor(command_buffer, 0, 1, &scissor);
+
+    vkCmdDrawIndexed(command_buffer, args.index_count, 1, args.first_index, args.vertex_offset, 0);
 }
 
 void gfx_vk::renderer::submit()

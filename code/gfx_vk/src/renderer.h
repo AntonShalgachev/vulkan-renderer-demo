@@ -34,6 +34,8 @@ namespace gfx_vk
         void renderpass_begin(gfx::renderpass_begin_params const& params);
         void renderpass_end();
 
+        void draw_indexed(gfx::draw_indexed_args const& args);
+
         void submit();
 
     private:
@@ -58,5 +60,8 @@ namespace gfx_vk
         size_t m_swapchain_image_index = 0;
         size_t m_resources_index = 0;
         size_t m_next_resources_index = 0;
+
+        gfx::renderpass_handle m_current_renderpass = nullptr;
+        gfx::framebuffer_handle m_current_framebuffer = nullptr;
     };
 }

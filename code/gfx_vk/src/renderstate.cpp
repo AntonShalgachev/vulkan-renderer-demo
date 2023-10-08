@@ -37,19 +37,20 @@ namespace
 
     VkPipelineVertexInputStateCreateInfo create_vertex_input_state(gfx_vk::renderstate_init_params const& params, temporary_resources& resources)
     {
-        for (gfx::attribute_description const& desc : params.vertex_config.attributes)
+        for (gfx::buffer_binding_description const& desc : params.vertex_config.buffer_bindings)
         {
-            uint32_t binding_index = static_cast<uint32_t>(resources.binding_descriptions.size());
-
             resources.binding_descriptions.push_back({
-                .binding = binding_index,
+                .binding = static_cast<uint32_t>(desc.buffer_index),
                 .stride = static_cast<uint32_t>(desc.stride),
                 .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
             });
+        }
 
+        for (gfx::attribute_description const& desc : params.vertex_config.attributes)
+        {
             resources.attribute_descriptions.push_back({
                 .location = static_cast<uint32_t>(desc.location),
-                .binding = binding_index,
+                .binding = static_cast<uint32_t>(desc.buffer_binding_index),
                 .format = get_attribute_type(desc.type),
                 .offset = static_cast<uint32_t>(desc.offset),
             });

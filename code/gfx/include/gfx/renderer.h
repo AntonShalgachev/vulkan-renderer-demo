@@ -58,15 +58,9 @@ namespace gfx
         void renderpass_begin(renderpass_begin_params const& params) { return m_backend->renderpass_begin(params); }
         void renderpass_end() { return m_backend->renderpass_end(); }
 
+        void draw_indexed(draw_indexed_args const& args) { return m_backend->draw_indexed(args); }
+
         void submit() { return m_backend->submit(); }
-// 
-//         void set_renderstate(renderstate& renderstate);
-//         void set_descriptorgroup(uint8_t slot_index, descriptorgroup& descriptorgroup);
-//         void set_index_buffer(buffer& buffer, size_t offset);
-//         void set_vertex_buffers(nstl::span<buffer const> buffers, nstl::span<size_t const> offsets);
-//         void set_scissor();
-// 
-//         void draw_indexed(uint32_t index_count, uint32_t first_index, uint32_t vertex_offset);
 
     private:
         nstl::unique_ptr<backend> m_backend;

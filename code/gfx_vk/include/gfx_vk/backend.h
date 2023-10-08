@@ -52,6 +52,8 @@ namespace gfx_vk
         void renderpass_begin(gfx::renderpass_begin_params const& params) override;
         void renderpass_end() override;
 
+        void draw_indexed(gfx::draw_indexed_args const& args) override;
+
         void submit() override;
 
     private:

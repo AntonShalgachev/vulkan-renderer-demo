@@ -40,6 +40,8 @@ namespace gfx
         virtual void renderpass_begin(renderpass_begin_params const& params) = 0;
         virtual void renderpass_end() = 0;
 
+        virtual void draw_indexed(draw_indexed_args const& args) = 0;
+
         virtual void submit() = 0;
     };
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "tglm/tglm.h"
+
 #include "nstl/blob_view.h"
 #include "nstl/span.h"
 #include "nstl/optional.h"
@@ -218,6 +220,14 @@ namespace gfx
 
     //////////////////////////////////////////////////////////////////////////
 
+    struct buffer_binding_description
+    {
+        size_t buffer_index = 0;
+        size_t stride = 0;
+
+        bool operator==(buffer_binding_description const& rhs) const = default;
+    };
+
     enum class attribute_type
     {
         vec2f,
@@ -232,8 +242,8 @@ namespace gfx
     struct attribute_description
     {
         size_t location = 0;
+        size_t buffer_binding_index = 0;
         size_t offset = 0;
-        size_t stride = 0;
         attribute_type type = attribute_type::vec4f;
 
         bool operator==(attribute_description const& rhs) const = default;
@@ -248,6 +258,7 @@ namespace gfx
 
     struct vertex_configuration_view
     {
+        nstl::span<buffer_binding_description const> buffer_bindings;
         nstl::span<attribute_description const> attributes;
         vertex_topology topology = vertex_topology::triangles;
 
@@ -256,12 +267,14 @@ namespace gfx
 
     struct vertex_configuration_storage
     {
+        nstl::vector<buffer_binding_description> buffer_bindings;
         nstl::vector<attribute_description> attributes;
         vertex_topology topology;
 
         static vertex_configuration_storage from_view(vertex_configuration_view const& view)
         {
             return {
+                .buffer_bindings = {view.buffer_bindings.begin(), view.buffer_bindings.end()},
                 .attributes = {view.attributes.begin(), view.attributes.end()},
                 .topology = view.topology,
             };
@@ -270,6 +283,7 @@ namespace gfx
         operator vertex_configuration_view() const
         {
             return {
+                .buffer_bindings = buffer_bindings,
                 .attributes = attributes,
                 .topology = topology,
             };
@@ -346,5 +360,34 @@ namespace gfx
     {
         renderpass_handle renderpass = nullptr;
         framebuffer_handle framebuffer = nullptr;
+    };
+
+    //////////////////////////////////////////////////////////////////////////
+
+    enum class index_type
+    {
+        uint16,
+        uint32,
+    };
+
+    struct rect
+    {
+        tglm::ivec2 offset{};
+        tglm::ivec2 size{};
+    };
+
+    struct draw_indexed_args
+    {
+        renderstate_handle renderstate = nullptr;
+        nstl::span<descriptorgroup_handle const> descriptorgroups;
+        nstl::optional<rect> scissor;
+
+        nstl::span<buffer_handle const> vertex_buffers;
+        buffer_handle index_buffer = nullptr;
+        index_type index_type = index_type::uint16;
+
+        size_t index_count = 0;
+        size_t first_index = 0;
+        size_t vertex_offset = 0;
     };
 }

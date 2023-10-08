@@ -69,3 +69,15 @@ VkDescriptorType gfx_vk::utils::get_descriptor_type(gfx::descriptor_type type)
     assert(false);
     return VK_DESCRIPTOR_TYPE_MAX_ENUM;
 }
+
+VkIndexType gfx_vk::utils::get_index_type(gfx::index_type type)
+{
+    switch (type)
+    {
+    case gfx::index_type::uint16: return VK_INDEX_TYPE_UINT16;
+    case gfx::index_type::uint32: return VK_INDEX_TYPE_UINT32;
+    }
+
+    assert(false);
+    return VK_INDEX_TYPE_MAX_ENUM;
+}

@@ -65,6 +65,7 @@ namespace gfx_vk
         ~renderstate();
 
         renderstate_init_params get_params() const { return m_params; }
+        VkPipeline get_handle() const { return m_handle; }
 
     private:
         context& m_context;
