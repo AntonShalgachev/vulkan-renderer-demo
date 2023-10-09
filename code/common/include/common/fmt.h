@@ -2,6 +2,7 @@
 
 #include "common/tiny_ctti.h"
 
+#include "nstl/vector.h"
 #include "nstl/string.h"
 #include "nstl/string_view.h"
 
@@ -33,6 +34,37 @@ struct picofmt::formatter<E> : public common::detail::string_case_formatter
         return common::detail::string_case_formatter::format(tiny_ctti::enum_name(value), ctx);
     }
 };
+
+template<picofmt::formattable T>
+struct picofmt::formatter<nstl::span<T const>> : public picofmt::formatter<T>
+{
+    bool format(nstl::span<T const> const& values, context& ctx) const
+    {
+        ctx.write("[");
+
+        bool write_delimiter = false;
+        for (T const& value : values)
+        {
+            if (write_delimiter)
+                ctx.write(", ");
+
+            if (!picofmt::formatter<T>::format(value, ctx))
+                return false;
+
+            write_delimiter = true;
+        }
+
+        ctx.write("]");
+
+        return true;
+    }
+};
+
+template<picofmt::formattable T>
+struct picofmt::formatter<nstl::span<T>> : public picofmt::formatter<nstl::span<T const>> {};
+
+template<picofmt::formattable T>
+struct picofmt::formatter<nstl::vector<T>> : public picofmt::formatter<nstl::span<T const>> {};
 
 namespace common
 {

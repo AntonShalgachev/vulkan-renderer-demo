@@ -66,3 +66,35 @@ struct picofmt::formatter<vko::UniqueHandle<T>> : public picofmt::formatter<void
         return picofmt::formatter<void*>::format(value.get(), ctx);
     }
 };
+
+template<> struct picofmt::formatter<VkInstance> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkPhysicalDevice> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkDevice> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkQueue> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkCommandBuffer> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkDeviceMemory> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkCommandPool> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkBuffer> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkBufferView> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkImage> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkImageView> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkShaderModule> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkPipeline> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkPipelineLayout> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkSampler> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkDescriptorSet> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkDescriptorSetLayout> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkDescriptorPool> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkFence> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkSemaphore> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkEvent> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkQueryPool> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkFramebuffer> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkRenderPass> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkPipelineCache> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkDescriptorUpdateTemplate> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkSamplerYcbcrConversion> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkPrivateDataSlot> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkSurfaceKHR> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkSwapchainKHR> : public picofmt::formatter<void*> {};
+template<> struct picofmt::formatter<VkDebugReportCallbackEXT> : public picofmt::formatter<void*> {};
