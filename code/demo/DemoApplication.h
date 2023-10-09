@@ -97,6 +97,11 @@ struct DemoPrimitive
 {
     vkgfx::MeshHandle handle;
     DemoMeshMetadata metadata;
+
+    nstl::vector<gfx::buffer_with_offset> vertexBuffers;
+    gfx::buffer_with_offset indexBuffer;
+    gfx::index_type indexType = gfx::index_type::uint16;
+    size_t indexCount = 0;
 };
 
 struct DemoMesh
@@ -189,6 +194,8 @@ private:
     void updateScene(float);
     void updateCamera(float dt);
 
+    void draw();
+
     void createTestResources();
     void drawTest();
 
@@ -221,6 +228,7 @@ private:
     nstl::unique_ptr<ShaderPackage> m_defaultVertexShader;
     nstl::unique_ptr<ShaderPackage> m_newDefaultVertexShader;
     nstl::unique_ptr<ShaderPackage> m_defaultFragmentShader;
+    nstl::unique_ptr<ShaderPackage> m_newDefaultFragmentShader;
 
     nstl::unique_ptr<ShaderPackage> m_shadowmapVertexShader;
     nstl::unique_ptr<ShaderPackage> m_newShadowmapVertexShader;

@@ -666,6 +666,8 @@ void DemoApplication::init()
             .projection = tglm::perspective(tglm::radians(m_cameraParameters.fov), aspectRatio, m_cameraParameters.nearZ, m_cameraParameters.farZ),
         };
 
+        viewProjectionData.projection.data[1][1] *= -1; // TODO fix this hack
+
         m_newRenderer->buffer_upload_sync(m_viewProjectionData, { &viewProjectionData, sizeof(viewProjectionData) });
 
         auto rotation = tglm::quat::from_euler_xyz(tglm::radians({ 0, 0, 0 })); // TODO fix
@@ -755,6 +757,7 @@ void DemoApplication::createResources()
     m_defaultVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shader.vert");
     m_newDefaultVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/new/shader.vert");
     m_defaultFragmentShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shader.frag");
+    m_newDefaultFragmentShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/new/shader.frag");
 
     m_shadowmapVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shadowmap.vert");
     m_newShadowmapVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/new/shadowmap.vert");
@@ -1578,6 +1581,21 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
         auto const& modulePath = pair.value();
+//         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Fragment, "main");
+//         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
+        m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
+            .filename = modulePath,
+            .stage = gfx::shader_stage::fragment,
+        }));
+    }
+
+    // TODO implement
+//     for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
+    for (auto const& pair : m_newDefaultFragmentShader->getAll())
+    {
+        MEMORY_TRACKING_SCOPE(shadersScopeId);
+
+        auto const& modulePath = pair.value();
         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Fragment, "main");
         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
         m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
@@ -1671,9 +1689,10 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                 nstl::string const* vertexShaderPath = m_defaultVertexShader->get(shaderConfiguration);
                 nstl::string const* newVertexShaderPath = m_newDefaultVertexShader->get(shaderConfiguration);
                 nstl::string const* fragmentShaderPath = m_defaultFragmentShader->get(shaderConfiguration);
+                nstl::string const* newFragmentShaderPath = m_newDefaultFragmentShader->get(shaderConfiguration);
 
                 assert(vertexShaderPath && fragmentShaderPath);
-                assert(newVertexShaderPath && fragmentShaderPath);
+                assert(newVertexShaderPath && newFragmentShaderPath);
 
                 vkgfx::ShaderModuleHandle vertexShaderModule = m_editorGltfResources->shaderModules[*vertexShaderPath];
                 vkgfx::ShaderModuleHandle fragmentShaderModule = m_editorGltfResources->shaderModules[*fragmentShaderPath];
@@ -1683,7 +1702,7 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                 vkgfx::PipelineHandle pipeline = resourceManager.getOrCreatePipeline(pipelineKey);
 
                 gfx::shader_handle vertexShader = m_editorGltfResources->newShaderModules[*newVertexShaderPath];
-                gfx::shader_handle fragmentShader = m_editorGltfResources->newShaderModules[*fragmentShaderPath];
+                gfx::shader_handle fragmentShader = m_editorGltfResources->newShaderModules[*newFragmentShaderPath];
                 m_renderstates.push_back(m_newRenderer->create_renderstate({
                     .shaders = nstl::array{ vertexShader, fragmentShader },
                     .renderpass = m_newRenderer->get_main_renderpass(),
@@ -1692,7 +1711,8 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                         gfx::descriptorgroup_layout_view {
                             .entries = nstl::array{
                                 gfx::descriptor_layout_entry{0, gfx::descriptor_type::buffer},
-                                gfx::descriptor_layout_entry{3, gfx::descriptor_type::combined_image_sampler},
+                                gfx::descriptor_layout_entry{1, gfx::descriptor_type::buffer},
+//                                 gfx::descriptor_layout_entry{3, gfx::descriptor_type::combined_image_sampler}, // TODO enable
                             },
                         },
                         material.metadata.newUniformConfig,
@@ -1792,12 +1812,41 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                     return transform;
                 };
 
+                struct DemoObjectUniformBuffer
+                {
+                    tglm::mat4 model;
+                    tglm::vec4 color;
+                };
+
+                auto objectUniformBuffer = m_newRenderer->create_buffer({
+                    .size = sizeof(DemoObjectUniformBuffer),
+                    .usage = gfx::buffer_usage::uniform,
+                    .location = gfx::buffer_location::host_visible,
+                    .is_mutable = false,
+                });
+
+                {
+                    DemoObjectUniformBuffer values = {
+                        .model = calculateTransform(),
+                        .color = { 1.0f, 1.0f, 1.0f, 0.0f },
+                    };
+
+                    m_newRenderer->buffer_upload_sync(objectUniformBuffer, { &values, sizeof(values) });
+                }
+
+                auto descriptorGroup = m_newRenderer->create_descriptorgroup({
+                    .entries = nstl::array{ gfx::descriptorgroup_entry{ 0, objectUniformBuffer } },
+                });
+
                 DemoObjectPushConstants pushConstants;
                 pushConstants.model = calculateTransform();
 
                 vkgfx::TestObject& testObject = m_demoScene.objects.emplace_back();
                 testObject.mesh = primitive.handle;
                 testObject.material = material.handle;
+                testObject.materialDescriptorGroup = material.descriptorgroup;
+                testObject.newUniformBuffer = objectUniformBuffer;
+                testObject.descriptorGroup = descriptorGroup;
                 testObject.pipeline = pipeline;
                 testObject.shadowmapPipeline = shadowmapPipeline;
                 testObject.state = state;
@@ -1805,6 +1854,11 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                 testObject.uniformBuffer = uniformBuffer;
                 testObject.pushConstants.resize(sizeof(pushConstants));
                 memcpy(testObject.pushConstants.data(), &pushConstants, testObject.pushConstants.size());
+
+                testObject.indexBuffer = primitive.indexBuffer;
+                testObject.vertexBuffers = primitive.vertexBuffers;
+                testObject.indexType = primitive.indexType;
+                testObject.indexCount = primitive.indexCount;
             }
         }
     }
@@ -1898,7 +1952,9 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
     m_newRenderer->buffer_upload_sync(newBuffer, { &values, sizeof(values) });
 
     nstl::vector<gfx::descriptorgroup_entry> descriptor_entries;
+    nstl::vector<gfx::descriptor_layout_entry> descriptor_layout_entries;
     descriptor_entries.push_back({ 0, newBuffer });
+    descriptor_layout_entries.push_back({ 0, gfx::descriptor_type::buffer });
 
     if (materialData.baseColorTexture)
     {
@@ -1915,6 +1971,7 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
 
         // TODO create actual sampler
         descriptor_entries.push_back({ 1, {m_editorGltfResources->newImages[imageId], m_newDefaultSampler} });
+        descriptor_layout_entries.push_back({ 1, gfx::descriptor_type::combined_image_sampler });
     }
 
     if (materialData.normalTexture)
@@ -1932,6 +1989,7 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
 
         // TODO create actual sampler
         descriptor_entries.push_back({ 2, {m_editorGltfResources->newImages[imageId], m_newDefaultSampler} });
+        descriptor_layout_entries.push_back({ 2, gfx::descriptor_type::combined_image_sampler });
     }
 
     DemoMaterial& demoMaterial = m_editorGltfResources->materials[id];
@@ -1951,11 +2009,7 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
 
     demoMaterial.metadata.newRenderConfig.wireframe = false;
     demoMaterial.metadata.newRenderConfig.cull_backfaces = !materialData.doubleSided;
-    demoMaterial.metadata.newUniformConfig = {{
-        gfx::descriptor_layout_entry{0, gfx::descriptor_type::buffer},
-        gfx::descriptor_layout_entry{1, gfx::descriptor_type::combined_image_sampler},
-        gfx::descriptor_layout_entry{2, gfx::descriptor_type::combined_image_sampler},
-    }};
+    demoMaterial.metadata.newUniformConfig = { descriptor_layout_entries };
 }
 
 void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
@@ -1985,7 +2039,7 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
         .is_mutable = false,
     });
     m_newRenderer->buffer_upload_sync(meshBuffer, data);
-    m_editorGltfResources->newMeshBuffers[id] = nstl::move(meshBuffer);
+    m_editorGltfResources->newMeshBuffers[id] = meshBuffer;
 
     editor::assets::MeshData meshData = m_assetDatabase->loadMesh(id);
 
@@ -2019,6 +2073,23 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
                 assert(false);
                 return vkgfx::IndexType::UnsignedShort;
             };
+            auto newFindIndexType = [](editor::assets::DataComponentType componentType)
+            {
+                switch (componentType)
+                {
+                case editor::assets::DataComponentType::Int8:
+                    assert(false);
+                case editor::assets::DataComponentType::UInt16:
+                    return gfx::index_type::uint16;
+                case editor::assets::DataComponentType::UInt32:
+                    return gfx::index_type::uint32;
+                default:
+                    assert(false);
+                }
+
+                assert(false);
+                return gfx::index_type::uint16;
+            };
 
             assert(primitiveData.indices.type == editor::assets::DataType::Scalar);
 
@@ -2027,6 +2098,10 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
             mesh.indexCount = primitiveData.indices.count;
             mesh.indexType = findIndexType(primitiveData.indices.componentType);
             // TODO use stride?
+
+            demoPrimitive.indexBuffer = { meshBuffer, primitiveData.indices.bufferOffset };
+            demoPrimitive.indexType = newFindIndexType(primitiveData.indices.componentType);
+            demoPrimitive.indexCount = primitiveData.indices.count;
         }
 
         for (editor::assets::VertexAttributeDescription const& attributeData : primitiveData.vertexAttributes)
@@ -2038,6 +2113,8 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
                 logging::warn("Skipping attribute");
                 continue;
             }
+
+            demoPrimitive.vertexBuffers.push_back({ meshBuffer, attributeData.accessor.bufferOffset });
 
             vkgfx::BufferWithOffset& attributeBuffer = mesh.vertexBuffers.emplace_back();
             attributeBuffer.buffer = meshBufferHandle;
@@ -2163,6 +2240,7 @@ void DemoApplication::updateUI(float frameTime)
 void DemoApplication::drawFrame()
 {
     update();
+    draw();
 
     drawTest();
 
@@ -2229,6 +2307,37 @@ void DemoApplication::updateCamera(float dt)
         posDelta += up;
 
     m_cameraTransform.position += m_cameraSpeed * dt * posDelta.normalized();
+}
+
+void DemoApplication::draw()
+{
+    m_newRenderer->wait_for_next_frame();
+    m_newRenderer->begin_frame();
+
+    m_newRenderer->renderpass_begin({
+        .renderpass = m_newRenderer->get_main_renderpass(),
+        .framebuffer = m_newRenderer->acquire_main_framebuffer(),
+    });
+
+    for (vkgfx::TestObject const& object : m_demoScene.objects)
+    {
+        m_newRenderer->draw_indexed({
+            .renderstate = object.state,
+            .descriptorgroups = nstl::array{ m_cameraDescriptorGroup, object.materialDescriptorGroup, object.descriptorGroup },
+
+            .vertex_buffers = object.vertexBuffers,
+            .index_buffer = object.indexBuffer,
+            .index_type = object.indexType,
+
+            .index_count = object.indexCount,
+            .first_index = 0,
+            .vertex_offset = 0,
+        });
+    }
+
+    m_newRenderer->renderpass_end();
+
+    m_newRenderer->submit();
 }
 
 //////////////////////////////////////////////////////////////////////////

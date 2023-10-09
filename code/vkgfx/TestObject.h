@@ -23,6 +23,15 @@ namespace vkgfx
 
         vkgfx::MeshHandle mesh;
         vkgfx::MaterialHandle material;
+        gfx::descriptorgroup_handle materialDescriptorGroup;
+
+        gfx::buffer_handle newUniformBuffer;
+        gfx::descriptorgroup_handle descriptorGroup;
+
+        nstl::vector<gfx::buffer_with_offset> vertexBuffers;
+        gfx::buffer_with_offset indexBuffer;
+        gfx::index_type indexType = gfx::index_type::uint16;
+        size_t indexCount = 0;
 
         vkgfx::BufferHandle uniformBuffer;
         nstl::static_vector<unsigned char, MaxPushConstantsSize> pushConstants; // TODO have a reference to the buffer instead
