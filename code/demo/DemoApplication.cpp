@@ -1812,21 +1812,21 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                     return transform;
                 };
 
-                struct DemoObjectUniformBuffer
+                struct NewDemoObjectUniformBuffer
                 {
                     tglm::mat4 model;
                     tglm::vec4 color;
                 };
 
                 auto objectUniformBuffer = m_newRenderer->create_buffer({
-                    .size = sizeof(DemoObjectUniformBuffer),
+                    .size = sizeof(NewDemoObjectUniformBuffer),
                     .usage = gfx::buffer_usage::uniform,
                     .location = gfx::buffer_location::host_visible,
                     .is_mutable = false,
                 });
 
                 {
-                    DemoObjectUniformBuffer values = {
+                    NewDemoObjectUniformBuffer values = {
                         .model = calculateTransform(),
                         .color = { 1.0f, 1.0f, 1.0f, 0.0f },
                     };
