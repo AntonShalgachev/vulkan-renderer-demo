@@ -152,7 +152,7 @@ void gfx_vk::renderer::draw_indexed(gfx::draw_indexed_args const& args)
     nstl::vector<VkDescriptorSet> sets;
     for (gfx::descriptorgroup_handle handle : args.descriptorgroups)
         sets.push_back(m_context.get_resources().get_descriptorgroup(handle).get_current_handle());
-    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, rs.get_params().layout, 0, sets.size(), sets.data(), 0, nullptr);
+    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, rs.get_params().layout, 0, static_cast<uint32_t>(sets.size()), sets.data(), 0, nullptr);
 
     nstl::vector<VkBuffer> vertex_buffers;
     nstl::vector<VkDeviceSize> vertex_buffers_offset;
@@ -161,7 +161,7 @@ void gfx_vk::renderer::draw_indexed(gfx::draw_indexed_args const& args)
         vertex_buffers.push_back(m_context.get_resources().get_buffer(buffer).get_current_handle());
         vertex_buffers_offset.push_back(offset);
     }
-    vkCmdBindVertexBuffers(command_buffer, 0, args.vertex_buffers.size(), vertex_buffers.data(), vertex_buffers_offset.data());
+    vkCmdBindVertexBuffers(command_buffer, 0, static_cast<uint32_t>(args.vertex_buffers.size()), vertex_buffers.data(), vertex_buffers_offset.data());
 
     vkCmdBindIndexBuffer(command_buffer, m_context.get_resources().get_buffer(args.index_buffer.buffer).get_current_handle(), args.index_buffer.offset, utils::get_index_type(args.index_type));
 
@@ -187,7 +187,7 @@ void gfx_vk::renderer::draw_indexed(gfx::draw_indexed_args const& args)
     }
     vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 
-    vkCmdDrawIndexed(command_buffer, args.index_count, 1, args.first_index, args.vertex_offset, 0);
+    vkCmdDrawIndexed(command_buffer, static_cast<uint32_t>(args.index_count), 1, static_cast<uint32_t>(args.first_index), static_cast<uint32_t>(args.vertex_offset), 0);
 }
 
 void gfx_vk::renderer::submit()

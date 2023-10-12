@@ -84,8 +84,6 @@ void gfx_vk::swapchain::create()
 
     vko::PhysicalDeviceSurfaceParameters const& parameters = m_context.get_physical_device_surface_parameters();
 
-    renderpass& rp = m_context.get_resources().get_renderpass(m_renderpass);
-
     vko::Swapchain::Config config;
     config.surfaceFormat = {
         .format = utils::get_format(m_surface_format.format),
