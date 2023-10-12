@@ -44,6 +44,11 @@ namespace gfx_vk
         descriptor_allocator& get_descriptor_allocator() { return m_descriptor_allocator; }
         renderer& get_renderer() { return m_renderer; }
 
+        size_t get_mutable_resource_multiplier() const { return m_mutable_resource_multiplier; }
+        size_t get_mutable_resource_index() const { return m_mutable_resource_index; }
+
+        void increment_mutable_resource_index() { m_mutable_resource_index = (m_mutable_resource_index + 1) % m_mutable_resource_multiplier; }
+
         void on_surface_changed();
 
     private:
@@ -60,5 +65,8 @@ namespace gfx_vk
         resource_container m_resources;
         descriptor_allocator m_descriptor_allocator;
         renderer m_renderer;
+
+        size_t m_mutable_resource_multiplier = 0;
+        size_t m_mutable_resource_index = 0;
     };
 }

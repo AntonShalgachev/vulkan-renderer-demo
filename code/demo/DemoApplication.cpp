@@ -2311,7 +2311,7 @@ void DemoApplication::updateCamera(float dt)
 
 void DemoApplication::draw()
 {
-    m_newRenderer->wait_for_next_frame();
+    m_newRenderer->begin_resource_update();
     m_newRenderer->begin_frame();
 
     m_newRenderer->renderpass_begin({
@@ -2391,13 +2391,13 @@ namespace
 
 void DemoApplication::createTestResources()
 {
-    auto createTestBuffer = [this](gfx::buffer_usage usage, nstl::blob_view data)
+    auto createTestBuffer = [this](gfx::buffer_usage usage, nstl::blob_view data, bool is_mutable = false)
     {
         gfx::buffer_handle buffer = m_newRenderer->create_buffer({
             .size = data.size(),
             .usage = usage,
             .location = gfx::buffer_location::device_local,
-            .is_mutable = false,
+            .is_mutable = is_mutable,
         });
 
         m_newRenderer->buffer_upload_sync(buffer, data);
@@ -2459,7 +2459,8 @@ void DemoApplication::createTestResources()
 
         };
 
-        testResources.objectBuffer = createTestBuffer(gfx::buffer_usage::uniform, { &data, sizeof(data) });
+        bool is_mutable = true;
+        testResources.objectBuffer = createTestBuffer(gfx::buffer_usage::uniform, { &data, sizeof(data) }, is_mutable);
 
         testResources.objectDescriptors = m_newRenderer->create_descriptorgroup({
             .entries = nstl::array{
@@ -2523,9 +2524,25 @@ void DemoApplication::createTestResources()
     }
 }
 
+#include <math.h>
+
+void DemoApplication::updateTest()
+{
+    static float time = 0.0f;
+    time += 0.0016f;
+
+    float offset = 0.5f * sinf(time);
+
+    ObjectUniformBuffer data = {
+        .color = {0.5f + 0.5f * sinf(time), 0.5f + 0.5f * sinf(2.0f * time), 0.5f + 0.5f * sinf(3.0f * time), 1.0f},
+    };
+
+    m_newRenderer->begin_resource_update();
+    m_newRenderer->buffer_upload_sync(testResources.objectBuffer, { &data, sizeof(data) });
+}
+
 void DemoApplication::drawTest()
 {
-    m_newRenderer->wait_for_next_frame();
     m_newRenderer->begin_frame();
 
     m_newRenderer->renderpass_begin({

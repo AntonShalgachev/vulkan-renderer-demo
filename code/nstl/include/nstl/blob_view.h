@@ -20,6 +20,7 @@ namespace nstl
         blob_view(span<unsigned char const> data) : blob_view(data.data(), data.size()) {}
 
         size_t size() const { return m_size; }
+        bool empty() const { return m_size == 0; }
         void const* data() const { return m_data; }
         char const* cdata() const { return static_cast<char const*>(m_data); }
         unsigned char const* ucdata() const { return static_cast<unsigned char const*>(m_data); }

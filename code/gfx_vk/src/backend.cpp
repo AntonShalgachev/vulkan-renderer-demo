@@ -21,19 +21,9 @@ gfx::buffer_handle gfx_vk::backend::create_buffer(gfx::buffer_params const& para
     return m_context->get_resources().create_buffer(params);
 }
 
-void gfx_vk::backend::buffer_upload_sync(gfx::buffer_handle handle, nstl::blob_view bytes, size_t offset)
-{
-    return m_context->get_resources().get_buffer(handle).upload_sync(bytes, offset);
-}
-
 gfx::image_handle gfx_vk::backend::create_image(gfx::image_params const& params)
 {
     return m_context->get_resources().create_image(params);
-}
-
-void gfx_vk::backend::image_upload_sync(gfx::image_handle handle, nstl::blob_view bytes)
-{
-    return m_context->get_resources().get_image(handle).upload_sync(bytes);
 }
 
 gfx::sampler_handle gfx_vk::backend::create_sampler(gfx::sampler_params const& params)
@@ -66,6 +56,21 @@ gfx::renderstate_handle gfx_vk::backend::create_renderstate(gfx::renderstate_par
     return m_context->get_resources().create_renderstate(params);
 }
 
+void gfx_vk::backend::begin_resource_update()
+{
+    return m_context->get_renderer().begin_resource_update();
+}
+
+void gfx_vk::backend::buffer_upload_sync(gfx::buffer_handle handle, nstl::blob_view bytes, size_t offset)
+{
+    return m_context->get_resources().get_buffer(handle).upload_sync(bytes, offset);
+}
+
+void gfx_vk::backend::image_upload_sync(gfx::image_handle handle, nstl::blob_view bytes)
+{
+    return m_context->get_resources().get_image(handle).upload_sync(bytes);
+}
+
 gfx::renderpass_handle gfx_vk::backend::get_main_renderpass()
 {
     return m_context->get_renderer().get_main_renderpass();
@@ -79,11 +84,6 @@ gfx::framebuffer_handle gfx_vk::backend::acquire_main_framebuffer()
 float gfx_vk::backend::get_main_framebuffer_aspect()
 {
     return m_context->get_renderer().get_main_framebuffer_aspect();
-}
-
-void gfx_vk::backend::wait_for_next_frame()
-{
-    return m_context->get_renderer().wait_for_next_frame();
 }
 
 void gfx_vk::backend::begin_frame()

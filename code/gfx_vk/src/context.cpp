@@ -78,6 +78,7 @@ gfx_vk::context::context(vko::Window& window, config const& config)
     , m_resources(*this)
     , m_descriptor_allocator(*this, config.descriptors)
     , m_renderer(*this, window, config.renderer)
+    , m_mutable_resource_multiplier(config.renderer.max_frames_in_flight)
 {
 
 }

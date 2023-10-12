@@ -12,7 +12,7 @@ namespace gfx_vk
 
     struct renderer_config
     {
-        size_t max_frames_in_flight = 3;
+        size_t max_frames_in_flight = 3; // also the mutable resource multiplier
     };
 
     struct config

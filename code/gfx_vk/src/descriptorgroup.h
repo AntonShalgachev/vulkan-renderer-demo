@@ -2,6 +2,8 @@
 
 #include "gfx/resources.h"
 
+#include "nstl/vector.h"
+
 #include <vulkan/vulkan.h>
 
 namespace gfx_vk
@@ -14,11 +16,13 @@ namespace gfx_vk
         descriptorgroup(context& context, gfx::descriptorgroup_params const& params);
         ~descriptorgroup();
 
-        VkDescriptorSet get_handle() const { return m_handle; }
+        VkDescriptorSet get_current_handle() const;
 
     private:
         context& m_context;
 
-        VkDescriptorSet m_handle;
+        bool m_is_mutable = false;
+
+        nstl::vector<VkDescriptorSet> m_handles;
     };
 }

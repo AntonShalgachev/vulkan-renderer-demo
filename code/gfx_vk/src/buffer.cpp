@@ -2,6 +2,8 @@
 
 #include "context.h"
 
+#include "vko/Allocator.h"
+#include "vko/UniqueHandle.h"
 #include "vko/Assert.h"
 #include "vko/Buffer.h"
 #include "vko/CommandBuffers.h"
@@ -41,42 +43,97 @@ namespace
         assert(false);
         return 0;
     }
+
+    // TODO move somewhere
+    size_t align_up(size_t value, size_t alignment)
+    {
+        // TODO assert that alignment is a power of 2
+
+        if (alignment == 0)
+            return value;
+
+        return (value + alignment - 1) & ~(alignment - 1);
+    }
 }
+
+struct gfx_vk::buffer::impl
+{
+    impl(context& context, VkBufferCreateInfo const& info) : context(context)
+    {
+        VKO_VERIFY(vkCreateBuffer(context.get_device().getHandle(), &info, &allocator.getCallbacks(), &handle.get()));
+    }
+
+    impl(impl const&) = default;
+    impl(impl&& rhs) = default;
+
+    ~impl()
+    {
+        if (!handle)
+            return;
+
+        vkDestroyBuffer(context.get_device().getHandle(), handle, &allocator.getCallbacks());
+        handle = nullptr;
+    }
+
+    impl& operator=(impl const&) = default;
+    impl& operator=(impl&& rhs) = default;
+
+    context& context;
+    vko::Allocator allocator{ vko::AllocatorScope::Buffer };
+    vko::UniqueHandle<VkBuffer> handle;
+};
 
 gfx_vk::buffer::buffer(context& context, gfx::buffer_params const& params)
     : m_context(context)
     , m_params(params)
 {
-    assert(!params.is_mutable); // TODO implement
+    VkBufferCreateInfo info{
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .size = params.size,
+        .usage = get_usage(params.usage),
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+    };
 
-    VkBufferCreateInfo bufferCreateInfo{};
-    bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferCreateInfo.size = params.size;
-    bufferCreateInfo.usage = get_usage(params.usage);
-    bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    size_t resource_count = params.is_mutable ? context.get_mutable_resource_multiplier() : 1;
 
-    VKO_VERIFY(vkCreateBuffer(context.get_device().getHandle(), &bufferCreateInfo, &m_allocator.getCallbacks(), &m_handle.get()));
+    for (size_t i = 0; i < resource_count; i++)
+        m_buffers.emplace_back(m_context, info);
 
-    VkMemoryRequirements requirements;
-    vkGetBufferMemoryRequirements(m_context.get_device().getHandle(), m_handle, &requirements);
+    VkMemoryRequirements requirements{};
+    vkGetBufferMemoryRequirements(m_context.get_device().getHandle(), m_buffers[0].handle, &requirements);
+
+    m_aligned_size = align_up(requirements.size, requirements.alignment);
+
+    requirements.size = m_aligned_size * resource_count;
 
     m_memory = nstl::make_unique<vko::DeviceMemory>(m_context.get_device(), m_context.get_physical_device(), requirements, get_memory_flags(params.location));
 
-    size_t memory_offset = 0; // TODO use offset after implementing mutable buffers
-    VKO_VERIFY(vkBindBufferMemory(m_context.get_device().getHandle(), m_handle, m_memory->getHandle(), memory_offset));
+    for (size_t i = 0; i < resource_count; i++)
+    {
+        size_t memory_offset = i * m_aligned_size;
+        VKO_VERIFY(vkBindBufferMemory(m_context.get_device().getHandle(), m_buffers[i].handle, m_memory->getHandle(), memory_offset));
+    }
 }
 
-gfx_vk::buffer::~buffer()
-{
-    if (!m_handle)
-        return;
+gfx_vk::buffer::~buffer() = default;
 
-    vkDestroyBuffer(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
-    m_handle = nullptr;
+VkBuffer gfx_vk::buffer::get_handle(size_t index) const
+{
+    return m_buffers[index].handle;
+}
+
+VkBuffer gfx_vk::buffer::get_current_handle() const
+{
+    size_t index = m_params.is_mutable ? m_context.get_mutable_resource_index() : 0;
+    return get_handle(index);
 }
 
 void gfx_vk::buffer::upload_sync(nstl::blob_view bytes, size_t offset)
 {
+    // TODO prevent calling this function on immutable resource
+
+    size_t subresource_index = m_params.is_mutable ? m_context.get_mutable_resource_index() : 0;
+
     if (m_params.location == gfx::buffer_location::device_local)
     {
         // TODO merge with image::upload_sync
@@ -90,13 +147,11 @@ void gfx_vk::buffer::upload_sync(nstl::blob_view bytes, size_t offset)
         vko::CommandBuffers buffers = m_context.get_transfer_command_pool().allocate(1);
         buffers.begin(0, true);
 
-        size_t memory_offset = 0; // TODO use offset after implementing mutable buffers
-
         VkBufferCopy copyRegion{};
-        copyRegion.dstOffset = offset + memory_offset;
+        copyRegion.dstOffset = offset;
         copyRegion.srcOffset = 0;
         copyRegion.size = bytes.size();
-        vkCmdCopyBuffer(buffers.getHandle(0), staging_buffer.getHandle(), m_handle, 1, &copyRegion);
+        vkCmdCopyBuffer(buffers.getHandle(0), staging_buffer.getHandle(), m_buffers[subresource_index].handle, 1, &copyRegion);
 
         buffers.end(0);
         buffers.submit(0, m_context.get_transfer_queue(), nullptr, nullptr, nullptr);
@@ -104,7 +159,7 @@ void gfx_vk::buffer::upload_sync(nstl::blob_view bytes, size_t offset)
     }
     else
     {
-        size_t memory_offset = 0; // TODO use offset after implementing mutable buffers
+        size_t memory_offset = subresource_index * m_aligned_size;
         m_memory->copyFrom(bytes.data(), bytes.size(), memory_offset);
     }
 }
