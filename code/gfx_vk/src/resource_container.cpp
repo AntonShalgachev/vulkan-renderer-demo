@@ -85,6 +85,7 @@ bool gfx_vk::resource_container::destroy_image(gfx::image_handle handle)
 
 gfx::sampler_handle gfx_vk::resource_container::create_sampler(gfx::sampler_params const& params)
 {
+    // TODO reuse already existing samplers
     return create_resource<sampler, gfx::sampler_handle>(m_samplers, m_context, params);
 }
 

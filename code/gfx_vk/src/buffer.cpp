@@ -159,7 +159,7 @@ void gfx_vk::buffer::upload_sync(nstl::blob_view bytes, size_t offset)
     }
     else
     {
-        size_t memory_offset = subresource_index * m_aligned_size;
+        size_t memory_offset = subresource_index * m_aligned_size + offset;
         m_memory->copyFrom(bytes.data(), bytes.size(), memory_offset);
     }
 }

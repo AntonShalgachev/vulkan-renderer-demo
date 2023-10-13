@@ -26,6 +26,9 @@ namespace gfx
     // * acquire_main_framebuffer is called exactly once per frame
     // * renderpass_begin/renderpass_end with the main framebuffer is called exactly once per frame
     // * if a resource is mutable, then it should be fully updated each frame it's used (no incremental frame-to-frame modifications, no skipping frames)
+    // * Images that are uploaded and sampled should have usage "upload_sampled"
+    // * attribute_description::buffer_binding_index is a valid index into vertex_configuration_view::buffer_bindings
+    // * attribute_description::location is unique
     //////////////////////////////////////////////////////////////////////////
 
     class renderer

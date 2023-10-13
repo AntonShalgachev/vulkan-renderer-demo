@@ -830,7 +830,7 @@ void DemoApplication::loadImgui()
     io.Fonts->AddFontDefault();
 
     m_imGuiPlatform = nstl::make_unique<ImGuiPlatform>(*m_window);
-    m_imGuiDrawer = nstl::make_unique<ImGuiDrawer>(*m_renderer);
+    m_imGuiDrawer = nstl::make_unique<ImGuiDrawer>(*m_newRenderer);
 }
 
 void DemoApplication::unloadImgui()
@@ -2312,6 +2312,9 @@ void DemoApplication::updateCamera(float dt)
 void DemoApplication::draw()
 {
     m_newRenderer->begin_resource_update();
+    if (m_imGuiDrawer)
+        m_imGuiDrawer->updateResources(*m_newRenderer);
+
     m_newRenderer->begin_frame();
 
     m_newRenderer->renderpass_begin({
@@ -2334,6 +2337,10 @@ void DemoApplication::draw()
             .vertex_offset = 0,
         });
     }
+
+    // TODO should be in its own renderpass
+    if (m_imGuiDrawer)
+        m_imGuiDrawer->draw(*m_newRenderer);
 
     m_newRenderer->renderpass_end();
 
@@ -2539,6 +2546,9 @@ void DemoApplication::updateTest()
 
     m_newRenderer->begin_resource_update();
     m_newRenderer->buffer_upload_sync(testResources.objectBuffer, { &data, sizeof(data) });
+
+    if (m_imGuiDrawer)
+        m_imGuiDrawer->updateResources(*m_newRenderer);
 }
 
 void DemoApplication::drawTest()
@@ -2562,6 +2572,10 @@ void DemoApplication::drawTest()
         .first_index = 0,
         .vertex_offset = 0,
     });
+
+    // TODO should be in its own renderpass
+    if (m_imGuiDrawer)
+        m_imGuiDrawer->draw(*m_newRenderer);
 
     m_newRenderer->renderpass_end();
 

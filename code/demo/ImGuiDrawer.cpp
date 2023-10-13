@@ -6,22 +6,7 @@
 #include "tglm/types.h"
 #include "tglm/util.h"
 
-#include "vko/SamplerProperties.h"
-#include "vko/ShaderModuleProperties.h"
-
-#include "vkgfx/Renderer.h"
-#include "vkgfx/ResourceManager.h"
-#include "vkgfx/Handles.h"
-#include "vkgfx/ImageMetadata.h"
-#include "vkgfx/Texture.h"
-#include "vkgfx/Mesh.h"
-#include "vkgfx/Material.h"
-#include "vkgfx/BufferMetadata.h"
-#include "vkgfx/TestObject.h"
-#include "vkgfx/PipelineKey.h"
-
-#include "common/Utils.h"
-
+#include "nstl/array.h"
 #include "nstl/vector.h"
 
 #include "memory/tracking.h"
@@ -33,51 +18,31 @@ namespace
     auto imguiDrawerScopeId = memory::tracking::create_scope_id("UI/ImGui/Drawer");
 
     // TODO move somewhere
-    auto imageToTextureId(vkgfx::ImageHandle image)
+    auto descriptorGroupToTextureId(gfx::descriptorgroup_handle handle)
     {
         ImTextureID textureId;
-        static_assert(sizeof(image) <= sizeof(textureId));
-        memcpy(&textureId, &image, sizeof(image));
+        static_assert(sizeof(handle) <= sizeof(textureId));
+        memcpy(&textureId, &handle, sizeof(handle));
 
         return textureId;
     };
 
     // TODO move somewhere
-    auto textureIdToImage(ImTextureID textureId)
+    auto textureIdToDescriptorGroup(ImTextureID textureId)
     {
-        vkgfx::ImageHandle image;
+        gfx::descriptorgroup_handle handle;
 
-        static_assert(sizeof(image) <= sizeof(textureId));
-        memcpy(&image, &textureId, sizeof(image));
+        static_assert(sizeof(handle) <= sizeof(textureId));
+        memcpy(&handle, &textureId, sizeof(handle));
 
-        return image;
+        return handle;
     };
 
-    nstl::static_vector<unsigned char, vkgfx::MaxPushConstantsSize> createPushConstants(ImDrawData const* drawData)
+    struct TransformParams
     {
-        struct PushConstants
-        {
-            ImVec2 scale;
-            ImVec2 translate;
-        };
-
-        PushConstants pushConstants;
-
-        pushConstants.scale = {
-            2.0f / drawData->DisplaySize.x,
-            2.0f / drawData->DisplaySize.y,
-        };
-        pushConstants.translate = {
-            -1.0f - drawData->DisplayPos.x * pushConstants.scale.x,
-            -1.0f - drawData->DisplayPos.y * pushConstants.scale.y,
-        };
-
-        nstl::static_vector<unsigned char, vkgfx::MaxPushConstantsSize> bytes;
-        bytes.resize(sizeof(PushConstants));
-        memcpy(bytes.data(), &pushConstants, sizeof(pushConstants));
-
-        return bytes;
-    }
+        ImVec2 scale;
+        ImVec2 translate;
+    };
 
     struct ClipData
     {
@@ -104,9 +69,12 @@ namespace
 
         return { static_cast<tglm::ivec2>(clipMin), static_cast<tglm::ivec2>(clipMax) };
     }
+
+    constexpr size_t VERTEX_BUFFER_CAPACITY = 64 * 1024 * sizeof(ImDrawVert);
+    constexpr size_t INDEX_BUFFER_CAPACITY = 64 * 1024 * sizeof(ImDrawIdx);
 }
 
-ImGuiDrawer::ImGuiDrawer(vkgfx::Renderer& renderer)
+ImGuiDrawer::ImGuiDrawer(gfx::renderer& renderer)
 {
     MEMORY_TRACKING_SCOPE(imguiDrawerScopeId);
 
@@ -116,15 +84,14 @@ ImGuiDrawer::ImGuiDrawer(vkgfx::Renderer& renderer)
     io.BackendRendererName = "vulkan_renderer_demo";
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
 
-    vkgfx::ResourceManager& resourceManager = renderer.getResourceManager();
-
-    createBuffers(resourceManager);
-    createImages(resourceManager);
-    createShaders(resourceManager);
-    createPipeline(resourceManager);
+    createBuffers(renderer);
+    createImages(renderer);
+    createDescriptors(renderer);
+    createShaders(renderer);
+    createPipeline(renderer);
 }
 
-void ImGuiDrawer::queueGeometry(vkgfx::Renderer& renderer)
+void ImGuiDrawer::updateResources(gfx::renderer& renderer)
 {
     MEMORY_TRACKING_SCOPE(imguiDrawerScopeId);
 
@@ -139,13 +106,22 @@ void ImGuiDrawer::queueGeometry(vkgfx::Renderer& renderer)
 
     assert(drawData->Valid);
 
-    vkgfx::ResourceManager& resourceManager = renderer.getResourceManager();
+    uploadBuffers(renderer, drawData);
+}
 
-    uploadBuffers(resourceManager, drawData);
+void ImGuiDrawer::draw(gfx::renderer& renderer)
+{
+    MEMORY_TRACKING_SCOPE(imguiDrawerScopeId);
 
-    auto pushConstantsBytes = createPushConstants(drawData);
+    if (!ImGui::GetCurrentContext())
+        return;
 
-    size_t nextResourceIndex = 0;
+    ImDrawData const* drawData = ImGui::GetDrawData();
+    if (!drawData)
+        return;
+
+    assert(drawData->Valid);
+
     size_t vertexOffset = 0;
     size_t indexOffset = 0;
     for (int listIndex = 0; listIndex < drawData->CmdListsCount; listIndex++)
@@ -166,22 +142,19 @@ void ImGuiDrawer::queueGeometry(vkgfx::Renderer& renderer)
                 if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
                     continue;
 
-                updateMesh(resourceManager, nextResourceIndex, drawCommand->ElemCount, drawCommand->IdxOffset + indexOffset, drawCommand->VtxOffset + vertexOffset);
-                updateMaterial(resourceManager, nextResourceIndex, textureIdToImage(drawCommand->GetTexID()));
+                renderer.draw_indexed({
+                    .renderstate = m_renderstate,
+                    .descriptorgroups = nstl::array{ m_transformDescriptorGroup, textureIdToDescriptorGroup(drawCommand->GetTexID()) },
+                    .scissor = gfx::rect { clipMin, clipMax - clipMin },
 
-                vkgfx::TestObject object;
-                object.pipeline = m_pipeline;
-                object.mesh = m_meshes[nextResourceIndex];
-                object.material = m_materials[nextResourceIndex];
-                object.pushConstants = pushConstantsBytes;
+                    .vertex_buffers = nstl::array{ gfx::buffer_with_offset{ m_vertexBuffer } },
+                    .index_buffer = { m_indexBuffer },
+                    .index_type = gfx::index_type::uint16,
 
-                object.hasScissors = true;
-                object.scissorOffset = clipMin;
-                object.scissorSize = clipMax - clipMin;
-
-                renderer.addOneFrameTestObject(nstl::move(object));
-
-                nextResourceIndex++;
+                    .index_count = drawCommand->ElemCount,
+                    .first_index = drawCommand->IdxOffset + indexOffset,
+                    .vertex_offset = drawCommand->VtxOffset + vertexOffset,
+                });
             }
         }
 
@@ -190,30 +163,32 @@ void ImGuiDrawer::queueGeometry(vkgfx::Renderer& renderer)
     }
 }
 
-void ImGuiDrawer::createBuffers(vkgfx::ResourceManager& resourceManager)
+void ImGuiDrawer::createBuffers(gfx::renderer& renderer)
 {
-    {
-        size_t size = 64 * 1024 * sizeof(ImDrawVert);
-        vkgfx::BufferMetadata metadata{
-            .usage = vkgfx::BufferUsage::VertexIndexBuffer,
-            .location = vkgfx::BufferLocation::HostVisible,
-            .isMutable = true,
-        };
-        m_vertexBuffer = resourceManager.createBuffer(size, nstl::move(metadata));
-    }
+    m_vertexBuffer = renderer.create_buffer({
+        .size = VERTEX_BUFFER_CAPACITY,
+        .usage = gfx::buffer_usage::vertex_index,
+        .location = gfx::buffer_location::host_visible,
+        .is_mutable = true,
+    });
 
-    {
-        size_t size = 64 * 1024 * sizeof(ImDrawIdx);
-        vkgfx::BufferMetadata metadata{
-            .usage = vkgfx::BufferUsage::VertexIndexBuffer,
-            .location = vkgfx::BufferLocation::HostVisible,
-            .isMutable = true,
-        };
-        m_indexBuffer = resourceManager.createBuffer(size, nstl::move(metadata));
-    }
+    m_indexBuffer = renderer.create_buffer({
+        .size = INDEX_BUFFER_CAPACITY,
+        .usage = gfx::buffer_usage::vertex_index,
+        .location = gfx::buffer_location::host_visible,
+        .is_mutable = true,
+    });
+
+    // TODO use push constants somehow?
+    m_transformBuffer = renderer.create_buffer({
+        .size = sizeof(TransformParams),
+        .usage = gfx::buffer_usage::uniform,
+        .location = gfx::buffer_location::host_visible,
+        .is_mutable = true,
+    });
 }
 
-void ImGuiDrawer::createImages(vkgfx::ResourceManager& resourceManager)
+void ImGuiDrawer::createImages(gfx::renderer& renderer)
 {
     ImGuiIO& io = ImGui::GetIO();
 
@@ -227,108 +202,122 @@ void ImGuiDrawer::createImages(vkgfx::ResourceManager& resourceManager)
     assert(height > 0);
     assert(bytesPerPixel > 0);
 
-    vkgfx::ImageMetadata metadata{
+    m_fontImage = renderer.create_image({
         .width = static_cast<size_t>(width),
         .height = static_cast<size_t>(height),
-        .byteSize = static_cast<size_t>(width * height * bytesPerPixel),
-        .format = vkgfx::ImageFormat::R8G8B8A8,
-    };
-    m_fontImage = resourceManager.createImage(nstl::move(metadata));
+        .format = gfx::image_format::r8g8b8a8,
+        .type = gfx::image_type::color,
+        .usage = gfx::image_usage::upload_sampled,
+    });
 
-    resourceManager.uploadImage(m_fontImage, pixels, width * height * bytesPerPixel);
+    renderer.image_upload_sync(m_fontImage, { pixels, static_cast<size_t>(width * height * bytesPerPixel) });
 
-    io.Fonts->SetTexID(imageToTextureId(m_fontImage));
-
-    m_imageSampler = resourceManager.createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
+    m_imageSampler = renderer.create_sampler({});
 }
 
-void ImGuiDrawer::createShaders(vkgfx::ResourceManager& resourceManager)
+void ImGuiDrawer::createDescriptors(gfx::renderer& renderer)
+{
+    m_transformDescriptorGroup = renderer.create_descriptorgroup({
+        .entries = nstl::array{
+            gfx::descriptorgroup_entry{0, {m_transformBuffer}},
+        }
+    });
+
+    m_fontImageDescriptorGroup = renderer.create_descriptorgroup({
+        .entries = nstl::array{
+            gfx::descriptorgroup_entry{0, {m_fontImage, m_imageSampler}},
+        }
+    });
+
+    ImGui::GetIO().Fonts->SetTexID(descriptorGroupToTextureId(m_fontImageDescriptorGroup));
+}
+
+void ImGuiDrawer::createShaders(gfx::renderer& renderer)
 {
     {
         ShaderPackage package{ "data/shaders/packaged/imgui.vert" };
         nstl::string const* path = package.get({});
         assert(path);
-        if (path)
-            m_vertexShaderModule = resourceManager.createShaderModule(vkc::utils::readBinaryFile(*path), vko::ShaderModuleType::Vertex, "main");
+
+        m_vertexShader = renderer.create_shader({
+            .filename = *path,
+            .stage = gfx::shader_stage::vertex,
+        });
     }
 
     {
         ShaderPackage package{ "data/shaders/packaged/imgui.frag" };
         nstl::string const* path = package.get({});
         assert(path);
-        if (path)
-            m_fragmentShaderModule = resourceManager.createShaderModule(vkc::utils::readBinaryFile(*path), vko::ShaderModuleType::Fragment, "main");
+
+        m_fragmentShader = renderer.create_shader({
+            .filename = *path,
+            .stage = gfx::shader_stage::fragment,
+        });
     }
 }
 
-void ImGuiDrawer::createPipeline(vkgfx::ResourceManager& resourceManager)
+void ImGuiDrawer::createPipeline(gfx::renderer& renderer)
 {
-    vkgfx::PipelineKey key;
-    key.shaderHandles = { m_vertexShaderModule, m_fragmentShaderModule };
-    key.uniformConfigs = {
-        // TODO remove unnecessary configs
-        vkgfx::UniformConfiguration{
-            .hasBuffer = true,
-            .hasAlbedoTexture = false,
-            .hasNormalMap = false,
-            .hasShadowMap = true,
+    // TODO have an own renderpass
+    m_renderstate = renderer.create_renderstate({
+        .shaders = nstl::array{ m_vertexShader, m_fragmentShader },
+        .renderpass = renderer.get_main_renderpass(),
+        .vertex_config = {
+            .buffer_bindings = nstl::array{
+                gfx::buffer_binding_description{ .buffer_index = 0, .stride = sizeof(ImDrawVert) }
+            },
+            .attributes = nstl::array{
+                gfx::attribute_description{
+                    .location = 0,
+                    .buffer_binding_index = 0,
+                    .offset = offsetof(ImDrawVert, pos),
+                    .type = gfx::attribute_type::vec2f,
+                },
+                gfx::attribute_description{
+                    .location = 1,
+                    .buffer_binding_index = 0,
+                    .offset = offsetof(ImDrawVert, uv),
+                    .type = gfx::attribute_type::vec2f,
+                },
+                gfx::attribute_description{
+                    .location = 2,
+                    .buffer_binding_index = 0,
+                    .offset = offsetof(ImDrawVert, col),
+                    .type = gfx::attribute_type::uint32,
+                },
+            },
+            .topology = gfx::vertex_topology::triangles,
         },
-        vkgfx::UniformConfiguration{
-            .hasBuffer = false,
-            .hasAlbedoTexture = true,
-            .hasNormalMap = false,
-        },
-        vkgfx::UniformConfiguration{
-            .hasBuffer = false,
-            .hasAlbedoTexture = false,
-            .hasNormalMap = false,
-        },
-    };
-    key.vertexConfig = {
-        .bindings = {
-            vkgfx::VertexConfiguration::Binding{
-                .stride = sizeof(ImDrawVert),
+        .descriptorgroup_layouts = nstl::array{
+            gfx::descriptorgroup_layout_view{
+                .entries = nstl::array{
+                    gfx::descriptor_layout_entry{
+                        .location = 0,
+                        .type = gfx::descriptor_type::buffer,
+                    }
+                },
+            },
+            gfx::descriptorgroup_layout_view{
+                .entries = nstl::array{
+                    gfx::descriptor_layout_entry{
+                        .location = 0,
+                        .type = gfx::descriptor_type::combined_image_sampler,
+                    },
+                },
             },
         },
-        .attributes = {
-            vkgfx::VertexConfiguration::Attribute{
-                .binding = 0,
-                .location = 0,
-                .offset = offsetof(ImDrawVert, pos),
-                .type = vkgfx::AttributeType::Vec2f,
-            },
-            vkgfx::VertexConfiguration::Attribute{
-                .binding = 0,
-                .location = 1,
-                .offset = offsetof(ImDrawVert, uv),
-                .type = vkgfx::AttributeType::Vec2f,
-            },
-            vkgfx::VertexConfiguration::Attribute{
-                .binding = 0,
-                .location = 2,
-                .offset = offsetof(ImDrawVert, col),
-                .type = vkgfx::AttributeType::UInt32,
-            },
+        .flags = {
+            .cull_backfaces = false,
+            .wireframe = false,
+            .depth_test = false,
+            .alpha_blending = true,
+            .depth_bias = false,
         },
-        .topology = vkgfx::VertexTopology::Triangles,
-    };
-    key.renderConfig = {
-        .cullBackfaces = false,
-        .wireframe = false,
-        .depthTest = false,
-        .alphaBlending = true,
-    };
-    key.pushConstantRanges = {
-        vkgfx::PushConstantRange{
-            .offset = 0,
-            .size = 2 * sizeof(float) + 2 * sizeof(float),
-        }
-    };
-
-    m_pipeline = resourceManager.getOrCreatePipeline(key);
+    });
 }
 
-void ImGuiDrawer::uploadBuffers(vkgfx::ResourceManager& resourceManager, ImDrawData const* drawData)
+void ImGuiDrawer::uploadBuffers(gfx::renderer& renderer, ImDrawData const* drawData)
 {
     if (drawData->TotalVtxCount <= 0)
         return;
@@ -336,8 +325,8 @@ void ImGuiDrawer::uploadBuffers(vkgfx::ResourceManager& resourceManager, ImDrawD
     size_t vertexBufferSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
     size_t indexBufferSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
 
-    assert(vertexBufferSize <= resourceManager.getBufferSize(m_vertexBuffer));
-    assert(indexBufferSize <= resourceManager.getBufferSize(m_indexBuffer));
+    assert(vertexBufferSize <= VERTEX_BUFFER_CAPACITY);
+    assert(indexBufferSize <= INDEX_BUFFER_CAPACITY);
 
     size_t nextVertexBufferOffset = 0;
     size_t nextIndexBufferOffset = 0;
@@ -349,69 +338,25 @@ void ImGuiDrawer::uploadBuffers(vkgfx::ResourceManager& resourceManager, ImDrawD
         auto vertexChunkSize = cmdList->VtxBuffer.Size * sizeof(ImDrawVert);
         auto indexChunkSize = cmdList->IdxBuffer.Size * sizeof(ImDrawIdx);
 
-        resourceManager.uploadBuffer(m_vertexBuffer, { cmdList->VtxBuffer.Data, vertexChunkSize }, nextVertexBufferOffset);
-        resourceManager.uploadBuffer(m_indexBuffer, { cmdList->IdxBuffer.Data, indexChunkSize }, nextIndexBufferOffset);
+        renderer.buffer_upload_sync(m_vertexBuffer, { cmdList->VtxBuffer.Data, vertexChunkSize }, nextVertexBufferOffset);
+        renderer.buffer_upload_sync(m_indexBuffer, { cmdList->IdxBuffer.Data, indexChunkSize }, nextIndexBufferOffset);
 
         nextVertexBufferOffset += vertexChunkSize;
         nextIndexBufferOffset += indexChunkSize;
     }
-}
 
-void ImGuiDrawer::updateMesh(vkgfx::ResourceManager& resourceManager, size_t index, size_t indexCount, size_t indexOffset, size_t vertexOffset)
-{
-    static_assert(sizeof(ImDrawIdx) == 2);
-
-    vkgfx::MeshHandle handle;
-    if (index < m_meshes.size())
     {
-        handle = m_meshes[index];
-    }
-    else
-    {
-        assert(index == m_meshes.size());
-        handle = resourceManager.createMesh({});
-        m_meshes.push_back(handle);
-    }
+        TransformParams transform{
+            .scale = {
+                2.0f / drawData->DisplaySize.x,
+                2.0f / drawData->DisplaySize.y,
+            },
+            .translate = {
+                -1.0f - drawData->DisplayPos.x * transform.scale.x,
+                -1.0f - drawData->DisplayPos.y * transform.scale.y,
+            },
+        };
 
-    vkgfx::Mesh* mesh = resourceManager.getMesh(handle);
-    assert(mesh);
-
-    mesh->vertexBuffers.resize(1);
-    mesh->vertexBuffers[0] = { m_vertexBuffer, 0 };
-
-    mesh->indexBuffer = { m_indexBuffer, 0 };
-    mesh->indexCount = indexCount;
-    mesh->indexType = vkgfx::IndexType::UnsignedShort;
-    mesh->indexOffset = indexOffset;
-    mesh->vertexOffset = vertexOffset;
-}
-
-void ImGuiDrawer::updateMaterial(vkgfx::ResourceManager& resourceManager, size_t index, vkgfx::ImageHandle image)
-{
-    vkgfx::Texture texture = {
-        .image = image,
-        .sampler = m_imageSampler,
-    };
-
-    if (index < m_textures.size())
-    {
-        resourceManager.updateTexture(m_textures[index], nstl::move(texture));
-    }
-    else
-    {
-        m_textures.push_back(resourceManager.createTexture(nstl::move(texture)));
-    }
-
-    vkgfx::Material material = {
-        .albedo = m_textures[index],
-    };
-
-    if (index < m_materials.size())
-    {
-        resourceManager.updateMaterial(m_materials[index], nstl::move(material));
-    }
-    else
-    {
-        m_materials.push_back(resourceManager.createMaterial(nstl::move(material)));
+        renderer.buffer_upload_sync(m_transformBuffer, { &transform, sizeof(transform) });
     }
 }

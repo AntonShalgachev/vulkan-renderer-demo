@@ -1,44 +1,39 @@
 #pragma once
 
-#include "vkgfx/Handles.h"
-
-#include "nstl/vector.h"
-
-namespace vkgfx
-{
-    class Renderer;
-    class ResourceManager;
-}
+#include "gfx/resources.h"
+#include "gfx/renderer.h"
 
 struct ImDrawData;
-struct ImDrawCmd;
 
 class ImGuiDrawer
 {
 public:
-    ImGuiDrawer(vkgfx::Renderer& renderer);
+    ImGuiDrawer(gfx::renderer& renderer);
 
-    void queueGeometry(vkgfx::Renderer& renderer);
-
-private:
-    void createBuffers(vkgfx::ResourceManager& resourceManager);
-    void createImages(vkgfx::ResourceManager& resourceManager);
-    void createShaders(vkgfx::ResourceManager& resourceManager);
-    void createPipeline(vkgfx::ResourceManager& resourceManager);
-
-    void uploadBuffers(vkgfx::ResourceManager& resourceManager, ImDrawData const* drawData);
-    void updateMesh(vkgfx::ResourceManager& resourceManager, size_t index, size_t indexCount, size_t indexOffset, size_t vertexOffset);
-    void updateMaterial(vkgfx::ResourceManager& resourceManager, size_t index, vkgfx::ImageHandle image);
+    void updateResources(gfx::renderer& renderer);
+    void draw(gfx::renderer& renderer);
 
 private:
-    vkgfx::BufferHandle m_vertexBuffer;
-    vkgfx::BufferHandle m_indexBuffer;
-    vkgfx::ImageHandle m_fontImage;
-    vkgfx::SamplerHandle m_imageSampler;
-    vkgfx::ShaderModuleHandle m_vertexShaderModule;
-    vkgfx::ShaderModuleHandle m_fragmentShaderModule;
-    vkgfx::PipelineHandle m_pipeline;
-    nstl::vector<vkgfx::MeshHandle> m_meshes;
-    nstl::vector<vkgfx::TextureHandle> m_textures;
-    nstl::vector<vkgfx::MaterialHandle> m_materials;
+    void createBuffers(gfx::renderer& renderer);
+    void createImages(gfx::renderer& renderer);
+    void createDescriptors(gfx::renderer& renderer);
+    void createShaders(gfx::renderer& renderer);
+    void createPipeline(gfx::renderer& renderer);
+
+    void uploadBuffers(gfx::renderer& renderer, ImDrawData const* drawData);
+
+private:
+    gfx::buffer_handle m_vertexBuffer;
+    gfx::buffer_handle m_indexBuffer;
+
+    gfx::buffer_handle m_transformBuffer;
+    gfx::image_handle m_fontImage;
+    gfx::sampler_handle m_imageSampler;
+
+    gfx::descriptorgroup_handle m_transformDescriptorGroup;
+    gfx::descriptorgroup_handle m_fontImageDescriptorGroup;
+
+    gfx::shader_handle m_vertexShader;
+    gfx::shader_handle m_fragmentShader;
+    gfx::renderstate_handle m_renderstate;
 };
