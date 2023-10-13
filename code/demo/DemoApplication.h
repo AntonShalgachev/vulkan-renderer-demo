@@ -197,7 +197,6 @@ private:
     void draw();
 
     void createTestResources();
-    void updateTest();
     void drawTest();
 
 private:

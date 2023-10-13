@@ -699,9 +699,9 @@ void DemoApplication::init()
         assert(m.level != vko::DebugMessage::Level::Error);
     };
 
-    m_renderer = nstl::make_unique<vkgfx::Renderer>("Vulkan demo with new API", m_validationEnabled, *m_window, messageCallback);
+//     m_renderer = nstl::make_unique<vkgfx::Renderer>("Vulkan demo with new API", m_validationEnabled, *m_window, messageCallback);
 
-    m_services.setDebugDraw(nstl::make_unique<DebugDrawService>(*m_renderer));
+//     m_services.setDebugDraw(nstl::make_unique<DebugDrawService>(*m_renderer));
 
     loadImgui();
 
@@ -722,7 +722,7 @@ void DemoApplication::init()
 
 void DemoApplication::createResources()
 {
-    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
+//     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
 
     m_defaultVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shader.vert");
     m_newDefaultVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/new/shader.vert");
@@ -732,17 +732,17 @@ void DemoApplication::createResources()
     m_shadowmapVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shadowmap.vert");
     m_newShadowmapVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/new/shadowmap.vert");
 
-    m_defaultSampler = resourceManager.createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
+//     m_defaultSampler = resourceManager.createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
     m_newDefaultSampler = m_newRenderer->create_sampler({});
 
-    m_defaultAlbedoImage = resourceManager.createImage(vkgfx::ImageMetadata{
-        .width = 1,
-        .height = 1,
-        .byteSize = 4,
-        .format = vkgfx::ImageFormat::R8G8B8A8,
-    });
-    resourceManager.uploadImage(m_defaultAlbedoImage, nstl::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
-    m_defaultAlbedoTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultAlbedoImage, m_defaultSampler });
+//     m_defaultAlbedoImage = resourceManager.createImage(vkgfx::ImageMetadata{
+//         .width = 1,
+//         .height = 1,
+//         .byteSize = 4,
+//         .format = vkgfx::ImageFormat::R8G8B8A8,
+//     });
+//     resourceManager.uploadImage(m_defaultAlbedoImage, nstl::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
+//     m_defaultAlbedoTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultAlbedoImage, m_defaultSampler });
 
     m_newDefaultAlbedoImage = m_newRenderer->create_image({
         .width = 1,
@@ -753,14 +753,14 @@ void DemoApplication::createResources()
     });
     m_newRenderer->image_upload_sync(m_newDefaultAlbedoImage, nstl::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
 
-    m_defaultNormalMapImage = resourceManager.createImage(vkgfx::ImageMetadata{
-        .width = 1,
-        .height = 1,
-        .byteSize = 4,
-        .format = vkgfx::ImageFormat::R8G8B8A8,
-    });
-    resourceManager.uploadImage(m_defaultNormalMapImage, nstl::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff });
-    m_defaultNormalMapTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultNormalMapImage, m_defaultSampler });
+//     m_defaultNormalMapImage = resourceManager.createImage(vkgfx::ImageMetadata{
+//         .width = 1,
+//         .height = 1,
+//         .byteSize = 4,
+//         .format = vkgfx::ImageFormat::R8G8B8A8,
+//     });
+//     resourceManager.uploadImage(m_defaultNormalMapImage, nstl::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff });
+//     m_defaultNormalMapTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultNormalMapImage, m_defaultSampler });
 
     m_newDefaultNormalMapImage = m_newRenderer->create_image({
         .width = 1,
@@ -1508,7 +1508,7 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
 
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
+//     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
 
     m_editorGltfResources = nstl::make_unique<EditorGltfResources>();
 
@@ -1521,8 +1521,8 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
         auto const& modulePath = pair.value();
-        auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
-        m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
+//         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
+//         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
         m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
             .filename = modulePath,
             .stage = gfx::shader_stage::vertex,
@@ -1536,8 +1536,8 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
         auto const& modulePath = pair.value();
-        auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
-        m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
+//         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
+//         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
         m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
             .filename = modulePath,
             .stage = gfx::shader_stage::vertex,
@@ -1566,8 +1566,8 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
         auto const& modulePath = pair.value();
-        auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Fragment, "main");
-        m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
+//         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Fragment, "main");
+//         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
         m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
             .filename = modulePath,
             .stage = gfx::shader_stage::fragment,
@@ -1581,8 +1581,8 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
         auto const& modulePath = pair.value();
-        auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
-        m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
+//         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
+//         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
         m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
             .filename = modulePath,
             .stage = gfx::shader_stage::vertex,
@@ -1596,8 +1596,8 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
         auto const& modulePath = pair.value();
-        auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
-        m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
+//         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
+//         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
         m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
             .filename = modulePath,
             .stage = gfx::shader_stage::vertex,
@@ -1640,12 +1640,12 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
 
                 pipelineKey.vertexConfig = primitive.metadata.vertexConfig;
 
-                struct DemoObjectPushConstants
-                {
-                    tglm::mat4 model;
-                };
-
-                pipelineKey.pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DemoObjectPushConstants), } };
+//                 struct DemoObjectPushConstants
+//                 {
+//                     tglm::mat4 model;
+//                 };
+// 
+//                 pipelineKey.pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DemoObjectPushConstants), } };
 
                 // TODO reimplement
                 ShaderConfiguration shaderConfiguration;
@@ -1669,7 +1669,7 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
 
                 pipelineKey.shaderHandles = { vertexShaderModule, fragmentShaderModule };
 
-                vkgfx::PipelineHandle pipeline = resourceManager.getOrCreatePipeline(pipelineKey);
+//                 vkgfx::PipelineHandle pipeline = resourceManager.getOrCreatePipeline(pipelineKey);
 
                 gfx::shader_handle vertexShader = m_editorGltfResources->newShaderModules[*newVertexShaderPath];
                 gfx::shader_handle fragmentShader = m_editorGltfResources->newShaderModules[*newFragmentShaderPath];
@@ -1716,11 +1716,11 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                     .renderConfig = {
                         .depthBias = true,
                     },
-                    .pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DemoObjectPushConstants), } },
+//                     .pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DemoObjectPushConstants), } },
                     .isShadowmap = true,
                 };
 
-                vkgfx::PipelineHandle shadowmapPipeline = resourceManager.getOrCreatePipeline(shadowmapPipelineKey);
+//                 vkgfx::PipelineHandle shadowmapPipeline = resourceManager.getOrCreatePipeline(shadowmapPipelineKey);
 
                 gfx::shader_handle shadowmapVertexShader = m_editorGltfResources->newShaderModules[*newShadowmapVertexShaderPath];
                 m_renderstates.push_back(m_newRenderer->create_renderstate({
@@ -1749,22 +1749,22 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
 
                 gfx::renderstate_handle shadowmapState = m_renderstates.back();
 
-                struct DemoObjectUniformBuffer
-                {
-                    tglm::vec4 color;
-                };
+//                 struct DemoObjectUniformBuffer
+//                 {
+//                     tglm::vec4 color;
+//                 };
 
-                vkgfx::BufferMetadata uniformBufferMetadata{
-                    .usage = vkgfx::BufferUsage::UniformBuffer,
-                    .location = vkgfx::BufferLocation::HostVisible,
-                    .isMutable = false,
-                };
-                vkgfx::BufferHandle uniformBuffer = resourceManager.createBuffer(sizeof(DemoObjectUniformBuffer), nstl::move(uniformBufferMetadata));
-                m_editorGltfResources->additionalBuffers.push_back(uniformBuffer);
-
-                DemoObjectUniformBuffer uniformValues;
-                uniformValues.color = { 1.0f, 1.0f, 1.0f, 0.0f };
-                resourceManager.uploadBuffer(uniformBuffer, nstl::blob_view{ &uniformValues, sizeof(uniformValues) });
+//                 vkgfx::BufferMetadata uniformBufferMetadata{
+//                     .usage = vkgfx::BufferUsage::UniformBuffer,
+//                     .location = vkgfx::BufferLocation::HostVisible,
+//                     .isMutable = false,
+//                 };
+//                 vkgfx::BufferHandle uniformBuffer = resourceManager.createBuffer(sizeof(DemoObjectUniformBuffer), nstl::move(uniformBufferMetadata));
+//                 m_editorGltfResources->additionalBuffers.push_back(uniformBuffer);
+// 
+//                 DemoObjectUniformBuffer uniformValues;
+//                 uniformValues.color = { 1.0f, 1.0f, 1.0f, 0.0f };
+//                 resourceManager.uploadBuffer(uniformBuffer, nstl::blob_view{ &uniformValues, sizeof(uniformValues) });
 
                 auto calculateTransform = [&object, &scene]()
                 {
@@ -1808,8 +1808,8 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                     .entries = nstl::array{ gfx::descriptorgroup_entry{ 0, objectUniformBuffer } },
                 });
 
-                DemoObjectPushConstants pushConstants;
-                pushConstants.model = calculateTransform();
+//                 DemoObjectPushConstants pushConstants;
+//                 pushConstants.model = calculateTransform();
 
                 vkgfx::TestObject& testObject = m_demoScene.objects.emplace_back();
                 testObject.mesh = primitive.handle;
@@ -1817,13 +1817,13 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                 testObject.materialDescriptorGroup = material.descriptorgroup;
                 testObject.newUniformBuffer = objectUniformBuffer;
                 testObject.descriptorGroup = descriptorGroup;
-                testObject.pipeline = pipeline;
-                testObject.shadowmapPipeline = shadowmapPipeline;
+//                 testObject.pipeline = pipeline;
+//                 testObject.shadowmapPipeline = shadowmapPipeline;
                 testObject.state = state;
                 testObject.shadowmapState = shadowmapState;
-                testObject.uniformBuffer = uniformBuffer;
-                testObject.pushConstants.resize(sizeof(pushConstants));
-                memcpy(testObject.pushConstants.data(), &pushConstants, testObject.pushConstants.size());
+//                 testObject.uniformBuffer = uniformBuffer;
+//                 testObject.pushConstants.resize(sizeof(pushConstants));
+//                 memcpy(testObject.pushConstants.data(), &pushConstants, testObject.pushConstants.size());
 
                 testObject.indexBuffer = primitive.indexBuffer;
                 testObject.vertexBuffers = primitive.vertexBuffers;
@@ -1841,7 +1841,7 @@ void DemoApplication::editorLoadImage(editor::assets::Uuid id)
     static auto scopeId = memory::tracking::create_scope_id("Scene/Load/Editor/Image");
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
+//     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
 
     // TODO leads to unnecessary data copy; change that
     nstl::optional<ImageData> imageData = loadImage(m_assetDatabase->loadImage(id));
@@ -1851,21 +1851,21 @@ void DemoApplication::editorLoadImage(editor::assets::Uuid id)
     assert(!imageData->mips.empty());
     assert(imageData->mips[0].size > 0);
 
-    vkgfx::ImageMetadata metadata;
-    metadata.width = imageData->width;
-    metadata.height = imageData->height;
+//     vkgfx::ImageMetadata metadata;
+//     metadata.width = imageData->width;
+//     metadata.height = imageData->height;
 
     // TODO support all mips
 
     ImageData::MipData const& mipData = imageData->mips[0];
     auto bytes = nstl::span<unsigned char const>{ imageData->bytes }.subspan(mipData.offset, mipData.size);
 
-    metadata.byteSize = bytes.size();
-    metadata.format = imageData->format;
+//     metadata.byteSize = bytes.size();
+//     metadata.format = imageData->format;
 
-    auto handle = resourceManager.createImage(metadata);
-    resourceManager.uploadImage(handle, bytes);
-    m_editorGltfResources->images[id] = handle;
+//     auto handle = resourceManager.createImage(metadata);
+//     resourceManager.uploadImage(handle, bytes);
+//     m_editorGltfResources->images[id] = handle;
 
     auto image = m_newRenderer->create_image({
         .width = imageData->width,
@@ -1884,7 +1884,7 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
 
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
+//     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
 
     editor::assets::MaterialData materialData = m_assetDatabase->loadMaterial(id);
 
@@ -1901,16 +1901,16 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
     if (materialData.baseColor)
         values.color = tglm::vec4{ materialData.baseColor->data };
 
-    vkgfx::BufferMetadata metadata{
-        .usage = vkgfx::BufferUsage::UniformBuffer,
-        .location = vkgfx::BufferLocation::HostVisible,
-        .isMutable = false,
-    };
-    auto buffer = resourceManager.createBuffer(sizeof(values), nstl::move(metadata));
-    resourceManager.uploadBuffer(buffer, { &values, sizeof(values) });
-    m_editorGltfResources->additionalBuffers.push_back(buffer);
+//     vkgfx::BufferMetadata metadata{
+//         .usage = vkgfx::BufferUsage::UniformBuffer,
+//         .location = vkgfx::BufferLocation::HostVisible,
+//         .isMutable = false,
+//     };
+//     auto buffer = resourceManager.createBuffer(sizeof(values), nstl::move(metadata));
+//     resourceManager.uploadBuffer(buffer, { &values, sizeof(values) });
+//     m_editorGltfResources->additionalBuffers.push_back(buffer);
 
-    material.uniformBuffer = buffer;
+//     material.uniformBuffer = buffer;
 
     auto newBuffer = m_newRenderer->create_buffer({
         .size = sizeof(values),
@@ -1932,12 +1932,12 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
         if (m_editorGltfResources->images.find(imageId) == m_editorGltfResources->images.end())
             editorLoadImage(imageId);
 
-        auto textureHandle = resourceManager.createTexture(vkgfx::Texture{
-            .image = m_editorGltfResources->images[imageId],
-            .sampler = m_defaultSampler, // TODO create actual sampler
-        });
-
-        material.albedo = textureHandle;
+//         auto textureHandle = resourceManager.createTexture(vkgfx::Texture{
+//             .image = m_editorGltfResources->images[imageId],
+//             .sampler = m_defaultSampler, // TODO create actual sampler
+//         });
+// 
+//         material.albedo = textureHandle;
 
         // TODO create actual sampler
         descriptor_entries.push_back({ 1, {m_editorGltfResources->newImages[imageId], m_newDefaultSampler} });
@@ -1950,12 +1950,12 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
         if (m_editorGltfResources->images.find(imageId) == m_editorGltfResources->images.end())
             editorLoadImage(imageId);
 
-        auto textureHandle = resourceManager.createTexture(vkgfx::Texture{
-            .image = m_editorGltfResources->images[imageId],
-            .sampler = m_defaultSampler, // TODO create actual sampler
-            });
-
-        material.normalMap = textureHandle;
+//         auto textureHandle = resourceManager.createTexture(vkgfx::Texture{
+//             .image = m_editorGltfResources->images[imageId],
+//             .sampler = m_defaultSampler, // TODO create actual sampler
+//             });
+// 
+//         material.normalMap = textureHandle;
 
         // TODO create actual sampler
         descriptor_entries.push_back({ 2, {m_editorGltfResources->newImages[imageId], m_newDefaultSampler} });
@@ -1964,7 +1964,7 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
 
     DemoMaterial& demoMaterial = m_editorGltfResources->materials[id];
 
-    demoMaterial.handle = resourceManager.createMaterial(nstl::move(material));
+//     demoMaterial.handle = resourceManager.createMaterial(nstl::move(material));
 
     demoMaterial.buffer = newBuffer;
     demoMaterial.descriptorgroup = m_newRenderer->create_descriptorgroup({
@@ -1988,19 +1988,19 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
 
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
+//     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
 
     // Mesh buffer
     nstl::blob data = m_assetDatabase->loadMeshData(id);
 
-    vkgfx::BufferMetadata metadata{
-        .usage = vkgfx::BufferUsage::VertexIndexBuffer,
-        .location = vkgfx::BufferLocation::DeviceLocal,
-        .isMutable = false,
-    };
-    vkgfx::BufferHandle meshBufferHandle = resourceManager.createBuffer(data.size(), nstl::move(metadata));
-    resourceManager.uploadBuffer(meshBufferHandle, data);
-    m_editorGltfResources->meshBuffers[id] = meshBufferHandle;
+//     vkgfx::BufferMetadata metadata{
+//         .usage = vkgfx::BufferUsage::VertexIndexBuffer,
+//         .location = vkgfx::BufferLocation::DeviceLocal,
+//         .isMutable = false,
+//     };
+//     vkgfx::BufferHandle meshBufferHandle = resourceManager.createBuffer(data.size(), nstl::move(metadata));
+//     resourceManager.uploadBuffer(meshBufferHandle, data);
+//     m_editorGltfResources->meshBuffers[id] = meshBufferHandle;
 
     auto meshBuffer = m_newRenderer->create_buffer({
         .size = data.size(),
@@ -2023,7 +2023,7 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
 
         DemoPrimitive& demoPrimitive = demoMesh.primitives.emplace_back();
 
-        vkgfx::Mesh mesh;
+//         vkgfx::Mesh mesh;
 
         {
             auto findIndexType = [](editor::assets::DataComponentType componentType)
@@ -2063,10 +2063,10 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
 
             assert(primitiveData.indices.type == editor::assets::DataType::Scalar);
 
-            mesh.indexBuffer.buffer = m_editorGltfResources->meshBuffers[id];
-            mesh.indexBuffer.offset = primitiveData.indices.bufferOffset;
-            mesh.indexCount = primitiveData.indices.count;
-            mesh.indexType = findIndexType(primitiveData.indices.componentType);
+//             mesh.indexBuffer.buffer = m_editorGltfResources->meshBuffers[id];
+//             mesh.indexBuffer.offset = primitiveData.indices.bufferOffset;
+//             mesh.indexCount = primitiveData.indices.count;
+//             mesh.indexType = findIndexType(primitiveData.indices.componentType);
             // TODO use stride?
 
             demoPrimitive.indexBuffer = { meshBuffer, primitiveData.indices.bufferOffset };
@@ -2086,10 +2086,10 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
 
             demoPrimitive.vertexBuffers.push_back({ meshBuffer, attributeData.accessor.bufferOffset });
 
-            vkgfx::BufferWithOffset& attributeBuffer = mesh.vertexBuffers.emplace_back();
-            attributeBuffer.buffer = meshBufferHandle;
-            attributeBuffer.offset = attributeData.accessor.bufferOffset;
-
+//             vkgfx::BufferWithOffset& attributeBuffer = mesh.vertexBuffers.emplace_back();
+//             attributeBuffer.buffer = meshBufferHandle;
+//             attributeBuffer.offset = attributeData.accessor.bufferOffset;
+// 
             if (attributeData.semantic == editor::assets::AttributeSemantic::Color)
                 demoPrimitive.metadata.attributeSemanticsConfig.hasColor = true;
             if (attributeData.semantic == editor::assets::AttributeSemantic::Texcoord)
@@ -2099,18 +2099,18 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
             if (attributeData.semantic == editor::assets::AttributeSemantic::Tangent)
                 demoPrimitive.metadata.attributeSemanticsConfig.hasTangent = true;
 
-            vkgfx::AttributeType attributeType = findAttributeType(attributeData.accessor.type, attributeData.accessor.componentType);
+//             vkgfx::AttributeType attributeType = findAttributeType(attributeData.accessor.type, attributeData.accessor.componentType);
             gfx::attribute_type newAttributeType = newFindAttributeType(attributeData.accessor.type, attributeData.accessor.componentType);
 
-            vkgfx::VertexConfiguration::Binding& bindingConfig = demoPrimitive.metadata.vertexConfig.bindings.emplace_back();
-            bindingConfig.stride = attributeData.accessor.stride;
+//             vkgfx::VertexConfiguration::Binding& bindingConfig = demoPrimitive.metadata.vertexConfig.bindings.emplace_back();
+//             bindingConfig.stride = attributeData.accessor.stride;
 
-            size_t attributeIndex = demoPrimitive.metadata.vertexConfig.attributes.size(); // TODO check
-            vkgfx::VertexConfiguration::Attribute& attributeConfig = demoPrimitive.metadata.vertexConfig.attributes.emplace_back();
-            attributeConfig.binding = attributeIndex;
-            attributeConfig.location = *location;
-            attributeConfig.offset = 0; // TODO can be improved
-            attributeConfig.type = attributeType;
+//             size_t attributeIndex = demoPrimitive.metadata.vertexConfig.attributes.size(); // TODO check
+//             vkgfx::VertexConfiguration::Attribute& attributeConfig = demoPrimitive.metadata.vertexConfig.attributes.emplace_back();
+//             attributeConfig.binding = attributeIndex;
+//             attributeConfig.location = *location;
+//             attributeConfig.offset = 0; // TODO can be improved
+//             attributeConfig.type = attributeType;
 
             // TODO probably a single buffer can be used
             size_t buffer_index = demoPrimitive.metadata.newVertexConfig.buffer_bindings.size();
@@ -2135,7 +2135,7 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
 
         demoPrimitive.metadata.materialUuid = materialId;
 
-        demoPrimitive.handle = resourceManager.createMesh(nstl::move(mesh));
+//         demoPrimitive.handle = resourceManager.createMesh(nstl::move(mesh));
     }
 }
 
@@ -2210,20 +2210,20 @@ void DemoApplication::updateUI(float frameTime)
 void DemoApplication::drawFrame()
 {
     update();
+
     draw();
+//     drawTest();
 
-    drawTest();
-
-    m_renderer->setCameraTransform(m_cameraTransform);
-    m_renderer->setCameraParameters(m_cameraParameters);
-    m_renderer->setLightParameters(m_lightParameters);
-
-    for (auto const& demoObject : m_demoScene.objects)
-        m_renderer->addOneFrameTestObject(demoObject);
-    m_services.debugDraw().queueGeometry(*m_renderer);
-    m_imGuiDrawer->queueGeometry(*m_renderer);
-
-    m_renderer->draw();
+//     m_renderer->setCameraTransform(m_cameraTransform);
+//     m_renderer->setCameraParameters(m_cameraParameters);
+//     m_renderer->setLightParameters(m_lightParameters);
+// 
+//     for (auto const& demoObject : m_demoScene.objects)
+//         m_renderer->addOneFrameTestObject(demoObject);
+//     m_services.debugDraw().queueGeometry(*m_renderer);
+//     m_imGuiDrawer->queueGeometry(*m_renderer);
+// 
+//     m_renderer->draw();
 
     m_fpsDrawnFrames++;
 }
@@ -2248,7 +2248,7 @@ void DemoApplication::update()
 
 void DemoApplication::updateScene(float)
 {
-    m_services.debugDraw().box(m_lightParameters.position, tglm::quat::identity(), tglm::vec3{ 0.1f }, { 1.0f, 0.0f, 0.0f }, -1.0f);
+//     m_services.debugDraw().box(m_lightParameters.position, tglm::quat::identity(), tglm::vec3{ 0.1f }, { 1.0f, 0.0f, 0.0f }, -1.0f);
 }
 
 void DemoApplication::updateCamera(float dt)
@@ -2534,7 +2534,7 @@ void DemoApplication::createTestResources()
 
 #include <math.h>
 
-void DemoApplication::updateTest()
+void DemoApplication::drawTest()
 {
     static float time = 0.0f;
     time += 0.0016f;
@@ -2550,10 +2550,7 @@ void DemoApplication::updateTest()
 
     if (m_imGuiDrawer)
         m_imGuiDrawer->updateResources(*m_newRenderer);
-}
 
-void DemoApplication::drawTest()
-{
     m_newRenderer->begin_frame();
 
     m_newRenderer->renderpass_begin({
