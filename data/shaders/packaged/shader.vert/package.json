@@ -16,9 +16,9 @@
             "cmdline": "-g -O0 -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_TEXTURE-HAS_NORMAL_MAP\\shader.vert.spv",
             "compiler_version": [
-                "shaderc v2023.1 v2023.1",
-                "spirv-tools v2023.1 v2022.4-63-g63de608d",
-                "glslang 11.1.0-631-g1fb2f1d7",
+                "shaderc v2023.6 v2023.6",
+                "spirv-tools v2023.4 v2022.4-296-ge553b884",
+                "glslang 11.1.0-763-g76b52ebf",
                 "Target: SPIR-V 1.0"
             ]
         },
@@ -31,9 +31,9 @@
             "cmdline": "-g -O0 -DHAS_TANGENT -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_TANGENT-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.vert.spv",
             "compiler_version": [
-                "shaderc v2023.1 v2023.1",
-                "spirv-tools v2023.1 v2022.4-63-g63de608d",
-                "glslang 11.1.0-631-g1fb2f1d7",
+                "shaderc v2023.6 v2023.6",
+                "spirv-tools v2023.4 v2022.4-296-ge553b884",
+                "glslang 11.1.0-763-g76b52ebf",
                 "Target: SPIR-V 1.0"
             ]
         },
@@ -46,9 +46,9 @@
             "cmdline": "-g -O0 -DHAS_NORMAL -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_NORMAL-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.vert.spv",
             "compiler_version": [
-                "shaderc v2023.1 v2023.1",
-                "spirv-tools v2023.1 v2022.4-63-g63de608d",
-                "glslang 11.1.0-631-g1fb2f1d7",
+                "shaderc v2023.6 v2023.6",
+                "spirv-tools v2023.4 v2022.4-296-ge553b884",
+                "glslang 11.1.0-763-g76b52ebf",
                 "Target: SPIR-V 1.0"
             ]
         },
@@ -62,9 +62,9 @@
             "cmdline": "-g -O0 -DHAS_NORMAL -DHAS_TANGENT -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_NORMAL-HAS_TANGENT-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.vert.spv",
             "compiler_version": [
-                "shaderc v2023.1 v2023.1",
-                "spirv-tools v2023.1 v2022.4-63-g63de608d",
-                "glslang 11.1.0-631-g1fb2f1d7",
+                "shaderc v2023.6 v2023.6",
+                "spirv-tools v2023.4 v2022.4-296-ge553b884",
+                "glslang 11.1.0-763-g76b52ebf",
                 "Target: SPIR-V 1.0"
             ]
         },
@@ -77,9 +77,9 @@
             "cmdline": "-g -O0 -DHAS_TEX_COORD -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_TEX_COORD-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.vert.spv",
             "compiler_version": [
-                "shaderc v2023.1 v2023.1",
-                "spirv-tools v2023.1 v2022.4-63-g63de608d",
-                "glslang 11.1.0-631-g1fb2f1d7",
+                "shaderc v2023.6 v2023.6",
+                "spirv-tools v2023.4 v2022.4-296-ge553b884",
+                "glslang 11.1.0-763-g76b52ebf",
                 "Target: SPIR-V 1.0"
             ]
         },
@@ -93,9 +93,9 @@
             "cmdline": "-g -O0 -DHAS_TEX_COORD -DHAS_TANGENT -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_TEX_COORD-HAS_TANGENT-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.vert.spv",
             "compiler_version": [
-                "shaderc v2023.1 v2023.1",
-                "spirv-tools v2023.1 v2022.4-63-g63de608d",
-                "glslang 11.1.0-631-g1fb2f1d7",
+                "shaderc v2023.6 v2023.6",
+                "spirv-tools v2023.4 v2022.4-296-ge553b884",
+                "glslang 11.1.0-763-g76b52ebf",
                 "Target: SPIR-V 1.0"
             ]
         },
@@ -109,9 +109,9 @@
             "cmdline": "-g -O0 -DHAS_TEX_COORD -DHAS_NORMAL -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_TEX_COORD-HAS_NORMAL-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.vert.spv",
             "compiler_version": [
-                "shaderc v2023.1 v2023.1",
-                "spirv-tools v2023.1 v2022.4-63-g63de608d",
-                "glslang 11.1.0-631-g1fb2f1d7",
+                "shaderc v2023.6 v2023.6",
+                "spirv-tools v2023.4 v2022.4-296-ge553b884",
+                "glslang 11.1.0-763-g76b52ebf",
                 "Target: SPIR-V 1.0"
             ]
         },
@@ -126,9 +126,9 @@
             "cmdline": "-g -O0 -DHAS_TEX_COORD -DHAS_NORMAL -DHAS_TANGENT -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_TEX_COORD-HAS_NORMAL-HAS_TANGENT-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.vert.spv",
             "compiler_version": [
-                "shaderc v2023.1 v2023.1",
-                "spirv-tools v2023.1 v2022.4-63-g63de608d",
-                "glslang 11.1.0-631-g1fb2f1d7",
+                "shaderc v2023.6 v2023.6",
+                "spirv-tools v2023.4 v2022.4-296-ge553b884",
+                "glslang 11.1.0-763-g76b52ebf",
                 "Target: SPIR-V 1.0"
             ]
         },
@@ -141,9 +141,9 @@
             "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.vert.spv",
             "compiler_version": [
-                "shaderc v2023.1 v2023.1",
-                "spirv-tools v2023.1 v2022.4-63-g63de608d",
-                "glslang 11.1.0-631-g1fb2f1d7",
+                "shaderc v2023.6 v2023.6",
+                "spirv-tools v2023.4 v2022.4-296-ge553b884",
+                "glslang 11.1.0-763-g76b52ebf",
                 "Target: SPIR-V 1.0"
             ]
         },
@@ -157,9 +157,9 @@
             "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TANGENT -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_VERTEX_COLOR-HAS_TANGENT-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.vert.spv",
             "compiler_version": [
-                "shaderc v2023.1 v2023.1",
-                "spirv-tools v2023.1 v2022.4-63-g63de608d",
-                "glslang 11.1.0-631-g1fb2f1d7",
+                "shaderc v2023.6 v2023.6",
+                "spirv-tools v2023.4 v2022.4-296-ge553b884",
+                "glslang 11.1.0-763-g76b52ebf",
                 "Target: SPIR-V 1.0"
             ]
         },
@@ -173,9 +173,9 @@
             "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_NORMAL -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_VERTEX_COLOR-HAS_NORMAL-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.vert.spv",
             "compiler_version": [
-                "shaderc v2023.1 v2023.1",
-                "spirv-tools v2023.1 v2022.4-63-g63de608d",
-                "glslang 11.1.0-631-g1fb2f1d7",
+                "shaderc v2023.6 v2023.6",
+                "spirv-tools v2023.4 v2022.4-296-ge553b884",
+                "glslang 11.1.0-763-g76b52ebf",
                 "Target: SPIR-V 1.0"
             ]
         },
@@ -190,9 +190,9 @@
             "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_NORMAL -DHAS_TANGENT -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_VERTEX_COLOR-HAS_NORMAL-HAS_TANGENT-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.vert.spv",
             "compiler_version": [
-                "shaderc v2023.1 v2023.1",
-                "spirv-tools v2023.1 v2022.4-63-g63de608d",
-                "glslang 11.1.0-631-g1fb2f1d7",
+                "shaderc v2023.6 v2023.6",
+                "spirv-tools v2023.4 v2022.4-296-ge553b884",
+                "glslang 11.1.0-763-g76b52ebf",
                 "Target: SPIR-V 1.0"
             ]
         },
@@ -206,9 +206,9 @@
             "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.vert.spv",
             "compiler_version": [
-                "shaderc v2023.1 v2023.1",
-                "spirv-tools v2023.1 v2022.4-63-g63de608d",
-                "glslang 11.1.0-631-g1fb2f1d7",
+                "shaderc v2023.6 v2023.6",
+                "spirv-tools v2023.4 v2022.4-296-ge553b884",
+                "glslang 11.1.0-763-g76b52ebf",
                 "Target: SPIR-V 1.0"
             ]
         },
@@ -223,9 +223,9 @@
             "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD -DHAS_TANGENT -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD-HAS_TANGENT-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.vert.spv",
             "compiler_version": [
-                "shaderc v2023.1 v2023.1",
-                "spirv-tools v2023.1 v2022.4-63-g63de608d",
-                "glslang 11.1.0-631-g1fb2f1d7",
+                "shaderc v2023.6 v2023.6",
+                "spirv-tools v2023.4 v2022.4-296-ge553b884",
+                "glslang 11.1.0-763-g76b52ebf",
                 "Target: SPIR-V 1.0"
             ]
         },
@@ -240,9 +240,9 @@
             "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD -DHAS_NORMAL -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD-HAS_NORMAL-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.vert.spv",
             "compiler_version": [
-                "shaderc v2023.1 v2023.1",
-                "spirv-tools v2023.1 v2022.4-63-g63de608d",
-                "glslang 11.1.0-631-g1fb2f1d7",
+                "shaderc v2023.6 v2023.6",
+                "spirv-tools v2023.4 v2022.4-296-ge553b884",
+                "glslang 11.1.0-763-g76b52ebf",
                 "Target: SPIR-V 1.0"
             ]
         },
@@ -258,9 +258,9 @@
             "cmdline": "-g -O0 -DHAS_VERTEX_COLOR -DHAS_TEX_COORD -DHAS_NORMAL -DHAS_TANGENT -DHAS_TEXTURE -DHAS_NORMAL_MAP",
             "path": "shaders\\HAS_VERTEX_COLOR-HAS_TEX_COORD-HAS_NORMAL-HAS_TANGENT-HAS_TEXTURE-HAS_NORMAL_MAP\\shader.vert.spv",
             "compiler_version": [
-                "shaderc v2023.1 v2023.1",
-                "spirv-tools v2023.1 v2022.4-63-g63de608d",
-                "glslang 11.1.0-631-g1fb2f1d7",
+                "shaderc v2023.6 v2023.6",
+                "spirv-tools v2023.4 v2022.4-296-ge553b884",
+                "glslang 11.1.0-763-g76b52ebf",
                 "Target: SPIR-V 1.0"
             ]
         }
