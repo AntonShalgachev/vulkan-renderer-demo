@@ -648,45 +648,15 @@ void DemoApplication::init()
         .size = sizeof(ShaderViewProjectionData),
         .usage = gfx::buffer_usage::uniform,
         .location = gfx::buffer_location::host_visible,
-        .is_mutable = false, // TODO change
+        .is_mutable = true,
     });
 
     m_lightData = m_newRenderer->create_buffer({
         .size = sizeof(ShaderLightData),
         .usage = gfx::buffer_usage::uniform,
         .location = gfx::buffer_location::host_visible,
-        .is_mutable = false, // TODO change
+        .is_mutable = true,
     });
-
-    {
-        auto aspectRatio = m_newRenderer->get_main_framebuffer_aspect();
-
-        ShaderViewProjectionData viewProjectionData = {
-            .view = (tglm::translated(tglm::mat4::identity(), m_cameraTransform.position) * m_cameraTransform.rotation.to_mat4()).inversed(), // TODO rewrite this operation
-            .projection = tglm::perspective(tglm::radians(m_cameraParameters.fov), aspectRatio, m_cameraParameters.nearZ, m_cameraParameters.farZ),
-        };
-
-        viewProjectionData.projection.data[1][1] *= -1; // TODO fix this hack
-
-        m_newRenderer->buffer_upload_sync(m_viewProjectionData, { &viewProjectionData, sizeof(viewProjectionData) });
-
-        auto rotation = tglm::quat::from_euler_xyz(tglm::radians({ 0, 0, 0 })); // TODO fix
-
-        auto lightAspectRatio = 1.0f * SHADOWMAP_RESOLUTION / SHADOWMAP_RESOLUTION;
-        auto nearZ = 0.1f;
-        auto farZ = 10000.0f;
-
-        tglm::mat4 lightView = (tglm::translated(tglm::mat4::identity(), m_lightParameters.position) * rotation.to_mat4()).inversed(); // TODO rewrite this operation
-        tglm::mat4 lightProjection = tglm::perspective(tglm::radians(SHADOWMAP_FOV), lightAspectRatio, nearZ, farZ);
-
-        ShaderLightData lightData = {
-            .lightViewProjection = lightProjection * lightView,
-            .lightPosition = viewProjectionData.view * tglm::vec4(m_lightParameters.position, 1.0f),
-            .lightColor = m_lightParameters.intensity * m_lightParameters.color,
-        };
-
-        m_newRenderer->buffer_upload_sync(m_lightData, { &lightData, sizeof(lightData) });
-    }
 
     m_cameraDescriptorGroup = m_newRenderer->create_descriptorgroup({
         .entries = nstl::array{
@@ -2312,6 +2282,37 @@ void DemoApplication::updateCamera(float dt)
 void DemoApplication::draw()
 {
     m_newRenderer->begin_resource_update();
+
+    {
+        auto aspectRatio = m_newRenderer->get_main_framebuffer_aspect();
+
+        ShaderViewProjectionData viewProjectionData = {
+            .view = (tglm::translated(tglm::mat4::identity(), m_cameraTransform.position) * m_cameraTransform.rotation.to_mat4()).inversed(), // TODO rewrite this operation
+            .projection = tglm::perspective(tglm::radians(m_cameraParameters.fov), aspectRatio, m_cameraParameters.nearZ, m_cameraParameters.farZ),
+        };
+
+        viewProjectionData.projection.data[1][1] *= -1; // TODO fix this hack
+
+        m_newRenderer->buffer_upload_sync(m_viewProjectionData, { &viewProjectionData, sizeof(viewProjectionData) });
+
+        auto rotation = tglm::quat::from_euler_xyz(tglm::radians({ 0, 0, 0 })); // TODO fix
+
+        auto lightAspectRatio = 1.0f * SHADOWMAP_RESOLUTION / SHADOWMAP_RESOLUTION;
+        auto nearZ = 0.1f;
+        auto farZ = 10000.0f;
+
+        tglm::mat4 lightView = (tglm::translated(tglm::mat4::identity(), m_lightParameters.position) * rotation.to_mat4()).inversed(); // TODO rewrite this operation
+        tglm::mat4 lightProjection = tglm::perspective(tglm::radians(SHADOWMAP_FOV), lightAspectRatio, nearZ, farZ);
+
+        ShaderLightData lightData = {
+            .lightViewProjection = lightProjection * lightView,
+            .lightPosition = viewProjectionData.view * tglm::vec4(m_lightParameters.position, 1.0f),
+            .lightColor = m_lightParameters.intensity * m_lightParameters.color,
+        };
+
+        m_newRenderer->buffer_upload_sync(m_lightData, { &lightData, sizeof(lightData) });
+    }
+
     if (m_imGuiDrawer)
         m_imGuiDrawer->updateResources(*m_newRenderer);
 

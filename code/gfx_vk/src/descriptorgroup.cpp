@@ -12,8 +12,9 @@ namespace
 {
     struct temp_resources
     {
-        nstl::static_vector<VkDescriptorBufferInfo, 5> buffers;
-        nstl::static_vector<VkDescriptorImageInfo, 5> images;
+        // TODO remove this hack. static_vector is only needed to prevent reallocation
+        nstl::static_vector<VkDescriptorBufferInfo, 6> buffers;
+        nstl::static_vector<VkDescriptorImageInfo, 6> images;
     };
 
     void add_buffer_write(gfx_vk::context& context, temp_resources& resources, VkWriteDescriptorSet& write, gfx::buffer_handle buffer, size_t subresource_index)
