@@ -2,21 +2,24 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 // TODO move to an .h file?
-layout(set = 0, binding = 0) uniform FrameUniformBuffer {
+layout(set = 0, binding = 0) uniform FrameViewProjectionData {
     mat4 view;
     mat4 projection;
+} frameViewProjection;
+layout(set = 0, binding = 1) uniform FrameLightData {
+    mat4 lightViewProjection;
     vec3 lightPosition;
     vec3 lightColor;
-} frameUniforms;
+} frameLight;
 
-layout(push_constant) uniform PushConstants {
+layout(set = 1, binding = 0) uniform ObjectUniformBuffer {
     mat4 model;
-} pcs;
+} objectUniforms;
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
 
 void main()
 {
-	gl_Position = frameUniforms.projection * frameUniforms.view * pcs.model * vec4(inPosition, 1.0);
+	gl_Position = frameViewProjection.projection * frameViewProjection.view * objectUniforms.model * vec4(inPosition, 1.0);
 }

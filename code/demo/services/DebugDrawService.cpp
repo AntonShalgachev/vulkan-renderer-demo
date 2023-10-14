@@ -14,6 +14,8 @@
 
 #include "common/Utils.h"
 
+#include "gfx/renderer.h"
+
 #include "tglm/types.h"
 #include "tglm/affine.h"
 
@@ -26,162 +28,161 @@ namespace
 {
     auto debugDrawScopeId = memory::tracking::create_scope_id("Rendering/DebugDraw");
 
-    // normals: offset 0, stride 24, type vec3, count 24
-    // position: offset 12, stride 24, type vec3, count 24
-    // indices: offset 576, type unsigned short, count 36
-    static nstl::array<unsigned char, 648> const boxBuffer = {
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f, 0x00, 0x00, 0x00, 0xbf,
-        0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x80, 0x3f, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0x3f,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f, 0x00, 0x00, 0x00, 0xbf,
-        0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x80, 0x3f, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x3f,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f,
-        0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0xbf,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0x3f,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f,
-        0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0xbf,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0xbf,
-        0x00, 0x00, 0x80, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f,
-        0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x80, 0x3f, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0x3f,
-        0x00, 0x00, 0x80, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f,
-        0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x80, 0x3f, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0xbf,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xbf,
-        0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x3f,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xbf,
-        0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0xbf,
-        0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xbf,
-        0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x3f,
-        0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xbf,
-        0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0xbf,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x00, 0xbf,
-        0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0xbf,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x00, 0x3f,
-        0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0xbf, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x3f, 0x00, 0x00, 0x00, 0xbf,
-        0x00, 0x00, 0x01, 0x00, 0x02, 0x00, 0x03, 0x00, 0x02, 0x00, 0x01, 0x00, 0x04, 0x00, 0x05, 0x00,
-        0x06, 0x00, 0x07, 0x00, 0x06, 0x00, 0x05, 0x00, 0x08, 0x00, 0x09, 0x00, 0x0a, 0x00, 0x0b, 0x00,
-        0x0a, 0x00, 0x09, 0x00, 0x0c, 0x00, 0x0d, 0x00, 0x0e, 0x00, 0x0f, 0x00, 0x0e, 0x00, 0x0d, 0x00,
-        0x10, 0x00, 0x11, 0x00, 0x12, 0x00, 0x13, 0x00, 0x12, 0x00, 0x11, 0x00, 0x14, 0x00, 0x15, 0x00,
-        0x16, 0x00, 0x17, 0x00, 0x16, 0x00, 0x15, 0x00
+    struct BoxVertex
+    {
+        tglm::vec3 position;
+        tglm::vec3 normal;
     };
+
+    BoxVertex boxVertices[] = {
+        { {-0.5, -0.5, 0.5}, {0, 0, 1} },
+        { {0.5, -0.5, 0.5}, {0, 0, 1} },
+        { {-0.5, 0.5, 0.5}, {0, 0, 1} },
+        { {0.5, 0.5, 0.5}, {0, 0, 1} },
+        { {0.5, -0.5, 0.5}, {0, -1, 0} },
+        { {-0.5, -0.5, 0.5}, {0, -1, 0} },
+        { {0.5, -0.5, -0.5}, {0, -1, 0} },
+        { {-0.5, -0.5, -0.5}, {0, -1, 0} },
+        { {0.5, 0.5, 0.5}, {1, 0, 0} },
+        { {0.5, -0.5, 0.5}, {1, 0, 0} },
+        { {0.5, 0.5, -0.5}, {1, 0, 0} },
+        { {0.5, -0.5, -0.5}, {1, 0, 0} },
+        { {-0.5, 0.5, 0.5}, {0, 1, 0} },
+        { {0.5, 0.5, 0.5}, {0, 1, 0} },
+        { {-0.5, 0.5, -0.5}, {0, 1, 0} },
+        { {0.5, 0.5, -0.5}, {0, 1, 0} },
+        { {-0.5, -0.5, 0.5}, {-1, 0, 0} },
+        { {-0.5, 0.5, 0.5}, {-1, 0, 0} },
+        { {-0.5, -0.5, -0.5}, {-1, 0, 0} },
+        { {-0.5, 0.5, -0.5}, {-1, 0, 0} },
+        { {-0.5, -0.5, -0.5}, {0, 0, -1} },
+        { {-0.5, 0.5, -0.5}, {0, 0, -1} },
+        { {0.5, -0.5, -0.5}, {0, 0, -1} },
+        { {0.5, 0.5, -0.5}, {0, 0, -1} },
+    };
+
+    uint16_t boxIndices[] = {
+        0, 1, 2,
+        3, 2, 1,
+        4, 5, 6,
+        7, 6, 5,
+        8, 9, 10,
+        11, 10, 9,
+        12, 13, 14,
+        15, 14, 13,
+        16, 17, 18,
+        19, 18, 17,
+        20, 21, 22,
+        23, 22, 21,
+    };
+
+    constexpr size_t OBJECT_DATA_CAPACITY = 1024;
 }
 
-DebugDrawService::DebugDrawService(vkgfx::Renderer& renderer)
+DebugDrawService::DebugDrawService(gfx::renderer& renderer)
 {
     MEMORY_TRACKING_SCOPE(debugDrawScopeId);
 
-    vkgfx::ResourceManager& resources = renderer.getResourceManager();
+    m_vertexBuffer = renderer.create_buffer({
+        .size = sizeof(boxVertices),
+        .usage = gfx::buffer_usage::vertex_index,
+        .location = gfx::buffer_location::device_local,
+        .is_mutable = false,
+    });
+    renderer.buffer_upload_sync(m_vertexBuffer, { &boxVertices, sizeof(boxVertices) });
 
-    {
-        vkgfx::BufferMetadata metadata{
-        .usage = vkgfx::BufferUsage::VertexIndexBuffer,
-        .location = vkgfx::BufferLocation::DeviceLocal,
-        .isMutable = false,
-        };
-        m_buffer = resources.createBuffer(boxBuffer.size(), metadata);
-        resources.uploadBuffer(m_buffer, boxBuffer);
-    }
+    m_indexBuffer = renderer.create_buffer({
+        .size = sizeof(boxIndices),
+        .usage = gfx::buffer_usage::vertex_index,
+        .location = gfx::buffer_location::device_local,
+        .is_mutable = false,
+    });
+    renderer.buffer_upload_sync(m_indexBuffer, { &boxIndices, sizeof(boxIndices) });
 
-    {
-        vkgfx::Mesh mesh = {
-            .vertexBuffers = {{m_buffer, 0}},
-            .indexBuffer = {m_buffer, 576},
-            .indexCount = 36,
-            .indexType = vkgfx::IndexType::UnsignedShort,
-            .indexOffset = 0,
-            .vertexOffset = 0,
-        };
+    m_objectBuffer = renderer.create_buffer({
+        .size = OBJECT_DATA_CAPACITY * sizeof(ObjectData),
+        .usage = gfx::buffer_usage::uniform,
+        .location = gfx::buffer_location::host_visible,
+        .is_mutable = true,
+    });
 
-        m_mesh = resources.createMesh(nstl::move(mesh));
-    }
+    m_objectDescriptorGroup = renderer.create_descriptorgroup({
+        .entries = nstl::array{
+            gfx::descriptorgroup_entry{0, {m_objectBuffer}},
+        }
+    });
 
-    vkgfx::ShaderModuleHandle vertexShaderModule;
-    vkgfx::ShaderModuleHandle fragmentShaderModule;
-
-    // TODO remove duplication in DemoApplication::createUIResources
     {
         ShaderPackage package{ "data/shaders/packaged/debugdraw.vert" };
         nstl::string const* path = package.get({});
         assert(path);
-        if (path)
-            vertexShaderModule = resources.createShaderModule(vkc::utils::readBinaryFile(*path), vko::ShaderModuleType::Vertex, "main");
+
+        m_vertexShader = renderer.create_shader({
+            .filename = *path,
+            .stage = gfx::shader_stage::vertex,
+        });
     }
 
     {
         ShaderPackage package{ "data/shaders/packaged/debugdraw.frag" };
         nstl::string const* path = package.get({});
         assert(path);
-        if (path)
-            fragmentShaderModule = resources.createShaderModule(vkc::utils::readBinaryFile(*path), vko::ShaderModuleType::Fragment, "main");
+
+        m_fragmentShader = renderer.create_shader({
+            .filename = *path,
+            .stage = gfx::shader_stage::fragment,
+        });
     }
 
-    {
-        vkgfx::PipelineKey key;
-        key.shaderHandles = { vertexShaderModule, fragmentShaderModule };
-        key.uniformConfigs = {
-            // TODO remove unnecessary configs
-            vkgfx::UniformConfiguration{
-                .hasBuffer = true,
-                .hasAlbedoTexture = false,
-                .hasNormalMap = false,
-                .hasShadowMap = true,
+    // TODO have its own renderpass
+    m_renderstate = renderer.create_renderstate({
+        .shaders = nstl::array{ m_vertexShader, m_fragmentShader },
+        .renderpass = renderer.get_main_renderpass(),
+        .vertex_config = {
+            .buffer_bindings = nstl::array{
+                gfx::buffer_binding_description{ .buffer_index = 0, .stride = 24 }
             },
-            vkgfx::UniformConfiguration{
-                .hasBuffer = false,
-                .hasAlbedoTexture = false,
-                .hasNormalMap = false,
-            },
-            vkgfx::UniformConfiguration{
-                .hasBuffer = false,
-                .hasAlbedoTexture = false,
-                .hasNormalMap = false,
-            },
-        };
-        key.vertexConfig = {
-            .bindings = {
-                vkgfx::VertexConfiguration::Binding{
-                    .stride = 24,
-                },
-            },
-            .attributes = {
-                vkgfx::VertexConfiguration::Attribute{
-                    .binding = 0,
+            .attributes = nstl::array{
+                gfx::attribute_description{
                     .location = 0,
-                    .offset = 12,
-                    .type = vkgfx::AttributeType::Vec3f,
+                    .buffer_binding_index = 0,
+                    .offset = offsetof(BoxVertex, position),
+                    .type = gfx::attribute_type::vec3f,
                 },
-                vkgfx::VertexConfiguration::Attribute{
-                    .binding = 0,
+                gfx::attribute_description{
                     .location = 1,
-                    .offset = 0,
-                    .type = vkgfx::AttributeType::Vec3f,
+                    .buffer_binding_index = 0,
+                    .offset = offsetof(BoxVertex, normal),
+                    .type = gfx::attribute_type::vec3f,
                 },
             },
-            .topology = vkgfx::VertexTopology::Triangles,
-        };
-        key.renderConfig = {
-            .cullBackfaces = false,
-            .wireframe = true,
-            .depthTest = true,
-            .alphaBlending = false,
-        };
-        key.pushConstantRanges = {
-            vkgfx::PushConstantRange{
-                .offset = 0,
-                .size = sizeof(tglm::mat4),
+            .topology = gfx::vertex_topology::triangles,
+        },
+        .descriptorgroup_layouts = nstl::array{
+            // TODO get the first descriptorgroup layout from the outside
+            gfx::descriptorgroup_layout_view{
+                .entries = nstl::array{
+                    gfx::descriptor_layout_entry{ 0, gfx::descriptor_type::buffer },
+                    gfx::descriptor_layout_entry{ 1, gfx::descriptor_type::buffer },
+                },
             },
-        };
-
-        m_pipeline = resources.getOrCreatePipeline(nstl::move(key));
-    }
+            gfx::descriptorgroup_layout_view{
+                .entries = nstl::array{
+                    gfx::descriptor_layout_entry{
+                        .location = 0,
+                        .type = gfx::descriptor_type::buffer,
+                    }
+                },
+            },
+        },
+        .flags = {
+            .cull_backfaces = false,
+            .wireframe = true,
+            .depth_test = true,
+            .alpha_blending = false,
+            .depth_bias = false,
+        },
+    });
 }
 
 DebugDrawService::~DebugDrawService() = default;
@@ -192,27 +193,32 @@ void DebugDrawService::box(tglm::vec3 const& center, tglm::quat const& rotation,
 
     MEMORY_TRACKING_SCOPE(debugDrawScopeId);
 
-    auto matrix = tglm::mat4::identity();
+    assert(m_objectData.size() < OBJECT_DATA_CAPACITY);
+    ObjectData& data = m_objectData.emplace_back();
 
-    tglm::translate(matrix, center);
-    tglm::rotate(matrix, rotation);
-    tglm::scale(matrix, scale);
-
-    nstl::static_vector<unsigned char, vkgfx::MaxPushConstantsSize> pushConstants;
-    pushConstants.resize(sizeof(matrix));
-    memcpy(pushConstants.data(), &matrix, sizeof(matrix));
-
-    vkgfx::TestObject& object = m_objects.emplace_back();
-    object.pipeline = m_pipeline;
-    object.mesh = m_mesh;
-    object.pushConstants = nstl::move(pushConstants);
+    data.model = tglm::mat4::identity();
+    tglm::translate(data.model, center);
+    tglm::rotate(data.model, rotation);
+    tglm::scale(data.model, scale);
 }
 
-void DebugDrawService::queueGeometry(vkgfx::Renderer& renderer)
+void DebugDrawService::updateResources(gfx::renderer& renderer)
 {
-    MEMORY_TRACKING_SCOPE(debugDrawScopeId);
+    renderer.buffer_upload_sync(m_objectBuffer, { m_objectData.data(), m_objectData.size() * sizeof(ObjectData) });
 
-    for (auto&& object : m_objects)
-        renderer.addOneFrameTestObject(nstl::move(object));
-    m_objects.clear();
+    m_objectData.clear();
+}
+
+void DebugDrawService::draw(gfx::renderer& renderer, gfx::descriptorgroup_handle cameraDescriptorGroup)
+{
+    renderer.draw_indexed({
+        .renderstate = m_renderstate,
+        .descriptorgroups = nstl::array{ cameraDescriptorGroup, m_objectDescriptorGroup },
+
+        .vertex_buffers = nstl::array{ gfx::buffer_with_offset{ m_vertexBuffer } },
+        .index_buffer = { m_indexBuffer },
+        .index_type = gfx::index_type::uint16,
+
+        .index_count = sizeof(boxIndices) / sizeof(boxIndices[0]),
+    });
 }

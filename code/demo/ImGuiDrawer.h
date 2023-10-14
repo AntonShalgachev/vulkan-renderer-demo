@@ -1,9 +1,13 @@
 #pragma once
 
 #include "gfx/resources.h"
-#include "gfx/renderer.h"
 
 struct ImDrawData;
+
+namespace gfx
+{
+    class renderer;
+}
 
 class ImGuiDrawer
 {

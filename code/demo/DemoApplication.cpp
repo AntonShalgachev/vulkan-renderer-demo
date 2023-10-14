@@ -701,7 +701,7 @@ void DemoApplication::init()
 
 //     m_renderer = nstl::make_unique<vkgfx::Renderer>("Vulkan demo with new API", m_validationEnabled, *m_window, messageCallback);
 
-//     m_services.setDebugDraw(nstl::make_unique<DebugDrawService>(*m_renderer));
+    m_services.setDebugDraw(nstl::make_unique<DebugDrawService>(*m_newRenderer));
 
     loadImgui();
 
@@ -2248,7 +2248,7 @@ void DemoApplication::update()
 
 void DemoApplication::updateScene(float)
 {
-//     m_services.debugDraw().box(m_lightParameters.position, tglm::quat::identity(), tglm::vec3{ 0.1f }, { 1.0f, 0.0f, 0.0f }, -1.0f);
+    m_services.debugDraw().box(m_lightParameters.position, tglm::quat::identity(), tglm::vec3{ 0.1f }, { 1.0f, 0.0f, 0.0f }, -1.0f);
 }
 
 void DemoApplication::updateCamera(float dt)
@@ -2313,6 +2313,8 @@ void DemoApplication::draw()
         m_newRenderer->buffer_upload_sync(m_lightData, { &lightData, sizeof(lightData) });
     }
 
+    m_services.debugDraw().updateResources(*m_newRenderer);
+
     if (m_imGuiDrawer)
         m_imGuiDrawer->updateResources(*m_newRenderer);
 
@@ -2338,6 +2340,8 @@ void DemoApplication::draw()
             .vertex_offset = 0,
         });
     }
+
+    m_services.debugDraw().draw(*m_newRenderer, m_cameraDescriptorGroup);
 
     // TODO should be in its own renderpass
     if (m_imGuiDrawer)
