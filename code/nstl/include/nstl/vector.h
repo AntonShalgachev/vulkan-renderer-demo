@@ -230,14 +230,14 @@ void nstl::vector<T>::resize(size_t new_size, T const& value)
 template<typename T>
 void nstl::vector<T>::push_back(T item)
 {
-    size_t nextSize = size() + 1;
-    reserve(nextSize);
-    NSTL_ASSERT(capacity() >= nextSize);
+    size_t next_size = size() + 1;
+    reserve(next_size);
+    NSTL_ASSERT(capacity() >= next_size);
 
     if constexpr (nstl::is_trivial_v<T>)
     {
         *end() = nstl::move(item);
-        m_buffer.resize(nextSize);
+        m_buffer.resize(next_size);
     }
     else
     {
@@ -284,14 +284,14 @@ template<typename T>
 template<typename... Args>
 T& nstl::vector<T>::emplace_back(Args&&... args)
 {
-    size_t nextSize = size() + 1;
-    reserve(nextSize);
-    NSTL_ASSERT(capacity() >= nextSize);
+    size_t next_size = size() + 1;
+    reserve(next_size);
+    NSTL_ASSERT(capacity() >= next_size);
 
     if constexpr (nstl::is_trivial_v<T>)
     {
         *end() = T{ nstl::forward<Args>(args)... };
-        m_buffer.resize(nextSize);
+        m_buffer.resize(next_size);
         return back();
     }
     else
