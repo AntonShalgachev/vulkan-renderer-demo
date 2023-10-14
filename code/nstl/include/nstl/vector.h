@@ -38,9 +38,9 @@ namespace nstl
         vector& operator=(vector const& rhs);
         vector& operator=(vector&& rhs) noexcept;
 
-        void reserve(size_t newCapacity);
-        void resize(size_t newSize);
-        void resize(size_t newSize, T const& value);
+        void reserve(size_t new_capacity);
+        void resize(size_t new_size);
+        void resize(size_t new_size, T const& value);
 
         void push_back(T item);
         void pop_back();
@@ -83,7 +83,7 @@ namespace nstl
         operator span<T const>() const;
 
     private:
-        void grow(size_t newCapacity);
+        void grow(size_t new_capacity);
 
     private:
         buffer m_buffer;
@@ -91,6 +91,23 @@ namespace nstl
 }
 
 //////////////////////////////////////////////////////////////////////////
+
+namespace nstl::detail
+{
+    inline size_t next_pow2(size_t v)
+    {
+        // TODO use __builtin_clzl or _BitScanForward64
+        v--;
+        v |= v >> 1;
+        v |= v >> 2;
+        v |= v >> 4;
+        v |= v >> 8;
+        v |= v >> 16;
+        v++;
+
+        return v;
+    }
+}
 
 template<typename T>
 nstl::vector<T>::vector(any_allocator alloc) : m_buffer(0, sizeof(T), nstl::move(alloc))
@@ -156,58 +173,58 @@ template<typename T>
 nstl::vector<T>& nstl::vector<T>::operator=(vector && rhs) noexcept = default;
 
 template<typename T>
-void nstl::vector<T>::reserve(size_t newCapacity)
+void nstl::vector<T>::reserve(size_t new_capacity)
 {
-    if (newCapacity > capacity())
-        grow(newCapacity);
+    if (new_capacity > capacity())
+        grow(new_capacity);
 }
 
 template<typename T>
-void nstl::vector<T>::resize(size_t newSize)
+void nstl::vector<T>::resize(size_t new_size)
 {
-    if (newSize > capacity())
-        grow(newSize);
+    if (new_size > capacity())
+        grow(new_size);
 
-    NSTL_ASSERT(capacity() >= newSize);
+    NSTL_ASSERT(capacity() >= new_size);
 
     if constexpr (nstl::is_trivial_v<T>)
     {
-        m_buffer.resize(newSize);
+        m_buffer.resize(new_size);
     }
     else
     {
-        while (size() > newSize)
+        while (size() > new_size)
             m_buffer.destructLast<T>();
-        while (size() < newSize)
+        while (size() < new_size)
             m_buffer.constructNext<T>();
     }
 
-    NSTL_ASSERT(size() == newSize);
+    NSTL_ASSERT(size() == new_size);
 }
 
 template<typename T>
-void nstl::vector<T>::resize(size_t newSize, T const& value)
+void nstl::vector<T>::resize(size_t new_size, T const& value)
 {
-    if (newSize > capacity())
-        grow(newSize);
+    if (new_size > capacity())
+        grow(new_size);
 
-    NSTL_ASSERT(capacity() >= newSize);
+    NSTL_ASSERT(capacity() >= new_size);
 
     if constexpr (nstl::is_trivial_v<T>)
     {
-        for (size_t s = size(); s < newSize; s++)
+        for (size_t s = size(); s < new_size; s++)
             *(begin() + s) = value;
-        m_buffer.resize(newSize);
+        m_buffer.resize(new_size);
     }
     else
     {
-        while (size() > newSize)
+        while (size() > new_size)
             m_buffer.destructLast<T>();
-        while (size() < newSize)
+        while (size() < new_size)
             m_buffer.constructNext<T>(value);
     }
 
-    NSTL_ASSERT(size() == newSize);
+    NSTL_ASSERT(size() == new_size);
 }
 
 template<typename T>
@@ -437,10 +454,12 @@ nstl::vector<T>::operator nstl::span<T const>() const
 }
 
 template<typename T>
-void nstl::vector<T>::grow(size_t newCapacity)
+void nstl::vector<T>::grow(size_t new_capacity)
 {
+    new_capacity = detail::next_pow2(new_capacity);
+
     // TODO don't copy allocator
-    buffer newBuffer{ newCapacity, sizeof(T), m_buffer.get_allocator() };
+    buffer newBuffer{ new_capacity, sizeof(T), m_buffer.get_allocator() };
 
     if constexpr (nstl::is_trivial_v<T>)
     {
@@ -459,5 +478,5 @@ void nstl::vector<T>::grow(size_t newCapacity)
 
     m_buffer = nstl::move(newBuffer);
 
-    NSTL_ASSERT(m_buffer.capacity() == newCapacity);
+    NSTL_ASSERT(m_buffer.capacity() == new_capacity);
 }
