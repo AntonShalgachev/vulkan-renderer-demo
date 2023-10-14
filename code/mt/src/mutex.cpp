@@ -4,7 +4,7 @@
 
 mt::mutex::mutex()
 {
-    bool result = platform::mutex_create(m_storage);
+    [[maybe_unused]] bool result = platform::mutex_create(m_storage);
     assert(result);
 }
 

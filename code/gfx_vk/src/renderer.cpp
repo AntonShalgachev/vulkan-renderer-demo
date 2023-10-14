@@ -49,7 +49,7 @@ gfx::framebuffer_handle gfx_vk::renderer::acquire_main_framebuffer()
     frame_resources& resources = get_current_frame_resources();
 
     uint32_t image_index = 0;
-    VkResult result = vkAcquireNextImageKHR(m_context.get_device().getHandle(), m_swapchain->get_handle(), UINT64_MAX, resources.image_available_semaphore.getHandle(), VK_NULL_HANDLE, &image_index);
+    [[maybe_unused]] VkResult result = vkAcquireNextImageKHR(m_context.get_device().getHandle(), m_swapchain->get_handle(), UINT64_MAX, resources.image_available_semaphore.getHandle(), VK_NULL_HANDLE, &image_index);
     assert(result == VK_SUCCESS); // TODO handle swapchain resize
 
     m_swapchain_image_index = image_index;
@@ -212,7 +212,7 @@ void gfx_vk::renderer::submit()
         .pResults = nullptr,
     };
 
-    VkResult result = vkQueuePresentKHR(m_context.get_device().getPresentQueue().getHandle(), &info);
+    [[maybe_unused]] VkResult result = vkQueuePresentKHR(m_context.get_device().getPresentQueue().getHandle(), &info);
     assert(result == VK_SUCCESS);
 }
 

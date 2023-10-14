@@ -116,7 +116,7 @@ void yyjsoncpp::mutable_object_ref::add(string_view name, mutable_value_ref valu
 {
     assert(m_doc->is_valid());
     mutable_value_ref key = m_doc->create_string(name);
-    bool result = yyjson_mut_obj_add(m_handle, key.m_handle, value.m_handle);
+    [[maybe_unused]] bool result = yyjson_mut_obj_add(m_handle, key.m_handle, value.m_handle);
     assert(result);
 }
 

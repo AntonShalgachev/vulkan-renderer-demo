@@ -81,7 +81,7 @@ namespace
             return m_ptr;
         }
 
-        void free(void* ptr)
+        void free([[maybe_unused]] void* ptr)
         {
             assert(ptr == m_ptr);
 
@@ -245,7 +245,7 @@ yyjsoncpp::string yyjsoncpp::mutable_doc::write(write_flags flags)
 
     size_t length = 0;
     yyjson_write_err result;
-    char* str_ptr = yyjson_mut_write_opts(m_handle, yyflags, &alc, &length, &result);
+    [[maybe_unused]] char* str_ptr = yyjson_mut_write_opts(m_handle, yyflags, &alc, &length, &result);
     assert(str_ptr);
     assert(result.code == YYJSON_WRITE_SUCCESS);
 

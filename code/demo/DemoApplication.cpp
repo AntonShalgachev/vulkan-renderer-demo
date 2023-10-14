@@ -558,7 +558,7 @@ void DemoApplication::run()
     auto const& lines = m_services.commandLine().get("--exec-before-run");
     for (auto const& line : lines)
     {
-        bool success = m_services.debugConsole().execute(line);
+        [[maybe_unused]] bool success = m_services.debugConsole().execute(line);
         assert(success);
     }
 
@@ -626,7 +626,7 @@ void DemoApplication::init()
     auto const& lines = m_services.commandLine().get("--exec-before-init");
     for (auto const& line : lines)
     {
-        bool success = m_services.debugConsole().execute(line);
+        [[maybe_unused]] bool success = m_services.debugConsole().execute(line);
         assert(success);
     }
 
@@ -856,7 +856,7 @@ DemoScene DemoApplication::createDemoScene(cgltf_data const& gltfModel, cgltf_sc
     MEMORY_TRACKING_SCOPE(scopeId);
 
     // TODO is there a better way?
-    auto findIndex = [](auto const* object, auto const* firstObject, size_t count) -> size_t
+    auto findIndex = [](auto const* object, auto const* firstObject, [[maybe_unused]] size_t count) -> size_t
     {
         size_t index = object - firstObject;
         assert(index >= 0);
@@ -878,7 +878,7 @@ DemoScene DemoApplication::createDemoScene(cgltf_data const& gltfModel, cgltf_sc
 void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, size_t nodeIndex, tglm::mat4 parentTransform, DemoScene& scene) const
 {
     // TODO is there a better way?
-    auto findIndex = [](auto const* object, auto const* firstObject, size_t count) -> size_t
+    auto findIndex = [](auto const* object, auto const* firstObject, [[maybe_unused]] size_t count) -> size_t
     {
         size_t index = object - firstObject;
         assert(index >= 0);
@@ -1112,7 +1112,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     m_gltfResources->additionalBuffers.reserve(model.materials_count + totalMeshes);
 
     // TODO is there a better way?
-    auto findIndex = [](auto const* object, auto const* firstObject, size_t count) -> size_t
+    auto findIndex = [](auto const* object, auto const* firstObject, [[maybe_unused]] size_t count) -> size_t
     {
         size_t index = object - firstObject;
         assert(index >= 0);

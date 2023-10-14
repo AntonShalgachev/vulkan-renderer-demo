@@ -73,7 +73,7 @@ size_t yyjsoncpp::array_ref::size() const
 
 void yyjsoncpp::mutable_array_ref::push_back(mutable_value_ref value)
 {
-    bool result = yyjson_mut_arr_append(m_handle, value.m_handle);
+    [[maybe_unused]] bool result = yyjson_mut_arr_append(m_handle, value.m_handle);
     assert(result);
 }
 

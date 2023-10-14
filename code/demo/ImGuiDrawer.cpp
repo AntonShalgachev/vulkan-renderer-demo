@@ -324,8 +324,8 @@ void ImGuiDrawer::uploadBuffers(gfx::renderer& renderer, ImDrawData const* drawD
     if (drawData->TotalVtxCount <= 0)
         return;
 
-    size_t vertexBufferSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
-    size_t indexBufferSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
+    [[maybe_unused]] size_t vertexBufferSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
+    [[maybe_unused]] size_t indexBufferSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
 
     assert(vertexBufferSize <= VERTEX_BUFFER_CAPACITY);
     assert(indexBufferSize <= INDEX_BUFFER_CAPACITY);

@@ -37,7 +37,7 @@ namespace logging
         MEMORY_TRACKING_SCOPE(get_scope_id());
 
         log_writer out{};
-        bool res = picofmt::format_to(out, "{}({},{}): [{:!}] {}\n", loc.file_name(), loc.line(), loc.column(), level, str);
+        [[maybe_unused]] bool res = picofmt::format_to(out, "{}({},{}): [{:!}] {}\n", loc.file_name(), loc.line(), loc.column(), level, str);
         assert(res);
     }
 

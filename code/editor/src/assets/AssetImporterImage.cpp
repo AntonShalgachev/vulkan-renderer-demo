@@ -72,7 +72,7 @@ namespace
 
         nstl::vector<unsigned char> bytes;
         memory_stream stream{ bytes };
-        bool result = tiny_ktx::write_image(params, stream);
+        [[maybe_unused]] bool result = tiny_ktx::write_image(params, stream);
         assert(result);
 
         return bytes;

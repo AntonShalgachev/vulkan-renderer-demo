@@ -23,7 +23,7 @@ bool fs::file::try_open(nstl::string_view filename, open_mode mode)
 
 void fs::file::open(nstl::string_view filename, open_mode mode)
 {
-    bool res = try_open(filename, mode);
+    [[maybe_unused]] bool res = try_open(filename, mode);
     assert(res);
     assert(m_is_open);
 }
@@ -56,7 +56,7 @@ bool fs::file::try_read(void* data, size_t size, size_t offset)
 
 void fs::file::read(void* data, size_t size, size_t offset)
 {
-    bool res = try_read(data, size, offset);
+    [[maybe_unused]] bool res = try_read(data, size, offset);
     assert(res);
 }
 
@@ -68,6 +68,6 @@ bool fs::file::try_write(void const* data, size_t size, size_t offset)
 
 void fs::file::write(void const* data, size_t size, size_t offset)
 {
-    bool res = try_write(data, size, offset);
+    [[maybe_unused]] bool res = try_write(data, size, offset);
     assert(res);
 }

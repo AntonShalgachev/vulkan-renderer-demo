@@ -39,7 +39,7 @@ namespace
     };
 
     template<typename T>
-    size_t findIndex(T const* object, T const* first, size_t count)
+    size_t findIndex(T const* object, T const* first, [[maybe_unused]] size_t count)
     {
         size_t index = object - first;
         assert(index >= 0);
@@ -638,8 +638,8 @@ nstl::vector<editor::assets::Uuid> editor::assets::AssetImporterGltf::parseGltfD
 
        nstl::string_view uri = buffer.uri;
 
-       bool isDataUri = uri.starts_with("data:");
-       bool hasSchema = uri.find("://") != nstl::string_view::npos;
+       [[maybe_unused]] bool isDataUri = uri.starts_with("data:");
+       [[maybe_unused]] bool hasSchema = uri.find("://") != nstl::string_view::npos;
 
        assert(!isDataUri); // TODO implement
        assert(!hasSchema); // TODO implement?
