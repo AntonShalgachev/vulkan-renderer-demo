@@ -156,16 +156,16 @@ namespace gfx
 
     enum class descriptor_type
     {
-        buffer,
+        uniform_buffer,
         combined_image_sampler,
     };
 
     struct descriptorgroup_ref
     {
-        descriptorgroup_ref(buffer_handle buffer) : type(descriptor_type::buffer), buffer(buffer) {}
+        descriptorgroup_ref(buffer_handle buffer) : type(descriptor_type::uniform_buffer), buffer(buffer) {}
         descriptorgroup_ref(image_handle image, sampler_handle sampler) : type(descriptor_type::combined_image_sampler), combined_image_sampler({image, sampler}) {}
 
-        descriptor_type type = descriptor_type::buffer;
+        descriptor_type type = descriptor_type::uniform_buffer;
 
         union
         {
@@ -293,7 +293,7 @@ namespace gfx
     struct descriptor_layout_entry
     {
         size_t location = 0;
-        descriptor_type type = descriptor_type::buffer;
+        descriptor_type type = descriptor_type::uniform_buffer;
 
         bool operator==(descriptor_layout_entry const& rhs) const = default;
     };

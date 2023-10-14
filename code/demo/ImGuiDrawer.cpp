@@ -296,7 +296,7 @@ void ImGuiDrawer::createPipeline(gfx::renderer& renderer)
                 .entries = nstl::array{
                     gfx::descriptor_layout_entry{
                         .location = 0,
-                        .type = gfx::descriptor_type::buffer,
+                        .type = gfx::descriptor_type::uniform_buffer,
                     }
                 },
             },

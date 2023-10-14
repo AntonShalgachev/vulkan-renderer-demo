@@ -1680,15 +1680,15 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                     .descriptorgroup_layouts = nstl::array{
                         gfx::descriptorgroup_layout_view {
                             .entries = nstl::array{
-                                gfx::descriptor_layout_entry{0, gfx::descriptor_type::buffer},
-                                gfx::descriptor_layout_entry{1, gfx::descriptor_type::buffer},
+                                gfx::descriptor_layout_entry{0, gfx::descriptor_type::uniform_buffer},
+                                gfx::descriptor_layout_entry{1, gfx::descriptor_type::uniform_buffer},
 //                                 gfx::descriptor_layout_entry{3, gfx::descriptor_type::combined_image_sampler}, // TODO enable
                             },
                         },
                         material.metadata.newUniformConfig,
                         gfx::descriptorgroup_layout_view {
                             .entries = nstl::array{
-                                gfx::descriptor_layout_entry{0, gfx::descriptor_type::buffer},
+                                gfx::descriptor_layout_entry{0, gfx::descriptor_type::uniform_buffer},
                             },
                         },
                     },
@@ -1730,7 +1730,7 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                     .descriptorgroup_layouts = nstl::array{
                         gfx::descriptorgroup_layout_view {
                             .entries = nstl::array{
-                                gfx::descriptor_layout_entry{0, gfx::descriptor_type::buffer},
+                                gfx::descriptor_layout_entry{0, gfx::descriptor_type::uniform_buffer},
                             },
                         },
                         gfx::descriptorgroup_layout_view {
@@ -1738,7 +1738,7 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                         },
                         gfx::descriptorgroup_layout_view {
                             .entries = nstl::array{
-                                gfx::descriptor_layout_entry{0, gfx::descriptor_type::buffer},
+                                gfx::descriptor_layout_entry{0, gfx::descriptor_type::uniform_buffer},
                             },
                         },
                     },
@@ -1924,7 +1924,7 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
     nstl::vector<gfx::descriptorgroup_entry> descriptor_entries;
     nstl::vector<gfx::descriptor_layout_entry> descriptor_layout_entries;
     descriptor_entries.push_back({ 0, newBuffer });
-    descriptor_layout_entries.push_back({ 0, gfx::descriptor_type::buffer });
+    descriptor_layout_entries.push_back({ 0, gfx::descriptor_type::uniform_buffer });
 
     if (materialData.baseColorTexture)
     {
@@ -2517,17 +2517,17 @@ void DemoApplication::createTestResources()
             .descriptorgroup_layouts = nstl::array{
                 gfx::descriptorgroup_layout_view {
                     .entries = nstl::array{
-                        gfx::descriptor_layout_entry{0, gfx::descriptor_type::buffer},
+                        gfx::descriptor_layout_entry{0, gfx::descriptor_type::uniform_buffer},
                     },
                 },
                 gfx::descriptorgroup_layout_view {
                     .entries = nstl::array{
-                        gfx::descriptor_layout_entry{0, gfx::descriptor_type::buffer},
+                        gfx::descriptor_layout_entry{0, gfx::descriptor_type::uniform_buffer},
                     },
                 },
                 gfx::descriptorgroup_layout_view {
                     .entries = nstl::array{
-                        gfx::descriptor_layout_entry{0, gfx::descriptor_type::buffer},
+                        gfx::descriptor_layout_entry{0, gfx::descriptor_type::uniform_buffer},
                     },
                 },
             },

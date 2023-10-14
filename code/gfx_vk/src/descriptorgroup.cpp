@@ -63,7 +63,7 @@ gfx_vk::descriptorgroup::descriptorgroup(context& context, gfx::descriptorgroup_
         bool is_resource_mutable = false;
         switch (entry.resource.type)
         {
-        case gfx::descriptor_type::buffer:
+        case gfx::descriptor_type::uniform_buffer:
             is_resource_mutable = context.get_resources().get_buffer(entry.resource.buffer).is_mutable();
             break;
         case gfx::descriptor_type::combined_image_sampler:
@@ -108,7 +108,7 @@ gfx_vk::descriptorgroup::descriptorgroup(context& context, gfx::descriptorgroup_
 
             switch (entry.resource.type)
             {
-            case gfx::descriptor_type::buffer:
+            case gfx::descriptor_type::uniform_buffer:
                 add_buffer_write(m_context, resources, writes.back(), entry.resource.buffer, i);
                 break;
             case gfx::descriptor_type::combined_image_sampler:

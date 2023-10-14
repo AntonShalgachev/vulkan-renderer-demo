@@ -162,15 +162,15 @@ DebugDrawService::DebugDrawService(gfx::renderer& renderer)
             // TODO get the first descriptorgroup layout from the outside
             gfx::descriptorgroup_layout_view{
                 .entries = nstl::array{
-                    gfx::descriptor_layout_entry{ 0, gfx::descriptor_type::buffer },
-                    gfx::descriptor_layout_entry{ 1, gfx::descriptor_type::buffer },
+                    gfx::descriptor_layout_entry{ 0, gfx::descriptor_type::uniform_buffer },
+                    gfx::descriptor_layout_entry{ 1, gfx::descriptor_type::uniform_buffer },
                 },
             },
             gfx::descriptorgroup_layout_view{
                 .entries = nstl::array{
                     gfx::descriptor_layout_entry{
                         .location = 0,
-                        .type = gfx::descriptor_type::buffer,
+                        .type = gfx::descriptor_type::uniform_buffer,
                     }
                 },
             },

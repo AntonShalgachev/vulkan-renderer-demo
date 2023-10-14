@@ -75,7 +75,7 @@ VkDescriptorType gfx_vk::utils::get_descriptor_type(gfx::descriptor_type type)
 {
     switch (type)
     {
-    case gfx::descriptor_type::buffer: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    case gfx::descriptor_type::uniform_buffer: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     case gfx::descriptor_type::combined_image_sampler: return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     }
 
