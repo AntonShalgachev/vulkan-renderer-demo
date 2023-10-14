@@ -24,6 +24,8 @@ namespace
             return persistent_flags | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
         case gfx::buffer_usage::uniform:
             return persistent_flags | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+        case gfx::buffer_usage::storage:
+            return persistent_flags | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
         }
 
         assert(false);

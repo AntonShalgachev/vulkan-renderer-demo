@@ -12,8 +12,8 @@ layout(set = 0, binding = 1) uniform FrameLightData {
     vec3 lightColor;
 } frameLight;
 
-layout(set = 1, binding = 0) uniform ObjectUniformBuffer {
-    mat4 model[1024]; // TODO keep the capacity in sync with the code
+layout(set = 1, binding = 0) readonly buffer ObjectUniformBuffer {
+    mat4 model[];
 } objectUniforms;
 
 layout(location = 0) in vec3 inPosition;

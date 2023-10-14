@@ -83,6 +83,8 @@ DebugDrawService::DebugDrawService(gfx::renderer& renderer)
 {
     MEMORY_TRACKING_SCOPE(debugDrawScopeId);
 
+    m_objectData.reserve(OBJECT_DATA_CAPACITY);
+
     m_vertexBuffer = renderer.create_buffer({
         .size = sizeof(boxVertices),
         .usage = gfx::buffer_usage::vertex_index,
@@ -101,14 +103,14 @@ DebugDrawService::DebugDrawService(gfx::renderer& renderer)
 
     m_objectBuffer = renderer.create_buffer({
         .size = OBJECT_DATA_CAPACITY * sizeof(ObjectData),
-        .usage = gfx::buffer_usage::uniform,
+        .usage = gfx::buffer_usage::storage,
         .location = gfx::buffer_location::host_visible,
         .is_mutable = true,
     });
 
     m_objectDescriptorGroup = renderer.create_descriptorgroup({
         .entries = nstl::array{
-            gfx::descriptorgroup_entry{0, {m_objectBuffer}},
+            gfx::descriptorgroup_entry{0, {m_objectBuffer, gfx::descriptor_type::storage_buffer}},
         }
     });
 
@@ -168,10 +170,7 @@ DebugDrawService::DebugDrawService(gfx::renderer& renderer)
             },
             gfx::descriptorgroup_layout_view{
                 .entries = nstl::array{
-                    gfx::descriptor_layout_entry{
-                        .location = 0,
-                        .type = gfx::descriptor_type::uniform_buffer,
-                    }
+                    gfx::descriptor_layout_entry{ 0, gfx::descriptor_type::storage_buffer },
                 },
             },
         },

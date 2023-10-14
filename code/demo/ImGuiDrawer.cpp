@@ -221,7 +221,7 @@ void ImGuiDrawer::createDescriptors(gfx::renderer& renderer)
 {
     m_transformDescriptorGroup = renderer.create_descriptorgroup({
         .entries = nstl::array{
-            gfx::descriptorgroup_entry{0, {m_transformBuffer}},
+            gfx::descriptorgroup_entry{0, {m_transformBuffer, gfx::descriptor_type::uniform_buffer}},
         }
     });
 

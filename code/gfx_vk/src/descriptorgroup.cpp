@@ -1,6 +1,7 @@
 #include "descriptorgroup.h"
 
 #include "context.h"
+#include "conversions.h"
 
 #include "buffer.h"
 #include "image.h"
@@ -17,7 +18,7 @@ namespace
         nstl::static_vector<VkDescriptorImageInfo, 6> images;
     };
 
-    void add_buffer_write(gfx_vk::context& context, temp_resources& resources, VkWriteDescriptorSet& write, gfx::buffer_handle buffer, size_t subresource_index)
+    void add_buffer_write(gfx_vk::context& context, temp_resources& resources, VkWriteDescriptorSet& write, gfx::buffer_handle buffer, gfx::descriptor_type type, size_t subresource_index)
     {
         gfx_vk::buffer const& resource = context.get_resources().get_buffer(buffer);
 
@@ -29,7 +30,7 @@ namespace
             .range = resource.get_size(),
         });
 
-        write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        write.descriptorType = gfx_vk::utils::get_descriptor_type(type);
         write.pBufferInfo = &resources.buffers.back();
     }
 
@@ -64,6 +65,7 @@ gfx_vk::descriptorgroup::descriptorgroup(context& context, gfx::descriptorgroup_
         switch (entry.resource.type)
         {
         case gfx::descriptor_type::uniform_buffer:
+        case gfx::descriptor_type::storage_buffer:
             is_resource_mutable = context.get_resources().get_buffer(entry.resource.buffer).is_mutable();
             break;
         case gfx::descriptor_type::combined_image_sampler:
@@ -109,7 +111,8 @@ gfx_vk::descriptorgroup::descriptorgroup(context& context, gfx::descriptorgroup_
             switch (entry.resource.type)
             {
             case gfx::descriptor_type::uniform_buffer:
-                add_buffer_write(m_context, resources, writes.back(), entry.resource.buffer, i);
+            case gfx::descriptor_type::storage_buffer:
+                add_buffer_write(m_context, resources, writes.back(), entry.resource.buffer, entry.resource.type, i);
                 break;
             case gfx::descriptor_type::combined_image_sampler:
                 add_combined_image_sampler_write(m_context, resources, writes.back(), entry.resource.combined_image_sampler.image, entry.resource.combined_image_sampler.sampler);

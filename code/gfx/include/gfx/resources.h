@@ -29,6 +29,7 @@ namespace gfx
     {
         vertex_index,
         uniform,
+        storage,
     };
 
     enum class buffer_location
@@ -157,12 +158,13 @@ namespace gfx
     enum class descriptor_type
     {
         uniform_buffer,
+        storage_buffer,
         combined_image_sampler,
     };
 
     struct descriptorgroup_ref
     {
-        descriptorgroup_ref(buffer_handle buffer) : type(descriptor_type::uniform_buffer), buffer(buffer) {}
+        descriptorgroup_ref(buffer_handle buffer, gfx::descriptor_type type) : type(type), buffer(buffer) { assert(type == descriptor_type::uniform_buffer || type == descriptor_type::storage_buffer); }
         descriptorgroup_ref(image_handle image, sampler_handle sampler) : type(descriptor_type::combined_image_sampler), combined_image_sampler({image, sampler}) {}
 
         descriptor_type type = descriptor_type::uniform_buffer;
@@ -184,7 +186,6 @@ namespace gfx
     {
         size_t location = 0;
         descriptorgroup_ref resource;
-
     };
 
     struct descriptorgroup_params

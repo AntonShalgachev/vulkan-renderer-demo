@@ -660,8 +660,8 @@ void DemoApplication::init()
 
     m_cameraDescriptorGroup = m_newRenderer->create_descriptorgroup({
         .entries = nstl::array{
-            gfx::descriptorgroup_entry{0, {m_viewProjectionData}},
-            gfx::descriptorgroup_entry{1, {m_lightData}},
+            gfx::descriptorgroup_entry{0, {m_viewProjectionData, gfx::descriptor_type::uniform_buffer}},
+            gfx::descriptorgroup_entry{1, {m_lightData, gfx::descriptor_type::uniform_buffer}},
         }
     });
 
@@ -1805,7 +1805,7 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                 }
 
                 auto descriptorGroup = m_newRenderer->create_descriptorgroup({
-                    .entries = nstl::array{ gfx::descriptorgroup_entry{ 0, objectUniformBuffer } },
+                    .entries = nstl::array{ gfx::descriptorgroup_entry{ 0, {objectUniformBuffer, gfx::descriptor_type::uniform_buffer} } },
                 });
 
 //                 DemoObjectPushConstants pushConstants;
@@ -1923,7 +1923,7 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
 
     nstl::vector<gfx::descriptorgroup_entry> descriptor_entries;
     nstl::vector<gfx::descriptor_layout_entry> descriptor_layout_entries;
-    descriptor_entries.push_back({ 0, newBuffer });
+    descriptor_entries.push_back({ 0, {newBuffer, gfx::descriptor_type::uniform_buffer} });
     descriptor_layout_entries.push_back({ 0, gfx::descriptor_type::uniform_buffer });
 
     if (materialData.baseColorTexture)
@@ -2445,7 +2445,7 @@ void DemoApplication::createTestResources()
 
         testResources.frameDescriptors = m_newRenderer->create_descriptorgroup({
             .entries = nstl::array{
-                gfx::descriptorgroup_entry{ 0, testResources.frameBuffer },
+                gfx::descriptorgroup_entry{ 0, {testResources.frameBuffer, gfx::descriptor_type::uniform_buffer} },
             },
         });
     }
@@ -2460,7 +2460,7 @@ void DemoApplication::createTestResources()
 
         testResources.materialDescriptors = m_newRenderer->create_descriptorgroup({
             .entries = nstl::array{
-                gfx::descriptorgroup_entry{ 0, testResources.materialBuffer },
+                gfx::descriptorgroup_entry{ 0, {testResources.materialBuffer, gfx::descriptor_type::uniform_buffer} },
             },
         });
     }
@@ -2476,7 +2476,7 @@ void DemoApplication::createTestResources()
 
         testResources.objectDescriptors = m_newRenderer->create_descriptorgroup({
             .entries = nstl::array{
-                gfx::descriptorgroup_entry{ 0, testResources.objectBuffer },
+                gfx::descriptorgroup_entry{ 0, {testResources.objectBuffer, gfx::descriptor_type::uniform_buffer} },
             },
         });
     }
@@ -2542,8 +2542,6 @@ void DemoApplication::drawTest()
 {
     static float time = 0.0f;
     time += 0.0016f;
-
-    float offset = 0.5f * sinf(time);
 
     ObjectUniformBuffer data = {
         .color = {0.5f + 0.5f * sinf(time), 0.5f + 0.5f * sinf(2.0f * time), 0.5f + 0.5f * sinf(3.0f * time), 1.0f},
