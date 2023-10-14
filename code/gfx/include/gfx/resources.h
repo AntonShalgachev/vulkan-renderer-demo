@@ -395,5 +395,7 @@ namespace gfx
         size_t index_count = 0;
         size_t first_index = 0;
         size_t vertex_offset = 0;
+
+        size_t instance_count = 1;
     };
 }

@@ -13,7 +13,7 @@ layout(set = 0, binding = 1) uniform FrameLightData {
 } frameLight;
 
 layout(set = 1, binding = 0) uniform ObjectUniformBuffer {
-    mat4 model;
+    mat4 model[1024]; // TODO keep the capacity in sync with the code
 } objectUniforms;
 
 layout(location = 0) in vec3 inPosition;
@@ -21,5 +21,5 @@ layout(location = 1) in vec3 inNormal;
 
 void main()
 {
-	gl_Position = frameViewProjection.projection * frameViewProjection.view * objectUniforms.model * vec4(inPosition, 1.0);
+	gl_Position = frameViewProjection.projection * frameViewProjection.view * objectUniforms.model[gl_InstanceIndex] * vec4(inPosition, 1.0);
 }

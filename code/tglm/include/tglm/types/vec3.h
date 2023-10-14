@@ -47,6 +47,8 @@ namespace tglm
     vec3 operator*(vec3 const& lhs, float rhs);
     inline vec3 operator*(float lhs, vec3 const& rhs) { return rhs * lhs; }
 
+    vec3 operator+(vec3 const& lhs, vec3 const& rhs);
+
     vec3& operator+=(vec3& lhs, vec3 const& rhs);
 
     vec3 operator-(vec3 const& v);

@@ -205,8 +205,6 @@ void DebugDrawService::box(tglm::vec3 const& center, tglm::quat const& rotation,
 void DebugDrawService::updateResources(gfx::renderer& renderer)
 {
     renderer.buffer_upload_sync(m_objectBuffer, { m_objectData.data(), m_objectData.size() * sizeof(ObjectData) });
-
-    m_objectData.clear();
 }
 
 void DebugDrawService::draw(gfx::renderer& renderer, gfx::descriptorgroup_handle cameraDescriptorGroup)
@@ -220,5 +218,8 @@ void DebugDrawService::draw(gfx::renderer& renderer, gfx::descriptorgroup_handle
         .index_type = gfx::index_type::uint16,
 
         .index_count = sizeof(boxIndices) / sizeof(boxIndices[0]),
+        .instance_count = m_objectData.size(),
     });
+
+    m_objectData.clear();
 }

@@ -187,7 +187,7 @@ void gfx_vk::renderer::draw_indexed(gfx::draw_indexed_args const& args)
     }
     vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 
-    vkCmdDrawIndexed(command_buffer, static_cast<uint32_t>(args.index_count), 1, static_cast<uint32_t>(args.first_index), static_cast<uint32_t>(args.vertex_offset), 0);
+    vkCmdDrawIndexed(command_buffer, static_cast<uint32_t>(args.index_count), static_cast<uint32_t>(args.instance_count), static_cast<uint32_t>(args.first_index), static_cast<uint32_t>(args.vertex_offset), 0);
 }
 
 void gfx_vk::renderer::submit()

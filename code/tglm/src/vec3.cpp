@@ -43,6 +43,13 @@ tglm::vec3 tglm::operator*(vec3 const& lhs, float rhs)
     return result;
 }
 
+tglm::vec3 tglm::operator+(vec3 const& lhs, vec3 const& rhs)
+{
+    vec3 result;
+    glm_vec3_add(const_cast<vec3&>(lhs).data, const_cast<vec3&>(rhs).data, result.data);
+    return result;
+}
+
 tglm::vec3& tglm::operator+=(vec3& lhs, vec3 const& rhs)
 {
     glm_vec3_add(lhs.data, const_cast<vec3&>(rhs).data, lhs.data);
