@@ -1,7 +1,7 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-// layout(set = 0, binding = 3) uniform sampler2D shadowMap; // TODO enable
+layout(set = 0, binding = 2) uniform sampler2D shadowMap; // TODO enable
 
 #ifdef HAS_TEXTURE
 layout(set = 1, binding = 1) uniform sampler2D texSampler;
@@ -87,19 +87,18 @@ vec3 getNormalVector()
 
 float computeShadowFactor(vec4 shadowCoord)
 {
-	// if (abs(shadowCoord.x) > 1.0)
-	// 	return 0.1;
-	// if (abs(shadowCoord.y) > 1.0)
-	// 	return 0.1;
-	// if (abs(shadowCoord.z) > 1.0)
-	// 	return 0.1;
+	if (abs(shadowCoord.x) > 1.0)
+		return 0.1;
+	if (abs(shadowCoord.y) > 1.0)
+		return 0.1;
+	if (abs(shadowCoord.z) > 1.0)
+		return 0.1;
 
-	// vec2 uv = shadowCoord.xy * 0.5 + 0.5;
-	// uv.y *= -1.0;
+	vec2 uv = shadowCoord.xy * 0.5 + 0.5;
 
-	// float dist = texture(shadowMap, uv).r;
-	// if (shadowCoord.z > 0.0 && dist < shadowCoord.z)
-	// 	return 0.1;
+	float dist = texture(shadowMap, uv).r;
+	if (shadowCoord.z > 0.0 && dist < shadowCoord.z)
+		return 0.1;
 
 	return 1.0;
 }

@@ -166,6 +166,7 @@ DebugDrawService::DebugDrawService(gfx::renderer& renderer)
                 .entries = nstl::array{
                     gfx::descriptor_layout_entry{ 0, gfx::descriptor_type::uniform_buffer },
                     gfx::descriptor_layout_entry{ 1, gfx::descriptor_type::uniform_buffer },
+                    gfx::descriptor_layout_entry{ 2, gfx::descriptor_type::combined_image_sampler },
                 },
             },
             gfx::descriptorgroup_layout_view{

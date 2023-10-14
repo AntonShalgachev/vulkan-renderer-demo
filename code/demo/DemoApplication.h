@@ -208,6 +208,9 @@ private:
     gfx::buffer_handle m_lightData;
     gfx::descriptorgroup_handle m_cameraDescriptorGroup;
 
+    gfx::buffer_handle m_shadowmapViewProjectionData;
+    gfx::descriptorgroup_handle m_shadowmapCameraDescriptorGroup;
+
     gfx::renderpass_handle m_shadowRenderpass;
     gfx::image_handle m_shadowImage;
     gfx::framebuffer_handle m_shadowFramebuffer;
@@ -249,6 +252,7 @@ private:
     vkc::Timer m_appTime;
     uint32_t m_fpsDrawnFrames = 0;
     float m_lastFrameTime = 0.0f;
+    float m_time = 0.0f;
 
     tglm::vec3 m_cameraRotation = { 0.0f, 0.0f, 0.0f };
     float m_mouseSensitivity = 0.3f;
