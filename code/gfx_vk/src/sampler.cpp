@@ -41,25 +41,26 @@ namespace
 gfx_vk::sampler::sampler(context& context, gfx::sampler_params const& params)
     : m_context(context)
 {
-    VkSamplerCreateInfo create_info{};
-    create_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    create_info.magFilter = get_filter_mode(params.mag_filter);
-    create_info.minFilter = get_filter_mode(params.min_filter);
-    create_info.addressModeU = get_wrap_mode(params.wrap_u);
-    create_info.addressModeV = get_wrap_mode(params.wrap_v);
-    create_info.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    create_info.anisotropyEnable = VK_TRUE;
-    create_info.maxAnisotropy = 16.0f;
-    create_info.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-    create_info.unnormalizedCoordinates = VK_FALSE;
-    create_info.compareEnable = VK_FALSE;
-    create_info.compareOp = VK_COMPARE_OP_ALWAYS;
-    create_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    create_info.mipLodBias = 0.0f;
-    create_info.minLod = 0.0f;
-    create_info.maxLod = 0.0f;
+    VkSamplerCreateInfo info{
+        .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+        .magFilter = get_filter_mode(params.mag_filter),
+        .minFilter = get_filter_mode(params.min_filter),
+        .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+        .addressModeU = get_wrap_mode(params.wrap_u),
+        .addressModeV = get_wrap_mode(params.wrap_v),
+        .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+        .mipLodBias = 0.0f,
+        .anisotropyEnable = VK_TRUE,
+        .maxAnisotropy = 16.0f,
+        .compareEnable = VK_FALSE,
+        .compareOp = VK_COMPARE_OP_ALWAYS,
+        .minLod = 0.0f,
+        .maxLod = 0.0f,
+        .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+        .unnormalizedCoordinates = VK_FALSE,
+    };
 
-    VKO_VERIFY(vkCreateSampler(m_context.get_device().getHandle(), &create_info, &m_allocator.getCallbacks(), &m_handle.get()));
+    VKO_VERIFY(vkCreateSampler(m_context.get_device().getHandle(), &info, &m_allocator.getCallbacks(), &m_handle.get()));
 }
 
 gfx_vk::sampler::~sampler()

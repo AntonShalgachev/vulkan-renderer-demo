@@ -202,14 +202,15 @@ void gfx_vk::renderer::submit()
     nstl::array wait_semaphores{ resources.render_finished_semaphore.getHandle() };
     nstl::array swapchains = { m_swapchain->get_handle() };
 
-    VkPresentInfoKHR info{};
-    info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    info.waitSemaphoreCount = static_cast<uint32_t>(wait_semaphores.size());
-    info.pWaitSemaphores = wait_semaphores.data();
-    info.swapchainCount = static_cast<uint32_t>(swapchains.size());
-    info.pSwapchains = swapchains.data();
-    info.pImageIndices = &m_swapchain_image_index;
-    info.pResults = nullptr;
+    VkPresentInfoKHR info{
+        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        .waitSemaphoreCount = static_cast<uint32_t>(wait_semaphores.size()),
+        .pWaitSemaphores = wait_semaphores.data(),
+        .swapchainCount = static_cast<uint32_t>(swapchains.size()),
+        .pSwapchains = swapchains.data(),
+        .pImageIndices = &m_swapchain_image_index,
+        .pResults = nullptr,
+    };
 
     VkResult result = vkQueuePresentKHR(m_context.get_device().getPresentQueue().getHandle(), &info);
     assert(result == VK_SUCCESS);

@@ -147,11 +147,12 @@ void gfx_vk::buffer::upload_sync(nstl::blob_view bytes, size_t offset)
         vko::CommandBuffers buffers = m_context.get_transfer_command_pool().allocate(1);
         buffers.begin(0, true);
 
-        VkBufferCopy copyRegion{};
-        copyRegion.dstOffset = offset;
-        copyRegion.srcOffset = 0;
-        copyRegion.size = bytes.size();
-        vkCmdCopyBuffer(buffers.getHandle(0), staging_buffer.getHandle(), m_buffers[subresource_index].handle, 1, &copyRegion);
+        VkBufferCopy region{
+            .srcOffset = 0,
+            .dstOffset = offset,
+            .size = bytes.size(),
+        };
+        vkCmdCopyBuffer(buffers.getHandle(0), staging_buffer.getHandle(), m_buffers[subresource_index].handle, 1, &region);
 
         buffers.end(0);
         buffers.submit(0, m_context.get_transfer_queue(), nullptr, nullptr, nullptr);

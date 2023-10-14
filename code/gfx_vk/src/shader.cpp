@@ -42,12 +42,13 @@ gfx_vk::shader::shader(context& context, gfx::shader_params const& params)
     words.resize(byte_size / 4);
     f.read(words.data(), byte_size);
 
-    VkShaderModuleCreateInfo create_info{};
-    create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    create_info.codeSize = byte_size;
-    create_info.pCode = words.data();
+    VkShaderModuleCreateInfo info{
+        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .codeSize = byte_size,
+        .pCode = words.data(),
+    };
 
-    VKO_VERIFY(vkCreateShaderModule(m_context.get_device().getHandle(), &create_info, &m_allocator.getCallbacks(), &m_handle.get()));
+    VKO_VERIFY(vkCreateShaderModule(m_context.get_device().getHandle(), &info, &m_allocator.getCallbacks(), &m_handle.get()));
 }
 
 gfx_vk::shader::~shader()
