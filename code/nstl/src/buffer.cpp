@@ -53,29 +53,9 @@ nstl::buffer& nstl::buffer::operator=(buffer&& rhs)
     return *this;
 }
 
-char* nstl::buffer::data()
-{
-    return m_ptr;
-}
-
-char const* nstl::buffer::data() const
-{
-    return m_ptr;
-}
-
-size_t nstl::buffer::capacity() const
-{
-    return m_capacity;
-}
-
 size_t nstl::buffer::capacityBytes() const
 {
     return m_capacity * m_chunkSize;
-}
-
-size_t nstl::buffer::size() const
-{
-    return m_size;
 }
 
 void nstl::buffer::resize(size_t newSize)

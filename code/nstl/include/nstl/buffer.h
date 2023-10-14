@@ -20,11 +20,11 @@ namespace nstl
         buffer& operator=(buffer const& rhs);
         buffer& operator=(buffer&& rhs);
 
-        char* data();
-        char const* data() const;
-        size_t capacity() const;
+        char* data() { return m_ptr; }
+        char const* data() const { return m_ptr; }
+        size_t capacity() const { return m_capacity; }
         size_t capacityBytes() const;
-        size_t size() const;
+        size_t size() const { return m_size; }
 
         void resize(size_t newSize);
 
