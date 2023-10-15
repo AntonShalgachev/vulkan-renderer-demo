@@ -28,6 +28,10 @@ macro(demo_set_common_properties name)
     elseif(MSVC)
       target_compile_options(${name} PRIVATE /W4 /WX)
     endif()
+
+    if (MSVC AND (CMAKE_GENERATOR MATCHES "Visual Studio"))
+      target_compile_options(${name} PRIVATE /MP) # enable parallel build within Visual Studio
+    endif()
 endmacro()
 
 function(target_mark_includes_system target)
