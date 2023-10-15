@@ -282,7 +282,10 @@ void ui::DebugConsoleWidget::onInputSubmitted(nstl::string_view input)
 
 nstl::optional<size_t> ui::DebugConsoleWidget::getHistoryIndex(size_t historySize) const
 {
-    return m_replacementIndex < 0 ? historySize + m_replacementIndex : nstl::optional<size_t>{};
+    if (m_replacementIndex < 0)
+        return historySize - static_cast<size_t>(-m_replacementIndex);
+
+    return {};
 }
 
 nstl::optional<size_t> ui::DebugConsoleWidget::getSuggestionIndex() const

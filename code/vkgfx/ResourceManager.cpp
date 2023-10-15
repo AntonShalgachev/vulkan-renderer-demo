@@ -77,9 +77,6 @@ namespace
             m_memory = {};
         }
 
-        BufferWithMemory(BufferWithMemory&& rhs) = default;
-        BufferWithMemory& operator=(BufferWithMemory&& rhs) = default;
-
         vko::Buffer const& buffer() const { return *m_buffer; }
         vko::DeviceMemory const& memory() const { return *m_memory; }
 
@@ -181,8 +178,11 @@ namespace
             return VK_FORMAT_R32G32B32A32_SFLOAT;
         case vkgfx::AttributeType::UInt32:
             return VK_FORMAT_R8G8B8A8_UNORM;
-        default:
+        case vkgfx::AttributeType::Mat2f:
+        case vkgfx::AttributeType::Mat3f:
+        case vkgfx::AttributeType::Mat4f:
             assert(false);
+            break;
         }
 
         return VK_FORMAT_R32G32B32A32_SFLOAT;

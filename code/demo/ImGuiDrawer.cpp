@@ -133,7 +133,7 @@ void ImGuiDrawer::draw(gfx::renderer& renderer)
         for (int commandIndex = 0; commandIndex < cmdList->CmdBuffer.Size; commandIndex++)
         {
             const ImDrawCmd* drawCommand = &cmdList->CmdBuffer[commandIndex];
-            if (drawCommand->UserCallback != NULL)
+            if (drawCommand->UserCallback)
             {
                 // TODO implement callbacks
                 assert(false);
@@ -160,8 +160,8 @@ void ImGuiDrawer::draw(gfx::renderer& renderer)
             }
         }
 
-        vertexOffset += cmdList->VtxBuffer.Size;
-        indexOffset += cmdList->IdxBuffer.Size;
+        vertexOffset += static_cast<size_t>(cmdList->VtxBuffer.Size);
+        indexOffset += static_cast<size_t>(cmdList->IdxBuffer.Size);
     }
 }
 
@@ -324,8 +324,8 @@ void ImGuiDrawer::uploadBuffers(gfx::renderer& renderer, ImDrawData const* drawD
     if (drawData->TotalVtxCount <= 0)
         return;
 
-    [[maybe_unused]] size_t vertexBufferSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
-    [[maybe_unused]] size_t indexBufferSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
+    [[maybe_unused]] size_t vertexBufferSize = static_cast<size_t>(drawData->TotalVtxCount) * sizeof(ImDrawVert);
+    [[maybe_unused]] size_t indexBufferSize = static_cast<size_t>(drawData->TotalIdxCount) * sizeof(ImDrawIdx);
 
     assert(vertexBufferSize <= VERTEX_BUFFER_CAPACITY);
     assert(indexBufferSize <= INDEX_BUFFER_CAPACITY);
@@ -337,8 +337,8 @@ void ImGuiDrawer::uploadBuffers(gfx::renderer& renderer, ImDrawData const* drawD
     {
         const ImDrawList* cmdList = drawData->CmdLists[n];
 
-        auto vertexChunkSize = cmdList->VtxBuffer.Size * sizeof(ImDrawVert);
-        auto indexChunkSize = cmdList->IdxBuffer.Size * sizeof(ImDrawIdx);
+        auto vertexChunkSize = static_cast<size_t>(cmdList->VtxBuffer.Size) * sizeof(ImDrawVert);
+        auto indexChunkSize = static_cast<size_t>(cmdList->IdxBuffer.Size) * sizeof(ImDrawIdx);
 
         renderer.buffer_upload_sync(m_vertexBuffer, { cmdList->VtxBuffer.Data, vertexChunkSize }, nextVertexBufferOffset);
         renderer.buffer_upload_sync(m_indexBuffer, { cmdList->IdxBuffer.Data, indexChunkSize }, nextIndexBufferOffset);

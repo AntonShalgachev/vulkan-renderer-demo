@@ -49,7 +49,7 @@ void ui::NotificationManager::draw() const
         {
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            ImGui::Text(notification.text.c_str(), ImGui::GetContentRegionAvail().x);
+            ImGui::Text("%s", notification.text.c_str());
         }
 
         ImGui::EndTable();

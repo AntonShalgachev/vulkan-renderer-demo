@@ -11,7 +11,7 @@ platform_win32::error platform_win32::get_last_error()
         nullptr,
         code,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (char*)&buffer,
+        reinterpret_cast<char*>(&buffer),
         0,
         nullptr
     );

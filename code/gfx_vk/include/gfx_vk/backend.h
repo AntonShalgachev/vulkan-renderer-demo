@@ -21,7 +21,7 @@ namespace gfx_vk
     {
     public:
         backend(vko::Window& window, config const& config);
-        ~backend();
+        ~backend() override;
 
         [[nodiscard]] gfx::buffer_handle create_buffer(gfx::buffer_params const& params) override;
         [[nodiscard]] gfx::image_handle create_image(gfx::image_params const& params) override;

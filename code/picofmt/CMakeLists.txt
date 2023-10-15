@@ -27,4 +27,6 @@ demo_set_common_properties(picofmt)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(picofmt PUBLIC -Wno-unsafe-buffer-usage) # TODO: revisit
+    target_compile_options(picofmt PUBLIC -Wno-unused-macros)
+    target_compile_options(picofmt PUBLIC -Wno-format-nonliteral)
 endif()

@@ -51,11 +51,13 @@ namespace nstl
     template <class InputIt, class OutputIt>
     constexpr OutputIt copy(InputIt first, InputIt last, OutputIt dest)
     {
+        NSTL_ASSERT(first <= last);
+
         using T = simple_decay_t<decltype(*first)>;
 
         if constexpr (is_trivial_v<T>)
         {
-            size_t count = last - first;
+            size_t count = static_cast<size_t>(last - first);
             memmove(dest, first, count * sizeof(T));
             return dest + count;
         }

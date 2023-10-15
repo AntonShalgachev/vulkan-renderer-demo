@@ -109,7 +109,7 @@ yyjsoncpp::doc::~doc()
 yyjsoncpp::read_result yyjsoncpp::doc::read(char const* str, size_t length)
 {
     yyjson_read_flag flags = 0;
-    yyjson_alc const* allocator = 0;
+    yyjson_alc const* allocator = nullptr;
 
     assert((flags & YYJSON_READ_INSITU) == 0);
 

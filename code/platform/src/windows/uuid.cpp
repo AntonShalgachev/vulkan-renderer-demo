@@ -1,6 +1,6 @@
 #include "platform/uuid.h"
 
-#include <Rpc.h>
+#include <rpc.h>
 
 static_assert(sizeof(UUID) == 16, "Unexpected size of the UUID structure");
 

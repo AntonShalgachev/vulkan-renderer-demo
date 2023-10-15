@@ -32,7 +32,7 @@ namespace vko
             copyFrom(source.data(), sizeof(T) * source.size(), offset);
         }
 
-        VkDeviceMemory getHandle() const { return m_handle; };
+        VkDeviceMemory getHandle() const { return m_handle; }
 
         VkMemoryRequirements const& getRequirements() const { return m_requirements; }
         VkMemoryPropertyFlags const& getProperties() const { return m_properties; }

@@ -132,7 +132,7 @@ public:
 
 public:
     GlfwWindow(int width, int height, char const* title);
-    ~GlfwWindow();
+    ~GlfwWindow() override;
 
     GlfwWindow(GlfwWindow const&) = delete;
     GlfwWindow(GlfwWindow&&) = delete;
@@ -144,10 +144,10 @@ public:
     void resize(int width, int height);
 
     vko::Surface createSurface(vko::Instance const& instance) const override;
-    size_t getWindowWidth() const { return m_windowWidth; }
-    size_t getWindowHeight() const { return m_windowHeight; }
-    size_t getFramebufferWidth() const override { return m_framebufferWidth; }
-    size_t getFramebufferHeight() const override { return m_framebufferHeight; }
+    size_t getWindowWidth() const { assert(m_windowWidth >= 0); return static_cast<size_t>(m_windowWidth); }
+    size_t getWindowHeight() const { assert(m_windowHeight >= 0); return static_cast<size_t>(m_windowHeight); }
+    size_t getFramebufferWidth() const override { assert(m_framebufferWidth >= 0); return static_cast<size_t>(m_framebufferWidth); }
+    size_t getFramebufferHeight() const override { assert(m_framebufferWidth >= 0); return static_cast<size_t>(m_framebufferWidth); }
     nstl::vector<char const*> const& getRequiredInstanceExtensions() const override { return m_requiredInstanceExtensions; }
 
     bool getCanCaptureCursor() const { return m_canCaptureCursor; }

@@ -41,8 +41,8 @@ namespace
     template<typename T>
     size_t findIndex(T const* object, T const* first, [[maybe_unused]] size_t count)
     {
-        size_t index = object - first;
-        assert(index >= 0);
+        assert(object >= first);
+        size_t index = static_cast<size_t>(object - first);
         assert(index < count);
         return static_cast<size_t>(index);
     }
@@ -98,8 +98,8 @@ namespace
         case cgltf_alpha_mode_mask: return editor::assets::AlphaMode::Mask;
         case cgltf_alpha_mode_blend: return editor::assets::AlphaMode::Blend;
 
-        default:
-            assert(false);
+        case cgltf_alpha_mode_max_enum:
+            break;
         }
 
         assert(false);
@@ -212,8 +212,10 @@ namespace
         case cgltf_component_type_r_16u: return editor::assets::DataComponentType::UInt16;
         case cgltf_component_type_r_32u: return editor::assets::DataComponentType::UInt32;
         case cgltf_component_type_r_32f: return editor::assets::DataComponentType::Float;
-        default:
-            assert(false);
+
+        case cgltf_component_type_invalid:
+        case cgltf_component_type_max_enum:
+            break;
         }
 
         assert(false);
@@ -231,8 +233,10 @@ namespace
         case cgltf_type_mat2: return editor::assets::DataType::Mat2;
         case cgltf_type_mat3: return editor::assets::DataType::Mat3;
         case cgltf_type_mat4: return editor::assets::DataType::Mat4;
-        default:
-            assert(false);
+
+        case cgltf_type_invalid:
+        case cgltf_type_max_enum:
+            break;
         }
 
         assert(false);
@@ -251,9 +255,11 @@ namespace
         case cgltf_primitive_type_points:
         case cgltf_primitive_type_line_loop:
         case cgltf_primitive_type_line_strip:
-            assert(false);
-        default:
-            assert(false);
+            assert(false); // TODO implement
+            break;
+
+        case cgltf_primitive_type_max_enum:
+            break;
         }
 
         assert(false);
@@ -307,9 +313,11 @@ namespace
         case cgltf_attribute_type_weights:
         case cgltf_attribute_type_custom:
             assert(false); // Not implemented yet
+            break;
 
-        default:
-            assert(false);
+        case cgltf_attribute_type_invalid:
+        case cgltf_attribute_type_max_enum:
+            break;
         }
 
         assert(false);
@@ -431,7 +439,8 @@ namespace
 
             editor::assets::VertexAttributeDescription& vertexAttributeDescription = description.vertexAttributes.emplace_back();
             vertexAttributeDescription.semantic = getAttributeSemantic(attribute.type);
-            vertexAttributeDescription.index = attribute.index;
+            assert(attribute.index >= 0);
+            vertexAttributeDescription.index = static_cast<size_t>(attribute.index);
 
             vertexAttributeDescription.accessor = appendChunk(layout);
         }

@@ -123,14 +123,16 @@ nstl::vector<T>::vector(size_t size, any_allocator alloc) : m_buffer(size, sizeo
 
 template<typename T>
 template<typename Iterator>
-nstl::vector<T>::vector(Iterator begin, Iterator end, any_allocator alloc) : m_buffer(end - begin, sizeof(T), nstl::move(alloc))
+nstl::vector<T>::vector(Iterator begin, Iterator end, any_allocator alloc) : m_buffer(static_cast<size_t>(end - begin), sizeof(T), nstl::move(alloc))
 {
-    NSTL_ASSERT(capacity() >= static_cast<size_t>((end - begin)));
+    NSTL_ASSERT(begin <= end);
+    size_t size = static_cast<size_t>(end - begin);
+
+    NSTL_ASSERT(capacity() >= size);
     NSTL_ASSERT(empty());
 
     if constexpr (nstl::is_trivial_v<T>)
     {
-        size_t size = end - begin;
         m_buffer.resize(size);
         m_buffer.copy(begin, size);
     }
@@ -305,7 +307,8 @@ void nstl::vector<T>::erase(T* first, T* last)
 {
     NSTL_ASSERT(last == end()); // TODO implement erase properly
 
-    size_t erasedCount = last - first;
+    NSTL_ASSERT(first <= last);
+    size_t erasedCount = static_cast<size_t>(last - first);
     NSTL_ASSERT(size() >= erasedCount);
     resize(size() - erasedCount);
 }

@@ -67,6 +67,10 @@ target_include_directories(vko PUBLIC
 
 demo_set_common_properties(vko)
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(vko PUBLIC -Wno-cast-function-type-strict)
+endif()
+
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(vko PUBLIC -Wno-defaulted-function-deleted)
 endif()

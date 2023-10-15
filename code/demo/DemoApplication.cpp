@@ -67,8 +67,8 @@
 
 namespace
 {
-    const uint32_t TARGET_WINDOW_WIDTH = 1900;
-    const uint32_t TARGET_WINDOW_HEIGHT = 1000;
+    const int TARGET_WINDOW_WIDTH = 1900;
+    const int TARGET_WINDOW_HEIGHT = 1000;
 
     constexpr uint32_t SHADOWMAP_RESOLUTION = 1024;
     constexpr uint32_t SHADOWMAP_FOV = 90;
@@ -97,6 +97,16 @@ namespace
         alignas(16) tglm::vec3 lightPosition;
         alignas(16) tglm::vec3 lightColor;
     };
+
+    // TODO is there a better way?
+    template<typename T>
+    size_t findIndex(T const* object, T const* first, [[maybe_unused]] size_t count)
+    {
+        assert(object >= first);
+        size_t index = static_cast<size_t>(object - first);
+        assert(index < count);
+        return static_cast<size_t>(index);
+    }
 
     tglm::quat createRotation(tglm::vec3 const& eulerDegrees)
     {
@@ -187,8 +197,8 @@ namespace
 
         ImageData imageData;
 
-        imageData.width = w;
-        imageData.height = h;
+        imageData.width = static_cast<size_t>(w);
+        imageData.height = static_cast<size_t>(h);
 
         // TODO refactor this mess and support other pixel types
         imageData.format = [](int bits, int comp) {
@@ -220,13 +230,15 @@ namespace
         if (!ddsktx_parse(&info, bytes.data(), static_cast<int>(bytes.size()), nullptr))
             return {};
 
+        assert(info.width > 0);
+        assert(info.height > 0);
         assert(info.bpp > 0);
         assert(info.bpp % 4 == 0);
 
         ImageData imageData;
 
-        imageData.width = info.width;
-        imageData.height = info.height;
+        imageData.width = static_cast<size_t>(info.width);
+        imageData.height = static_cast<size_t>(info.height);
 
         imageData.format = [](ddsktx_format format)
         {
@@ -256,9 +268,10 @@ namespace
             ddsktx_get_sub(&info, &mipInfo, bytes.data(), static_cast<int>(bytes.size()), 0, 0, mip);
 
             assert(mipInfo.buff > bytes.data());
-            size_t offset = static_cast<unsigned char const*>(mipInfo.buff) - bytes.ucdata();
+            ptrdiff_t offset = static_cast<unsigned char const*>(mipInfo.buff) - bytes.ucdata();
+            assert(offset >= 0);
 
-            imageData.mips.push_back({ offset, static_cast<size_t>(mipInfo.size_bytes) });
+            imageData.mips.push_back({ static_cast<size_t>(offset), static_cast<size_t>(mipInfo.size_bytes) });
         }
 
         return imageData;
@@ -436,7 +449,11 @@ namespace
         auto it = attributeNames.find(name);
 
         if (it != attributeNames.end())
-            return it - attributeNames.begin();
+        {
+            auto offset = it - attributeNames.begin();
+            assert(offset >= 0);
+            return static_cast<size_t>(offset);
+        }
 
         return {};
     }
@@ -450,7 +467,11 @@ namespace
         auto it = attributeSemantics.find(semantic);
 
         if (it != attributeSemantics.end())
-            return it - attributeSemantics.begin();
+        {
+            auto offset = it - attributeSemantics.begin();
+            assert(offset >= 0);
+            return static_cast<size_t>(offset);
+        }
 
         return {};
     }
@@ -646,18 +667,18 @@ void DemoApplication::init()
     auto backend = nstl::make_unique<gfx_vk::backend>(*m_window, config);
     m_newRenderer = nstl::make_unique<gfx::renderer>(nstl::move(backend));
 
-    auto messageCallback = [](vko::DebugMessage m)
-    {
-        // TODO don't log "Info" level to the console
-// 		if (m.level == vko::DebugMessage::Level::Info)
-// 			logging::info("{}", m.text);
-        if (m.level == vko::DebugMessage::Level::Warning)
-            logging::warn("{}", m.text);
-        if (m.level == vko::DebugMessage::Level::Error)
-            logging::error("{}", m.text);
-
-        assert(m.level != vko::DebugMessage::Level::Error);
-    };
+//     auto messageCallback = [](vko::DebugMessage m)
+//     {
+//         // TODO don't log "Info" level to the console
+// // 		if (m.level == vko::DebugMessage::Level::Info)
+// // 			logging::info("{}", m.text);
+//         if (m.level == vko::DebugMessage::Level::Warning)
+//             logging::warn("{}", m.text);
+//         if (m.level == vko::DebugMessage::Level::Error)
+//             logging::error("{}", m.text);
+// 
+//         assert(m.level != vko::DebugMessage::Level::Error);
+//     };
 
 //     m_renderer = nstl::make_unique<vkgfx::Renderer>("Vulkan demo with new API", m_validationEnabled, *m_window, messageCallback);
 
@@ -871,15 +892,6 @@ DemoScene DemoApplication::createDemoScene(cgltf_data const& gltfModel, cgltf_sc
     static auto scopeId = memory::tracking::create_scope_id("Scene/Load/GLTF/Hierarchy");
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    // TODO is there a better way?
-    auto findIndex = [](auto const* object, auto const* firstObject, [[maybe_unused]] size_t count) -> size_t
-    {
-        size_t index = object - firstObject;
-        assert(index >= 0);
-        assert(index < count);
-        return static_cast<size_t>(index);
-    };
-
     DemoScene scene;
 
     for (size_t i = 0; i < gltfScene.nodes_count; i++)
@@ -893,15 +905,6 @@ DemoScene DemoApplication::createDemoScene(cgltf_data const& gltfModel, cgltf_sc
 
 void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, size_t nodeIndex, tglm::mat4 parentTransform, DemoScene& scene) const
 {
-    // TODO is there a better way?
-    auto findIndex = [](auto const* object, auto const* firstObject, [[maybe_unused]] size_t count) -> size_t
-    {
-        size_t index = object - firstObject;
-        assert(index >= 0);
-        assert(index < count);
-        return static_cast<size_t>(index);
-    };
-
     struct DemoObjectPushConstants
     {
         tglm::mat4 model;
@@ -1126,15 +1129,6 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
     resourceManager.reserveMoreBuffers(model.buffers_count + model.materials_count + totalMeshes);
 
     m_gltfResources->additionalBuffers.reserve(model.materials_count + totalMeshes);
-
-    // TODO is there a better way?
-    auto findIndex = [](auto const* object, auto const* firstObject, [[maybe_unused]] size_t count) -> size_t
-    {
-        size_t index = object - firstObject;
-        assert(index >= 0);
-        assert(index < count);
-        return static_cast<size_t>(index);
-    };
 
     for (size_t i = 0; i < model.extensions_required_count; i++)
         logging::warn("GLTF requires extension '{}'", model.extensions_required[i]);
@@ -2062,6 +2056,7 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
                 {
                 case editor::assets::DataComponentType::Int8:
                     assert(false);
+                    break;
                 case editor::assets::DataComponentType::UInt16:
                     return gfx::index_type::uint16;
                 case editor::assets::DataComponentType::UInt32:

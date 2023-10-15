@@ -235,9 +235,6 @@ namespace gfx
         vec3f,
         vec4f,
         uint32,
-        mat2f,
-        mat3f,
-        mat4f,
     };
 
     struct attribute_description

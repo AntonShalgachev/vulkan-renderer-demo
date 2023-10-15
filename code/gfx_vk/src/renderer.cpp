@@ -187,7 +187,8 @@ void gfx_vk::renderer::draw_indexed(gfx::draw_indexed_args const& args)
     }
     vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 
-    vkCmdDrawIndexed(command_buffer, static_cast<uint32_t>(args.index_count), static_cast<uint32_t>(args.instance_count), static_cast<uint32_t>(args.first_index), static_cast<uint32_t>(args.vertex_offset), 0);
+    assert(args.vertex_offset <= INT32_MAX);
+    vkCmdDrawIndexed(command_buffer, static_cast<uint32_t>(args.index_count), static_cast<uint32_t>(args.instance_count), static_cast<uint32_t>(args.first_index), static_cast<int32_t>(args.vertex_offset), 0);
 }
 
 void gfx_vk::renderer::submit()
@@ -247,7 +248,7 @@ void gfx_vk::renderer::create_frame_resources(renderer_config const& config)
     VkDevice device = m_context.get_device().getHandle();
     vko::Instance const& instance = m_context.get_instance();
 
-    for (auto i = 0; i < config.max_frames_in_flight; i++)
+    for (size_t i = 0; i < config.max_frames_in_flight; i++)
     {
         vko::CommandPool command_pool{ device, m_context.get_device().getGraphicsQueue().getFamily() };
         vko::CommandBuffers command_buffers{ command_pool.allocate(1) };

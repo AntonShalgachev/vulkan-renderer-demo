@@ -62,6 +62,8 @@ endif()
 
 set_property(TARGET demo PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 
+target_mark_includes_system(demo glfw imgui dds-ktx::dds-ktx cgltf)
+
 target_link_libraries(demo
     vko # TODO remove
     vkgfx # TODO remove

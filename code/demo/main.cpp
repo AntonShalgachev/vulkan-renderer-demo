@@ -1,5 +1,7 @@
 #include "DemoApplication.h"
 
+#include "platform/startup.h"
+
 #include "stdlib.h"
 
 int run(int argc, char** argv)

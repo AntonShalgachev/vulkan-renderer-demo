@@ -56,7 +56,7 @@ namespace tiny_ctti
     }
 
     template<typename T> concept described_type = is_described<T>();
-    template<described_type T> constexpr string_view type_name_v = tiny_ctti_get_type_name<T>();
+    template<described_type T> inline constexpr string_view type_name_v = tiny_ctti_get_type_name<T>();
 
     template<described_type T>
     constexpr string_view type_name()
@@ -93,7 +93,7 @@ namespace tiny_ctti
 
     template<typename E> concept described_enum = is_enum<E>();
     template<typename E> inline constexpr auto enum_entries_v = tiny_ctti_get_enum_entries(type_tag<E>{});
-    template<typename E> constexpr size_t enum_size_v = enum_entries_v<E>.size;
+    template<typename E> inline constexpr size_t enum_size_v = enum_entries_v<E>.size;
 
     namespace detail
     {
@@ -205,8 +205,8 @@ namespace tiny_ctti
     }
 
     template<typename T> concept described_struct = is_struct<T>();
-    template<described_struct T> constexpr size_t struct_size_v = tiny_ctti_get_struct_size(type_tag<T>{});
-    template<described_struct T, size_t I> constexpr auto struct_field_v = tiny_ctti_get_struct_field(type_tag<T>{}, index_tag<I>{});
+    template<described_struct T> inline constexpr size_t struct_size_v = tiny_ctti_get_struct_size(type_tag<T>{});
+    template<described_struct T, size_t I> inline constexpr auto struct_field_v = tiny_ctti_get_struct_field(type_tag<T>{}, index_tag<I>{});
 
     template<described_struct T>
     constexpr size_t struct_size() noexcept
@@ -227,27 +227,31 @@ namespace tiny_ctti
 constexpr bool tiny_ctti_is_described(tiny_ctti::type_tag<E>) { return true; }                                                                                                     \
 constexpr bool tiny_ctti_is_enum(tiny_ctti::type_tag<E>) { return true; }                                                                                                          \
 constexpr tiny_ctti::string_view tiny_ctti_get_type_name(tiny_ctti::type_tag<E>) { return { #E, sizeof(#E) - 1 }; }                                                                \
-constexpr auto tiny_ctti_get_enum_entries(tiny_ctti::type_tag<E>) { return tiny_ctti::simple_array{ TCTTI_FOR_EACH(TCTTI_CREATE_ENUM_ENTRY, E, __VA_ARGS__) }; }
+constexpr auto tiny_ctti_get_enum_entries(tiny_ctti::type_tag<E>) { return tiny_ctti::simple_array{ TCTTI_FOR_EACH(TCTTI_CREATE_ENUM_ENTRY, E, __VA_ARGS__) }; }                   \
+static_assert(true, "Semicolon expected")
 
 #define TINY_CTTI_DESCRIBE_NESTED_ENUM(E, ...)                                                                                                                                     \
 friend constexpr bool tiny_ctti_is_described(tiny_ctti::type_tag<E>) { return true; }                                                                                              \
 friend constexpr bool tiny_ctti_is_enum(tiny_ctti::type_tag<E>) { return true; }                                                                                                   \
 friend constexpr tiny_ctti::string_view tiny_ctti_get_type_name(tiny_ctti::type_tag<E>) { return { #E, sizeof(#E) - 1 }; }                                                         \
-friend constexpr auto tiny_ctti_get_enum_entries(tiny_ctti::type_tag<E>) { return tiny_ctti::simple_array{ TCTTI_FOR_EACH(TCTTI_CREATE_ENUM_ENTRY, E, __VA_ARGS__) }; }
+friend constexpr auto tiny_ctti_get_enum_entries(tiny_ctti::type_tag<E>) { return tiny_ctti::simple_array{ TCTTI_FOR_EACH(TCTTI_CREATE_ENUM_ENTRY, E, __VA_ARGS__) }; }            \
+static_assert(true, "Semicolon expected")
 
 #define TINY_CTTI_DESCRIBE_STRUCT(T, ...)                                                                                                                                          \
 constexpr bool tiny_ctti_is_described(tiny_ctti::type_tag<T>) { return true; }                                                                                                     \
 constexpr bool tiny_ctti_is_struct(tiny_ctti::type_tag<T>) { return true; }                                                                                                        \
 constexpr tiny_ctti::string_view tiny_ctti_get_type_name(tiny_ctti::type_tag<T>) { return { #T, sizeof(#T) - 1 }; }                                                                \
 constexpr size_t tiny_ctti_get_struct_size(tiny_ctti::type_tag<T>) { return TCTTI_ARGS_COUNT(__VA_ARGS__); }                                                                       \
-TCTTI_FOR_EACH(TCTTI_CREATE_STRUCT_FIELD, T, __VA_ARGS__)
+TCTTI_FOR_EACH(TCTTI_CREATE_STRUCT_FIELD, T, __VA_ARGS__)                                                                                                                          \
+static_assert(true, "Semicolon expected")
 
 #define TINY_CTTI_DESCRIBE_NESTED_STRUCT(T, ...)                                                                                                                                   \
 friend constexpr bool tiny_ctti_is_described(tiny_ctti::type_tag<T>) { return true; }                                                                                              \
 friend constexpr bool tiny_ctti_is_struct(tiny_ctti::type_tag<T>) { return true; }                                                                                                 \
 friend constexpr tiny_ctti::string_view tiny_ctti_get_type_name(tiny_ctti::type_tag<T>) { return { #T, sizeof(#T) - 1 }; }                                                         \
 friend constexpr size_t tiny_ctti_get_struct_size(tiny_ctti::type_tag<T>) { return TCTTI_ARGS_COUNT(__VA_ARGS__); }                                                                \
-TCTTI_FOR_EACH(friend TCTTI_CREATE_STRUCT_FIELD, T, __VA_ARGS__)
+TCTTI_FOR_EACH(friend TCTTI_CREATE_STRUCT_FIELD, T, __VA_ARGS__)                                                                                                                   \
+static_assert(true, "Semicolon expected")
 
 //////////////////////////////////////////////////////////////////////////
 

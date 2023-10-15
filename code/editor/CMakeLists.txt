@@ -16,6 +16,8 @@ target_include_directories(editor PUBLIC "include")
 
 demo_set_common_properties(editor)
 
+target_mark_includes_system(editor cgltf::cgltf)
+
 target_link_libraries(editor
     nstl
     memory

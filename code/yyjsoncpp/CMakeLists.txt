@@ -23,6 +23,8 @@ target_include_directories(yyjsoncpp PUBLIC
     "include"
 )
 
+target_mark_includes_system(yyjsoncpp yyjson)
+
 target_link_libraries(yyjsoncpp
     yyjson
     nstl # TODO remove

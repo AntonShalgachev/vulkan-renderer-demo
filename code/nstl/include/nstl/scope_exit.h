@@ -17,4 +17,6 @@ namespace nstl
     private:
         F m_func;
     };
+
+    template<typename F> scope_exit(F) -> scope_exit<F>;
 }

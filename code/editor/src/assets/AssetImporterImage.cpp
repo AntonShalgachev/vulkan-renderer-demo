@@ -84,7 +84,7 @@ namespace
 
         int req_comp = 4; // TODO remove this? GPU doesn't support RGB format
         int w = 0, h = 0, comp = 0;
-        unsigned char* data = stbi_load_from_memory(content.ucdata(), static_cast<uint32_t>(content.size()), &w, &h, &comp, req_comp);
+        unsigned char* data = stbi_load_from_memory(content.ucdata(), static_cast<int>(content.size()), &w, &h, &comp, req_comp);
         int bits = 8;
 
         if (req_comp != 0)
@@ -96,7 +96,7 @@ namespace
 
         size_t dataSize = static_cast<size_t>(w * h * comp) * size_t(bits / 8);
 
-        nstl::vector<unsigned char> bytes = convertToKtx2({ data, dataSize }, w, h, comp);
+        nstl::vector<unsigned char> bytes = convertToKtx2({ data, dataSize }, static_cast<size_t>(w), static_cast<size_t>(h), comp);
 
         stbi_image_free(data);
 

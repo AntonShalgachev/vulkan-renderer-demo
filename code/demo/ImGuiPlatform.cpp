@@ -229,7 +229,8 @@ void ImGuiPlatform::setupCallbacks()
     });
 
     m_window.addCharCallback([](char c) {
-        ImGui::GetIO().AddInputCharacter(c);
+        assert(c >= 0);
+        ImGui::GetIO().AddInputCharacter(static_cast<unsigned int>(c));
     });
 
     m_window.addScrollCallback([](float x, float y) {
