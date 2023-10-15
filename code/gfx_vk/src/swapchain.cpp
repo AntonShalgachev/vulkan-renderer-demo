@@ -74,6 +74,7 @@ VkExtent2D gfx_vk::swapchain::get_extent() const
 
 void gfx_vk::swapchain::on_window_resized()
 {
+    m_context.on_surface_changed();
     recreate();
 }
 
@@ -137,6 +138,9 @@ void gfx_vk::swapchain::destroy()
 {
     m_context.get_device().waitIdle();
 
+    m_framebuffers.clear();
+    // TODO destroy m_swapchain_images
+    // TODO destroy m_depth_image
     m_swapchain = nullptr;
 }
 
