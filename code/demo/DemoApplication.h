@@ -133,19 +133,14 @@ struct GltfResources
 
 struct EditorGltfResources
 {
-    nstl::unordered_map<editor::assets::Uuid, vkgfx::ImageHandle> images;
     nstl::unordered_map<editor::assets::Uuid, gfx::image_handle> newImages;
     nstl::unordered_map<editor::assets::Uuid, DemoMaterial> materials;
     nstl::unordered_map<editor::assets::Uuid, DemoMesh> meshes;
-    nstl::unordered_map<editor::assets::Uuid, vkgfx::BufferHandle> meshBuffers;
     nstl::unordered_map<editor::assets::Uuid, gfx::buffer_handle> newMeshBuffers;
 
-    nstl::unordered_map<nstl::string, vkgfx::ShaderModuleHandle> shaderModules;
     nstl::unordered_map<nstl::string, gfx::shader_handle> newShaderModules;
 
     nstl::vector<vkgfx::TestCameraParameters> cameraParameters;
-
-    nstl::vector<vkgfx::BufferHandle> additionalBuffers; // TODO think how to store all created resources better
 };
 
 struct DemoScene

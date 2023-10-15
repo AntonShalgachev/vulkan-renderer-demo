@@ -1518,8 +1518,6 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
 
     MEMORY_TRACKING_SCOPE(scopeId);
 
-//     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
-
     m_editorGltfResources = nstl::make_unique<EditorGltfResources>();
 
     // TODO move somewhere else? Doesn't seem to be related to the GLTF model
@@ -1531,8 +1529,6 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
         auto const& modulePath = pair.value();
-//         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
-//         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
         m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
             .filename = modulePath,
             .stage = gfx::shader_stage::vertex,
@@ -1546,8 +1542,6 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
         auto const& modulePath = pair.value();
-//         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
-//         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
         m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
             .filename = modulePath,
             .stage = gfx::shader_stage::vertex,
@@ -1561,8 +1555,6 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
         auto const& modulePath = pair.value();
-//         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Fragment, "main");
-//         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
         m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
             .filename = modulePath,
             .stage = gfx::shader_stage::fragment,
@@ -1576,8 +1568,6 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
         auto const& modulePath = pair.value();
-//         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Fragment, "main");
-//         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
         m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
             .filename = modulePath,
             .stage = gfx::shader_stage::fragment,
@@ -1591,8 +1581,6 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
         auto const& modulePath = pair.value();
-//         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
-//         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
         m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
             .filename = modulePath,
             .stage = gfx::shader_stage::vertex,
@@ -1606,8 +1594,6 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
         MEMORY_TRACKING_SCOPE(shadersScopeId);
 
         auto const& modulePath = pair.value();
-//         auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
-//         m_editorGltfResources->shaderModules.insert_or_assign(modulePath, handle);
         m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
             .filename = modulePath,
             .stage = gfx::shader_stage::vertex,
@@ -1628,35 +1614,6 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
             {
                 DemoMaterial const& material = m_editorGltfResources->materials[primitive.metadata.materialUuid];
 
-                vkgfx::PipelineKey pipelineKey;
-                pipelineKey.renderConfig = material.metadata.renderConfig;
-
-                // TODO think how to handle multiple descriptor set layouts properly
-                pipelineKey.uniformConfigs = {
-                    // TODO get shared frame uniform config from the Renderer
-                    vkgfx::UniformConfiguration{
-                        .hasBuffer = true,
-                        .hasAlbedoTexture = false,
-                        .hasNormalMap = false,
-                        .hasShadowMap = true,
-                    },
-                    material.metadata.uniformConfig,
-                    vkgfx::UniformConfiguration{
-                        .hasBuffer = true,
-                        .hasAlbedoTexture = false,
-                        .hasNormalMap = false,
-                    },
-                };
-
-                pipelineKey.vertexConfig = primitive.metadata.vertexConfig;
-
-//                 struct DemoObjectPushConstants
-//                 {
-//                     tglm::mat4 model;
-//                 };
-// 
-//                 pipelineKey.pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DemoObjectPushConstants), } };
-
                 // TODO reimplement
                 ShaderConfiguration shaderConfiguration;
                 shaderConfiguration.hasTexture = material.metadata.uniformConfig.hasAlbedoTexture;
@@ -1666,20 +1623,8 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                 shaderConfiguration.hasNormal = primitive.metadata.attributeSemanticsConfig.hasNormal;
                 shaderConfiguration.hasTangent = primitive.metadata.attributeSemanticsConfig.hasTangent;
 
-                nstl::string const* vertexShaderPath = m_defaultVertexShader->get(shaderConfiguration);
                 nstl::string const* newVertexShaderPath = m_newDefaultVertexShader->get(shaderConfiguration);
-                nstl::string const* fragmentShaderPath = m_defaultFragmentShader->get(shaderConfiguration);
                 nstl::string const* newFragmentShaderPath = m_newDefaultFragmentShader->get(shaderConfiguration);
-
-                assert(vertexShaderPath && fragmentShaderPath);
-                assert(newVertexShaderPath && newFragmentShaderPath);
-
-                vkgfx::ShaderModuleHandle vertexShaderModule = m_editorGltfResources->shaderModules[*vertexShaderPath];
-                vkgfx::ShaderModuleHandle fragmentShaderModule = m_editorGltfResources->shaderModules[*fragmentShaderPath];
-
-                pipelineKey.shaderHandles = { vertexShaderModule, fragmentShaderModule };
-
-//                 vkgfx::PipelineHandle pipeline = resourceManager.getOrCreatePipeline(pipelineKey);
 
                 gfx::shader_handle vertexShader = m_editorGltfResources->newShaderModules[*newVertexShaderPath];
                 gfx::shader_handle fragmentShader = m_editorGltfResources->newShaderModules[*newFragmentShaderPath];
@@ -1707,30 +1652,8 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
 
                 gfx::renderstate_handle state = m_renderstates.back();
 
-                nstl::string const* shadowmapVertexShaderPath = m_shadowmapVertexShader->get({});
                 nstl::string const* newShadowmapVertexShaderPath = m_newShadowmapVertexShader->get({});
-                assert(shadowmapVertexShaderPath);
                 assert(newShadowmapVertexShaderPath);
-                vkgfx::ShaderModuleHandle shadowmapVertexShaderModule = m_editorGltfResources->shaderModules[*shadowmapVertexShaderPath];
-
-                vkgfx::PipelineKey shadowmapPipelineKey = {
-                    .shaderHandles = {shadowmapVertexShaderModule},
-                    .uniformConfigs = {
-                        vkgfx::UniformConfiguration{
-                            .hasBuffer = true,
-                            .hasAlbedoTexture = false,
-                            .hasNormalMap = false,
-                        },
-                    },
-                    .vertexConfig = primitive.metadata.vertexConfig,
-                    .renderConfig = {
-                        .depthBias = true,
-                    },
-//                     .pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DemoObjectPushConstants), } },
-                    .isShadowmap = true,
-                };
-
-//                 vkgfx::PipelineHandle shadowmapPipeline = resourceManager.getOrCreatePipeline(shadowmapPipelineKey);
 
                 gfx::shader_handle shadowmapVertexShader = m_editorGltfResources->newShaderModules[*newShadowmapVertexShaderPath];
                 m_renderstates.push_back(m_newRenderer->create_renderstate({
@@ -1755,23 +1678,6 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                 }));
 
                 gfx::renderstate_handle shadowmapState = m_renderstates.back();
-
-//                 struct DemoObjectUniformBuffer
-//                 {
-//                     tglm::vec4 color;
-//                 };
-
-//                 vkgfx::BufferMetadata uniformBufferMetadata{
-//                     .usage = vkgfx::BufferUsage::UniformBuffer,
-//                     .location = vkgfx::BufferLocation::HostVisible,
-//                     .isMutable = false,
-//                 };
-//                 vkgfx::BufferHandle uniformBuffer = resourceManager.createBuffer(sizeof(DemoObjectUniformBuffer), nstl::move(uniformBufferMetadata));
-//                 m_editorGltfResources->additionalBuffers.push_back(uniformBuffer);
-// 
-//                 DemoObjectUniformBuffer uniformValues;
-//                 uniformValues.color = { 1.0f, 1.0f, 1.0f, 0.0f };
-//                 resourceManager.uploadBuffer(uniformBuffer, nstl::blob_view{ &uniformValues, sizeof(uniformValues) });
 
                 auto calculateTransform = [&object, &scene]()
                 {
@@ -1815,22 +1721,14 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
                     .entries = nstl::array{ gfx::descriptorgroup_entry{ 0, {objectUniformBuffer, gfx::descriptor_type::uniform_buffer} } },
                 });
 
-//                 DemoObjectPushConstants pushConstants;
-//                 pushConstants.model = calculateTransform();
-
                 vkgfx::TestObject& testObject = m_demoScene.objects.emplace_back();
                 testObject.mesh = primitive.handle;
                 testObject.material = material.handle;
                 testObject.materialDescriptorGroup = material.descriptorgroup;
                 testObject.newUniformBuffer = objectUniformBuffer;
                 testObject.descriptorGroup = descriptorGroup;
-//                 testObject.pipeline = pipeline;
-//                 testObject.shadowmapPipeline = shadowmapPipeline;
                 testObject.state = state;
                 testObject.shadowmapState = shadowmapState;
-//                 testObject.uniformBuffer = uniformBuffer;
-//                 testObject.pushConstants.resize(sizeof(pushConstants));
-//                 memcpy(testObject.pushConstants.data(), &pushConstants, testObject.pushConstants.size());
 
                 testObject.indexBuffer = primitive.indexBuffer;
                 testObject.vertexBuffers = primitive.vertexBuffers;
@@ -1848,8 +1746,6 @@ void DemoApplication::editorLoadImage(editor::assets::Uuid id)
     static auto scopeId = memory::tracking::create_scope_id("Scene/Load/Editor/Image");
     MEMORY_TRACKING_SCOPE(scopeId);
 
-//     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
-
     // TODO leads to unnecessary data copy; change that
     nstl::optional<ImageData> imageData = loadImage(m_assetDatabase->loadImage(id));
     assert(imageData);
@@ -1858,21 +1754,10 @@ void DemoApplication::editorLoadImage(editor::assets::Uuid id)
     assert(!imageData->mips.empty());
     assert(imageData->mips[0].size > 0);
 
-//     vkgfx::ImageMetadata metadata;
-//     metadata.width = imageData->width;
-//     metadata.height = imageData->height;
-
     // TODO support all mips
 
     ImageData::MipData const& mipData = imageData->mips[0];
     auto bytes = nstl::span<unsigned char const>{ imageData->bytes }.subspan(mipData.offset, mipData.size);
-
-//     metadata.byteSize = bytes.size();
-//     metadata.format = imageData->format;
-
-//     auto handle = resourceManager.createImage(metadata);
-//     resourceManager.uploadImage(handle, bytes);
-//     m_editorGltfResources->images[id] = handle;
 
     auto image = m_newRenderer->create_image({
         .width = imageData->width,
@@ -1891,13 +1776,7 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
 
     MEMORY_TRACKING_SCOPE(scopeId);
 
-//     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
-
     editor::assets::MaterialData materialData = m_assetDatabase->loadMaterial(id);
-
-    vkgfx::Material material;
-    material.albedo = m_defaultAlbedoTexture;
-    material.normalMap = m_defaultNormalMapTexture;
 
     struct MaterialUniformBuffer
     {
@@ -1907,17 +1786,6 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
     MaterialUniformBuffer values;
     if (materialData.baseColor)
         values.color = tglm::vec4{ materialData.baseColor->data };
-
-//     vkgfx::BufferMetadata metadata{
-//         .usage = vkgfx::BufferUsage::UniformBuffer,
-//         .location = vkgfx::BufferLocation::HostVisible,
-//         .isMutable = false,
-//     };
-//     auto buffer = resourceManager.createBuffer(sizeof(values), nstl::move(metadata));
-//     resourceManager.uploadBuffer(buffer, { &values, sizeof(values) });
-//     m_editorGltfResources->additionalBuffers.push_back(buffer);
-
-//     material.uniformBuffer = buffer;
 
     auto newBuffer = m_newRenderer->create_buffer({
         .size = sizeof(values),
@@ -1936,15 +1804,8 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
     if (materialData.baseColorTexture)
     {
         editor::assets::Uuid imageId = materialData.baseColorTexture->image;
-        if (m_editorGltfResources->images.find(imageId) == m_editorGltfResources->images.end())
+        if (m_editorGltfResources->newImages.find(imageId) == m_editorGltfResources->newImages.end())
             editorLoadImage(imageId);
-
-//         auto textureHandle = resourceManager.createTexture(vkgfx::Texture{
-//             .image = m_editorGltfResources->images[imageId],
-//             .sampler = m_defaultSampler, // TODO create actual sampler
-//         });
-// 
-//         material.albedo = textureHandle;
 
         // TODO create actual sampler
         descriptor_entries.push_back({ 1, {m_editorGltfResources->newImages[imageId], m_newDefaultSampler} });
@@ -1954,15 +1815,8 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
     if (materialData.normalTexture)
     {
         editor::assets::Uuid imageId = materialData.normalTexture->image;
-        if (m_editorGltfResources->images.find(imageId) == m_editorGltfResources->images.end())
+        if (m_editorGltfResources->newImages.find(imageId) == m_editorGltfResources->newImages.end())
             editorLoadImage(imageId);
-
-//         auto textureHandle = resourceManager.createTexture(vkgfx::Texture{
-//             .image = m_editorGltfResources->images[imageId],
-//             .sampler = m_defaultSampler, // TODO create actual sampler
-//             });
-// 
-//         material.normalMap = textureHandle;
 
         // TODO create actual sampler
         descriptor_entries.push_back({ 2, {m_editorGltfResources->newImages[imageId], m_newDefaultSampler} });
@@ -1970,8 +1824,6 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
     }
 
     DemoMaterial& demoMaterial = m_editorGltfResources->materials[id];
-
-//     demoMaterial.handle = resourceManager.createMaterial(nstl::move(material));
 
     demoMaterial.buffer = newBuffer;
     demoMaterial.descriptorgroup = m_newRenderer->create_descriptorgroup({
@@ -1995,19 +1847,8 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
 
     MEMORY_TRACKING_SCOPE(scopeId);
 
-//     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
-
     // Mesh buffer
     nstl::blob data = m_assetDatabase->loadMeshData(id);
-
-//     vkgfx::BufferMetadata metadata{
-//         .usage = vkgfx::BufferUsage::VertexIndexBuffer,
-//         .location = vkgfx::BufferLocation::DeviceLocal,
-//         .isMutable = false,
-//     };
-//     vkgfx::BufferHandle meshBufferHandle = resourceManager.createBuffer(data.size(), nstl::move(metadata));
-//     resourceManager.uploadBuffer(meshBufferHandle, data);
-//     m_editorGltfResources->meshBuffers[id] = meshBufferHandle;
 
     auto meshBuffer = m_newRenderer->create_buffer({
         .size = data.size(),
@@ -2029,8 +1870,6 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
             editorLoadMaterial(materialId);
 
         DemoPrimitive& demoPrimitive = demoMesh.primitives.emplace_back();
-
-//         vkgfx::Mesh mesh;
 
         {
             auto findIndexType = [](editor::assets::DataComponentType componentType)
@@ -2071,12 +1910,6 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
 
             assert(primitiveData.indices.type == editor::assets::DataType::Scalar);
 
-//             mesh.indexBuffer.buffer = m_editorGltfResources->meshBuffers[id];
-//             mesh.indexBuffer.offset = primitiveData.indices.bufferOffset;
-//             mesh.indexCount = primitiveData.indices.count;
-//             mesh.indexType = findIndexType(primitiveData.indices.componentType);
-            // TODO use stride?
-
             demoPrimitive.indexBuffer = { meshBuffer, primitiveData.indices.bufferOffset };
             demoPrimitive.indexType = newFindIndexType(primitiveData.indices.componentType);
             demoPrimitive.indexCount = primitiveData.indices.count;
@@ -2094,10 +1927,6 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
 
             demoPrimitive.vertexBuffers.push_back({ meshBuffer, attributeData.accessor.bufferOffset });
 
-//             vkgfx::BufferWithOffset& attributeBuffer = mesh.vertexBuffers.emplace_back();
-//             attributeBuffer.buffer = meshBufferHandle;
-//             attributeBuffer.offset = attributeData.accessor.bufferOffset;
-// 
             if (attributeData.semantic == editor::assets::AttributeSemantic::Color)
                 demoPrimitive.metadata.attributeSemanticsConfig.hasColor = true;
             if (attributeData.semantic == editor::assets::AttributeSemantic::Texcoord)
@@ -2107,18 +1936,7 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
             if (attributeData.semantic == editor::assets::AttributeSemantic::Tangent)
                 demoPrimitive.metadata.attributeSemanticsConfig.hasTangent = true;
 
-//             vkgfx::AttributeType attributeType = findAttributeType(attributeData.accessor.type, attributeData.accessor.componentType);
             gfx::attribute_type newAttributeType = newFindAttributeType(attributeData.accessor.type, attributeData.accessor.componentType);
-
-//             vkgfx::VertexConfiguration::Binding& bindingConfig = demoPrimitive.metadata.vertexConfig.bindings.emplace_back();
-//             bindingConfig.stride = attributeData.accessor.stride;
-
-//             size_t attributeIndex = demoPrimitive.metadata.vertexConfig.attributes.size(); // TODO check
-//             vkgfx::VertexConfiguration::Attribute& attributeConfig = demoPrimitive.metadata.vertexConfig.attributes.emplace_back();
-//             attributeConfig.binding = attributeIndex;
-//             attributeConfig.location = *location;
-//             attributeConfig.offset = 0; // TODO can be improved
-//             attributeConfig.type = attributeType;
 
             // TODO probably a single buffer can be used
             size_t buffer_index = demoPrimitive.metadata.newVertexConfig.buffer_bindings.size();
@@ -2142,8 +1960,6 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
         demoPrimitive.metadata.newVertexConfig.topology = gfx::vertex_topology::triangles;
 
         demoPrimitive.metadata.materialUuid = materialId;
-
-//         demoPrimitive.handle = resourceManager.createMesh(nstl::move(mesh));
     }
 }
 
