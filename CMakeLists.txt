@@ -2,14 +2,6 @@ cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 project(vulkan-renderer-demo LANGUAGES C CXX VERSION 1.0)
 
-set(CMAKE_CONFIGURATION_TYPES
-    "Debug"
-    "Release"
-    "RelWithDebInfo"
-    "MinSizeRel"
-    CACHE STRING "" FORCE
-)
-
 # TODO get rid of all "demo" names
 
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
