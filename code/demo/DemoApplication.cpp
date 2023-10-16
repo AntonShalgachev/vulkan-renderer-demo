@@ -39,7 +39,6 @@
 #include "nstl/optional.h"
 #include "nstl/string_builder.h"
 #include "nstl/scope_exit.h"
-#include "nstl/sort.h"
 
 #include <math.h>
 
@@ -421,7 +420,6 @@ void DemoApplication::init()
     m_commands["scene.unload"] = coil::bind(&DemoApplication::clearScene, this);
 
     createResources();
-    createTestResources();
 
     m_sceneDrawer = nstl::make_unique<DemoSceneDrawer>(*m_newRenderer, m_shadowRenderpass);
 }
@@ -1081,7 +1079,6 @@ void DemoApplication::drawFrame()
     update();
 
     draw();
-//     drawTest();
 
     m_fpsDrawnFrames++;
 }
@@ -1204,234 +1201,6 @@ void DemoApplication::draw()
     m_sceneDrawer->draw(false, m_cameraDescriptorGroup, m_shadowmapCameraDescriptorGroup);
 
     m_services.debugDraw().draw(*m_newRenderer, m_cameraDescriptorGroup);
-
-    // TODO should be in its own renderpass
-    if (m_imGuiDrawer)
-        m_imGuiDrawer->draw(*m_newRenderer);
-
-    m_newRenderer->renderpass_end();
-
-    m_newRenderer->submit();
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-namespace
-{
-    struct Vertex
-    {
-        tglm::vec3 position;
-        tglm::vec3 color;
-    };
-
-    using IndexT = uint16_t;
-
-    struct FrameUniformBuffer
-    {
-        tglm::mat4 view = tglm::mat4::identity();
-        tglm::mat4 projection = tglm::mat4::identity();
-    };
-
-    struct MaterialUniformBuffer
-    {
-        tglm::vec4 color = { 1, 1, 1, 1 };
-    };
-
-    struct ObjectUniformBuffer
-    {
-        tglm::mat4 model = tglm::mat4::identity();
-        tglm::vec4 color = { 1, 1, 1, 1 };
-    };
-
-    struct TestResources
-    {
-        gfx::buffer_handle vertexBuffer;
-        gfx::buffer_handle indexBuffer;
-
-        gfx::buffer_handle frameBuffer;
-        gfx::descriptorgroup_handle frameDescriptors;
-        gfx::buffer_handle materialBuffer;
-        gfx::descriptorgroup_handle materialDescriptors;
-        gfx::buffer_handle objectBuffer;
-        gfx::descriptorgroup_handle objectDescriptors;
-
-        gfx::shader_handle vertexShader;
-        gfx::shader_handle fragmentShader;
-        gfx::renderstate_handle renderstate;
-    };
-
-    TestResources testResources;
-}
-
-void DemoApplication::createTestResources()
-{
-    auto createTestBuffer = [this](gfx::buffer_usage usage, nstl::blob_view data, bool is_mutable = false)
-    {
-        gfx::buffer_handle buffer = m_newRenderer->create_buffer({
-            .size = data.size(),
-            .usage = usage,
-            .location = gfx::buffer_location::device_local,
-            .is_mutable = is_mutable,
-        });
-
-        m_newRenderer->buffer_upload_sync(buffer, data);
-
-        return buffer;
-    };
-
-    // Vertex buffer
-    {
-        nstl::array<Vertex, 3> vertices = { {
-            { {0.0f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f} },
-            { {-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f} },
-            { {0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f} },
-        } };
-
-        testResources.vertexBuffer = createTestBuffer(gfx::buffer_usage::vertex_index, { vertices.data(), vertices.size() * sizeof(Vertex)});
-    }
-
-    // Index buffer
-    {
-        nstl::array<IndexT, 3> indices = { 0, 1, 2 };
-
-        testResources.indexBuffer = createTestBuffer(gfx::buffer_usage::vertex_index, { indices.data(), indices.size() * sizeof(IndexT)});
-    }
-
-    // Frame uniform buffer and descriptor group
-    {
-        FrameUniformBuffer data = {
-
-        };
-
-        testResources.frameBuffer = createTestBuffer(gfx::buffer_usage::uniform, { &data, sizeof(data) });
-
-        testResources.frameDescriptors = m_newRenderer->create_descriptorgroup({
-            .entries = nstl::array{
-                gfx::descriptorgroup_entry{ 0, {testResources.frameBuffer, gfx::descriptor_type::uniform_buffer} },
-            },
-        });
-    }
-
-    // Material uniform buffer and descriptor group
-    {
-        MaterialUniformBuffer data = {
-
-        };
-
-        testResources.materialBuffer = createTestBuffer(gfx::buffer_usage::uniform, { &data, sizeof(data) });
-
-        testResources.materialDescriptors = m_newRenderer->create_descriptorgroup({
-            .entries = nstl::array{
-                gfx::descriptorgroup_entry{ 0, {testResources.materialBuffer, gfx::descriptor_type::uniform_buffer} },
-            },
-        });
-    }
-
-    // Object uniform buffer and descriptor group
-    {
-        ObjectUniformBuffer data = {
-
-        };
-
-        bool is_mutable = true;
-        testResources.objectBuffer = createTestBuffer(gfx::buffer_usage::uniform, { &data, sizeof(data) }, is_mutable);
-
-        testResources.objectDescriptors = m_newRenderer->create_descriptorgroup({
-            .entries = nstl::array{
-                gfx::descriptorgroup_entry{ 0, {testResources.objectBuffer, gfx::descriptor_type::uniform_buffer} },
-            },
-        });
-    }
-
-    // Shaders
-    {
-        {
-            ShaderPackage shaders{ "data/shaders/packaged/test/test.vert" };
-            testResources.vertexShader = m_newRenderer->create_shader({
-                .filename = *shaders.get({}),
-                .stage = gfx::shader_stage::vertex,
-            });
-        }
-        {
-            ShaderPackage shaders{ "data/shaders/packaged/test/test.frag" };
-            testResources.fragmentShader = m_newRenderer->create_shader({
-                .filename = *shaders.get({}),
-                .stage = gfx::shader_stage::fragment,
-            });
-        }
-    }
-
-    // Render state
-    {
-        testResources.renderstate = m_newRenderer->create_renderstate({
-            .shaders = nstl::array{ testResources.vertexShader, testResources.fragmentShader },
-            .renderpass = m_newRenderer->get_main_renderpass(),
-            .vertex_config = {
-                .buffer_bindings = nstl::array{
-                    gfx::buffer_binding_description{ .buffer_index = 0, .stride = sizeof(Vertex) },
-                },
-                .attributes = nstl::array{
-                    gfx::attribute_description{ .location = 0, .buffer_binding_index = 0, .offset = offsetof(Vertex, position), .type = gfx::attribute_type::vec3f },
-                    gfx::attribute_description{ .location = 1, .buffer_binding_index = 0, .offset = offsetof(Vertex, color), .type = gfx::attribute_type::vec3f },
-                },
-                .topology = gfx::vertex_topology::triangles,
-            },
-            .descriptorgroup_layouts = nstl::array{
-                gfx::descriptorgroup_layout_view {
-                    .entries = nstl::array{
-                        gfx::descriptor_layout_entry{0, gfx::descriptor_type::uniform_buffer},
-                    },
-                },
-                gfx::descriptorgroup_layout_view {
-                    .entries = nstl::array{
-                        gfx::descriptor_layout_entry{0, gfx::descriptor_type::uniform_buffer},
-                    },
-                },
-                gfx::descriptorgroup_layout_view {
-                    .entries = nstl::array{
-                        gfx::descriptor_layout_entry{0, gfx::descriptor_type::uniform_buffer},
-                    },
-                },
-            },
-            .flags = {},
-        });
-    }
-}
-
-void DemoApplication::drawTest()
-{
-    static float time = 0.0f;
-    time += 0.0016f;
-
-    ObjectUniformBuffer data = {
-        .color = {0.5f + 0.5f * sinf(time), 0.5f + 0.5f * sinf(2.0f * time), 0.5f + 0.5f * sinf(3.0f * time), 1.0f},
-    };
-
-    m_newRenderer->begin_resource_update();
-    m_newRenderer->buffer_upload_sync(testResources.objectBuffer, { &data, sizeof(data) });
-
-    if (m_imGuiDrawer)
-        m_imGuiDrawer->updateResources(*m_newRenderer);
-
-    m_newRenderer->begin_frame();
-
-    m_newRenderer->renderpass_begin({
-        .renderpass = m_newRenderer->get_main_renderpass(),
-        .framebuffer = m_newRenderer->acquire_main_framebuffer(),
-    });
-
-    m_newRenderer->draw_indexed({
-        .renderstate = testResources.renderstate,
-        .descriptorgroups = nstl::array{ testResources.frameDescriptors, testResources.materialDescriptors, testResources.objectDescriptors },
-
-        .vertex_buffers = nstl::array{ gfx::buffer_with_offset{ testResources.vertexBuffer } },
-        .index_buffer = { testResources.indexBuffer },
-        .index_type = gfx::index_type::uint16,
-
-        .index_count = 3,
-        .first_index = 0,
-        .vertex_offset = 0,
-    });
 
     // TODO should be in its own renderpass
     if (m_imGuiDrawer)

@@ -118,9 +118,6 @@ private:
 
     void draw();
 
-    void createTestResources();
-    void drawTest();
-
 private:
     Services m_services;
 
@@ -181,8 +178,6 @@ private:
     bool m_reloadImgui = false;
 
     nstl::string m_currentScenePath = "";
-
-//     nstl::unique_ptr<vkgfx::Renderer> m_renderer;
 
     vkgfx::TestCameraTransform m_cameraTransform;
     vkgfx::TestCameraParameters m_cameraParameters;
