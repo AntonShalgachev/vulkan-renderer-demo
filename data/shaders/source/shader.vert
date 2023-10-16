@@ -6,25 +6,24 @@
 #endif
 
 // TODO move to an .h file?
-layout(set = 0, binding = 0) uniform FrameUniformBuffer {
+layout(set = 0, binding = 0) uniform FrameViewProjectionData {
     mat4 view;
     mat4 projection;
+} frameViewProjection;
+layout(set = 0, binding = 1) uniform FrameLightData {
     mat4 lightViewProjection;
     vec3 lightPosition;
     vec3 lightColor;
-} frameUniforms;
+} frameLight;
 
 layout(set = 1, binding = 0) uniform MaterialUniformBuffer {
     vec4 objectColor;
 } materialUniforms;
 
 layout(set = 2, binding = 0) uniform ObjectUniformBuffer {
+    mat4 model;
     vec4 objectColor;
 } objectUniforms;
-
-layout(push_constant) uniform PushConstants {
-    mat4 model;
-} pcs;
 
 layout(location = 0) in vec3 inPosition;
 
@@ -62,9 +61,9 @@ layout(location = 9) out vec4 shadowCoord;
 
 void main()
 {
-    mat4 modelView = frameUniforms.view * pcs.model;
+    mat4 modelView = frameViewProjection.view * objectUniforms.model;
 	vec4 viewPos = modelView * vec4(inPosition, 1.0);
-	gl_Position = frameUniforms.projection * viewPos;
+	gl_Position = frameViewProjection.projection * viewPos;
 
     mat4 modelViewNormal = transpose(inverse(modelView));
 
@@ -88,9 +87,9 @@ void main()
 
     objectColor = objectUniforms.objectColor * materialUniforms.objectColor;
 
-	lightVec = frameUniforms.lightPosition - viewPos.xyz;
+	lightVec = frameLight.lightPosition - viewPos.xyz;
 	viewVec = viewPos.xyz;
-    lightColor = frameUniforms.lightColor;
+    lightColor = frameLight.lightColor;
 
-    shadowCoord = frameUniforms.lightViewProjection * pcs.model * vec4(inPosition, 1.0);
+    shadowCoord = frameLight.lightViewProjection * objectUniforms.model * vec4(inPosition, 1.0);
 }

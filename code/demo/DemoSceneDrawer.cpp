@@ -249,9 +249,9 @@ DemoSceneDrawer::DemoSceneDrawer(gfx::renderer& renderer, gfx::renderpass_handle
 {
     static auto shadersScopeId = memory::tracking::create_scope_id("Scene/Load/Shader");
 
-    m_defaultVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/new/shader.vert");
-    m_defaultFragmentShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/new/shader.frag");
-    m_shadowmapVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/new/shadowmap.vert");
+    m_defaultVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shader.vert");
+    m_defaultFragmentShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shader.frag");
+    m_shadowmapVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shadowmap.vert");
 
     // TODO implement
 //     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
