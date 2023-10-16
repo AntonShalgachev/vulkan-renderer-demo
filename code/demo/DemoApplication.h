@@ -8,10 +8,6 @@
 #include "ui/NotificationManager.h"
 #include "ui/MemoryViewerWindow.h"
 
-// #include "vkgfx/Handles.h"
-// #include "vkgfx/PipelineKey.h"
-#include "vkgfx/TestObject.h"
-
 #include "services/Services.h"
 
 #include "ScopedDebugCommands.h"
@@ -44,27 +40,11 @@ namespace gfx
 struct cgltf_data;
 struct cgltf_scene;
 
-struct DemoAttributeSemanticsConfiguration
-{
-    bool hasColor = false;
-    bool hasUv = false;
-    bool hasNormal = false;
-    bool hasTangent = false;
-};
-
-struct DemoCamera
-{
-    vkgfx::TestCameraTransform transform;
-    size_t parametersIndex = 0;
-};
-
 struct GltfResources
 {
     nstl::vector<DemoTexture*> demoTextures;
     nstl::vector<DemoMaterial*> demoMaterials;
     nstl::vector<DemoMesh*> demoMeshes;
-
-    nstl::vector<vkgfx::TestCameraParameters> cameraParameters;
 };
 
 struct EditorGltfResources
@@ -72,8 +52,26 @@ struct EditorGltfResources
     nstl::unordered_map<editor::assets::Uuid, DemoTexture*> demoTextures;
     nstl::unordered_map<editor::assets::Uuid, DemoMaterial*> demoMaterials;
     nstl::unordered_map<editor::assets::Uuid, DemoMesh*> demoMeshes;
+};
 
-    nstl::vector<vkgfx::TestCameraParameters> cameraParameters;
+struct DemoCameraTransform
+{
+    tglm::vec3 position = { 0.0f, 0.0f, 0.0f };
+    tglm::quat rotation = tglm::quat::identity();
+};
+
+struct DemoCameraParameters
+{
+    float fov = 45.0f;
+    float nearZ = 0.1f;
+    float farZ = 10000.0f;
+};
+
+struct DemoLightParameters
+{
+    tglm::vec3 position = { 0.0f, 0.0f, 0.0f };
+    tglm::vec3 color = { 1.0f, 1.0f, 1.0f };
+    float intensity = 1.0f;
 };
 
 class DemoApplication
@@ -179,9 +177,9 @@ private:
 
     nstl::string m_currentScenePath = "";
 
-    vkgfx::TestCameraTransform m_cameraTransform;
-    vkgfx::TestCameraParameters m_cameraParameters;
-    vkgfx::TestLightParameters m_lightParameters;
+    DemoCameraTransform m_cameraTransform;
+    DemoCameraParameters m_cameraParameters;
+    DemoLightParameters m_lightParameters;
 
     nstl::unique_ptr<editor::assets::AssetDatabase> m_assetDatabase;
 };

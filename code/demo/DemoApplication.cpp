@@ -810,35 +810,8 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
         m_gltfResources->demoMeshes.push_back(m_sceneDrawer->createMesh({ buffer->data, buffer->size }, primitiveParams));
     }
 
-    m_gltfResources->cameraParameters.reserve(model.cameras_count);
-    for (size_t i = 0; i < model.cameras_count; i++)
-    {
-        MEMORY_TRACKING_SCOPE(camerasScopeId);
-
-        cgltf_camera const& gltfCamera = model.cameras[i];
-
-        if (gltfCamera.type == cgltf_camera_type_perspective)
-        {
-            cgltf_camera_perspective const& gltfParams = gltfCamera.data.perspective;
-
-            assert(gltfParams.has_zfar);
-
-            m_gltfResources->cameraParameters.push_back(vkgfx::TestCameraParameters{
-                .fov = tglm::degrees(static_cast<float>(gltfParams.yfov)),
-                .nearZ = static_cast<float>(gltfParams.znear),
-                .farZ = static_cast<float>(gltfParams.zfar),
-            });
-        }
-        else
-        {
-            assert(false);
-        }
-    }
-
-    {
-        assert(model.scene);
-        createDemoScene(model, *model.scene);
-    }
+    assert(model.scene);
+    createDemoScene(model, *model.scene);
 
     return true;
 }
