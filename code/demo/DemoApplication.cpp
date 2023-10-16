@@ -1,35 +1,13 @@
 #include "DemoApplication.h"
 
-#include "stb_image.h"
-#include "dds-ktx.h"
 #include "cgltf.h"
-
-#include "tiny_ktx/tiny_ktx.h"
 
 #include "tglm/tglm.h" // TODO only include what is needed
 
 #include "imgui.h"
 
-#include <vulkan/vulkan.h>
-
-#include "vko/SamplerProperties.h"
-#include "vko/DebugMessage.h"
-#include "vko/ShaderModuleProperties.h"
-
 #include "ImGuiPlatform.h"
 #include "ImGuiDrawer.h"
-
-#include "ShaderPackage.h"
-
-#include "vkgfx/Renderer.h"
-#include "vkgfx/ResourceManager.h"
-#include "vkgfx/Handles.h"
-#include "vkgfx/ImageMetadata.h"
-#include "vkgfx/Texture.h"
-#include "vkgfx/Mesh.h"
-#include "vkgfx/Material.h"
-#include "vkgfx/BufferMetadata.h"
-#include "vkgfx/TestObject.h"
 
 #include "gfx/renderer.h"
 
@@ -152,255 +130,17 @@ namespace
         return tglm::vec4{ flatColor.data(), flatColor.size() };
     }
 
-    struct ImageData
-    {
-        struct MipData
-        {
-            size_t offset = 0;
-            size_t size = 0;
-        };
-
-        size_t width = 0;
-        size_t height = 0;
-
-        vkgfx::ImageFormat format = vkgfx::ImageFormat::R8G8B8A8;
-
-        nstl::vector<unsigned char> bytes;
-        nstl::vector<MipData> mips;
-    };
-
-    nstl::optional<ImageData> loadWithStbImage(nstl::blob_view bytes)
-    {
-        static auto scopeId = memory::tracking::create_scope_id("Image/Load/STBI");
-        MEMORY_TRACKING_SCOPE(scopeId);
-
-        assert(bytes.size() <= INT_MAX);
-
-        int w = 0, h = 0, comp = 0, req_comp = 4;
-        unsigned char* data = stbi_load_from_memory(bytes.ucdata(), static_cast<int>(bytes.size()), &w, &h, &comp, req_comp);
-        int bits = 8;
-
-        if (!data)
-            return {};
-
-        if (w < 1 || h < 1)
-        {
-            stbi_image_free(data);
-            return {};
-        }
-
-        if (req_comp != 0)
-        {
-            // loaded data has `req_comp` channels(components)
-            comp = req_comp;
-        }
-
-        ImageData imageData;
-
-        imageData.width = static_cast<size_t>(w);
-        imageData.height = static_cast<size_t>(h);
-
-        // TODO refactor this mess and support other pixel types
-        imageData.format = [](int bits, int comp) {
-            if (bits == 8 && comp == 4)
-                return vkgfx::ImageFormat::R8G8B8A8;
-
-            assert(false);
-            return vkgfx::ImageFormat::R8G8B8A8;
-        }(bits, comp);
-
-        size_t dataSize = static_cast<size_t>(w * h * comp) * size_t(bits / 8);
-        imageData.bytes.resize(dataSize);
-        nstl::copy(data, data + dataSize, imageData.bytes.begin());
-        stbi_image_free(data);
-
-        imageData.mips = { { 0, imageData.bytes.size() } };
-
-        return imageData;
-    }
-
-    nstl::optional<ImageData> loadWithDdspp(nstl::blob_view bytes)
-    {
-        static auto scopeId = memory::tracking::create_scope_id("Image/Load/DDS");
-        MEMORY_TRACKING_SCOPE(scopeId);
-
-        assert(bytes.size() <= INT_MAX);
-
-        ddsktx_texture_info info{};
-        if (!ddsktx_parse(&info, bytes.data(), static_cast<int>(bytes.size()), nullptr))
-            return {};
-
-        assert(info.width > 0);
-        assert(info.height > 0);
-        assert(info.bpp > 0);
-        assert(info.bpp % 4 == 0);
-
-        ImageData imageData;
-
-        imageData.width = static_cast<size_t>(info.width);
-        imageData.height = static_cast<size_t>(info.height);
-
-        imageData.format = [](ddsktx_format format)
-        {
-            switch (format)
-            {
-            case DDSKTX_FORMAT_BC1:
-                return vkgfx::ImageFormat::BC1_UNORM;
-            case DDSKTX_FORMAT_BC3:
-                return vkgfx::ImageFormat::BC3_UNORM;
-            case DDSKTX_FORMAT_BC5:
-                return vkgfx::ImageFormat::BC5_UNORM;
-            default: // TODO implement other formats
-                assert(false);
-            }
-
-            assert(false);
-            return vkgfx::ImageFormat::BC1_UNORM;
-        }(info.format);
-
-        // TODO don't include the header
-        imageData.bytes.resize(bytes.size());
-        memcpy(imageData.bytes.data(), bytes.data(), bytes.size());
-
-        for (int mip = 0; mip < info.num_mips; mip++)
-        {
-            ddsktx_sub_data mipInfo;
-            ddsktx_get_sub(&info, &mipInfo, bytes.data(), static_cast<int>(bytes.size()), 0, 0, mip);
-
-            assert(mipInfo.buff > bytes.data());
-            ptrdiff_t offset = static_cast<unsigned char const*>(mipInfo.buff) - bytes.ucdata();
-            assert(offset >= 0);
-
-            imageData.mips.push_back({ static_cast<size_t>(offset), static_cast<size_t>(mipInfo.size_bytes) });
-        }
-
-        return imageData;
-    }
-
-    nstl::optional<ImageData> loadWithKtx(nstl::blob_view bytes)
-    {
-        static auto scopeId = memory::tracking::create_scope_id("Image/Load/KTX");
-        MEMORY_TRACKING_SCOPE(scopeId);
-
-        class memory_stream : public tiny_ktx::input_stream
-        {
-        public:
-            memory_stream(nstl::blob_view bytes) : m_bytes(bytes) {}
-
-            bool read(void* dest, size_t size) override
-            {
-                if (!dest)
-                    return false;
-
-                if (m_position + size > m_bytes.size())
-                    return false;
-
-                memcpy(dest, m_bytes.ucdata() + m_position, size);
-                m_position += size;
-                return true;
-            }
-
-        private:
-            nstl::blob_view m_bytes;
-            size_t m_position = 0;
-        };
-
-        memory_stream stream{ bytes };
-
-        tiny_ktx::image_header header;
-        if (!tiny_ktx::parse_header(&header, stream))
-            return {};
-
-        assert(header.layer_count == 0 || header.layer_count == 1);
-        assert(header.face_count == 1);
-        assert(header.pixel_depth == 0 || header.pixel_depth == 1);
-
-        ImageData imageData;
-
-        imageData.width = header.pixel_width;
-        imageData.height = header.pixel_height;
-
-        imageData.format = [](VkFormat format)
-        {
-            switch (format)
-            {
-            case VK_FORMAT_R8G8B8_UNORM:
-                return vkgfx::ImageFormat::R8G8B8;
-            case VK_FORMAT_R8G8B8A8_UNORM:
-                return vkgfx::ImageFormat::R8G8B8A8;
-            default: // TODO implement other formats
-                assert(false);
-            }
-
-            assert(false);
-            return vkgfx::ImageFormat::R8G8B8A8;
-        }(static_cast<VkFormat>(header.vk_format));
-
-        size_t mipsCount = tiny_ktx::get_level_count(header);
-
-        nstl::vector<tiny_ktx::image_level_info> levelIndex{ mipsCount }; // TODO: static or hybrid vector
-        if (!tiny_ktx::load_image_level_index(levelIndex.data(), levelIndex.size(), header, stream))
-            return {};
-
-        size_t dataOffset = levelIndex[mipsCount - 1].byte_offset;
-        size_t dataSize = levelIndex[0].byte_offset + levelIndex[0].byte_length - dataOffset;
-        imageData.bytes.resize(dataSize);
-
-        assert(dataOffset + dataSize <= bytes.size());
-        memcpy(imageData.bytes.data(), bytes.ucdata() + dataOffset, dataSize);
-
-        for (size_t i = 0; i < mipsCount; i++)
-        {
-            size_t mipOffset = levelIndex[i].byte_offset - dataOffset;
-            size_t mipSize = levelIndex[i].byte_length;
-
-            imageData.mips.push_back({ mipOffset, mipSize });
-        }
-
-        return imageData;
-    }
-
-    nstl::optional<ImageData> loadImage(nstl::blob_view bytes)
-    {
-        static auto scopeId = memory::tracking::create_scope_id("Image/Load");
-        MEMORY_TRACKING_SCOPE(scopeId);
-
-        if (auto data = loadWithDdspp(bytes))
-            return data;
-
-        if (auto data = loadWithStbImage(bytes))
-            return data;
-
-        if (auto data = loadWithKtx(bytes))
-            return data;
-
-        return {};
-    }
-
-    vkgfx::AttributeType findAttributeType(cgltf_type gltfAttributeType, cgltf_component_type gltfComponentType)
+    gfx::attribute_type findAttributeType(cgltf_type gltfAttributeType, cgltf_component_type gltfComponentType)
     {
         if (gltfAttributeType == cgltf_type_vec2 && gltfComponentType == cgltf_component_type_r_32f)
-            return vkgfx::AttributeType::Vec2f;
+            return gfx::attribute_type::vec2f;
         if (gltfAttributeType == cgltf_type_vec3 && gltfComponentType == cgltf_component_type_r_32f)
-            return vkgfx::AttributeType::Vec3f;
+            return gfx::attribute_type::vec3f;
         if (gltfAttributeType == cgltf_type_vec4 && gltfComponentType == cgltf_component_type_r_32f)
-            return vkgfx::AttributeType::Vec4f;
+            return gfx::attribute_type::vec4f;
 
         assert(false);
-        return vkgfx::AttributeType::Vec4f;
-    }
-
-    vkgfx::AttributeType findAttributeType(editor::assets::DataType dataType, editor::assets::DataComponentType componentType)
-    {
-        if (dataType == editor::assets::DataType::Vec2 && componentType == editor::assets::DataComponentType::Float)
-            return vkgfx::AttributeType::Vec2f;
-        if (dataType == editor::assets::DataType::Vec3 && componentType == editor::assets::DataComponentType::Float)
-            return vkgfx::AttributeType::Vec3f;
-        if (dataType == editor::assets::DataType::Vec4 && componentType == editor::assets::DataComponentType::Float)
-            return vkgfx::AttributeType::Vec4f;
-
-        assert(false);
-        return vkgfx::AttributeType::Vec4f;
+        return gfx::attribute_type::vec4f;
     }
 
     gfx::attribute_type newFindAttributeType(editor::assets::DataType dataType, editor::assets::DataComponentType componentType)
@@ -416,26 +156,20 @@ namespace
         return gfx::attribute_type::vec4f;
     }
 
-    size_t getAttributeByteSize(vkgfx::AttributeType type)
+    size_t getAttributeByteSize(gfx::attribute_type type)
     {
         size_t gltfFloatSize = 4;
 
         switch (type)
         {
-        case vkgfx::AttributeType::Vec2f:
+        case gfx::attribute_type::vec2f:
             return 2 * gltfFloatSize;
-        case vkgfx::AttributeType::Vec3f:
+        case gfx::attribute_type::vec3f:
             return 3 * gltfFloatSize;
-        case vkgfx::AttributeType::Vec4f:
+        case gfx::attribute_type::vec4f:
             return 4 * gltfFloatSize;
-        case vkgfx::AttributeType::UInt32:
+        case gfx::attribute_type::uint32:
             return 4;
-        case vkgfx::AttributeType::Mat2f:
-            return 4 * gltfFloatSize;
-        case vkgfx::AttributeType::Mat3f:
-            return 9 * gltfFloatSize;
-        case vkgfx::AttributeType::Mat4f:
-            return 16 * gltfFloatSize;
         }
 
         assert(false);
@@ -660,27 +394,16 @@ void DemoApplication::init()
     m_window->addOldMouseDeltaCallback([this](float deltaX, float deltaY) { onMouseMove({ deltaX, deltaY }); });
 
     gfx_vk::config config = {
-        .descriptors = {},
         .name = "Vulkan Demo",
         .enable_validation = m_validationEnabled,
+
+        .descriptors = {
+            .max_sets_per_pool = 2048 * 16,
+            .max_descriptors_per_type_per_pool = 4 * 2048 * 16,
+        },
     };
     auto backend = nstl::make_unique<gfx_vk::backend>(*m_window, config);
     m_newRenderer = nstl::make_unique<gfx::renderer>(nstl::move(backend));
-
-//     auto messageCallback = [](vko::DebugMessage m)
-//     {
-//         // TODO don't log "Info" level to the console
-// // 		if (m.level == vko::DebugMessage::Level::Info)
-// // 			logging::info("{}", m.text);
-//         if (m.level == vko::DebugMessage::Level::Warning)
-//             logging::warn("{}", m.text);
-//         if (m.level == vko::DebugMessage::Level::Error)
-//             logging::error("{}", m.text);
-// 
-//         assert(m.level != vko::DebugMessage::Level::Error);
-//     };
-
-//     m_renderer = nstl::make_unique<vkgfx::Renderer>("Vulkan demo with new API", m_validationEnabled, *m_window, messageCallback);
 
     m_services.setDebugDraw(nstl::make_unique<DebugDrawService>(*m_newRenderer));
 
@@ -699,58 +422,13 @@ void DemoApplication::init()
 
     createResources();
     createTestResources();
+
+    m_sceneDrawer = nstl::make_unique<DemoSceneDrawer>(*m_newRenderer, m_shadowRenderpass);
 }
 
 void DemoApplication::createResources()
 {
-//     vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
-
-    m_defaultVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shader.vert");
-    m_newDefaultVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/new/shader.vert");
-    m_defaultFragmentShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shader.frag");
-    m_newDefaultFragmentShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/new/shader.frag");
-
-    m_shadowmapVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/shadowmap.vert");
-    m_newShadowmapVertexShader = nstl::make_unique<ShaderPackage>("data/shaders/packaged/new/shadowmap.vert");
-
-//     m_defaultSampler = resourceManager.createSampler(vko::SamplerFilterMode::Linear, vko::SamplerFilterMode::Linear, vko::SamplerWrapMode::Repeat, vko::SamplerWrapMode::Repeat);
     m_newDefaultSampler = m_newRenderer->create_sampler({});
-
-//     m_defaultAlbedoImage = resourceManager.createImage(vkgfx::ImageMetadata{
-//         .width = 1,
-//         .height = 1,
-//         .byteSize = 4,
-//         .format = vkgfx::ImageFormat::R8G8B8A8,
-//     });
-//     resourceManager.uploadImage(m_defaultAlbedoImage, nstl::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
-//     m_defaultAlbedoTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultAlbedoImage, m_defaultSampler });
-
-    m_newDefaultAlbedoImage = m_newRenderer->create_image({
-        .width = 1,
-        .height = 1,
-        .format = gfx::image_format::r8g8b8a8,
-        .type = gfx::image_type::color,
-        .usage = gfx::image_usage::upload_sampled,
-    });
-    m_newRenderer->image_upload_sync(m_newDefaultAlbedoImage, nstl::array<unsigned char, 4>{ 0xff, 0xff, 0xff, 0xff });
-
-//     m_defaultNormalMapImage = resourceManager.createImage(vkgfx::ImageMetadata{
-//         .width = 1,
-//         .height = 1,
-//         .byteSize = 4,
-//         .format = vkgfx::ImageFormat::R8G8B8A8,
-//     });
-//     resourceManager.uploadImage(m_defaultNormalMapImage, nstl::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff });
-//     m_defaultNormalMapTexture = resourceManager.createTexture(vkgfx::Texture{ m_defaultNormalMapImage, m_defaultSampler });
-
-    m_newDefaultNormalMapImage = m_newRenderer->create_image({
-        .width = 1,
-        .height = 1,
-        .format = gfx::image_format::r8g8b8a8,
-        .type = gfx::image_type::color,
-        .usage = gfx::image_usage::upload_sampled,
-    });
-    m_newRenderer->image_upload_sync(m_newDefaultNormalMapImage, nstl::array<unsigned char, 4>{ 0x80, 0x80, 0xff, 0xff });
 
     m_viewProjectionData = m_newRenderer->create_buffer({
         .size = sizeof(ShaderViewProjectionData),
@@ -887,36 +565,20 @@ void DemoApplication::onMouseMove(tglm::vec2 const& delta)
     m_cameraTransform.rotation *= rotationDelta;
 }
 
-DemoScene DemoApplication::createDemoScene(cgltf_data const& gltfModel, cgltf_scene const& gltfScene) const
+void DemoApplication::createDemoScene(cgltf_data const& gltfModel, cgltf_scene const& gltfScene) const
 {
     static auto scopeId = memory::tracking::create_scope_id("Scene/Load/GLTF/Hierarchy");
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    DemoScene scene;
-
     for (size_t i = 0; i < gltfScene.nodes_count; i++)
     {
         size_t nodeIndex = findIndex(gltfScene.nodes[i], gltfModel.nodes, gltfModel.nodes_count);
-        createDemoObjectRecursive(gltfModel, nodeIndex, tglm::mat4::identity(), scene);
+        createDemoObjectRecursive(gltfModel, nodeIndex, tglm::mat4::identity());
     }
-
-    return scene;
 }
 
-void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, size_t nodeIndex, tglm::mat4 parentTransform, DemoScene& scene) const
+void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, size_t nodeIndex, tglm::mat4 parentTransform) const
 {
-    struct DemoObjectPushConstants
-    {
-        tglm::mat4 model;
-    };
-
-    struct DemoObjectUniformBuffer
-    {
-        tglm::vec4 color;
-    };
-
-    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
-
     cgltf_node const& gltfNode = gltfModel.nodes[nodeIndex];
 
     tglm::mat4 nodeTransform = parentTransform * createMatrix(gltfNode);
@@ -924,132 +586,21 @@ void DemoApplication::createDemoObjectRecursive(cgltf_data const& gltfModel, siz
     if (gltfNode.mesh)
     {
         size_t meshIndex = findIndex(gltfNode.mesh, gltfModel.meshes, gltfModel.meshes_count);
-
-        for (DemoPrimitive const& primitive : m_gltfResources->meshes[meshIndex].primitives)
-        {
-            DemoMaterial const& material = m_gltfResources->materials[primitive.metadata.materialIndex];
-
-            vkgfx::PipelineKey pipelineKey;
-            pipelineKey.renderConfig = material.metadata.renderConfig;
-
-            // TODO think how to handle multiple descriptor set layouts properly
-            pipelineKey.uniformConfigs = {
-                // TODO get shared frame uniform config from the Renderer
-                vkgfx::UniformConfiguration{
-                    .hasBuffer = true,
-                    .hasAlbedoTexture = false,
-                    .hasNormalMap = false,
-                    .hasShadowMap = true,
-                },
-                material.metadata.uniformConfig,
-                vkgfx::UniformConfiguration{
-                    .hasBuffer = true,
-                    .hasAlbedoTexture = false,
-                    .hasNormalMap = false,
-                },
-            };
-
-            pipelineKey.vertexConfig = primitive.metadata.vertexConfig;
-
-            pipelineKey.pushConstantRanges = { vkgfx::PushConstantRange{.offset = 0, .size = sizeof(DemoObjectPushConstants), } };
-
-            // TODO reimplement
-            ShaderConfiguration shaderConfiguration;
-            shaderConfiguration.hasTexture = material.metadata.uniformConfig.hasAlbedoTexture;
-            shaderConfiguration.hasNormalMap = material.metadata.uniformConfig.hasNormalMap;
-            shaderConfiguration.hasColor = primitive.metadata.attributeSemanticsConfig.hasColor;
-            shaderConfiguration.hasTexCoord = primitive.metadata.attributeSemanticsConfig.hasUv;
-            shaderConfiguration.hasNormal = primitive.metadata.attributeSemanticsConfig.hasNormal;
-            shaderConfiguration.hasTangent = primitive.metadata.attributeSemanticsConfig.hasTangent;
-
-            nstl::string const* vertexShaderPath = m_defaultVertexShader->get(shaderConfiguration);
-            nstl::string const* fragmentShaderPath = m_defaultFragmentShader->get(shaderConfiguration);
-
-            assert(vertexShaderPath && fragmentShaderPath);
-
-            vkgfx::ShaderModuleHandle vertexShaderModule = m_gltfResources->shaderModules[*vertexShaderPath];
-            vkgfx::ShaderModuleHandle fragmentShaderModule = m_gltfResources->shaderModules[*fragmentShaderPath];
-
-            pipelineKey.shaderHandles = { vertexShaderModule, fragmentShaderModule };
-
-            vkgfx::PipelineHandle pipeline = resourceManager.getOrCreatePipeline(pipelineKey);
-
-            vkgfx::BufferMetadata uniformBufferMetadata{
-                .usage = vkgfx::BufferUsage::UniformBuffer,
-                .location = vkgfx::BufferLocation::HostVisible,
-                .isMutable = false,
-            };
-            vkgfx::BufferHandle uniformBuffer = resourceManager.createBuffer(sizeof(DemoObjectUniformBuffer), nstl::move(uniformBufferMetadata));
-            m_gltfResources->additionalBuffers.push_back(uniformBuffer);
-
-            DemoObjectUniformBuffer uniformValues;
-            uniformValues.color = { 1.0f, 1.0f, 1.0f, 0.0f };
-            resourceManager.uploadBuffer(uniformBuffer, nstl::blob_view{ &uniformValues, sizeof(uniformValues) });
-
-            DemoObjectPushConstants pushConstants;
-            pushConstants.model = nodeTransform;
-
-            vkgfx::TestObject& object = scene.objects.emplace_back();
-            object.mesh = primitive.handle;
-            object.material = material.handle;
-            object.pipeline = pipeline;
-            object.uniformBuffer = uniformBuffer;
-            object.pushConstants.resize(sizeof(pushConstants));
-            memcpy(object.pushConstants.data(), &pushConstants, object.pushConstants.size());
-        }
-    }
-
-    if (gltfNode.camera)
-    {
-        tglm::vec4 position;
-        tglm::vec3 scale;
-        tglm::quat rotation;
-        tglm::decompose(nodeTransform, position, rotation, scale);
-
-        scene.cameras.push_back(DemoCamera{
-            .transform = {
-                .position = position,
-                .rotation = rotation,
-            },
-            .parametersIndex = findIndex(gltfNode.camera, gltfModel.cameras, gltfModel.cameras_count),
-        });
+        m_sceneDrawer->addMeshInstance(m_gltfResources->demoMeshes[meshIndex], nodeTransform, { 1, 1, 1, 1 });
     }
 
     for (size_t i = 0; i < gltfNode.children_count; i++)
     {
         cgltf_node const* gltfChildNode = gltfNode.children[i];
-        createDemoObjectRecursive(gltfModel, findIndex(gltfChildNode, gltfModel.nodes, gltfModel.nodes_count), nodeTransform, scene);
+        createDemoObjectRecursive(gltfModel, findIndex(gltfChildNode, gltfModel.nodes, gltfModel.nodes_count), nodeTransform);
     }
 }
 
 void DemoApplication::clearScene()
 {
-    m_demoScene = {};
-
     if (m_gltfResources)
     {
-        m_renderer->waitIdle(); // TODO remove
-
-        GltfResources const& resources = *m_gltfResources;
-        vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
-
-        for (auto const& handle : resources.buffers)
-            resourceManager.removeBuffer(handle);
-        for (auto const& handle : resources.additionalBuffers)
-            resourceManager.removeBuffer(handle);
-        for (auto const& handle : resources.images)
-            resourceManager.removeImage(handle);
-        for (auto const& material : resources.materials)
-            resourceManager.removeMaterial(material.handle);
-        for (auto const& mesh : resources.meshes)
-            for (auto const& primitive : mesh.primitives)
-                resourceManager.removeMesh(primitive.handle);
-        for (auto const& handle : resources.samplers)
-            resourceManager.removeSampler(handle);
-        for (auto const& [name, handle] : resources.shaderModules)
-            resourceManager.removeShaderModule(handle);
-        for (auto const& handle : resources.textures)
-            resourceManager.removeTexture(handle);
+        // TODO implement
 
         m_gltfResources = {};
     }
@@ -1117,185 +668,25 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    vkgfx::ResourceManager& resourceManager = m_renderer->getResourceManager();
-
     m_gltfResources = nstl::make_unique<GltfResources>();
-
-    // TODO make more generic?
-    size_t totalMeshes = 0;
-    for (size_t i = 0; i < model.meshes_count; i++)
-        totalMeshes += model.meshes[i].primitives_count;
-    resourceManager.reserveMoreMeshes(totalMeshes);
-    resourceManager.reserveMoreBuffers(model.buffers_count + model.materials_count + totalMeshes);
-
-    m_gltfResources->additionalBuffers.reserve(model.materials_count + totalMeshes);
 
     for (size_t i = 0; i < model.extensions_required_count; i++)
         logging::warn("GLTF requires extension '{}'", model.extensions_required[i]);
 
-    // TODO move somewhere else? Doesn't seem to be related to the GLTF model
-    // TODO implement
-//     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
-    for (auto const& pair : m_defaultVertexShader->getAll())
-    {
-        MEMORY_TRACKING_SCOPE(shadersScopeId);
-
-        auto const& modulePath = pair.value();
-        auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Vertex, "main");
-        m_gltfResources->shaderModules.insert_or_assign(modulePath, handle);
-    }
-    // TODO implement
-//     for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
-    for (auto const& pair : m_defaultFragmentShader->getAll())
-    {
-        MEMORY_TRACKING_SCOPE(shadersScopeId);
-
-        auto const& modulePath = pair.value();
-        auto handle = resourceManager.createShaderModule(vkc::utils::readBinaryFile(modulePath), vko::ShaderModuleType::Fragment, "main");
-        m_gltfResources->shaderModules.insert_or_assign(modulePath, handle);
-    }
-
-    m_gltfResources->buffers.reserve(model.buffers_count);
-    for (size_t i = 0; i < model.buffers_count; i++)
-    {
-        MEMORY_TRACKING_SCOPE(buffersScopeId);
-
-        cgltf_buffer const& gltfBuffer = model.buffers[i];
-
-        assert(gltfBuffer.data);
-        assert(gltfBuffer.size > 0);
-
-        nstl::span<unsigned char const> data{ static_cast<unsigned char const*>(gltfBuffer.data), gltfBuffer.size };
-        size_t bufferSize = sizeof(data[0]) * data.size();
-
-        vkgfx::BufferMetadata metadata{
-            .usage = vkgfx::BufferUsage::VertexIndexBuffer,
-            .location = vkgfx::BufferLocation::DeviceLocal,
-            .isMutable = false,
-        };
-        auto handle = resourceManager.createBuffer(bufferSize, nstl::move(metadata)); // TODO split buffer into several different parts
-        resourceManager.uploadBuffer(handle, data);
-        m_gltfResources->buffers.push_back(handle);
-    }
-
-    m_gltfResources->samplers.reserve(model.samplers_count);
-    for (size_t i = 0; i < model.samplers_count; i++)
-    {
-        MEMORY_TRACKING_SCOPE(samplersScopeId);
-
-        cgltf_sampler const& gltfSampler = model.samplers[i];
-
-        auto convertFilterMode = [](int gltfMode)
-        {
-            // TODO remove magic numbers
-
-            switch (gltfMode)
-            {
-            case 9728: // NEAREST:
-            case 9984: // NEAREST_MIPMAP_NEAREST:
-            case 9986: // NEAREST_MIPMAP_LINEAR:
-                return vko::SamplerFilterMode::Nearest;
-
-            case 0:
-            case 9729: // LINEAR:
-            case 9985: // LINEAR_MIPMAP_NEAREST:
-            case 9987: // LINEAR_MIPMAP_LINEAR:
-                return vko::SamplerFilterMode::Linear;
-            }
-
-            assert(false);
-            return vko::SamplerFilterMode::Nearest;
-        };
-
-        auto convertWrapMode = [](int gltfMode)
-        {
-            // TODO remove magic numbers
-
-            switch (gltfMode)
-            {
-            case 10497: // REPEAT:
-                return vko::SamplerWrapMode::Repeat;
-            case 33071: // CLAMP_TO_EDGE:
-                return vko::SamplerWrapMode::ClampToEdge;
-            case 33648: // MIRRORED_REPEAT:
-                return vko::SamplerWrapMode::Mirror;
-            }
-
-            assert(false);
-            return vko::SamplerWrapMode::Repeat;
-        };
-
-        auto magFilter = convertFilterMode(gltfSampler.mag_filter);
-        auto minFilter = convertFilterMode(gltfSampler.min_filter);
-        auto wrapU = convertWrapMode(gltfSampler.wrap_s);
-        auto wrapV = convertWrapMode(gltfSampler.wrap_t);
-
-        auto handle = resourceManager.createSampler(magFilter, minFilter, wrapU, wrapV);
-        m_gltfResources->samplers.push_back(handle);
-    }
-
-    m_gltfResources->images.reserve(model.images_count);
-    for (size_t i = 0; i < model.images_count; i++)
-    {
-        MEMORY_TRACKING_SCOPE(imagesScopeId);
-
-        cgltf_image const& gltfImage = model.images[i];
-        assert(gltfImage.uri && !gltfImage.buffer_view);
-
-        nstl::string imagePath = basePath + gltfImage.uri;
-
-        // TODO leads to unnecessary data copy; change that
-        nstl::optional<ImageData> imageData = loadImage(vkc::utils::readBinaryFile(imagePath));
-        assert(imageData);
-
-        assert(!imageData->bytes.empty());
-        assert(!imageData->mips.empty());
-        assert(imageData->mips[0].size > 0);
-
-        vkgfx::ImageMetadata metadata;
-        metadata.width = imageData->width;
-        metadata.height = imageData->height;
-
-        // TODO support all mips
-
-        ImageData::MipData const& mipData = imageData->mips[0];
-        auto bytes = nstl::span<unsigned char const>{ imageData->bytes }.subspan(mipData.offset, mipData.size);
-
-        metadata.byteSize = bytes.size();
-        metadata.format = imageData->format;
-
-        auto handle = resourceManager.createImage(metadata);
-        resourceManager.uploadImage(handle, bytes);
-        m_gltfResources->images.push_back(handle);
-    }
-
-    m_gltfResources->textures.reserve(model.textures_count);
     for (size_t i = 0; i < model.textures_count; i++)
     {
         MEMORY_TRACKING_SCOPE(texturesScopeId);
 
         cgltf_texture const& gltfTexture = model.textures[i];
 
-        size_t imageIndex = findIndex(gltfTexture.image, model.images, model.images_count);
+        cgltf_image const& gltfImage = *gltfTexture.image;
+        assert(gltfImage.uri && !gltfImage.buffer_view);
 
-        vkgfx::ImageHandle imageHandle = m_gltfResources->images[imageIndex];
-        
-        assert(imageHandle);
+        nstl::string imagePath = basePath + gltfImage.uri;
 
-        vkgfx::Texture texture;
-        texture.image = imageHandle;
-        texture.sampler = m_defaultSampler;
-        if (gltfTexture.sampler)
-        {
-            size_t samplerIndex = findIndex(gltfTexture.sampler, model.samplers, model.samplers_count);
-            texture.sampler = m_gltfResources->samplers[samplerIndex];
-        }
-
-        vkgfx::TextureHandle handle = resourceManager.createTexture(nstl::move(texture));
-        m_gltfResources->textures.push_back(handle);
+        m_gltfResources->demoTextures.push_back(m_sceneDrawer->createTexture(vkc::utils::readBinaryFile(imagePath)));
     }
 
-    m_gltfResources->materials.reserve(model.materials_count);
     for (size_t i = 0; i < model.materials_count; i++)
     {
         MEMORY_TRACKING_SCOPE(materialsScopeId);
@@ -1304,104 +695,71 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
         cgltf_pbr_metallic_roughness const& gltfRoughness = gltfMaterial.pbr_metallic_roughness;
 
-        vkgfx::Material material;
-        material.albedo = m_defaultAlbedoTexture;
-        material.normalMap = m_defaultNormalMapTexture;
+        tglm::vec4 color = createColor(gltfRoughness.base_color_factor);
 
-        struct MaterialUniformBuffer
+        auto getTexture = [this, &model](cgltf_texture* texture) -> DemoTexture*
         {
-            tglm::vec4 color;
+            if (!texture)
+                return nullptr;
+
+            size_t index = findIndex(texture, model.textures, model.textures_count);
+            return m_gltfResources->demoTextures[index];
         };
 
-        MaterialUniformBuffer values;
-        values.color = createColor(gltfRoughness.base_color_factor);
-
-        vkgfx::BufferMetadata metadata{
-            .usage = vkgfx::BufferUsage::UniformBuffer,
-            .location = vkgfx::BufferLocation::HostVisible,
-            .isMutable = false,
-        };
-        auto buffer = resourceManager.createBuffer(sizeof(MaterialUniformBuffer), nstl::move(metadata));
-        resourceManager.uploadBuffer(buffer, nstl::blob_view{ &values, sizeof(MaterialUniformBuffer) });
-        m_gltfResources->additionalBuffers.push_back(buffer);
-
-        material.uniformBuffer = buffer;
-
-        if (gltfRoughness.base_color_texture.texture)
-        {
-            size_t textureIndex = findIndex(gltfRoughness.base_color_texture.texture, model.textures, model.textures_count);
-            auto textureHandle = m_gltfResources->textures[textureIndex];
-            if (textureHandle)
-                material.albedo = textureHandle;
-        }
-
-        if (gltfMaterial.normal_texture.texture)
-        {
-            size_t textureIndex = findIndex(gltfMaterial.normal_texture.texture, model.textures, model.textures_count);
-            auto textureHandle = m_gltfResources->textures[textureIndex];
-            if (textureHandle)
-                material.normalMap = textureHandle;
-        }
-
-        DemoMaterial& demoMaterial = m_gltfResources->materials.emplace_back();
-
-        demoMaterial.handle = resourceManager.createMaterial(nstl::move(material));
-
-        demoMaterial.metadata.renderConfig.wireframe = false;
-        demoMaterial.metadata.renderConfig.cullBackfaces = !gltfMaterial.double_sided;
-        demoMaterial.metadata.uniformConfig.hasBuffer = true;
-        demoMaterial.metadata.uniformConfig.hasAlbedoTexture = true;
-        demoMaterial.metadata.uniformConfig.hasNormalMap = true;
+        m_gltfResources->demoMaterials.push_back(m_sceneDrawer->createMaterial(color, getTexture(gltfRoughness.base_color_texture.texture), getTexture(gltfMaterial.normal_texture.texture), gltfMaterial.double_sided));
     }
 
-    m_gltfResources->meshes.reserve(model.meshes_count);
     for (size_t meshIndex = 0; meshIndex < model.meshes_count; meshIndex++)
     {
         MEMORY_TRACKING_SCOPE(meshesScopeId);
 
         cgltf_mesh const& gltfMesh = model.meshes[meshIndex];
 
-        DemoMesh& demoMesh = m_gltfResources->meshes.emplace_back();
-        demoMesh.primitives.reserve(gltfMesh.primitives_count);
+        cgltf_buffer* buffer = nullptr;
+
+        nstl::vector<DemoSceneDrawer::PrimitiveParams> primitiveParams;
+
         for (size_t primitiveIndex = 0; primitiveIndex < gltfMesh.primitives_count; primitiveIndex++)
         {
+            DemoSceneDrawer::PrimitiveParams& params = primitiveParams.emplace_back();
+
             cgltf_primitive const& gltfPrimitive = gltfMesh.primitives[primitiveIndex];
 
-            DemoPrimitive& demoPrimitive = demoMesh.primitives.emplace_back();
+            size_t materialIndex = findIndex(gltfPrimitive.material, model.materials, model.materials_count);
 
-            vkgfx::Mesh mesh;
+            cgltf_accessor const* gltfIndexAccessor = gltfPrimitive.indices;
+            assert(gltfIndexAccessor);
+            cgltf_buffer_view const* gltfIndexBufferView = gltfIndexAccessor->buffer_view;
+            assert(gltfIndexBufferView);
 
+            if (!buffer)
+                buffer = gltfIndexBufferView->buffer;
+
+            assert(gltfIndexBufferView->buffer == buffer);
+
+            auto findIndexType = [](int gltfComponentType)
             {
-                auto findIndexType = [](int gltfComponentType)
+                switch (gltfComponentType)
                 {
-                    switch (gltfComponentType)
-                    {
-                    case cgltf_component_type_r_8u:
-                        return vkgfx::IndexType::UnsignedByte;
-                    case cgltf_component_type_r_16u:
-                        return vkgfx::IndexType::UnsignedShort;
-                    case cgltf_component_type_r_32u:
-                        return vkgfx::IndexType::UnsignedInt;
-                    }
-
+                case cgltf_component_type_r_8u:
                     assert(false);
-                    return vkgfx::IndexType::UnsignedShort;
-                };
+                    break;
+                case cgltf_component_type_r_16u:
+                    return gfx::index_type::uint16;
+                case cgltf_component_type_r_32u:
+                    return gfx::index_type::uint32;
+                }
 
-                cgltf_accessor const* gltfAccessor = gltfPrimitive.indices;
-                assert(gltfAccessor);
-                cgltf_buffer_view const* gltfBufferView = gltfAccessor->buffer_view;
-                assert(gltfBufferView);
+                assert(false);
+                return gfx::index_type::uint16;
+            };
 
-                mesh.indexBuffer.buffer = m_gltfResources->buffers[findIndex(gltfBufferView->buffer, model.buffers, model.buffers_count)];
-                mesh.indexBuffer.offset = gltfBufferView->offset + gltfAccessor->offset;
-                mesh.indexCount = gltfAccessor->count;
-                mesh.indexType = findIndexType(gltfAccessor->component_type);
-            }
-
-            mesh.vertexBuffers.reserve(gltfPrimitive.attributes_count);
-            demoPrimitive.metadata.vertexConfig.bindings.reserve(gltfPrimitive.attributes_count);
-            demoPrimitive.metadata.vertexConfig.attributes.reserve(gltfPrimitive.attributes_count);
+            assert(gltfPrimitive.type == cgltf_primitive_type_triangles);
+            params.topology = gfx::vertex_topology::triangles;
+            params.material = m_gltfResources->demoMaterials[materialIndex];
+            params.indexBufferOffset = gltfIndexBufferView->offset + gltfIndexAccessor->offset;
+            params.indexType = findIndexType(gltfIndexAccessor->component_type);
+            params.indexCount = gltfIndexAccessor->count;
 
             for (size_t attributeIndex = 0; attributeIndex < gltfPrimitive.attributes_count; attributeIndex++)
             {
@@ -1417,50 +775,41 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
                     continue;
                 }
 
-                cgltf_accessor const* gltfAccessor = gltfAttribute.data;
-                assert(gltfAccessor);
-                cgltf_buffer_view const* gltfBufferView = gltfAccessor->buffer_view;
-                assert(gltfBufferView);
+                cgltf_accessor const* gltfVertexAccessor = gltfAttribute.data;
+                assert(gltfVertexAccessor);
+                cgltf_buffer_view const* gltfVertexBufferView = gltfVertexAccessor->buffer_view;
+                assert(gltfVertexBufferView);
 
-                size_t bufferIndex = findIndex(gltfBufferView->buffer, model.buffers, model.buffers_count);
-
-                vkgfx::BufferWithOffset& attributeBuffer = mesh.vertexBuffers.emplace_back();
-                attributeBuffer.buffer = m_gltfResources->buffers[bufferIndex];
-                attributeBuffer.offset = gltfBufferView->offset + gltfAccessor->offset; // TODO can be improved
+                assert(gltfVertexBufferView->buffer == buffer); // Multiple mesh buffers aren't supported
 
                 if (name == "COLOR_0")
-                    demoPrimitive.metadata.attributeSemanticsConfig.hasColor = true;
+                    params.hasColor = true;
                 if (name == "TEXCOORD_0")
-                    demoPrimitive.metadata.attributeSemanticsConfig.hasUv = true;
+                    params.hasUv = true;
                 if (name == "NORMAL")
-                    demoPrimitive.metadata.attributeSemanticsConfig.hasNormal = true;
+                    params.hasNormal = true;
                 if (name == "TANGENT")
-                    demoPrimitive.metadata.attributeSemanticsConfig.hasTangent = true;
+                    params.hasTangent = true;
 
-                vkgfx::AttributeType attributeType = findAttributeType(gltfAccessor->type, gltfAccessor->component_type);
+                gfx::attribute_type attributeType = findAttributeType(gltfVertexAccessor->type, gltfVertexAccessor->component_type);
 
-                size_t stride = gltfBufferView->stride;
+                size_t stride = gltfVertexBufferView->stride;
                 if (stride == 0)
                     stride = getAttributeByteSize(attributeType);
 
-                vkgfx::VertexConfiguration::Binding& bindingConfig = demoPrimitive.metadata.vertexConfig.bindings.emplace_back();
-                bindingConfig.stride = stride;
-
-                vkgfx::VertexConfiguration::Attribute& attributeConfig = demoPrimitive.metadata.vertexConfig.attributes.emplace_back();
-                attributeConfig.binding = attributeIndex;
-                attributeConfig.location = *location;
-                attributeConfig.offset = 0; // TODO can be improved
-                attributeConfig.type = attributeType;
+                params.attributes.push_back({
+                    .location = *location,
+                    .bufferOffset = gltfVertexBufferView->offset + gltfVertexAccessor->offset,
+                    .stride = stride,
+                    .type = attributeType,
+                });
             }
-
-            // TODO implement
-            assert(gltfPrimitive.type == cgltf_primitive_type_triangles);
-            demoPrimitive.metadata.vertexConfig.topology = vkgfx::VertexTopology::Triangles;
-
-            demoPrimitive.metadata.materialIndex = findIndex(gltfPrimitive.material, model.materials, model.materials_count); // TODO check
-
-            demoPrimitive.handle = resourceManager.createMesh(nstl::move(mesh));
         }
+
+        assert(buffer->data);
+        assert(buffer->size > 0);
+
+        m_gltfResources->demoMeshes.push_back(m_sceneDrawer->createMesh({ buffer->data, buffer->size }, primitiveParams));
     }
 
     m_gltfResources->cameraParameters.reserve(model.cameras_count);
@@ -1490,22 +839,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
     {
         assert(model.scene);
-        m_demoScene = createDemoScene(model, *model.scene);
-
-        nstl::simple_sort(m_demoScene.objects.begin(), m_demoScene.objects.end(), [](vkgfx::TestObject const& lhs, vkgfx::TestObject const& rhs)
-        {
-            if (lhs.pipeline != rhs.pipeline)
-                return lhs.pipeline < rhs.pipeline;
-
-            return lhs.material < rhs.material;
-        });
-
-        if (!m_demoScene.cameras.empty())
-        {
-            DemoCamera const& camera = m_demoScene.cameras[0];
-            m_cameraTransform = camera.transform;
-            m_cameraParameters = m_gltfResources->cameraParameters[camera.parametersIndex];
-        }
+        createDemoScene(model, *model.scene);
     }
 
     return true;
@@ -1520,222 +854,36 @@ bool DemoApplication::editorLoadScene(editor::assets::Uuid sceneId)
 
     m_editorGltfResources = nstl::make_unique<EditorGltfResources>();
 
-    // TODO move somewhere else? Doesn't seem to be related to the GLTF model
-    // TODO only load actually used permutations
-    // TODO implement
-//     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
-    for (auto const& pair : m_defaultVertexShader->getAll())
-    {
-        MEMORY_TRACKING_SCOPE(shadersScopeId);
-
-        auto const& modulePath = pair.value();
-        m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
-            .filename = modulePath,
-            .stage = gfx::shader_stage::vertex,
-        }));
-    }
-
-    // TODO implement
-//     for (auto const& [configuration, modulePath] : m_defaultVertexShader->getAll())
-    for (auto const& pair : m_newDefaultVertexShader->getAll())
-    {
-        MEMORY_TRACKING_SCOPE(shadersScopeId);
-
-        auto const& modulePath = pair.value();
-        m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
-            .filename = modulePath,
-            .stage = gfx::shader_stage::vertex,
-        }));
-    }
-
-    // TODO implement
-//     for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
-    for (auto const& pair : m_defaultFragmentShader->getAll())
-    {
-        MEMORY_TRACKING_SCOPE(shadersScopeId);
-
-        auto const& modulePath = pair.value();
-        m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
-            .filename = modulePath,
-            .stage = gfx::shader_stage::fragment,
-        }));
-    }
-
-    // TODO implement
-//     for (auto const& [configuration, modulePath] : m_defaultFragmentShader->getAll())
-    for (auto const& pair : m_newDefaultFragmentShader->getAll())
-    {
-        MEMORY_TRACKING_SCOPE(shadersScopeId);
-
-        auto const& modulePath = pair.value();
-        m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
-            .filename = modulePath,
-            .stage = gfx::shader_stage::fragment,
-        }));
-    }
-
-    // TODO implement
-//     for (auto const& [configuration, modulePath] : m_shadowmapVertexShader->getAll())
-    for (auto const& pair : m_shadowmapVertexShader->getAll())
-    {
-        MEMORY_TRACKING_SCOPE(shadersScopeId);
-
-        auto const& modulePath = pair.value();
-        m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
-            .filename = modulePath,
-            .stage = gfx::shader_stage::vertex,
-        }));
-    }
-
-    // TODO implement
-//     for (auto const& [configuration, modulePath] : m_shadowmapVertexShader->getAll())
-    for (auto const& pair : m_newShadowmapVertexShader->getAll())
-    {
-        MEMORY_TRACKING_SCOPE(shadersScopeId);
-
-        auto const& modulePath = pair.value();
-        m_editorGltfResources->newShaderModules.insert_or_assign(modulePath, m_newRenderer->create_shader({
-            .filename = modulePath,
-            .stage = gfx::shader_stage::vertex,
-        }));
-    }
-
     editor::assets::SceneData scene = m_assetDatabase->loadScene(sceneId);
 
     for (editor::assets::ObjectDescription const& object : scene.objects)
     {
-        if (object.mesh)
+        if (!object.mesh)
+            continue;
+
+        auto calculateTransform = [&object, &scene]()
         {
-            editor::assets::Uuid id = object.mesh->id;
-            if (m_editorGltfResources->meshes.find(id) == m_editorGltfResources->meshes.end())
-                editorLoadMesh(id);
+            tglm::mat4 transform = tglm::mat4::identity();
 
-            for (DemoPrimitive const& primitive : m_editorGltfResources->meshes[id].primitives)
+            editor::assets::ObjectDescription const* obj = &object;
+
+            while (obj)
             {
-                DemoMaterial const& material = m_editorGltfResources->materials[primitive.metadata.materialUuid];
+                transform = createMatrix(*obj) * transform;
 
-                // TODO reimplement
-                ShaderConfiguration shaderConfiguration;
-                shaderConfiguration.hasTexture = material.metadata.uniformConfig.hasAlbedoTexture;
-                shaderConfiguration.hasNormalMap = material.metadata.uniformConfig.hasNormalMap;
-                shaderConfiguration.hasColor = primitive.metadata.attributeSemanticsConfig.hasColor;
-                shaderConfiguration.hasTexCoord = primitive.metadata.attributeSemanticsConfig.hasUv;
-                shaderConfiguration.hasNormal = primitive.metadata.attributeSemanticsConfig.hasNormal;
-                shaderConfiguration.hasTangent = primitive.metadata.attributeSemanticsConfig.hasTangent;
-
-                nstl::string const* newVertexShaderPath = m_newDefaultVertexShader->get(shaderConfiguration);
-                nstl::string const* newFragmentShaderPath = m_newDefaultFragmentShader->get(shaderConfiguration);
-
-                gfx::shader_handle vertexShader = m_editorGltfResources->newShaderModules[*newVertexShaderPath];
-                gfx::shader_handle fragmentShader = m_editorGltfResources->newShaderModules[*newFragmentShaderPath];
-                m_renderstates.push_back(m_newRenderer->create_renderstate({
-                    .shaders = nstl::array{ vertexShader, fragmentShader },
-                    .renderpass = m_newRenderer->get_main_renderpass(),
-                    .vertex_config = primitive.metadata.newVertexConfig,
-                    .descriptorgroup_layouts = nstl::array{
-                        gfx::descriptorgroup_layout_view {
-                            .entries = nstl::array{
-                                gfx::descriptor_layout_entry{0, gfx::descriptor_type::uniform_buffer},
-                                gfx::descriptor_layout_entry{1, gfx::descriptor_type::uniform_buffer},
-                                gfx::descriptor_layout_entry{2, gfx::descriptor_type::combined_image_sampler},
-                            },
-                        },
-                        material.metadata.newUniformConfig,
-                        gfx::descriptorgroup_layout_view {
-                            .entries = nstl::array{
-                                gfx::descriptor_layout_entry{0, gfx::descriptor_type::uniform_buffer},
-                            },
-                        },
-                    },
-                    .flags = material.metadata.newRenderConfig,
-                }));
-
-                gfx::renderstate_handle state = m_renderstates.back();
-
-                nstl::string const* newShadowmapVertexShaderPath = m_newShadowmapVertexShader->get({});
-                assert(newShadowmapVertexShaderPath);
-
-                gfx::shader_handle shadowmapVertexShader = m_editorGltfResources->newShaderModules[*newShadowmapVertexShaderPath];
-                m_renderstates.push_back(m_newRenderer->create_renderstate({
-                    .shaders = nstl::array{ shadowmapVertexShader },
-                    .renderpass = m_shadowRenderpass,
-                    .vertex_config = primitive.metadata.newVertexConfig,
-                    .descriptorgroup_layouts = nstl::array{
-                        gfx::descriptorgroup_layout_view {
-                            .entries = nstl::array{
-                                gfx::descriptor_layout_entry{0, gfx::descriptor_type::uniform_buffer},
-                            },
-                        },
-                        gfx::descriptorgroup_layout_view {
-                            .entries = nstl::array{
-                                gfx::descriptor_layout_entry{0, gfx::descriptor_type::uniform_buffer},
-                            },
-                        },
-                    },
-                    .flags = {
-                        .depth_bias = true,
-                    },
-                }));
-
-                gfx::renderstate_handle shadowmapState = m_renderstates.back();
-
-                auto calculateTransform = [&object, &scene]()
-                {
-                    tglm::mat4 transform = tglm::mat4::identity();
-
-                    editor::assets::ObjectDescription const* obj = &object;
-
-                    while (obj)
-                    {
-                        transform = createMatrix(*obj) * transform;
-
-                        obj = obj->parentIndex ? &scene.objects[*obj->parentIndex] : nullptr;
-                    }
-
-                    return transform;
-                };
-
-                struct NewDemoObjectUniformBuffer
-                {
-                    tglm::mat4 model;
-                    tglm::vec4 color;
-                };
-
-                auto objectUniformBuffer = m_newRenderer->create_buffer({
-                    .size = sizeof(NewDemoObjectUniformBuffer),
-                    .usage = gfx::buffer_usage::uniform,
-                    .location = gfx::buffer_location::host_visible,
-                    .is_mutable = false,
-                });
-
-                {
-                    NewDemoObjectUniformBuffer values = {
-                        .model = calculateTransform(),
-                        .color = { 1.0f, 1.0f, 1.0f, 0.0f },
-                    };
-
-                    m_newRenderer->buffer_upload_sync(objectUniformBuffer, { &values, sizeof(values) });
-                }
-
-                auto descriptorGroup = m_newRenderer->create_descriptorgroup({
-                    .entries = nstl::array{ gfx::descriptorgroup_entry{ 0, {objectUniformBuffer, gfx::descriptor_type::uniform_buffer} } },
-                });
-
-                vkgfx::TestObject& testObject = m_demoScene.objects.emplace_back();
-                testObject.mesh = primitive.handle;
-                testObject.material = material.handle;
-                testObject.materialDescriptorGroup = material.descriptorgroup;
-                testObject.newUniformBuffer = objectUniformBuffer;
-                testObject.descriptorGroup = descriptorGroup;
-                testObject.state = state;
-                testObject.shadowmapState = shadowmapState;
-
-                testObject.indexBuffer = primitive.indexBuffer;
-                testObject.vertexBuffers = primitive.vertexBuffers;
-                testObject.indexType = primitive.indexType;
-                testObject.indexCount = primitive.indexCount;
+                obj = obj->parentIndex ? &scene.objects[*obj->parentIndex] : nullptr;
             }
-        }
+
+            return transform;
+        };
+
+        tglm::mat4 matrix = calculateTransform();
+
+        editor::assets::Uuid id = object.mesh->id;
+        if (m_editorGltfResources->demoMeshes.find(id) == m_editorGltfResources->demoMeshes.end())
+            editorLoadMesh(id);
+
+        m_sceneDrawer->addMeshInstance(m_editorGltfResources->demoMeshes[id], calculateTransform(), { 1, 1, 1, 1 });
     }
 
     return true;
@@ -1746,28 +894,7 @@ void DemoApplication::editorLoadImage(editor::assets::Uuid id)
     static auto scopeId = memory::tracking::create_scope_id("Scene/Load/Editor/Image");
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    // TODO leads to unnecessary data copy; change that
-    nstl::optional<ImageData> imageData = loadImage(m_assetDatabase->loadImage(id));
-    assert(imageData);
-
-    assert(!imageData->bytes.empty());
-    assert(!imageData->mips.empty());
-    assert(imageData->mips[0].size > 0);
-
-    // TODO support all mips
-
-    ImageData::MipData const& mipData = imageData->mips[0];
-    auto bytes = nstl::span<unsigned char const>{ imageData->bytes }.subspan(mipData.offset, mipData.size);
-
-    auto image = m_newRenderer->create_image({
-        .width = imageData->width,
-        .height = imageData->height,
-        .format = static_cast<gfx::image_format>(static_cast<size_t>(imageData->format)), // TODO: remove
-        .type = gfx::image_type::color,
-        .usage = gfx::image_usage::upload_sampled,
-    });
-    m_newRenderer->image_upload_sync(image, bytes);
-    m_editorGltfResources->newImages[id] = nstl::move(image);
+    m_editorGltfResources->demoTextures[id] = m_sceneDrawer->createTexture(m_assetDatabase->loadImage(id));
 }
 
 void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
@@ -1778,67 +905,23 @@ void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)
 
     editor::assets::MaterialData materialData = m_assetDatabase->loadMaterial(id);
 
-    struct MaterialUniformBuffer
+    tglm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+    if (materialData.baseColor)
+        color = tglm::vec4{ materialData.baseColor->data };
+
+    auto getTexture = [this](nstl::optional<editor::assets::TextureData> const& data) -> DemoTexture*
     {
-        tglm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        if (!data)
+            return nullptr;
+
+        if (m_editorGltfResources->demoTextures.find(data->image) == m_editorGltfResources->demoTextures.end())
+            editorLoadImage(data->image);
+
+        return m_editorGltfResources->demoTextures[data->image];
     };
 
-    MaterialUniformBuffer values;
-    if (materialData.baseColor)
-        values.color = tglm::vec4{ materialData.baseColor->data };
-
-    auto newBuffer = m_newRenderer->create_buffer({
-        .size = sizeof(values),
-        .usage = gfx::buffer_usage::uniform,
-        .location = gfx::buffer_location::host_visible,
-        .is_mutable = false,
-    });
-
-    m_newRenderer->buffer_upload_sync(newBuffer, { &values, sizeof(values) });
-
-    nstl::vector<gfx::descriptorgroup_entry> descriptor_entries;
-    nstl::vector<gfx::descriptor_layout_entry> descriptor_layout_entries;
-    descriptor_entries.push_back({ 0, {newBuffer, gfx::descriptor_type::uniform_buffer} });
-    descriptor_layout_entries.push_back({ 0, gfx::descriptor_type::uniform_buffer });
-
-    if (materialData.baseColorTexture)
-    {
-        editor::assets::Uuid imageId = materialData.baseColorTexture->image;
-        if (m_editorGltfResources->newImages.find(imageId) == m_editorGltfResources->newImages.end())
-            editorLoadImage(imageId);
-
-        // TODO create actual sampler
-        descriptor_entries.push_back({ 1, {m_editorGltfResources->newImages[imageId], m_newDefaultSampler} });
-        descriptor_layout_entries.push_back({ 1, gfx::descriptor_type::combined_image_sampler });
-    }
-
-    if (materialData.normalTexture)
-    {
-        editor::assets::Uuid imageId = materialData.normalTexture->image;
-        if (m_editorGltfResources->newImages.find(imageId) == m_editorGltfResources->newImages.end())
-            editorLoadImage(imageId);
-
-        // TODO create actual sampler
-        descriptor_entries.push_back({ 2, {m_editorGltfResources->newImages[imageId], m_newDefaultSampler} });
-        descriptor_layout_entries.push_back({ 2, gfx::descriptor_type::combined_image_sampler });
-    }
-
-    DemoMaterial& demoMaterial = m_editorGltfResources->materials[id];
-
-    demoMaterial.buffer = newBuffer;
-    demoMaterial.descriptorgroup = m_newRenderer->create_descriptorgroup({
-        .entries = descriptor_entries,
-    });
-
-    demoMaterial.metadata.renderConfig.wireframe = false;
-    demoMaterial.metadata.renderConfig.cullBackfaces = !materialData.doubleSided;
-    demoMaterial.metadata.uniformConfig.hasBuffer = true;
-    demoMaterial.metadata.uniformConfig.hasAlbedoTexture = true;
-    demoMaterial.metadata.uniformConfig.hasNormalMap = true;
-
-    demoMaterial.metadata.newRenderConfig.wireframe = false;
-    demoMaterial.metadata.newRenderConfig.cull_backfaces = !materialData.doubleSided;
-    demoMaterial.metadata.newUniformConfig = { descriptor_layout_entries };
+    m_editorGltfResources->demoMaterials[id] = m_sceneDrawer->createMaterial(color, getTexture(materialData.baseColorTexture), getTexture(materialData.normalTexture), materialData.doubleSided);
 }
 
 void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
@@ -1847,120 +930,82 @@ void DemoApplication::editorLoadMesh(editor::assets::Uuid id)
 
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    // Mesh buffer
-    nstl::blob data = m_assetDatabase->loadMeshData(id);
-
-    auto meshBuffer = m_newRenderer->create_buffer({
-        .size = data.size(),
-        .usage = gfx::buffer_usage::vertex_index,
-        .location = gfx::buffer_location::device_local,
-        .is_mutable = false,
-    });
-    m_newRenderer->buffer_upload_sync(meshBuffer, data);
-    m_editorGltfResources->newMeshBuffers[id] = meshBuffer;
-
     editor::assets::MeshData meshData = m_assetDatabase->loadMesh(id);
 
-    DemoMesh& demoMesh = m_editorGltfResources->meshes[id];
-    
+    nstl::vector<DemoSceneDrawer::PrimitiveParams> primitiveParams;
     for (editor::assets::PrimitiveDescription const& primitiveData : meshData.primitives)
     {
         editor::assets::Uuid materialId = primitiveData.material;
-        if (m_editorGltfResources->materials.find(materialId) == m_editorGltfResources->materials.end())
+        if (m_editorGltfResources->demoMaterials.find(materialId) == m_editorGltfResources->demoMaterials.end())
             editorLoadMaterial(materialId);
 
-        DemoPrimitive& demoPrimitive = demoMesh.primitives.emplace_back();
+        DemoSceneDrawer::PrimitiveParams& params = primitiveParams.emplace_back();
 
+        auto findIndexType = [](editor::assets::DataComponentType componentType)
         {
-            auto findIndexType = [](editor::assets::DataComponentType componentType)
+            switch (componentType)
             {
-                switch (componentType)
-                {
-                case editor::assets::DataComponentType::Int8:
-                    return vkgfx::IndexType::UnsignedByte;
-                case editor::assets::DataComponentType::UInt16:
-                    return vkgfx::IndexType::UnsignedShort;
-                case editor::assets::DataComponentType::UInt32:
-                    return vkgfx::IndexType::UnsignedInt;
-                default:
-                    assert(false);
-                }
-
+            case editor::assets::DataComponentType::Int8:
                 assert(false);
-                return vkgfx::IndexType::UnsignedShort;
-            };
-            auto newFindIndexType = [](editor::assets::DataComponentType componentType)
-            {
-                switch (componentType)
-                {
-                case editor::assets::DataComponentType::Int8:
-                    assert(false);
-                    break;
-                case editor::assets::DataComponentType::UInt16:
-                    return gfx::index_type::uint16;
-                case editor::assets::DataComponentType::UInt32:
-                    return gfx::index_type::uint32;
-                default:
-                    assert(false);
-                }
-
-                assert(false);
+                break;
+            case editor::assets::DataComponentType::UInt16:
                 return gfx::index_type::uint16;
-            };
+            case editor::assets::DataComponentType::UInt32:
+                return gfx::index_type::uint32;
+            default:
+                assert(false);
+            }
 
-            assert(primitiveData.indices.type == editor::assets::DataType::Scalar);
+            assert(false);
+            return gfx::index_type::uint16;
+        };
 
-            demoPrimitive.indexBuffer = { meshBuffer, primitiveData.indices.bufferOffset };
-            demoPrimitive.indexType = newFindIndexType(primitiveData.indices.componentType);
-            demoPrimitive.indexCount = primitiveData.indices.count;
-        }
+        assert(primitiveData.topology == editor::assets::Topology::Triangles); // TODO implement
+        assert(primitiveData.indices.type == editor::assets::DataType::Scalar);
+        params.topology = gfx::vertex_topology::triangles;
+        params.material = m_editorGltfResources->demoMaterials[materialId];
+        params.indexBufferOffset = primitiveData.indices.bufferOffset;
+        params.indexType = findIndexType(primitiveData.indices.componentType);
+        params.indexCount = primitiveData.indices.count;
 
         for (editor::assets::VertexAttributeDescription const& attributeData : primitiveData.vertexAttributes)
         {
+            if (attributeData.index != 0)
+            {
+                logging::warn("Skipping attribute {}: non-zero index {} not supported", attributeData.semantic, attributeData.index);
+                continue;
+            }
+
             nstl::optional<size_t> location = findAttributeLocation(attributeData.semantic);
 
             if (!location)
             {
-                logging::warn("Skipping attribute");
+                logging::warn("Skipping attribute {}: unknown location", attributeData.semantic);
                 continue;
             }
 
-            demoPrimitive.vertexBuffers.push_back({ meshBuffer, attributeData.accessor.bufferOffset });
-
             if (attributeData.semantic == editor::assets::AttributeSemantic::Color)
-                demoPrimitive.metadata.attributeSemanticsConfig.hasColor = true;
+                params.hasColor = true;
             if (attributeData.semantic == editor::assets::AttributeSemantic::Texcoord)
-                demoPrimitive.metadata.attributeSemanticsConfig.hasUv = true;
+                params.hasUv = true;
             if (attributeData.semantic == editor::assets::AttributeSemantic::Normal)
-                demoPrimitive.metadata.attributeSemanticsConfig.hasNormal = true;
+                params.hasNormal = true;
             if (attributeData.semantic == editor::assets::AttributeSemantic::Tangent)
-                demoPrimitive.metadata.attributeSemanticsConfig.hasTangent = true;
+                params.hasTangent = true;
 
-            gfx::attribute_type newAttributeType = newFindAttributeType(attributeData.accessor.type, attributeData.accessor.componentType);
 
-            // TODO probably a single buffer can be used
-            size_t buffer_index = demoPrimitive.metadata.newVertexConfig.buffer_bindings.size();
-            demoPrimitive.metadata.newVertexConfig.buffer_bindings.push_back({
-                .buffer_index = buffer_index,
-                .stride = attributeData.accessor.stride,
-            });
-
-            size_t binding_index = buffer_index;
-            demoPrimitive.metadata.newVertexConfig.attributes.push_back({
+            params.attributes.push_back({
                 .location = *location,
-                .buffer_binding_index = binding_index,
-                .offset = 0,
-                .type = newAttributeType,
+                .bufferOffset = attributeData.accessor.bufferOffset,
+                .stride = attributeData.accessor.stride,
+                .type = newFindAttributeType(attributeData.accessor.type, attributeData.accessor.componentType),
             });
         }
-
-        // TODO implement
-        assert(primitiveData.topology == editor::assets::Topology::Triangles);
-        demoPrimitive.metadata.vertexConfig.topology = vkgfx::VertexTopology::Triangles;
-        demoPrimitive.metadata.newVertexConfig.topology = gfx::vertex_topology::triangles;
-
-        demoPrimitive.metadata.materialUuid = materialId;
     }
+
+    nstl::blob data = m_assetDatabase->loadMeshData(id);
+
+    m_editorGltfResources->demoMeshes[id] = m_sceneDrawer->createMesh(data, primitiveParams);
 }
 
 void DemoApplication::updateUI(float frameTime)
@@ -2037,17 +1082,6 @@ void DemoApplication::drawFrame()
 
     draw();
 //     drawTest();
-
-//     m_renderer->setCameraTransform(m_cameraTransform);
-//     m_renderer->setCameraParameters(m_cameraParameters);
-//     m_renderer->setLightParameters(m_lightParameters);
-// 
-//     for (auto const& demoObject : m_demoScene.objects)
-//         m_renderer->addOneFrameTestObject(demoObject);
-//     m_services.debugDraw().queueGeometry(*m_renderer);
-//     m_imGuiDrawer->queueGeometry(*m_renderer);
-// 
-//     m_renderer->draw();
 
     m_fpsDrawnFrames++;
 }
@@ -2149,6 +1183,8 @@ void DemoApplication::draw()
     if (m_imGuiDrawer)
         m_imGuiDrawer->updateResources(*m_newRenderer);
 
+    m_sceneDrawer->updateResources();
+
     m_newRenderer->begin_frame();
 
     m_newRenderer->renderpass_begin({
@@ -2156,21 +1192,7 @@ void DemoApplication::draw()
         .framebuffer = m_shadowFramebuffer,
     });
 
-    for (vkgfx::TestObject const& object : m_demoScene.objects)
-    {
-        m_newRenderer->draw_indexed({
-            .renderstate = object.shadowmapState,
-            .descriptorgroups = nstl::array{ m_shadowmapCameraDescriptorGroup, object.descriptorGroup },
-
-            .vertex_buffers = object.vertexBuffers,
-            .index_buffer = object.indexBuffer,
-            .index_type = object.indexType,
-
-            .index_count = object.indexCount,
-            .first_index = 0,
-            .vertex_offset = 0,
-        });
-    }
+    m_sceneDrawer->draw(true, m_cameraDescriptorGroup, m_shadowmapCameraDescriptorGroup);
 
     m_newRenderer->renderpass_end();
 
@@ -2179,21 +1201,7 @@ void DemoApplication::draw()
         .framebuffer = m_newRenderer->acquire_main_framebuffer(),
     });
 
-    for (vkgfx::TestObject const& object : m_demoScene.objects)
-    {
-        m_newRenderer->draw_indexed({
-            .renderstate = object.state,
-            .descriptorgroups = nstl::array{ m_cameraDescriptorGroup, object.materialDescriptorGroup, object.descriptorGroup },
-
-            .vertex_buffers = object.vertexBuffers,
-            .index_buffer = object.indexBuffer,
-            .index_type = object.indexType,
-
-            .index_count = object.indexCount,
-            .first_index = 0,
-            .vertex_offset = 0,
-        });
-    }
+    m_sceneDrawer->draw(false, m_cameraDescriptorGroup, m_shadowmapCameraDescriptorGroup);
 
     m_services.debugDraw().draw(*m_newRenderer, m_cameraDescriptorGroup);
 

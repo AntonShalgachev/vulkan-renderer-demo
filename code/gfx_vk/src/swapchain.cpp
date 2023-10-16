@@ -74,6 +74,7 @@ VkExtent2D gfx_vk::swapchain::get_extent() const
 
 void gfx_vk::swapchain::on_window_resized()
 {
+    m_window.waitUntilInForeground(); // TODO remove from here
     m_context.on_surface_changed();
     recreate();
 }

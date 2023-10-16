@@ -17,9 +17,10 @@ namespace gfx_vk
 
     struct config
     {
-        descriptors_config descriptors;
-        renderer_config renderer;
         char const* name = nullptr;
         bool enable_validation;
+
+        descriptors_config descriptors;
+        renderer_config renderer;
     };
 }

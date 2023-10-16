@@ -13,6 +13,7 @@ namespace nstl
 }
 
 // TODO move out of editor::assets
+// TODO have dedicated uuid-like classes for assets
 
 namespace editor::assets
 {

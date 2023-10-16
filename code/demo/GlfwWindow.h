@@ -147,7 +147,7 @@ public:
     size_t getWindowWidth() const { assert(m_windowWidth >= 0); return static_cast<size_t>(m_windowWidth); }
     size_t getWindowHeight() const { assert(m_windowHeight >= 0); return static_cast<size_t>(m_windowHeight); }
     size_t getFramebufferWidth() const override { assert(m_framebufferWidth >= 0); return static_cast<size_t>(m_framebufferWidth); }
-    size_t getFramebufferHeight() const override { assert(m_windowHeight >= 0); return static_cast<size_t>(m_windowHeight); }
+    size_t getFramebufferHeight() const override { assert(m_framebufferHeight >= 0); return static_cast<size_t>(m_framebufferHeight); }
     nstl::vector<char const*> const& getRequiredInstanceExtensions() const override { return m_requiredInstanceExtensions; }
 
     bool getCanCaptureCursor() const { return m_canCaptureCursor; }

@@ -5,6 +5,8 @@ add_executable(demo WIN32
     
     "DemoApplication.h"
     "DemoApplication.cpp"
+    "DemoSceneDrawer.h"
+    "DemoSceneDrawer.cpp"
 
     "ImGuiDrawer.h"
     "ImGuiDrawer.cpp"

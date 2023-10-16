@@ -88,7 +88,8 @@ gfx_vk::descriptorgroup::descriptorgroup(context& context, gfx::descriptorgroup_
 
     m_handles.resize(sets_count);
 
-    m_context.get_descriptor_allocator().allocate(vk_layouts, m_handles);
+    [[maybe_unused]] bool res = m_context.get_descriptor_allocator().allocate(vk_layouts, m_handles);
+    assert(res);
 
     nstl::vector<VkWriteDescriptorSet> writes;
     temp_resources resources;

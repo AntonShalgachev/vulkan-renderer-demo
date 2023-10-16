@@ -2,13 +2,14 @@
 
 #include "common/Timer.h"
 #include "GlfwWindow.h"
+#include "DemoSceneDrawer.h"
 
 #include "ui/DebugConsoleWidget.h"
 #include "ui/NotificationManager.h"
 #include "ui/MemoryViewerWindow.h"
 
-#include "vkgfx/Handles.h"
-#include "vkgfx/PipelineKey.h"
+// #include "vkgfx/Handles.h"
+// #include "vkgfx/PipelineKey.h"
 #include "vkgfx/TestObject.h"
 
 #include "services/Services.h"
@@ -35,21 +36,6 @@ namespace editor::assets
     struct Uuid;
 }
 
-namespace vkgfx
-{
-    class Renderer;
-    class ResourceManager;
-
-    struct BufferHandle;
-    struct ImageHandle;
-    struct SamplerHandle;
-    struct TextureHandle;
-    struct MaterialHandle;
-    struct MeshHandle;
-
-    struct TestObject;
-}
-
 namespace gfx
 {
     class renderer;
@@ -66,49 +52,6 @@ struct DemoAttributeSemanticsConfiguration
     bool hasTangent = false;
 };
 
-struct DemoMaterialMetadata
-{
-    vkgfx::UniformConfiguration uniformConfig;
-    vkgfx::RenderConfiguration renderConfig;
-
-    gfx::descriptorgroup_layout_storage newUniformConfig;
-    gfx::renderstate_flags newRenderConfig;
-};
-
-struct DemoMeshMetadata
-{
-    vkgfx::VertexConfiguration vertexConfig;
-    gfx::vertex_configuration_storage newVertexConfig;
-    DemoAttributeSemanticsConfiguration attributeSemanticsConfig;
-    size_t materialIndex = 0;
-    editor::assets::Uuid materialUuid;
-};
-
-struct DemoMaterial
-{
-    vkgfx::MaterialHandle handle;
-    DemoMaterialMetadata metadata;
-
-    gfx::buffer_handle buffer;
-    gfx::descriptorgroup_handle descriptorgroup;
-};
-
-struct DemoPrimitive
-{
-    vkgfx::MeshHandle handle;
-    DemoMeshMetadata metadata;
-
-    nstl::vector<gfx::buffer_with_offset> vertexBuffers;
-    gfx::buffer_with_offset indexBuffer;
-    gfx::index_type indexType = gfx::index_type::uint16;
-    size_t indexCount = 0;
-};
-
-struct DemoMesh
-{
-    nstl::vector<DemoPrimitive> primitives;
-};
-
 struct DemoCamera
 {
     vkgfx::TestCameraTransform transform;
@@ -117,36 +60,20 @@ struct DemoCamera
 
 struct GltfResources
 {
-    nstl::vector<vkgfx::BufferHandle> buffers;
-    nstl::vector<vkgfx::ImageHandle> images;
-    nstl::vector<vkgfx::SamplerHandle> samplers;
-    nstl::vector<vkgfx::TextureHandle> textures;
-    nstl::vector<DemoMaterial> materials;
-    nstl::vector<DemoMesh> meshes;
-
-    nstl::unordered_map<nstl::string, vkgfx::ShaderModuleHandle> shaderModules;
+    nstl::vector<DemoTexture*> demoTextures;
+    nstl::vector<DemoMaterial*> demoMaterials;
+    nstl::vector<DemoMesh*> demoMeshes;
 
     nstl::vector<vkgfx::TestCameraParameters> cameraParameters;
-
-    nstl::vector<vkgfx::BufferHandle> additionalBuffers; // TODO think how to store all created resources better
 };
 
 struct EditorGltfResources
 {
-    nstl::unordered_map<editor::assets::Uuid, gfx::image_handle> newImages;
-    nstl::unordered_map<editor::assets::Uuid, DemoMaterial> materials;
-    nstl::unordered_map<editor::assets::Uuid, DemoMesh> meshes;
-    nstl::unordered_map<editor::assets::Uuid, gfx::buffer_handle> newMeshBuffers;
-
-    nstl::unordered_map<nstl::string, gfx::shader_handle> newShaderModules;
+    nstl::unordered_map<editor::assets::Uuid, DemoTexture*> demoTextures;
+    nstl::unordered_map<editor::assets::Uuid, DemoMaterial*> demoMaterials;
+    nstl::unordered_map<editor::assets::Uuid, DemoMesh*> demoMeshes;
 
     nstl::vector<vkgfx::TestCameraParameters> cameraParameters;
-};
-
-struct DemoScene
-{
-    nstl::vector<vkgfx::TestObject> objects;
-    nstl::vector<DemoCamera> cameras;
 };
 
 class DemoApplication
@@ -170,8 +97,8 @@ private:
     void onKey(GlfwWindow::Action action, GlfwWindow::OldKey key, char c, GlfwWindow::Modifiers mods);
     void onMouseMove(tglm::vec2 const& delta);
 
-    DemoScene createDemoScene(cgltf_data const& gltfModel, cgltf_scene const& gltfScene) const;
-    void createDemoObjectRecursive(cgltf_data const& gltfModel, size_t nodeIndex, tglm::mat4 parentTransform, DemoScene& scene) const;
+    void createDemoScene(cgltf_data const& gltfModel, cgltf_scene const& gltfScene) const;
+    void createDemoObjectRecursive(cgltf_data const& gltfModel, size_t nodeIndex, tglm::mat4 parentTransform) const;
 
     void clearScene();
     bool loadScene(nstl::string_view gltfPath);
@@ -199,6 +126,8 @@ private:
 
     nstl::unique_ptr<gfx::renderer> m_newRenderer;
 
+    gfx::sampler_handle m_newDefaultSampler;
+
     gfx::buffer_handle m_viewProjectionData;
     gfx::buffer_handle m_lightData;
     gfx::descriptorgroup_handle m_cameraDescriptorGroup;
@@ -220,28 +149,7 @@ private:
     nstl::unique_ptr<GltfResources> m_gltfResources;
     nstl::unique_ptr<EditorGltfResources> m_editorGltfResources;
 
-    DemoScene m_demoScene;
-
-    // Resources
-    nstl::unique_ptr<ShaderPackage> m_defaultVertexShader;
-    nstl::unique_ptr<ShaderPackage> m_newDefaultVertexShader;
-    nstl::unique_ptr<ShaderPackage> m_defaultFragmentShader;
-    nstl::unique_ptr<ShaderPackage> m_newDefaultFragmentShader;
-
-    nstl::unique_ptr<ShaderPackage> m_shadowmapVertexShader;
-    nstl::unique_ptr<ShaderPackage> m_newShadowmapVertexShader;
-
-    vkgfx::SamplerHandle m_defaultSampler;
-    vkgfx::ImageHandle m_defaultAlbedoImage;
-    vkgfx::TextureHandle m_defaultAlbedoTexture;
-    vkgfx::ImageHandle m_defaultNormalMapImage;
-    vkgfx::TextureHandle m_defaultNormalMapTexture;
-
-    gfx::sampler_handle m_newDefaultSampler;
-    gfx::image_handle m_newDefaultAlbedoImage;
-    gfx::image_handle m_newDefaultNormalMapImage;
-
-    nstl::vector<gfx::renderstate_handle> m_renderstates;
+    nstl::unique_ptr<DemoSceneDrawer> m_sceneDrawer;
 
     vkc::Timer m_frameTimer;
     vkc::Timer m_appTime;
@@ -274,7 +182,7 @@ private:
 
     nstl::string m_currentScenePath = "";
 
-    nstl::unique_ptr<vkgfx::Renderer> m_renderer;
+//     nstl::unique_ptr<vkgfx::Renderer> m_renderer;
 
     vkgfx::TestCameraTransform m_cameraTransform;
     vkgfx::TestCameraParameters m_cameraParameters;
