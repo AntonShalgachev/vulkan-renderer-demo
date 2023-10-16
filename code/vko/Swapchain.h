@@ -40,8 +40,6 @@ namespace vko
         VkExtent2D getExtent() const;
         VkSurfaceFormatKHR getSurfaceFormat() const;
 
-        size_t getImageCount() const;
-        nstl::span<vko::Image const> getImages() const;
         nstl::span<VkImage const> getRawImages() const { return m_rawImages; }
 
     private:
@@ -56,6 +54,5 @@ namespace vko
         Config m_config;
 
         nstl::vector<VkImage> m_rawImages;
-        nstl::vector<Image> m_images;
     };
 }

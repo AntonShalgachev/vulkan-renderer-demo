@@ -1,16 +1,6 @@
 #include "DebugDrawService.h"
 
-#include "vkgfx/ResourceManager.h"
-#include "vkgfx/Renderer.h"
-#include "vkgfx/BufferMetadata.h"
-#include "vkgfx/Mesh.h"
-#include "vkgfx/PipelineKey.h"
-
-#include "vkgfx/TestObject.h"
-
 #include "ShaderPackage.h"
-
-#include "vko/ShaderModuleProperties.h"
 
 #include "common/Utils.h"
 
@@ -22,7 +12,6 @@
 #include "memory/tracking.h"
 
 #include "nstl/array.h"
-#include "nstl/vector.h"
 
 namespace
 {

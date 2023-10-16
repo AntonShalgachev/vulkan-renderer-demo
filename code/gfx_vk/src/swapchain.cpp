@@ -8,8 +8,6 @@
 #include "vko/Device.h"
 #include "vko/DeviceMemory.h"
 #include "vko/Framebuffer.h"
-#include "vko/Image.h"
-#include "vko/ImageView.h"
 #include "vko/Instance.h"
 #include "vko/PhysicalDeviceSurfaceParameters.h"
 #include "vko/Swapchain.h"

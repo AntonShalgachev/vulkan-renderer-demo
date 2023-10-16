@@ -61,16 +61,6 @@ VkSurfaceFormatKHR vko::Swapchain::getSurfaceFormat() const
     return m_config.surfaceFormat;
 }
 
-size_t vko::Swapchain::getImageCount() const
-{
-    return m_images.size();
-}
-
-nstl::span<vko::Image const> vko::Swapchain::getImages() const
-{
-    return m_images;
-}
-
 void vko::Swapchain::retrieveImages()
 {
     uint32_t finalImageCount = 0;
@@ -78,8 +68,4 @@ void vko::Swapchain::retrieveImages()
 
     m_rawImages.resize(finalImageCount);
     VKO_VERIFY(vkGetSwapchainImagesKHR(m_device.getHandle(), m_handle, &finalImageCount, m_rawImages.data()));
-
-    m_images.reserve(finalImageCount);
-    for (VkImage const& handle : m_rawImages)
-        m_images.emplace_back(m_device, handle, m_config.surfaceFormat.format);
 }
