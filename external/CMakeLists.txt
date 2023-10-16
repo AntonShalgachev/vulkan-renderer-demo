@@ -24,7 +24,7 @@ FetchDependency(coil)
 
 FetchContent_Declare(
     yyjson
-    URL https://github.com/AntonShalgachev/yyjson/archive/af0f7e0737244f6b545c9e84b5d8394b90f1bbbb.tar.gz # Don't set build types in CMake if yyjson is used as dependency
+    URL https://github.com/ibireme/yyjson/archive/5128fc3cf4b28f08f1ee3ba3227486dc006dd440.tar.gz # Merge pull request #142 from AntonShalgachev/respect-cmake-configuration-types
 )
 FetchDependency(yyjson)
 
