@@ -1,6 +1,6 @@
 #include "platform/startup.h"
 
-#include "windows_common.h"
+#include "common.h"
 
 #include <stdlib.h>
 

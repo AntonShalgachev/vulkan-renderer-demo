@@ -81,4 +81,5 @@ target_link_libraries(demo
     mt
     gfx
     gfx_vk
+    platform_win64
 )

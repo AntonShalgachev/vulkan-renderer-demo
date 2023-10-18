@@ -1,6 +1,6 @@
 #include "platform/debug.h"
 
-#include "windows_common.h"
+#include "common.h"
 
 #include "nstl/string.h"
 

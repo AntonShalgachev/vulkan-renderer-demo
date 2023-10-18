@@ -1,4 +1,4 @@
-#include "windows_common.h"
+#include "common.h"
 
 platform_win32::error platform_win32::get_last_error()
 {

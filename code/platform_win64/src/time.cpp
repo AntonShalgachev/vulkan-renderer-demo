@@ -1,6 +1,6 @@
 #include "platform/time.h"
 
-#include "windows_common.h"
+#include "common.h"
 
 namespace
 {
