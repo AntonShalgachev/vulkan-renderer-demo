@@ -402,9 +402,9 @@ void DemoApplication::init()
         },
     };
     auto backend = nstl::make_unique<gfx_vk::backend>(*m_window, config);
-    m_newRenderer = nstl::make_unique<gfx::renderer>(nstl::move(backend));
+    m_renderer = nstl::make_unique<gfx::renderer>(nstl::move(backend));
 
-    m_services.setDebugDraw(nstl::make_unique<DebugDrawService>(*m_newRenderer));
+    m_services.setDebugDraw(nstl::make_unique<DebugDrawService>(*m_renderer));
 
     loadImgui();
 
@@ -421,41 +421,41 @@ void DemoApplication::init()
 
     createResources();
 
-    m_sceneDrawer = nstl::make_unique<DemoSceneDrawer>(*m_newRenderer, m_shadowRenderpass);
+    m_sceneDrawer = nstl::make_unique<DemoSceneDrawer>(*m_renderer, m_shadowRenderpass);
 }
 
 void DemoApplication::createResources()
 {
-    m_newDefaultSampler = m_newRenderer->create_sampler({});
+    m_defaultSampler = m_renderer->create_sampler({});
 
-    m_viewProjectionData = m_newRenderer->create_buffer({
+    m_viewProjectionData = m_renderer->create_buffer({
         .size = sizeof(ShaderViewProjectionData),
         .usage = gfx::buffer_usage::uniform,
         .location = gfx::buffer_location::host_visible,
         .is_mutable = true,
     });
 
-    m_lightData = m_newRenderer->create_buffer({
+    m_lightData = m_renderer->create_buffer({
         .size = sizeof(ShaderLightData),
         .usage = gfx::buffer_usage::uniform,
         .location = gfx::buffer_location::host_visible,
         .is_mutable = true,
     });
 
-    m_shadowmapViewProjectionData = m_newRenderer->create_buffer({
+    m_shadowmapViewProjectionData = m_renderer->create_buffer({
         .size = sizeof(ShaderViewProjectionData),
         .usage = gfx::buffer_usage::uniform,
         .location = gfx::buffer_location::host_visible,
         .is_mutable = true,
     });
 
-    m_shadowmapCameraDescriptorGroup = m_newRenderer->create_descriptorgroup({
+    m_shadowmapCameraDescriptorGroup = m_renderer->create_descriptorgroup({
         .entries = nstl::array{
             gfx::descriptorgroup_entry{0, {m_shadowmapViewProjectionData, gfx::descriptor_type::uniform_buffer}},
         }
     });
 
-    m_shadowRenderpass = m_newRenderer->create_renderpass({
+    m_shadowRenderpass = m_renderer->create_renderpass({
         .color_attachment_formats = {},
         .depth_stencil_attachment_format = gfx::image_format::d32_float,
 
@@ -463,7 +463,7 @@ void DemoApplication::createResources()
         .keep_depth_values_after_renderpass = true,
     });
 
-    m_shadowImage = m_newRenderer->create_image({
+    m_shadowImage = m_renderer->create_image({
         .width = SHADOWMAP_RESOLUTION,
         .height = SHADOWMAP_RESOLUTION,
         .format = gfx::image_format::d32_float,
@@ -471,16 +471,16 @@ void DemoApplication::createResources()
         .usage = gfx::image_usage::depth_sampled,
     });
 
-    m_shadowFramebuffer = m_newRenderer->create_framebuffer({
+    m_shadowFramebuffer = m_renderer->create_framebuffer({
         .attachments = nstl::array{ m_shadowImage },
         .renderpass = m_shadowRenderpass,
     });
 
-    m_cameraDescriptorGroup = m_newRenderer->create_descriptorgroup({
+    m_cameraDescriptorGroup = m_renderer->create_descriptorgroup({
         .entries = nstl::array{
             gfx::descriptorgroup_entry{0, {m_viewProjectionData, gfx::descriptor_type::uniform_buffer}},
             gfx::descriptorgroup_entry{1, {m_lightData, gfx::descriptor_type::uniform_buffer}},
-            gfx::descriptorgroup_entry{2, {m_shadowImage, m_newDefaultSampler}},
+            gfx::descriptorgroup_entry{2, {m_shadowImage, m_defaultSampler}},
         }
     });
 }
@@ -513,7 +513,7 @@ void DemoApplication::loadImgui()
     io.Fonts->AddFontDefault();
 
     m_imGuiPlatform = nstl::make_unique<ImGuiPlatform>(*m_window);
-    m_imGuiDrawer = nstl::make_unique<ImGuiDrawer>(*m_newRenderer);
+    m_imGuiDrawer = nstl::make_unique<ImGuiDrawer>(*m_renderer);
 }
 
 void DemoApplication::unloadImgui()
@@ -1114,10 +1114,10 @@ void DemoApplication::draw()
     auto lightRotation = tglm::quat::from_euler_xyz(tglm::radians({ 45.0f * m_time, 0, 0 }));
     m_lightParameters.position.x = 2.0f * sinf(2.0f * m_time);
 
-    m_newRenderer->begin_resource_update();
+    m_renderer->begin_resource_update();
 
     {
-        auto aspectRatio = m_newRenderer->get_main_framebuffer_aspect();
+        auto aspectRatio = m_renderer->get_main_framebuffer_aspect();
 
         auto lightAspectRatio = 1.0f * SHADOWMAP_RESOLUTION / SHADOWMAP_RESOLUTION;
         auto lightNearZ = 0.1f;
@@ -1129,7 +1129,7 @@ void DemoApplication::draw()
         };
         shadowmapViewProjectionData.projection.data[1][1] *= -1; // TODO fix this hack
 
-        m_newRenderer->buffer_upload_sync(m_shadowmapViewProjectionData, { &shadowmapViewProjectionData, sizeof(shadowmapViewProjectionData) });
+        m_renderer->buffer_upload_sync(m_shadowmapViewProjectionData, { &shadowmapViewProjectionData, sizeof(shadowmapViewProjectionData) });
 
         ShaderViewProjectionData viewProjectionData = {
             .view = (tglm::translated(tglm::mat4::identity(), m_cameraTransform.position) * m_cameraTransform.rotation.to_mat4()).inversed(), // TODO rewrite this operation
@@ -1137,7 +1137,7 @@ void DemoApplication::draw()
         };
         viewProjectionData.projection.data[1][1] *= -1; // TODO fix this hack
 
-        m_newRenderer->buffer_upload_sync(m_viewProjectionData, { &viewProjectionData, sizeof(viewProjectionData) });
+        m_renderer->buffer_upload_sync(m_viewProjectionData, { &viewProjectionData, sizeof(viewProjectionData) });
 
         ShaderLightData lightData = {
             .lightViewProjection = shadowmapViewProjectionData.projection * shadowmapViewProjectionData.view,
@@ -1145,41 +1145,41 @@ void DemoApplication::draw()
             .lightColor = m_lightParameters.intensity * m_lightParameters.color,
         };
 
-        m_newRenderer->buffer_upload_sync(m_lightData, { &lightData, sizeof(lightData) });
+        m_renderer->buffer_upload_sync(m_lightData, { &lightData, sizeof(lightData) });
     }
 
-    m_services.debugDraw().updateResources(*m_newRenderer);
+    m_services.debugDraw().updateResources(*m_renderer);
 
     if (m_imGuiDrawer)
-        m_imGuiDrawer->updateResources(*m_newRenderer);
+        m_imGuiDrawer->updateResources(*m_renderer);
 
     m_sceneDrawer->updateResources();
 
-    m_newRenderer->begin_frame();
+    m_renderer->begin_frame();
 
-    m_newRenderer->renderpass_begin({
+    m_renderer->renderpass_begin({
         .renderpass = m_shadowRenderpass,
         .framebuffer = m_shadowFramebuffer,
     });
 
     m_sceneDrawer->draw(true, m_cameraDescriptorGroup, m_shadowmapCameraDescriptorGroup);
 
-    m_newRenderer->renderpass_end();
+    m_renderer->renderpass_end();
 
-    m_newRenderer->renderpass_begin({
-        .renderpass = m_newRenderer->get_main_renderpass(),
-        .framebuffer = m_newRenderer->acquire_main_framebuffer(),
+    m_renderer->renderpass_begin({
+        .renderpass = m_renderer->get_main_renderpass(),
+        .framebuffer = m_renderer->acquire_main_framebuffer(),
     });
 
     m_sceneDrawer->draw(false, m_cameraDescriptorGroup, m_shadowmapCameraDescriptorGroup);
 
-    m_services.debugDraw().draw(*m_newRenderer, m_cameraDescriptorGroup);
+    m_services.debugDraw().draw(*m_renderer, m_cameraDescriptorGroup);
 
     // TODO should be in its own renderpass
     if (m_imGuiDrawer)
-        m_imGuiDrawer->draw(*m_newRenderer);
+        m_imGuiDrawer->draw(*m_renderer);
 
-    m_newRenderer->renderpass_end();
+    m_renderer->renderpass_end();
 
-    m_newRenderer->submit();
+    m_renderer->submit();
 }

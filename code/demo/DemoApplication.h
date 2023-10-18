@@ -119,9 +119,9 @@ private:
 private:
     Services m_services;
 
-    nstl::unique_ptr<gfx::renderer> m_newRenderer;
+    nstl::unique_ptr<gfx::renderer> m_renderer;
 
-    gfx::sampler_handle m_newDefaultSampler;
+    gfx::sampler_handle m_defaultSampler;
 
     gfx::buffer_handle m_viewProjectionData;
     gfx::buffer_handle m_lightData;
