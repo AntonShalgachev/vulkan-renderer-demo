@@ -3,9 +3,6 @@
 #include "context.h"
 #include "conversions.h"
 
-#include "vko/Assert.h"
-#include "vko/Device.h"
-
 #include "nstl/static_vector.h"
 
 gfx_vk::descriptor_set_layout::descriptor_set_layout(context& context, gfx::descriptorgroup_layout_view const& layout)
@@ -31,7 +28,7 @@ gfx_vk::descriptor_set_layout::descriptor_set_layout(context& context, gfx::desc
         .pBindings = bindings.data(),
     };
 
-    VKO_VERIFY(vkCreateDescriptorSetLayout(m_context.get_device().getHandle(), &info, &m_allocator.getCallbacks(), &m_handle.get()));
+    GFX_VK_VERIFY(vkCreateDescriptorSetLayout(m_context.get_device_handle(), &info, &m_context.get_allocator(), &m_handle.get()));
 }
 
 gfx_vk::descriptor_set_layout::~descriptor_set_layout()
@@ -39,6 +36,6 @@ gfx_vk::descriptor_set_layout::~descriptor_set_layout()
     if (!m_handle)
         return;
 
-    vkDestroyDescriptorSetLayout(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
+    vkDestroyDescriptorSetLayout(m_context.get_device_handle(), m_handle, &m_context.get_allocator());
     m_handle = nullptr;
 }

@@ -8,10 +8,10 @@
 
 namespace
 {
-    uint32_t findMemoryType(vko::PhysicalDevice const& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
+    uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
     {
         VkPhysicalDeviceMemoryProperties memProperties;
-        vkGetPhysicalDeviceMemoryProperties(physicalDevice.getHandle(), &memProperties);
+        vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
 
         for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
         {
@@ -29,8 +29,8 @@ namespace
     }
 }
 
-vko::DeviceMemory::DeviceMemory(Device const& device, PhysicalDevice const& physicalDevice, VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties)
-    : m_device(device.getHandle())
+vko::DeviceMemory::DeviceMemory(VkDevice device, VkPhysicalDevice physicalDevice, VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties)
+    : m_device(device)
     , m_requirements(memoryRequirements)
     , m_properties(memoryProperties)
 {

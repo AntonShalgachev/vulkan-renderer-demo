@@ -1,9 +1,8 @@
 #pragma once
 
-#include "gfx/resources.h"
+#include "utils.h"
 
-#include "vko/Allocator.h"
-#include "vko/UniqueHandle.h"
+#include "gfx/resources.h"
 
 #include "nstl/unique_ptr.h"
 
@@ -38,11 +37,9 @@ namespace gfx_vk
 
         gfx::image_params m_params;
 
-        vko::Allocator m_allocator{ vko::AllocatorScope::Image };
-
         bool m_owns_image = false;
-        vko::UniqueHandle<VkImage> m_handle;
-        vko::UniqueHandle<VkImageView> m_view_handle;
+        unique_handle<VkImage> m_handle;
+        unique_handle<VkImageView> m_view_handle;
 
         nstl::unique_ptr<vko::DeviceMemory> m_memory;
 

@@ -14,9 +14,7 @@
 #include "vko/CommandPool.h"
 #include "vko/CommandBuffers.h"
 #include "vko/Queue.h"
-#include "vko/Device.h"
 #include "vko/Instance.h"
-#include "vko/PhysicalDevice.h"
 #include "vko/PhysicalDeviceSurfaceParameters.h"
 
 #include "common/fmt.h"
@@ -54,7 +52,7 @@ gfx::framebuffer_handle gfx_vk::renderer::acquire_main_framebuffer()
     frame_resources& resources = get_current_frame_resources();
 
     uint32_t image_index = 0;
-    [[maybe_unused]] VkResult result = vkAcquireNextImageKHR(m_context.get_device().getHandle(), m_swapchain->get_handle(), UINT64_MAX, resources.image_available_semaphore.getHandle(), VK_NULL_HANDLE, &image_index);
+    [[maybe_unused]] VkResult result = vkAcquireNextImageKHR(m_context.get_device_handle(), m_swapchain->get_handle(), UINT64_MAX, resources.image_available_semaphore.getHandle(), VK_NULL_HANDLE, &image_index);
     assert(result == VK_SUCCESS); // TODO handle swapchain resize
 
     m_swapchain_image_index = image_index;
@@ -226,8 +224,6 @@ void gfx_vk::renderer::submit()
 
 void gfx_vk::renderer::create_swapchain(tglm::ivec2 extent)
 {
-    vko::Device const& device = m_context.get_device();
-
     // TODO don't rely on these formats being supported
     gfx_vk::surface_format surface_format = {
         .format = gfx::image_format::b8g8r8a8_srgb,
@@ -243,14 +239,14 @@ void gfx_vk::renderer::create_swapchain(tglm::ivec2 extent)
         .keep_depth_values_after_renderpass = false,
     });
 
-    m_context.get_instance().setDebugName(device.getHandle(), m_context.get_resources().get_renderpass(m_renderpass).get_handle(), "Main renderpass");
+    m_context.get_instance().setDebugName(m_context.get_device_handle(), m_context.get_resources().get_renderpass(m_renderpass).get_handle(), "Main renderpass");
 
     m_swapchain = nstl::make_unique<swapchain>(m_context, m_renderpass, surface_format, depth_format, extent);
 }
 
 void gfx_vk::renderer::create_frame_resources(renderer_config const& config)
 {
-    VkDevice device = m_context.get_device().getHandle();
+    VkDevice device = m_context.get_device_handle();
     vko::Instance const& instance = m_context.get_instance();
 
     for (size_t i = 0; i < config.max_frames_in_flight; i++)

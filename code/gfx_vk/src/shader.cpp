@@ -2,9 +2,6 @@
 
 #include "context.h"
 
-#include "vko/Assert.h"
-#include "vko/Device.h"
-
 #include "fs/file.h"
 
 #include "nstl/vector.h"
@@ -48,7 +45,7 @@ gfx_vk::shader::shader(context& context, gfx::shader_params const& params)
         .pCode = words.data(),
     };
 
-    VKO_VERIFY(vkCreateShaderModule(m_context.get_device().getHandle(), &info, &m_allocator.getCallbacks(), &m_handle.get()));
+    GFX_VK_VERIFY(vkCreateShaderModule(m_context.get_device_handle(), &info, &m_context.get_allocator(), &m_handle.get()));
 }
 
 gfx_vk::shader::~shader()
@@ -56,7 +53,7 @@ gfx_vk::shader::~shader()
     if (!m_handle)
         return;
 
-    vkDestroyShaderModule(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
+    vkDestroyShaderModule(m_context.get_device_handle(), m_handle, &m_context.get_allocator());
 }
 
 VkPipelineShaderStageCreateInfo gfx_vk::shader::create_stage_create_info() const

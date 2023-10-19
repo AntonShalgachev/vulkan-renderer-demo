@@ -1,9 +1,8 @@
 #pragma once
 
-#include "gfx/resources.h"
+#include "utils.h"
 
-#include "vko/Allocator.h"
-#include "vko/UniqueHandle.h"
+#include "gfx/resources.h"
 
 #include "nstl/unique_ptr.h"
 #include "nstl/vector.h"
@@ -51,8 +50,7 @@ namespace gfx_vk
         gfx::image_format m_depth_format = gfx::image_format::r8g8b8;
         VkExtent2D m_extent{};
 
-        vko::Allocator m_allocator{ vko::AllocatorScope::Swapchain };
-        vko::UniqueHandle<VkSwapchainKHR> m_handle;
+        unique_handle<VkSwapchainKHR> m_handle;
         nstl::vector<VkImage> m_images;
 
         gfx::image_handle m_depth_image;

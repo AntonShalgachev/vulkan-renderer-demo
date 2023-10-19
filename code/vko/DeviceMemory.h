@@ -16,7 +16,7 @@ namespace vko
     class DeviceMemory
     {
     public:
-        explicit DeviceMemory(Device const& device, PhysicalDevice const& physicalDevice, VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties);
+        explicit DeviceMemory(VkDevice device, VkPhysicalDevice physicalDevice, VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags memoryProperties);
         ~DeviceMemory();
 
         DeviceMemory(DeviceMemory const&) = default;

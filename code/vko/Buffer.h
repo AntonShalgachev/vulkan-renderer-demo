@@ -15,7 +15,7 @@ namespace vko
     class Buffer
     {
     public:
-        explicit Buffer(Device const& device, VkDeviceSize size, VkBufferUsageFlags usage);
+        explicit Buffer(VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage);
         ~Buffer();
 
         Buffer(Buffer const&) = default;

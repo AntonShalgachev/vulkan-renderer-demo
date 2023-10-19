@@ -29,11 +29,15 @@ namespace gfx_vk
         context(surface_factory& factory, tglm::ivec2 extent, config const& config);
         ~context();
 
+        VkAllocationCallbacks const& get_allocator() const { return m_allocator; }
+
         vko::Instance const& get_instance() const;
-        vko::Surface const& get_surface() const;
         vko::Device const& get_device() const;
 
-        vko::PhysicalDevice const& get_physical_device() const;
+        VkPhysicalDevice get_physical_device_handle() const;
+        VkDevice get_device_handle() const;
+        VkSurfaceKHR get_surface_handle() const;
+
         vko::PhysicalDeviceSurfaceParameters const& get_physical_device_surface_parameters() const;
 
         vko::Queue const& get_transfer_queue() const;
@@ -53,6 +57,8 @@ namespace gfx_vk
         void on_surface_changed();
 
     private:
+        VkAllocationCallbacks m_allocator;
+
         vko::Instance m_instance;
         vko::Surface m_surface;
 

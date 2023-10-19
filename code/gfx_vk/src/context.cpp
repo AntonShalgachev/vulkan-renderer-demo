@@ -2,11 +2,15 @@
 
 #include "gfx_vk/surface_factory.h"
 
-#include "vko/Assert.h"
+#include "utils.h"
+
 #include "vko/DebugMessage.h"
 #include "vko/Queue.h"
 
 #include "nstl/vector.h"
+
+#include "memory/memory.h"
+#include "memory/tracking.h"
 
 #include "logging/logging.h"
 
@@ -14,6 +18,8 @@
 
 namespace
 {
+    static auto scope_id = memory::tracking::create_scope_id("Rendering/Vulkan/Driver");
+
     nstl::span<char const* const> get_device_extensions()
     {
         static nstl::vector<char const*> extensions = {
@@ -76,13 +82,51 @@ namespace
     VkSurfaceKHR create_surface(gfx_vk::surface_factory& factory, vko::Instance& instance)
     {
         VkSurfaceKHR handle = VK_NULL_HANDLE;
-        VKO_VERIFY(factory.create(instance.getHandle(), &handle));
+        GFX_VK_VERIFY(factory.create(instance.getHandle(), &handle));
         return handle;
+    }
+
+    void* allocate(void* user_data, size_t size, size_t alignment, VkSystemAllocationScope scope)
+    {
+        MEMORY_TRACKING_SCOPE(scope_id);
+
+        // TODO make use of alignment
+        assert(alignment <= alignof(max_align_t));
+
+        return memory::allocate(size);
+    }
+
+    void* reallocate(void* user_data, void* ptr, size_t size, size_t alignment, VkSystemAllocationScope scope)
+    {
+        MEMORY_TRACKING_SCOPE(scope_id);
+
+        // TODO make use of alignment
+        assert(alignment <= alignof(max_align_t));
+
+        return memory::reallocate(ptr, size);
+    }
+
+    void deallocate(void* user_data, void* ptr)
+    {
+        MEMORY_TRACKING_SCOPE(scope_id);
+
+        return memory::deallocate(ptr);
+    }
+
+    VkAllocationCallbacks create_allocator()
+    {
+        return VkAllocationCallbacks{
+            .pUserData = nullptr,
+            .pfnAllocation = &allocate,
+            .pfnReallocation = &reallocate,
+            .pfnFree = &deallocate,
+        };
     }
 }
 
 gfx_vk::context::context(surface_factory& factory, tglm::ivec2 extent, config const& config)
-    : m_instance(config.name, create_instance_extensions(config.enable_validation, factory), config.enable_validation, config.enable_validation ? on_debug_message : nullptr)
+    : m_allocator(create_allocator())
+    , m_instance(config.name, create_instance_extensions(config.enable_validation, factory), config.enable_validation, config.enable_validation ? on_debug_message : nullptr)
     , m_surface(create_surface(factory, m_instance), m_instance)
     , m_physical_device(find_physical_device(m_instance, m_surface))
     , m_params(vko::queryPhysicalDeviceSurfaceParameters(m_physical_device, m_surface))
@@ -103,19 +147,24 @@ vko::Instance const& gfx_vk::context::get_instance() const
     return m_instance;
 }
 
-vko::Surface const& gfx_vk::context::get_surface() const
-{
-    return m_surface;
-}
-
 vko::Device const& gfx_vk::context::get_device() const
 {
     return m_device;
 }
 
-vko::PhysicalDevice const& gfx_vk::context::get_physical_device() const
+VkPhysicalDevice gfx_vk::context::get_physical_device_handle() const
 {
-    return m_physical_device;
+    return m_physical_device.getHandle();
+}
+
+VkDevice gfx_vk::context::get_device_handle() const
+{
+    return m_device.getHandle();
+}
+
+VkSurfaceKHR gfx_vk::context::get_surface_handle() const
+{
+    return m_surface.getHandle();
 }
 
 vko::PhysicalDeviceSurfaceParameters const& gfx_vk::context::get_physical_device_surface_parameters() const

@@ -3,11 +3,9 @@
 #include "context.h"
 #include "conversions.h"
 
-#include "vko/Assert.h"
 #include "vko/Buffer.h"
 #include "vko/CommandBuffers.h"
 #include "vko/CommandPool.h"
-#include "vko/Device.h"
 #include "vko/DeviceMemory.h"
 #include "vko/Queue.h"
 
@@ -38,16 +36,16 @@ gfx_vk::image::image(context& context, gfx::image_params const& params, VkImage 
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         };
 
-        VKO_VERIFY(vkCreateImage(m_context.get_device().getHandle(), &info, &m_allocator.getCallbacks(), &m_handle.get()));
+        GFX_VK_VERIFY(vkCreateImage(m_context.get_device_handle(), &info, &m_context.get_allocator(), &m_handle.get()));
 
         VkMemoryRequirements requirements;
-        vkGetImageMemoryRequirements(m_context.get_device().getHandle(), m_handle, &requirements);
+        vkGetImageMemoryRequirements(m_context.get_device_handle(), m_handle, &requirements);
 
         m_memory_size = requirements.size;
 
-        m_memory = nstl::make_unique<vko::DeviceMemory>(m_context.get_device(), m_context.get_physical_device(), requirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        m_memory = nstl::make_unique<vko::DeviceMemory>(m_context.get_device_handle(), m_context.get_physical_device_handle(), requirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-        VKO_VERIFY(vkBindImageMemory(m_context.get_device().getHandle(), m_handle, m_memory->getHandle(), 0));
+        GFX_VK_VERIFY(vkBindImageMemory(m_context.get_device_handle(), m_handle, m_memory->getHandle(), 0));
     }
     else
     {
@@ -69,17 +67,17 @@ gfx_vk::image::image(context& context, gfx::image_params const& params, VkImage 
         },
     };
 
-    VKO_VERIFY(vkCreateImageView(m_context.get_device().getHandle(), &view_info, &m_allocator.getCallbacks(), &m_view_handle.get()));
+    GFX_VK_VERIFY(vkCreateImageView(m_context.get_device_handle(), &view_info, &m_context.get_allocator(), &m_view_handle.get()));
 }
 
 gfx_vk::image::~image()
 {
     if (m_owns_image && m_handle)
-        vkDestroyImage(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
+        vkDestroyImage(m_context.get_device_handle(), m_handle, &m_context.get_allocator());
     m_handle = nullptr;
 
     if (m_view_handle)
-        vkDestroyImageView(m_context.get_device().getHandle(), m_view_handle, &m_allocator.getCallbacks());
+        vkDestroyImageView(m_context.get_device_handle(), m_view_handle, &m_context.get_allocator());
     m_view_handle = nullptr;
 }
 
@@ -91,10 +89,10 @@ void gfx_vk::image::upload_sync(nstl::blob_view bytes)
     auto height = static_cast<uint32_t>(m_params.height);
 
     // TODO merge with buffer::upload_sync
-    vko::Buffer staging_buffer{ m_context.get_device(), bytes.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT };
+    vko::Buffer staging_buffer{ m_context.get_device_handle(), bytes.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT };
     VkMemoryRequirements requirements;
-    vkGetBufferMemoryRequirements(m_context.get_device().getHandle(), staging_buffer.getHandle(), &requirements);
-    vko::DeviceMemory staging_memory{ m_context.get_device(), m_context.get_physical_device(), requirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
+    vkGetBufferMemoryRequirements(m_context.get_device_handle(), staging_buffer.getHandle(), &requirements);
+    vko::DeviceMemory staging_memory{ m_context.get_device_handle(), m_context.get_physical_device_handle(), requirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
     staging_buffer.bindMemory(staging_memory);
     staging_memory.copyFrom(bytes.data(), bytes.size());
 

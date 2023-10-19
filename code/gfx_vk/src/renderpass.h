@@ -1,9 +1,8 @@
 #pragma once
 
-#include "gfx/resources.h"
+#include "utils.h"
 
-#include "vko/Allocator.h"
-#include "vko/UniqueHandle.h"
+#include "gfx/resources.h"
 
 #include <vulkan/vulkan.h>
 
@@ -22,7 +21,6 @@ namespace gfx_vk
     private:
         context& m_context;
 
-        vko::Allocator m_allocator{ vko::AllocatorScope::RenderPass };
-        vko::UniqueHandle<VkRenderPass> m_handle;
+        unique_handle<VkRenderPass> m_handle;
     };
 }

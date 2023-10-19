@@ -2,9 +2,6 @@
 
 #include "context.h"
 
-#include "vko/Assert.h"
-#include "vko/Device.h"
-
 gfx_vk::pipeline_layout::pipeline_layout(context& context, nstl::span<VkDescriptorSetLayout const> layouts)
     : m_context(context)
     , m_layouts(layouts.begin(), layouts.end())
@@ -17,7 +14,7 @@ gfx_vk::pipeline_layout::pipeline_layout(context& context, nstl::span<VkDescript
         .pPushConstantRanges = nullptr,
     };
 
-    VKO_VERIFY(vkCreatePipelineLayout(m_context.get_device().getHandle(), &info, &m_allocator.getCallbacks(), &m_handle.get()));
+    GFX_VK_VERIFY(vkCreatePipelineLayout(m_context.get_device_handle(), &info, &m_context.get_allocator(), &m_handle.get()));
 }
 
 gfx_vk::pipeline_layout::~pipeline_layout()
@@ -25,6 +22,6 @@ gfx_vk::pipeline_layout::~pipeline_layout()
     if (!m_handle)
         return;
 
-    vkDestroyPipelineLayout(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
+    vkDestroyPipelineLayout(m_context.get_device_handle(), m_handle, &m_context.get_allocator());
     m_handle = nullptr;
 }

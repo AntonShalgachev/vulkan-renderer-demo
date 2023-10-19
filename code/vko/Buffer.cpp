@@ -4,8 +4,8 @@
 #include "vko/DeviceMemory.h"
 #include "vko/Device.h"
 
-vko::Buffer::Buffer(Device const& device, VkDeviceSize size, VkBufferUsageFlags usage)
-    : m_device(device.getHandle())
+vko::Buffer::Buffer(VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage)
+    : m_device(device)
     , m_size(size)
 {
     VkBufferCreateInfo bufferCreateInfo{};

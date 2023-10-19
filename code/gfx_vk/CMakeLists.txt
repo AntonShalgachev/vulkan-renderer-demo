@@ -39,6 +39,8 @@ add_library(gfx_vk
     "src/framebuffer.cpp"
     "src/descriptorgroup.h"
     "src/descriptorgroup.cpp"
+    "src/utils.h"
+    "src/utils.cpp"
 )
 
 demo_set_common_properties(gfx_vk)

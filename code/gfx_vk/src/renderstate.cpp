@@ -3,9 +3,6 @@
 #include "context.h"
 #include "shader.h"
 
-#include "vko/Device.h"
-#include "vko/Assert.h"
-
 namespace
 {
     struct temporary_resources
@@ -215,7 +212,7 @@ gfx_vk::renderstate::renderstate(context& context, renderstate_init_params const
         .basePipelineIndex = -1,
     };
 
-    VKO_VERIFY(vkCreateGraphicsPipelines(m_context.get_device().getHandle(), VK_NULL_HANDLE, 1, &info, &m_allocator.getCallbacks(), &m_handle.get()));
+    GFX_VK_VERIFY(vkCreateGraphicsPipelines(m_context.get_device_handle(), VK_NULL_HANDLE, 1, &info, &m_context.get_allocator(), &m_handle.get()));
 }
 
 gfx_vk::renderstate::~renderstate()
@@ -223,6 +220,6 @@ gfx_vk::renderstate::~renderstate()
     if (!m_handle)
         return;
 
-    vkDestroyPipeline(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
+    vkDestroyPipeline(m_context.get_device_handle(), m_handle, &m_context.get_allocator());
     m_handle = nullptr;
 }

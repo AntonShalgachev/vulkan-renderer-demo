@@ -3,9 +3,6 @@
 #include "context.h"
 #include "conversions.h"
 
-#include "vko/Device.h"
-#include "vko/Assert.h"
-
 #include "nstl/array.h"
 
 gfx_vk::renderpass::renderpass(context& context, gfx::renderpass_params const& params)
@@ -103,7 +100,7 @@ gfx_vk::renderpass::renderpass(context& context, gfx::renderpass_params const& p
         .pDependencies = dependencies.data(),
     };
 
-    VKO_VERIFY(vkCreateRenderPass(m_context.get_device().getHandle(), &renderPassCreateInfo, &m_allocator.getCallbacks(), &m_handle.get()));
+    GFX_VK_VERIFY(vkCreateRenderPass(m_context.get_device_handle(), &renderPassCreateInfo, &m_context.get_allocator(), &m_handle.get()));
 }
 
 gfx_vk::renderpass::~renderpass()
@@ -111,6 +108,6 @@ gfx_vk::renderpass::~renderpass()
     if (!m_handle)
         return;
 
-    vkDestroyRenderPass(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
+    vkDestroyRenderPass(m_context.get_device_handle(), m_handle, &m_context.get_allocator());
     m_handle = nullptr;
 }

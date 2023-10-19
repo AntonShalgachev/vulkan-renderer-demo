@@ -1,9 +1,8 @@
 #pragma once
 
-#include "gfx_vk/config.h"
+#include "utils.h"
 
-#include "vko/Allocator.h"
-#include "vko/UniqueHandle.h"
+#include "gfx_vk/config.h"
 
 #include "nstl/span.h"
 
@@ -26,7 +25,6 @@ namespace gfx_vk
     private:
         context& m_context;
 
-        vko::Allocator m_allocator{ vko::AllocatorScope::DescriptorPool };
-        vko::UniqueHandle<VkDescriptorPool> m_handle;
+        unique_handle<VkDescriptorPool> m_handle;
     };
 }

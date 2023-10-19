@@ -1,9 +1,8 @@
 #pragma once
 
-#include "gfx/resources.h"
+#include "utils.h"
 
-#include "vko/Allocator.h"
-#include "vko/UniqueHandle.h"
+#include "gfx/resources.h"
 
 #include <vulkan/vulkan.h>
 
@@ -71,7 +70,6 @@ namespace gfx_vk
         context& m_context;
         renderstate_init_params_storage m_params;
 
-        vko::Allocator m_allocator{ vko::AllocatorScope::Pipeline };
-        vko::UniqueHandle<VkPipeline> m_handle;
+        unique_handle<VkPipeline> m_handle;
     };
 }

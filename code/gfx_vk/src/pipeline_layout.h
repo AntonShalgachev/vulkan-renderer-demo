@@ -1,7 +1,6 @@
 #pragma once
 
-#include "vko/Allocator.h"
-#include "vko/UniqueHandle.h"
+#include "utils.h"
 
 #include "nstl/vector.h"
 
@@ -25,7 +24,6 @@ namespace gfx_vk
         context& m_context;
         nstl::vector<VkDescriptorSetLayout> m_layouts;
 
-        vko::Allocator m_allocator{ vko::AllocatorScope::PipelineLayout };
-        vko::UniqueHandle<VkPipelineLayout> m_handle;
+        unique_handle<VkPipelineLayout> m_handle;
     };
 }

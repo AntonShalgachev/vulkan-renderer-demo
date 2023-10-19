@@ -5,8 +5,6 @@
 
 #include "renderpass.h"
 
-#include "vko/Assert.h"
-#include "vko/Device.h"
 #include "vko/Instance.h"
 #include "vko/PhysicalDeviceSurfaceParameters.h"
 
@@ -99,7 +97,6 @@ void gfx_vk::swapchain::resize(tglm::ivec2 extent)
 void gfx_vk::swapchain::create(tglm::ivec2 extent)
 {
     vko::Instance const& instance = m_context.get_instance();
-    vko::Device const& device = m_context.get_device();
 
     vko::PhysicalDeviceSurfaceParameters const& parameters = m_context.get_physical_device_surface_parameters();
 
@@ -117,7 +114,7 @@ void gfx_vk::swapchain::create(tglm::ivec2 extent)
 
     VkSwapchainCreateInfoKHR info{
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-        .surface = m_context.get_surface().getHandle(),
+        .surface = m_context.get_surface_handle(),
 
         .minImageCount = image_count,
         .imageFormat = utils::get_format(m_surface_format.format),
@@ -147,15 +144,15 @@ void gfx_vk::swapchain::create(tglm::ivec2 extent)
         info.pQueueFamilyIndices = nullptr;
     }
 
-    VKO_VERIFY(vkCreateSwapchainKHR(device.getHandle(), &info, &m_allocator.getCallbacks(), &m_handle.get()));
+    GFX_VK_VERIFY(vkCreateSwapchainKHR(m_context.get_device_handle(), &info, &m_context.get_allocator(), &m_handle.get()));
 
     uint32_t count = 0;
-    VKO_VERIFY(vkGetSwapchainImagesKHR(device.getHandle(), m_handle, &count, nullptr));
+    GFX_VK_VERIFY(vkGetSwapchainImagesKHR(m_context.get_device_handle(), m_handle, &count, nullptr));
 
     m_images.resize(count);
-    VKO_VERIFY(vkGetSwapchainImagesKHR(device.getHandle(), m_handle, &count, m_images.data()));
+    GFX_VK_VERIFY(vkGetSwapchainImagesKHR(m_context.get_device_handle(), m_handle, &count, m_images.data()));
 
-    instance.setDebugName(device.getHandle(), m_handle, "Main");
+    instance.setDebugName(m_context.get_device_handle(), m_handle, "Main");
 
     m_depth_image = m_context.get_resources().create_image({
         .width = m_extent.width,
@@ -193,6 +190,6 @@ void gfx_vk::swapchain::destroy()
     // TODO destroy m_swapchain_images
     // TODO destroy m_depth_image
     
-    vkDestroySwapchainKHR(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
+    vkDestroySwapchainKHR(m_context.get_device_handle(), m_handle, &m_context.get_allocator());
     m_handle = VK_NULL_HANDLE;
 }

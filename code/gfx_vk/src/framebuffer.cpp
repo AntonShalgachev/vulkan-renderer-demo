@@ -4,9 +4,6 @@
 #include "image.h"
 #include "renderpass.h"
 
-#include "vko/Device.h"
-#include "vko/Assert.h"
-
 gfx_vk::framebuffer::framebuffer(context& context, gfx::framebuffer_params const& params)
     : m_context(context)
 {
@@ -39,7 +36,7 @@ gfx_vk::framebuffer::framebuffer(context& context, gfx::framebuffer_params const
         .layers = 1,
     };
 
-    VKO_VERIFY(vkCreateFramebuffer(m_context.get_device().getHandle(), &info, &m_allocator.getCallbacks(), &m_handle.get()));
+    GFX_VK_VERIFY(vkCreateFramebuffer(m_context.get_device_handle(), &info, &m_context.get_allocator(), &m_handle.get()));
 
     m_extent = { info.width, info.height };
 }
@@ -49,6 +46,6 @@ gfx_vk::framebuffer::~framebuffer()
     if (!m_handle)
         return;
 
-    vkDestroyFramebuffer(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
+    vkDestroyFramebuffer(m_context.get_device_handle(), m_handle, &m_context.get_allocator());
     m_handle = nullptr;
 }

@@ -124,7 +124,7 @@ gfx_vk::descriptorgroup::descriptorgroup(context& context, gfx::descriptorgroup_
         }
     }
 
-    vkUpdateDescriptorSets(m_context.get_device().getHandle(), static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
+    vkUpdateDescriptorSets(m_context.get_device_handle(), static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
 }
 
 gfx_vk::descriptorgroup::~descriptorgroup()

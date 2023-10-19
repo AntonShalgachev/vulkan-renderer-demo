@@ -1,9 +1,8 @@
 #pragma once
 
-#include "gfx/resources.h"
+#include "utils.h"
 
-#include "vko/Allocator.h"
-#include "vko/UniqueHandle.h"
+#include "gfx/resources.h"
 
 #include <vulkan/vulkan.h>
 
@@ -25,7 +24,6 @@ namespace gfx_vk
         gfx::shader_stage m_stage;
         nstl::string m_entry_point;
 
-        vko::Allocator m_allocator{ vko::AllocatorScope::ShaderModule };
-        vko::UniqueHandle<VkShaderModule> m_handle;
+        unique_handle<VkShaderModule> m_handle;
     };
 }

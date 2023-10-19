@@ -2,9 +2,6 @@
 
 #include "context.h"
 
-#include "vko/Device.h"
-#include "vko/Assert.h"
-
 #include "nstl/array.h"
 
 gfx_vk::descriptor_allocator::descriptor_allocator(context& context, descriptors_config const& config)
@@ -31,7 +28,7 @@ gfx_vk::descriptor_allocator::descriptor_allocator(context& context, descriptors
         .pPoolSizes = pool_sizes.data(),
     };
 
-    VKO_VERIFY(vkCreateDescriptorPool(m_context.get_device().getHandle(), &info, &m_allocator.getCallbacks(), &m_handle.get()));
+    GFX_VK_VERIFY(vkCreateDescriptorPool(m_context.get_device_handle(), &info, &m_context.get_allocator(), &m_handle.get()));
 }
 
 gfx_vk::descriptor_allocator::~descriptor_allocator()
@@ -39,7 +36,7 @@ gfx_vk::descriptor_allocator::~descriptor_allocator()
     if (!m_handle)
         return;
 
-    vkDestroyDescriptorPool(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
+    vkDestroyDescriptorPool(m_context.get_device_handle(), m_handle, &m_context.get_allocator());
     m_handle = nullptr;
 }
 
@@ -54,7 +51,7 @@ bool gfx_vk::descriptor_allocator::allocate(nstl::span<VkDescriptorSetLayout con
         .pSetLayouts = layouts.data(),
     };
 
-    VkResult result = vkAllocateDescriptorSets(m_context.get_device().getHandle(), &info, handles.data());
+    VkResult result = vkAllocateDescriptorSets(m_context.get_device_handle(), &info, handles.data());
 
     if (result == VK_ERROR_OUT_OF_POOL_MEMORY)
         return false;

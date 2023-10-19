@@ -1,9 +1,8 @@
 #pragma once
 
-#include "gfx/resources.h"
+#include "utils.h"
 
-#include "vko/Allocator.h"
-#include "vko/UniqueHandle.h"
+#include "gfx/resources.h"
 
 #include <vulkan/vulkan.h>
 
@@ -25,7 +24,6 @@ namespace gfx_vk
         context& m_context;
         gfx::descriptorgroup_layout_storage m_layout;
 
-        vko::Allocator m_allocator{ vko::AllocatorScope::DescriptorSetLayout };
-        vko::UniqueHandle<VkDescriptorSetLayout> m_handle;
+        unique_handle<VkDescriptorSetLayout> m_handle;
     };
 }

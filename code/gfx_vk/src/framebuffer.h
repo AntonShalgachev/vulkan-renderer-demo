@@ -1,9 +1,8 @@
 #pragma once
 
-#include "gfx/resources.h"
+#include "utils.h"
 
-#include "vko/Allocator.h"
-#include "vko/UniqueHandle.h"
+#include "gfx/resources.h"
 
 #include <vulkan/vulkan.h>
 
@@ -28,7 +27,6 @@ namespace gfx_vk
         VkExtent2D m_extent{};
         nstl::vector<gfx::image_type> m_attachment_types;
 
-        vko::Allocator m_allocator{ vko::AllocatorScope::Framebuffer };
-        vko::UniqueHandle<VkFramebuffer> m_handle;
+        unique_handle<VkFramebuffer> m_handle;
     };
 }

@@ -2,9 +2,6 @@
 
 #include "context.h"
 
-#include "vko/Assert.h"
-#include "vko/Device.h"
-
 namespace
 {
     VkFilter get_filter_mode(gfx::sampler_filter_mode mode)
@@ -60,7 +57,7 @@ gfx_vk::sampler::sampler(context& context, gfx::sampler_params const& params)
         .unnormalizedCoordinates = VK_FALSE,
     };
 
-    VKO_VERIFY(vkCreateSampler(m_context.get_device().getHandle(), &info, &m_allocator.getCallbacks(), &m_handle.get()));
+    GFX_VK_VERIFY(vkCreateSampler(m_context.get_device_handle(), &info, &m_context.get_allocator(), &m_handle.get()));
 }
 
 gfx_vk::sampler::~sampler()
@@ -68,6 +65,6 @@ gfx_vk::sampler::~sampler()
     if (!m_handle)
         return;
 
-    vkDestroySampler(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
+    vkDestroySampler(m_context.get_device_handle(), m_handle, &m_context.get_allocator());
     m_handle = nullptr;
 }
