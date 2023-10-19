@@ -544,22 +544,6 @@ void DemoApplication::onKey(GlfwWindow::Action action, GlfwWindow::OldKey key, c
     if (action != GlfwWindow::Action::Press && action != GlfwWindow::Action::Release)
         return;
 
-    char const* separator = "";
-
-    nstl::string_builder builder;
-
-    for (GlfwWindow::Modifiers value : tiny_ctti::enum_values<GlfwWindow::Modifiers>())
-    {
-        if (mods & value)
-        {
-            nstl::string_view name = tiny_ctti::enum_name(value);
-            builder.append(separator).append(name);
-            separator = " | ";
-        }
-    }
-
-    logging::info("onKey: {} {} {}: '{}'", tiny_ctti::enum_name(action), tiny_ctti::enum_name(key), builder.build(), c);
-
     size_t index = static_cast<size_t>(c);
     m_keyState[index] = action == GlfwWindow::Action::Press;
     m_modifiers = mods;
@@ -1095,6 +1079,9 @@ void DemoApplication::update()
 
 void DemoApplication::updateScene(float)
 {
+    m_lightParameters.rotation = tglm::quat::from_euler_xyz(tglm::radians({ 45.0f * m_time, 0, 0 }));
+    m_lightParameters.position.x = 2.0f * sinf(2.0f * m_time);
+
     m_services.debugDraw().box(m_lightParameters.position, tglm::quat::identity(), tglm::vec3{ 0.1f }, { 1.0f, 0.0f, 0.0f }, -1.0f);
 }
 
@@ -1133,9 +1120,6 @@ void DemoApplication::draw()
     if (m_window->isIconified())
         return;
 
-    auto lightRotation = tglm::quat::from_euler_xyz(tglm::radians({ 45.0f * m_time, 0, 0 }));
-    m_lightParameters.position.x = 2.0f * sinf(2.0f * m_time);
-
     m_renderer->begin_resource_update();
 
     {
@@ -1146,7 +1130,7 @@ void DemoApplication::draw()
         auto lightFarZ = 10000.0f;
 
         ShaderViewProjectionData shadowmapViewProjectionData = {
-            .view = (tglm::translated(tglm::mat4::identity(), m_lightParameters.position) * lightRotation.to_mat4()).inversed(), // TODO rewrite this operation
+            .view = (tglm::translated(tglm::mat4::identity(), m_lightParameters.position) * m_lightParameters.rotation.to_mat4()).inversed(), // TODO rewrite this operation
             .projection = tglm::perspective(tglm::radians(SHADOWMAP_FOV), lightAspectRatio, lightNearZ, lightFarZ),
         };
         shadowmapViewProjectionData.projection.data[1][1] *= -1; // TODO fix this hack

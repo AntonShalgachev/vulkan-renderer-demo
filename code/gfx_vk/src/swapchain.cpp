@@ -5,12 +5,10 @@
 
 #include "renderpass.h"
 
+#include "vko/Assert.h"
 #include "vko/Device.h"
-#include "vko/DeviceMemory.h"
-#include "vko/Framebuffer.h"
 #include "vko/Instance.h"
 #include "vko/PhysicalDeviceSurfaceParameters.h"
-#include "vko/Swapchain.h"
 
 #include "logging/logging.h"
 
@@ -78,17 +76,17 @@ gfx_vk::swapchain::~swapchain()
 
 VkSwapchainKHR gfx_vk::swapchain::get_handle() const
 {
-    return m_swapchain->getHandle();
+    return m_handle;
 }
 
 VkExtent2D gfx_vk::swapchain::get_extent() const
 {
-    return m_swapchain->getExtent();
+    return m_extent;
 }
 
 void gfx_vk::swapchain::resize(tglm::ivec2 extent)
 {
-    if (extent.x == get_extent().width && extent.y == get_extent().height)
+    if (extent.x == m_extent.width && extent.y == m_extent.height)
     {
         logging::info("Skipping swapchain resize: extent is identical: {}", extent);
         return;
@@ -105,40 +103,73 @@ void gfx_vk::swapchain::create(tglm::ivec2 extent)
 
     vko::PhysicalDeviceSurfaceParameters const& parameters = m_context.get_physical_device_surface_parameters();
 
-    vko::Swapchain::Config config;
-    config.surfaceFormat = {
-        .format = utils::get_format(m_surface_format.format),
-        .colorSpace = utils::get_color_space(m_surface_format.color_space),
-    };
-    config.presentMode = find_present_mode(parameters.presentModes);
-    config.extent = calculate_extent(extent, parameters.capabilities);
-
-    const uint32_t min_image_count = parameters.capabilities.minImageCount;
-    const uint32_t max_image_count = parameters.capabilities.maxImageCount;
-    config.minImageCount = min_image_count + 1;
+    uint32_t const min_image_count = parameters.capabilities.minImageCount;
+    uint32_t const max_image_count = parameters.capabilities.maxImageCount;
+    uint32_t image_count = min_image_count + 1;
     if (max_image_count > 0)
-        config.minImageCount = nstl::min(config.minImageCount, max_image_count);
-
-    config.preTransform = parameters.capabilities.currentTransform;
+        image_count = nstl::min(image_count, max_image_count);
 
     logging::info("Creating the swapchain with the extent {}", extent);
 
-    m_swapchain = nstl::make_unique<vko::Swapchain>(device, m_context.get_surface(), *parameters.graphicsQueueFamily, *parameters.presentQueueFamily, nstl::move(config));
-    instance.setDebugName(device.getHandle(), m_swapchain->getHandle(), "Main");
+    assert(m_handle == VK_NULL_HANDLE);
+
+    m_extent = calculate_extent(extent, parameters.capabilities);
+
+    VkSwapchainCreateInfoKHR info{
+        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        .surface = m_context.get_surface().getHandle(),
+
+        .minImageCount = image_count,
+        .imageFormat = utils::get_format(m_surface_format.format),
+        .imageColorSpace = utils::get_color_space(m_surface_format.color_space),
+        .imageExtent = m_extent,
+        .imageArrayLayers = 1,
+        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+
+        .preTransform = parameters.capabilities.currentTransform,
+        .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+        .presentMode = find_present_mode(parameters.presentModes),
+        .clipped = VK_TRUE,
+        .oldSwapchain = VK_NULL_HANDLE, // TODO use
+    };
+
+    if (parameters.graphicsQueueFamily->getIndex() != parameters.presentQueueFamily->getIndex())
+    {
+        uint32_t queueFamilyIndices[] = { parameters.graphicsQueueFamily->getIndex(), parameters.presentQueueFamily->getIndex() };
+        info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+        info.queueFamilyIndexCount = 2;
+        info.pQueueFamilyIndices = queueFamilyIndices;
+    }
+    else
+    {
+        info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        info.queueFamilyIndexCount = 0;
+        info.pQueueFamilyIndices = nullptr;
+    }
+
+    VKO_VERIFY(vkCreateSwapchainKHR(device.getHandle(), &info, &m_allocator.getCallbacks(), &m_handle.get()));
+
+    uint32_t count = 0;
+    VKO_VERIFY(vkGetSwapchainImagesKHR(device.getHandle(), m_handle, &count, nullptr));
+
+    m_images.resize(count);
+    VKO_VERIFY(vkGetSwapchainImagesKHR(device.getHandle(), m_handle, &count, m_images.data()));
+
+    instance.setDebugName(device.getHandle(), m_handle, "Main");
 
     m_depth_image = m_context.get_resources().create_image({
-        .width = config.extent.width,
-        .height = config.extent.height,
+        .width = m_extent.width,
+        .height = m_extent.height,
         .format = m_depth_format,
         .type = gfx::image_type::depth,
         .usage = gfx::image_usage::depth,
-        });
+    });
 
-    for (VkImage image : m_swapchain->getRawImages())
+    for (VkImage image : m_images)
     {
         auto color_image = m_context.get_resources().create_image({
-            .width = config.extent.width,
-            .height = config.extent.height,
+            .width = m_extent.width,
+            .height = m_extent.height,
             .format = m_surface_format.format,
             .type = gfx::image_type::color,
             .usage = gfx::image_usage::color,
@@ -161,5 +192,7 @@ void gfx_vk::swapchain::destroy()
     m_framebuffers.clear();
     // TODO destroy m_swapchain_images
     // TODO destroy m_depth_image
-    m_swapchain = nullptr;
+    
+    vkDestroySwapchainKHR(m_context.get_device().getHandle(), m_handle, &m_allocator.getCallbacks());
+    m_handle = VK_NULL_HANDLE;
 }

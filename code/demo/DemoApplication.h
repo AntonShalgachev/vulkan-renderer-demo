@@ -72,6 +72,8 @@ struct DemoLightParameters
     tglm::vec3 position = { 0.0f, 0.0f, 0.0f };
     tglm::vec3 color = { 1.0f, 1.0f, 1.0f };
     float intensity = 1.0f;
+
+    tglm::quat rotation = tglm::quat::identity();
 };
 
 class DemoApplication
