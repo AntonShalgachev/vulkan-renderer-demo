@@ -15,7 +15,6 @@ namespace vko
     class ImageView;
     class RenderPass;
     class Swapchain;
-    class Window;
 }
 
 namespace gfx_vk
@@ -36,24 +35,23 @@ namespace gfx_vk
     class swapchain
     {
     public:
-        swapchain(context& context, vko::Window& window, gfx::renderpass_handle renderpass, surface_format surface_format, gfx::image_format depth_format);
+        swapchain(context& context, gfx::renderpass_handle renderpass, surface_format surface_format, gfx::image_format depth_format, tglm::ivec2 extent);
         ~swapchain();
 
         VkSwapchainKHR get_handle() const;
         VkExtent2D get_extent() const;
 
+        void resize(tglm::ivec2 extent);
+
         nstl::span<gfx::framebuffer_handle const> get_framebuffers() const { return m_framebuffers; }
 
     private:
-        void on_window_resized();
-
-        void create();
+        void create(tglm::ivec2 extent);
         void destroy();
-        void recreate();
+        void recreate(tglm::ivec2 extent);
 
     private:
         context& m_context;
-        vko::Window& m_window;
         gfx::renderpass_handle m_renderpass;
 
         surface_format m_surface_format;

@@ -5,8 +5,8 @@
 #include "buffer.h"
 #include "image.h"
 
-gfx_vk::backend::backend(vko::Window& window, config const& config)
-    : m_context(nstl::make_unique<context>(window, config))
+gfx_vk::backend::backend(surface_factory& factory, tglm::ivec2 extent, config const& config)
+    : m_context(nstl::make_unique<context>(factory, extent, config))
 {
     
 }
@@ -14,6 +14,11 @@ gfx_vk::backend::backend(vko::Window& window, config const& config)
 gfx_vk::backend::~backend()
 {
     m_context->get_device().waitIdle();
+}
+
+void gfx_vk::backend::resize_main_framebuffer(tglm::ivec2 size)
+{
+    return m_context->get_renderer().resize_main_framebuffer(size);
 }
 
 gfx::buffer_handle gfx_vk::backend::create_buffer(gfx::buffer_params const& params)

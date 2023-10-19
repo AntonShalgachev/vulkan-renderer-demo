@@ -34,8 +34,10 @@ public:
 
     void box(tglm::vec3 const& center, tglm::quat const& rotation, tglm::vec3 const& scale, tglm::vec3 const& color, float duration);
 
+    void beginFrame();
     void updateResources(gfx::renderer& renderer);
     void draw(gfx::renderer& renderer, gfx::descriptorgroup_handle cameraDescriptorGroup);
+    void endFrame();
 
 private:
     gfx::buffer_handle m_vertexBuffer;
@@ -52,4 +54,5 @@ private:
     };
 
     nstl::vector<ObjectData> m_objectData;
+    size_t m_instancesCount = 0;
 };

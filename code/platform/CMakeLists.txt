@@ -6,6 +6,7 @@ add_library(platform INTERFACE
     "include/platform/debug.h"
     "include/platform/startup.h"
     "include/platform/time.h"
+    "include/platform/window.h"
 )
 
 target_include_directories(platform INTERFACE

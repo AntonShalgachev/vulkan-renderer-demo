@@ -1,6 +1,9 @@
+find_package(Vulkan REQUIRED)
+
 add_library(gfx_vk
     "include/gfx_vk/backend.h"
     "include/gfx_vk/config.h"
+    "include/gfx_vk/surface_factory.h"
     
     "src/backend.cpp"
     "src/context.h"
@@ -46,6 +49,7 @@ target_include_directories(gfx_vk PUBLIC
 
 target_link_libraries(gfx_vk
     gfx
+    Vulkan::Vulkan
     vko # TODO remove
     logging
 )

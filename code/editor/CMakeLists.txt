@@ -1,3 +1,5 @@
+find_package(Vulkan REQUIRED)
+
 add_library(editor
     "include/editor/assets/AssetDatabase.h"
     "include/editor/assets/AssetImporterGltf.h"
@@ -26,7 +28,7 @@ target_link_libraries(editor
     fs
     path
     stb
-    Vulkan::Vulkan
+    Vulkan::Vulkan # TODO remove (needed for ktx2)
     yyjsoncpp
     platform # TODO remove (only needed for Uuid)
     tglm

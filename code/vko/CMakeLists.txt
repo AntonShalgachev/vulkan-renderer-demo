@@ -1,3 +1,5 @@
+find_package(Vulkan REQUIRED)
+
 add_library(vko
     "pch.h"
     

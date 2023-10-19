@@ -1,8 +1,10 @@
 #pragma once
 
-#include "vko/Window.h"
-
 #include "common/tiny_ctti.h"
+
+#include "platform/window.h"
+
+#include "tglm/types/ivec2.h"
 
 #include "nstl/vector.h"
 #include "nstl/function.h"
@@ -58,7 +60,7 @@ enum class MouseCursorIcon
 };
 TINY_CTTI_DESCRIBE_ENUM(MouseCursorIcon, Arrow, TextInput, ResizeAll, ResizeNS, ResizeEW, ResizeNESW, ResizeNWSE, NotAllowed, Hand);
 
-class GlfwWindow final : public vko::Window
+class GlfwWindow final
 {
 public:
     // TODO remove this enum
@@ -132,7 +134,7 @@ public:
 
 public:
     GlfwWindow(int width, int height, char const* title);
-    ~GlfwWindow() override;
+    ~GlfwWindow();
 
     GlfwWindow(GlfwWindow const&) = delete;
     GlfwWindow(GlfwWindow&&) = delete;
@@ -143,12 +145,14 @@ public:
 
     void resize(int width, int height);
 
-    vko::Surface createSurface(vko::Instance const& instance) const override;
+    platform::window_handle_t getWindowHandle() const;
     size_t getWindowWidth() const { assert(m_windowWidth >= 0); return static_cast<size_t>(m_windowWidth); }
     size_t getWindowHeight() const { assert(m_windowHeight >= 0); return static_cast<size_t>(m_windowHeight); }
-    size_t getFramebufferWidth() const override { assert(m_framebufferWidth >= 0); return static_cast<size_t>(m_framebufferWidth); }
-    size_t getFramebufferHeight() const override { assert(m_framebufferHeight >= 0); return static_cast<size_t>(m_framebufferHeight); }
-    nstl::vector<char const*> const& getRequiredInstanceExtensions() const override { return m_requiredInstanceExtensions; }
+    size_t getFramebufferWidth() const { assert(m_framebufferWidth >= 0); return static_cast<size_t>(m_framebufferWidth); }
+    size_t getFramebufferHeight() const { assert(m_framebufferHeight >= 0); return static_cast<size_t>(m_framebufferHeight); }
+    tglm::ivec2 getFramebufferSize() const { return { m_framebufferWidth, m_framebufferHeight }; }
+    bool isIconified() const { return m_iconified; }
+    nstl::vector<char const*> const& getRequiredInstanceExtensions() const { return m_requiredInstanceExtensions; }
 
     bool getCanCaptureCursor() const { return m_canCaptureCursor; }
     void setCanCaptureCursor(bool canCaptureCursor) { m_canCaptureCursor = canCaptureCursor; }
@@ -164,7 +168,7 @@ public:
     }
 
     void addWindowResizeCallback(nstl::function<void(int, int)> callback) { m_onWindowResize.add(nstl::move(callback)); }
-    void addFramebufferResizeCallback(nstl::function<void(int, int)> callback) override { m_onFramebufferResize.add(nstl::move(callback)); }
+    void addFramebufferResizeCallback(nstl::function<void(int, int)> callback) { m_onFramebufferResize.add(nstl::move(callback)); }
     void addKeyCallback(nstl::function<void(Action, Key, Modifiers)> callback) { m_onKey.add(nstl::move(callback)); }
     void addOldKeyCallback(nstl::function<void(Action, OldKey, char, Modifiers)> callback) { m_onKeyOld.add(nstl::move(callback)); }
     void addMouseButtonCallback(nstl::function<void(Action, MouseButton, Modifiers)> callback) { m_onMouseButton.add(nstl::move(callback)); }
@@ -175,7 +179,7 @@ public:
     void addScrollCallback(nstl::function<void(float, float)> callback) { m_onScroll.add(nstl::move(callback)); }
     void addCharCallback(nstl::function<void(char)> callback) { m_onChar.add(nstl::move(callback)); }
 
-    void waitUntilInForeground() const override;
+    void waitUntilInForeground() const;
 
     void setCursorMode(MouseCursorMode mode);
     MouseCursorMode getCursorMode() const;
@@ -196,6 +200,7 @@ private:
     
     void onWindowResized(int width, int height);
     void onFramebufferResized(int width, int height);
+    void onIconified(int iconified);
     void onKey(int key, int scancode, int action, int mods);
     void onMouseButton(int button, int action, int mods);
     void onCursorPosition(double xpos, double ypos);
@@ -222,6 +227,8 @@ private:
 
     MouseCursorMode m_cursorMode = MouseCursorMode::Normal;
     MouseCursorIcon m_cursorIcon = MouseCursorIcon::Arrow;
+
+    bool m_iconified = false;
 
     nstl::vector<char const*> m_requiredInstanceExtensions;
 

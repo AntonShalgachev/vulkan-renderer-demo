@@ -12,6 +12,8 @@ namespace gfx
     public:
         virtual ~backend() = default;
 
+        virtual void resize_main_framebuffer(tglm::ivec2 size) = 0;
+
         [[nodiscard]] virtual buffer_handle create_buffer(buffer_params const& params) = 0;
         [[nodiscard]] virtual image_handle create_image(image_params const& params) = 0;
         [[nodiscard]] virtual sampler_handle create_sampler(sampler_params const& params) = 0;

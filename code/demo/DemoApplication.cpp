@@ -13,6 +13,10 @@
 
 #include "gfx_vk/backend.h"
 
+#include "platform_win64/window.h"
+
+#include "gfx_vk_win64/surface_factory.h"
+
 #include "services/DebugConsoleService.h"
 #include "services/CommandLineService.h"
 #include "services/DebugDrawService.h"
@@ -392,6 +396,8 @@ void DemoApplication::init()
     m_window->addOldKeyCallback([this](GlfwWindow::Action action, GlfwWindow::OldKey key, char c, GlfwWindow::Modifiers modifiers) { onKey(action, key, c, modifiers); });
     m_window->addOldMouseDeltaCallback([this](float deltaX, float deltaY) { onMouseMove({ deltaX, deltaY }); });
 
+    gfx_vk_win64::surface_factory surfaceFactory{ m_window->getWindowHandle() };
+
     gfx_vk::config config = {
         .name = "Vulkan Demo",
         .enable_validation = m_validationEnabled,
@@ -401,8 +407,15 @@ void DemoApplication::init()
             .max_descriptors_per_type_per_pool = 4 * 2048 * 16,
         },
     };
-    auto backend = nstl::make_unique<gfx_vk::backend>(*m_window, config);
+    auto backend = nstl::make_unique<gfx_vk::backend>(surfaceFactory, m_window->getFramebufferSize(), config);
     m_renderer = nstl::make_unique<gfx::renderer>(nstl::move(backend));
+
+    m_window->addFramebufferResizeCallback([this](int width, int height) {
+        if (width <= 0 || height <= 0)
+            return;
+
+        m_renderer->resize_main_framebuffer({ width, height });
+    });
 
     m_services.setDebugDraw(nstl::make_unique<DebugDrawService>(*m_renderer));
 
@@ -1049,9 +1062,13 @@ void DemoApplication::updateUI(float frameTime)
 
 void DemoApplication::drawFrame()
 {
+    m_services.debugDraw().beginFrame();
+
     update();
 
     draw();
+
+    m_services.debugDraw().endFrame();
 
     m_fpsDrawnFrames++;
 }
@@ -1111,6 +1128,11 @@ void DemoApplication::updateCamera(float dt)
 
 void DemoApplication::draw()
 {
+    ImGui::Render();
+
+    if (m_window->isIconified())
+        return;
+
     auto lightRotation = tglm::quat::from_euler_xyz(tglm::radians({ 45.0f * m_time, 0, 0 }));
     m_lightParameters.position.x = 2.0f * sinf(2.0f * m_time);
 

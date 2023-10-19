@@ -8,20 +8,18 @@
 
 // TODO restructure backend, context and other global objects
 
-namespace vko
-{
-    class Window;
-}
-
 namespace gfx_vk
 {
     class context;
+    class surface_factory;
 
     class backend final : public gfx::backend
     {
     public:
-        backend(vko::Window& window, config const& config);
+        backend(surface_factory& factory, tglm::ivec2 extent, config const& config);
         ~backend() override;
+
+        void resize_main_framebuffer(tglm::ivec2 size) override;
 
         [[nodiscard]] gfx::buffer_handle create_buffer(gfx::buffer_params const& params) override;
         [[nodiscard]] gfx::image_handle create_image(gfx::image_params const& params) override;

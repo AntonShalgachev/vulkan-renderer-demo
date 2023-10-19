@@ -18,7 +18,6 @@
 #include "vko/Instance.h"
 #include "vko/PhysicalDevice.h"
 #include "vko/PhysicalDeviceSurfaceParameters.h"
-#include "vko/Window.h"
 
 #include "common/fmt.h"
 
@@ -34,13 +33,19 @@ struct gfx_vk::renderer::frame_resources
     vko::CommandBuffers command_buffers;
 };
 
-gfx_vk::renderer::renderer(context& context, vko::Window& window, renderer_config const& config) : m_context(context)
+gfx_vk::renderer::renderer(context& context, tglm::ivec2 extent, renderer_config const& config) : m_context(context)
 {
-    create_swapchain(window);
+    create_swapchain(extent);
     create_frame_resources(config);
 }
 
 gfx_vk::renderer::~renderer() = default;
+
+void gfx_vk::renderer::resize_main_framebuffer(tglm::ivec2 size)
+{
+    m_context.on_surface_changed();
+    m_swapchain->resize(size);
+}
 
 gfx::framebuffer_handle gfx_vk::renderer::acquire_main_framebuffer()
 {
@@ -219,7 +224,7 @@ void gfx_vk::renderer::submit()
 
 //////////////////////////////////////////////////////////////////////////
 
-void gfx_vk::renderer::create_swapchain(vko::Window& window)
+void gfx_vk::renderer::create_swapchain(tglm::ivec2 extent)
 {
     vko::Device const& device = m_context.get_device();
 
@@ -240,7 +245,7 @@ void gfx_vk::renderer::create_swapchain(vko::Window& window)
 
     m_context.get_instance().setDebugName(device.getHandle(), m_context.get_resources().get_renderpass(m_renderpass).get_handle(), "Main renderpass");
 
-    m_swapchain = nstl::make_unique<swapchain>(m_context, window, m_renderpass, surface_format, depth_format);
+    m_swapchain = nstl::make_unique<swapchain>(m_context, m_renderpass, surface_format, depth_format, extent);
 }
 
 void gfx_vk::renderer::create_frame_resources(renderer_config const& config)

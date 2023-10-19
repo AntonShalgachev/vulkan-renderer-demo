@@ -100,8 +100,6 @@ void ImGuiDrawer::updateResources(gfx::renderer& renderer)
     if (!ImGui::GetCurrentContext())
         return;
 
-    ImGui::Render();
-
     ImDrawData const* drawData = ImGui::GetDrawData();
     if (!drawData)
         return;

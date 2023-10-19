@@ -8,7 +8,7 @@
 
 #include "nstl/string.h"
 
-namespace platform_win32
+namespace platform_win64
 {
     struct error
     {

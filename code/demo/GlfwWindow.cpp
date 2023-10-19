@@ -1,7 +1,6 @@
 #include "GlfwWindow.h"
 
-#include "vko/Surface.h"
-#include "vko/Instance.h"
+#include "platform_win64/window.h"
 
 #include "nstl/vector.h"
 
@@ -242,14 +241,9 @@ void GlfwWindow::resize(int width, int height)
     glfwSetWindowSize(m_handle, width, height);
 }
 
-vko::Surface GlfwWindow::createSurface(vko::Instance const& instance) const
+platform::window_handle_t GlfwWindow::getWindowHandle() const
 {
-    VkSurfaceKHR handle;
-
-    if (glfwCreateWindowSurface(instance.getHandle(), m_handle, nullptr, &handle) != VK_SUCCESS)
-        assert(false);
-
-    return vko::Surface{ handle, instance };
+    return platform_win64::create_window_handle(m_handle);
 }
 
 void GlfwWindow::waitUntilInForeground() const
@@ -326,6 +320,7 @@ void GlfwWindow::setupCallbacks()
 {
     glfwSetWindowSizeCallback(m_handle, createGlfwCallback<&GlfwWindow::onWindowResized>());
     glfwSetFramebufferSizeCallback(m_handle, createGlfwCallback<&GlfwWindow::onFramebufferResized>());
+    glfwSetWindowIconifyCallback(m_handle, createGlfwCallback<&GlfwWindow::onIconified>());
     glfwSetKeyCallback(m_handle, createGlfwCallback<&GlfwWindow::onKey>());
     glfwSetMouseButtonCallback(m_handle, createGlfwCallback<&GlfwWindow::onMouseButton>());
     glfwSetCursorPosCallback(m_handle, createGlfwCallback<&GlfwWindow::onCursorPosition>());
@@ -378,6 +373,11 @@ void GlfwWindow::onFramebufferResized(int width, int height)
     m_framebufferHeight = height;
 
     m_onFramebufferResize(width, height);
+}
+
+void GlfwWindow::onIconified(int iconified)
+{
+    m_iconified = static_cast<bool>(iconified);
 }
 
 void GlfwWindow::onKey(int glfwKey, int, int glfwAction, int glfwMods)

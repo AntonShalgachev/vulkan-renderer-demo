@@ -45,7 +45,7 @@ bool platform::open_file(file_storage_t& storage, nstl::string_view filename, fs
     HANDLE h = CreateFileA(filenameCopy.c_str(), desiredAccess, shareMode, nullptr, creationDisposition, flagsAndAttributes, nullptr);
     if (h == INVALID_HANDLE_VALUE)
     {
-        auto e = platform_win32::get_last_error(); // TODO make use of it
+        auto e = platform_win64::get_last_error(); // TODO make use of it
         assert(false);
         return false;
     }
@@ -59,7 +59,7 @@ void platform::close_file(file_storage_t& storage)
     HANDLE handle = storage.get_as<HANDLE>();
     if (!CloseHandle(handle))
     {
-        auto e = platform_win32::get_last_error(); // TODO make use of it
+        auto e = platform_win64::get_last_error(); // TODO make use of it
         assert(false);
     }
 }
@@ -71,7 +71,7 @@ size_t platform::get_file_size(file_storage_t& storage)
     LARGE_INTEGER size;
     if (!GetFileSizeEx(handle, &size))
     {
-        auto e = platform_win32::get_last_error(); // TODO make use of it
+        auto e = platform_win64::get_last_error(); // TODO make use of it
         assert(false);
     }
 
@@ -92,7 +92,7 @@ bool platform::read_file(file_storage_t& storage, void* data, size_t size, size_
     DWORD bytesRead = 0;
     if (!ReadFile(handle, data, static_cast<uint32_t>(size), &bytesRead, &o))
     {
-        auto e = platform_win32::get_last_error(); // TODO make use of it
+        auto e = platform_win64::get_last_error(); // TODO make use of it
         assert(false);
         return false;
     }
@@ -113,7 +113,7 @@ bool platform::write_file(file_storage_t& storage, void const* data, size_t size
     DWORD bytesWritten = 0;
     if (!WriteFile(handle, data, static_cast<uint32_t>(size), &bytesWritten, &o))
     {
-        auto e = platform_win32::get_last_error(); // TODO make use of it
+        auto e = platform_win64::get_last_error(); // TODO make use of it
         assert(false);
         return false;
     }

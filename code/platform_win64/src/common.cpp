@@ -1,6 +1,6 @@
 #include "common.h"
 
-platform_win32::error platform_win32::get_last_error()
+platform_win64::error platform_win64::get_last_error()
 {
     auto code = GetLastError();
 

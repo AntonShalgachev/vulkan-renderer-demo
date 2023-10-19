@@ -9,7 +9,6 @@
 #include "vko/Surface.h"
 #include "vko/PhysicalDevice.h"
 #include "vko/Device.h"
-#include "vko/Window.h"
 #include "vko/PhysicalDeviceSurfaceParameters.h"
 #include "vko/CommandPool.h"
 
@@ -22,10 +21,12 @@ namespace vko
 
 namespace gfx_vk
 {
+    class surface_factory;
+
     class context
     {
     public:
-        context(vko::Window& window, config const& config);
+        context(surface_factory& factory, tglm::ivec2 extent, config const& config);
         ~context();
 
         vko::Instance const& get_instance() const;

@@ -1,5 +1,8 @@
 #include "context.h"
 
+#include "gfx_vk/surface_factory.h"
+
+#include "vko/Assert.h"
 #include "vko/DebugMessage.h"
 #include "vko/Queue.h"
 
@@ -32,14 +35,16 @@ namespace
         return params.graphicsQueueFamily && params.presentQueueFamily && !params.formats.empty() && !params.presentModes.empty();
     }
 
-    nstl::vector<const char*> create_instance_extensions(bool enable_validation, vko::Window const& window)
+    nstl::vector<const char*> create_instance_extensions(bool enable_validation, gfx_vk::surface_factory& factory)
     {
-        nstl::vector<const char*> extensions = window.getRequiredInstanceExtensions();
+        nstl::span<const char* const> extensions = factory.get_instance_extensions();
+
+        nstl::vector<const char*> result{ extensions.begin(), extensions.end() };
 
         if (enable_validation)
-            extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+            result.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
-        return extensions;
+        return result;
     }
 
     vko::PhysicalDevice find_physical_device(vko::Instance const& instance, vko::Surface const& surface)
@@ -66,18 +71,26 @@ namespace
 
         assert(message.level != vko::DebugMessage::Level::Error);
     }
+
+    // WTF
+    VkSurfaceKHR create_surface(gfx_vk::surface_factory& factory, vko::Instance& instance)
+    {
+        VkSurfaceKHR handle = VK_NULL_HANDLE;
+        VKO_VERIFY(factory.create(instance.getHandle(), &handle));
+        return handle;
+    }
 }
 
-gfx_vk::context::context(vko::Window& window, config const& config)
-    : m_instance(config.name, create_instance_extensions(config.enable_validation, window), config.enable_validation, config.enable_validation ? on_debug_message : nullptr)
-    , m_surface(window.createSurface(m_instance))
+gfx_vk::context::context(surface_factory& factory, tglm::ivec2 extent, config const& config)
+    : m_instance(config.name, create_instance_extensions(config.enable_validation, factory), config.enable_validation, config.enable_validation ? on_debug_message : nullptr)
+    , m_surface(create_surface(factory, m_instance), m_instance)
     , m_physical_device(find_physical_device(m_instance, m_surface))
     , m_params(vko::queryPhysicalDeviceSurfaceParameters(m_physical_device, m_surface))
     , m_device(m_physical_device, *m_params.graphicsQueueFamily, *m_params.presentQueueFamily, get_device_extensions())
     , m_transfer_command_pool(m_device.getHandle(), m_device.getGraphicsQueue().getFamily()) // TODO use transfer queue?
     , m_resources(*this)
     , m_descriptor_allocator(*this, config.descriptors)
-    , m_renderer(*this, window, config.renderer)
+    , m_renderer(*this, extent, config.renderer)
     , m_mutable_resource_multiplier(config.renderer.max_frames_in_flight)
 {
 

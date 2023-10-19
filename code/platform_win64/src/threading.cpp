@@ -52,7 +52,7 @@ bool platform::create_thread(thread_storage_t& storage, thread_func_t func, void
     if (h == nullptr)
     {
         platform::deallocate(ptr);
-        auto e = platform_win32::get_last_error(); // TODO make use of it
+        auto e = platform_win64::get_last_error(); // TODO make use of it
         assert(false);
         return false;
     }

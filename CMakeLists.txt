@@ -56,8 +56,6 @@ endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-find_package(Vulkan REQUIRED)
-
 add_subdirectory(external)
 
 add_subdirectory(code/nstl)
@@ -79,3 +77,4 @@ add_subdirectory(code/picofmt)
 add_subdirectory(code/tiny_ktx)
 add_subdirectory(code/gfx)
 add_subdirectory(code/gfx_vk)
+add_subdirectory(code/gfx_vk_win64)
