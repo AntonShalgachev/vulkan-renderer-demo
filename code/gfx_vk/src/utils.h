@@ -64,7 +64,7 @@ namespace gfx_vk
         T m_handle = VK_NULL_HANDLE;
     };
 
-    inline void do_assert(VkResult result, char const*)
+    inline void do_assert([[maybe_unused]] VkResult result, char const*)
     {
         assert(result == VK_SUCCESS);
     }

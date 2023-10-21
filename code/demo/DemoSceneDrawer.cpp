@@ -552,12 +552,14 @@ void DemoSceneDrawer::draw(bool shadow, gfx::descriptorgroup_handle defaultFrame
         DemoObject const& object = *objectPtr;
         DemoPrimitive& primitive = object.mesh->primitives[object.primitiveIndex];
 
-        nstl::span<gfx::descriptorgroup_handle const> defaultDescriptorGroups = nstl::array{ defaultFrameDescriptorGroup, primitive.material->descriptorGroup, object.descriptorGroup };
-        nstl::span<gfx::descriptorgroup_handle const> shadowDescriptorGroups = nstl::array{ shadowFrameDescriptorGroup, object.descriptorGroup };
+        nstl::array defaultDescriptorGroups = { defaultFrameDescriptorGroup, primitive.material->descriptorGroup, object.descriptorGroup };
+        nstl::array shadowDescriptorGroups = { shadowFrameDescriptorGroup, object.descriptorGroup };
+        nstl::span<gfx::descriptorgroup_handle const> defaultDescriptorGroupsView = defaultDescriptorGroups;
+        nstl::span<gfx::descriptorgroup_handle const> shadowDescriptorGroupsView = shadowDescriptorGroups;
 
         m_renderer.draw_indexed({
             .renderstate = shadow ? object.shadowRenderstate : object.defaultRenderstate,
-            .descriptorgroups = shadow ? shadowDescriptorGroups : defaultDescriptorGroups,
+            .descriptorgroups = shadow ? shadowDescriptorGroupsView : defaultDescriptorGroupsView,
 
             .vertex_buffers = primitive.vertexBuffers,
             .index_buffer = primitive.indexBuffer,

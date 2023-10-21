@@ -21,7 +21,7 @@ namespace
 {
     static auto scope_id = memory::tracking::create_scope_id("Rendering/Vulkan/Driver");
 
-    void* allocate(void*, size_t size, size_t alignment, VkSystemAllocationScope)
+    void* allocate(void*, size_t size, [[maybe_unused]] size_t alignment, VkSystemAllocationScope)
     {
         MEMORY_TRACKING_SCOPE(scope_id);
 
@@ -31,7 +31,7 @@ namespace
         return memory::allocate(size);
     }
 
-    void* reallocate(void*, void* ptr, size_t size, size_t alignment, VkSystemAllocationScope)
+    void* reallocate(void*, void* ptr, size_t size, [[maybe_unused]] size_t alignment, VkSystemAllocationScope)
     {
         MEMORY_TRACKING_SCOPE(scope_id);
 
