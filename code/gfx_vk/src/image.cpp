@@ -7,7 +7,6 @@
 #include "vko/CommandBuffers.h"
 #include "vko/CommandPool.h"
 #include "vko/DeviceMemory.h"
-#include "vko/Queue.h"
 
 gfx_vk::image::image(context& context, gfx::image_params const& params, VkImage handle)
     : m_context(context)
@@ -169,6 +168,6 @@ void gfx_vk::image::upload_sync(nstl::blob_view bytes)
     );
 
     buffers.end(0);
-    buffers.submit(0, m_context.get_transfer_queue(), nullptr, nullptr, nullptr);
-    m_context.get_transfer_queue().waitIdle();
+    buffers.submit(0, m_context.get_transfer_queue_handle(), nullptr, nullptr, nullptr);
+    m_context.wait_idle(); // TODO remove
 }

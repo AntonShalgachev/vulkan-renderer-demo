@@ -539,7 +539,7 @@ void DemoApplication::unloadImgui()
     ImGui::DestroyContext();
 }
 
-void DemoApplication::onKey(GlfwWindow::Action action, GlfwWindow::OldKey key, char c, GlfwWindow::Modifiers mods)
+void DemoApplication::onKey(GlfwWindow::Action action, GlfwWindow::OldKey, char c, GlfwWindow::Modifiers mods)
 {
     if (action != GlfwWindow::Action::Press && action != GlfwWindow::Action::Release)
         return;

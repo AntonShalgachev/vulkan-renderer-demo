@@ -41,6 +41,8 @@ add_library(gfx_vk
     "src/descriptorgroup.cpp"
     "src/utils.h"
     "src/utils.cpp"
+    "src/instance.h"
+    "src/instance.cpp"
 )
 
 demo_set_common_properties(gfx_vk)

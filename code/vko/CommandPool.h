@@ -16,7 +16,7 @@ namespace vko
     class CommandPool
     {
     public:
-    	explicit CommandPool(VkDevice device, QueueFamily const& queueFamily);
+    	explicit CommandPool(VkDevice device, uint32_t family_index);
         ~CommandPool();
 
         vko::CommandBuffers allocate(size_t size) const;

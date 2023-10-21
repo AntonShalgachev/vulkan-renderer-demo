@@ -7,7 +7,6 @@
 #include "vko/CommandBuffers.h"
 #include "vko/CommandPool.h"
 #include "vko/DeviceMemory.h"
-#include "vko/Queue.h"
 
 namespace
 {
@@ -153,8 +152,8 @@ void gfx_vk::buffer::upload_sync(nstl::blob_view bytes, size_t offset)
         vkCmdCopyBuffer(buffers.getHandle(0), staging_buffer.getHandle(), m_buffers[subresource_index].handle, 1, &region);
 
         buffers.end(0);
-        buffers.submit(0, m_context.get_transfer_queue(), nullptr, nullptr, nullptr);
-        m_context.get_transfer_queue().waitIdle();
+        buffers.submit(0, m_context.get_transfer_queue_handle(), nullptr, nullptr, nullptr);
+        m_context.wait_idle(); // TODO remove
     }
     else
     {

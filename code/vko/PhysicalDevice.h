@@ -20,26 +20,17 @@ namespace vko
 
         VkPhysicalDeviceProperties const& getProperties() const { return m_properties; }
         VkPhysicalDeviceFeatures const& getFeatures() const { return m_features; }
-        nstl::span<QueueFamily const> getQueueFamilies() const { return m_queueFamilies; }
+        nstl::span<VkQueueFamilyProperties const> getQueueFamilyProperties() const { return m_queueFamilyProperties; }
 
-        bool areExtensionsSupported(nstl::span<char const* const> requestedExtensions) const; // TODO use std::span
-
-    private:
-        void init();
-
-        void queryAvailableExtensions();
-        void queryProperties();
-        void queryFeatures();
-        void queryQueueFamilyProperties();
+        bool areExtensionsSupported(nstl::span<char const* const> requestedExtensions) const;
 
     private:
         UniqueHandle<VkPhysicalDevice> m_handle;
 
         nstl::vector<VkExtensionProperties> m_availableExtensions;
-        nstl::vector<nstl::string> m_availableExtensionNames;
 
         VkPhysicalDeviceProperties m_properties;
         VkPhysicalDeviceFeatures m_features;
-        nstl::vector<QueueFamily> m_queueFamilies;
+        nstl::vector<VkQueueFamilyProperties> m_queueFamilyProperties;
     };
 }

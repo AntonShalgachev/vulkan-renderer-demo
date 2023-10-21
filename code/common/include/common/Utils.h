@@ -28,6 +28,24 @@ namespace vkc
             return true;
         }
 
+        template<typename StringVector1, typename StringVector2, typename TransformFunc>
+        bool hasEveryOption(StringVector1 const& availableOptions, StringVector2 const& requestedOptions, TransformFunc&& getAvailableOptionString)
+        {
+            for (const auto& requestedOption : requestedOptions)
+            {
+                auto it = nstl::find_if(availableOptions.begin(), availableOptions.end(), [&requestedOption, &getAvailableOptionString](auto const& availableOption)
+                {
+                    auto&& name = getAvailableOptionString(availableOption);
+                    return nstl::string_view{ name } == nstl::string_view{ requestedOption };
+                });
+
+                if (it == availableOptions.end())
+                    return false;
+            }
+
+            return true;
+        }
+
         // TODO implement asset manager instead
         nstl::blob readBinaryFile(nstl::string_view filename);
 

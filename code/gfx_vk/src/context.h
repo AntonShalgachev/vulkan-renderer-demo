@@ -1,18 +1,11 @@
 #pragma once
 
-#include "gfx_vk/config.h"
+#include "instance.h"
 #include "resource_container.h"
 #include "descriptor_allocator.h"
 #include "renderer.h"
 
-#include "vko/Instance.h"
-#include "vko/Surface.h"
-#include "vko/PhysicalDevice.h"
-#include "vko/Device.h"
-#include "vko/PhysicalDeviceSurfaceParameters.h"
 #include "vko/CommandPool.h"
-
-#include "nstl/unique_ptr.h"
 
 namespace vko
 {
@@ -29,23 +22,24 @@ namespace gfx_vk
         context(surface_factory& factory, tglm::ivec2 extent, config const& config);
         ~context();
 
-        VkAllocationCallbacks const& get_allocator() const { return m_allocator; }
-
-        vko::Instance const& get_instance() const;
-        vko::Device const& get_device() const;
+        VkAllocationCallbacks const& get_allocator() const;
+        physical_device_properties const& get_physical_device_props() const { return m_instance.get_physical_device_props(); }
 
         VkPhysicalDevice get_physical_device_handle() const;
-        VkDevice get_device_handle() const;
         VkSurfaceKHR get_surface_handle() const;
+        VkDevice get_device_handle() const;
 
-        vko::PhysicalDeviceSurfaceParameters const& get_physical_device_surface_parameters() const;
-
-        vko::Queue const& get_transfer_queue() const;
+        VkQueue get_transfer_queue_handle() const { return m_instance.get_transfer_queue_handle(); }
         vko::CommandPool const& get_transfer_command_pool() const;
 
-        resource_container& get_resources() { return m_resources; }
-        resource_container const& get_resources() const { return m_resources; }
+        // WTF Temporary functions
+        void wait_idle() { return m_instance.wait_idle(); }
+        uint32_t get_graphics_queue_family_index() const { return m_instance.get_graphics_queue_family_index(); }
+        VkQueue get_graphics_queue_handle() const { return m_instance.get_graphics_queue_handle(); }
+        VkQueue get_present_queue_handle() const { return m_instance.get_present_queue_handle(); }
 
+        instance& get_instance() { return m_instance; }
+        resource_container& get_resources() { return m_resources; }
         descriptor_allocator& get_descriptor_allocator() { return m_descriptor_allocator; }
         renderer& get_renderer() { return m_renderer; }
 
@@ -57,18 +51,8 @@ namespace gfx_vk
         void on_surface_changed();
 
     private:
-        VkAllocationCallbacks m_allocator;
-
-        vko::Instance m_instance;
-        vko::Surface m_surface;
-
-        vko::PhysicalDevice m_physical_device;
-        vko::PhysicalDeviceSurfaceParameters m_params;
-
-        vko::Device m_device;
-
-        vko::CommandPool m_transfer_command_pool;
-
+        instance m_instance;
+        vko::CommandPool m_transfer_command_pool; // TODO remove?
         resource_container m_resources;
         descriptor_allocator m_descriptor_allocator;
         renderer m_renderer;

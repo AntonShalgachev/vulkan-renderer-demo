@@ -2,7 +2,7 @@
 
 #include "vko/Assert.h"
 
-vko::Queue::Queue(VkQueue handle, QueueFamily const& queueFamily)
+vko::Queue::Queue(VkQueue handle, uint32_t queueFamily)
     : m_handle(handle)
     , m_family(queueFamily)
 {

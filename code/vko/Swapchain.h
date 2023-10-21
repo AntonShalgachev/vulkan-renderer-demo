@@ -13,7 +13,6 @@ namespace vko
     class RenderPass;
     class Device;
     class Surface;
-    class QueueFamily;
 
     class Swapchain
     {
@@ -28,7 +27,7 @@ namespace vko
         };
 
     public:
-        Swapchain(Device const& device, Surface const& surface, QueueFamily const& graphics, QueueFamily const& presentation, Config config);
+        Swapchain(Device const& device, Surface const& surface, uint32_t graphics, uint32_t presentation, Config config);
         ~Swapchain();
 
         Swapchain(Swapchain const&) = default;

@@ -66,7 +66,7 @@ void vko::CommandBuffers::end(size_t index) const
     VKO_VERIFY(vkEndCommandBuffer(m_handles[index]));
 }
 
-void vko::CommandBuffers::submit(size_t index, Queue const& queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence) const
+void vko::CommandBuffers::submit(size_t index, VkQueue queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence) const
 {
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -92,5 +92,5 @@ void vko::CommandBuffers::submit(size_t index, Queue const& queue, Semaphore con
 
     VkFence signalFenceHandle = signalFence ? signalFence->getHandle() : VK_NULL_HANDLE;
 
-    VKO_VERIFY(vkQueueSubmit(queue.getHandle(), 1, &submitInfo, signalFenceHandle));
+    VKO_VERIFY(vkQueueSubmit(queue, 1, &submitInfo, signalFenceHandle));
 }

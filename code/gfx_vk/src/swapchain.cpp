@@ -5,9 +5,6 @@
 
 #include "renderpass.h"
 
-#include "vko/Instance.h"
-#include "vko/PhysicalDeviceSurfaceParameters.h"
-
 #include "logging/logging.h"
 
 #include "nstl/algorithm.h"
@@ -84,7 +81,8 @@ VkExtent2D gfx_vk::swapchain::get_extent() const
 
 void gfx_vk::swapchain::resize(tglm::ivec2 extent)
 {
-    if (extent.x == m_extent.width && extent.y == m_extent.height)
+    assert(extent.x >= 0 && extent.y >= 0);
+    if (static_cast<uint32_t>(extent.x) == m_extent.width && static_cast<uint32_t>(extent.y) == m_extent.height)
     {
         logging::info("Skipping swapchain resize: extent is identical: {}", extent);
         return;
@@ -96,9 +94,7 @@ void gfx_vk::swapchain::resize(tglm::ivec2 extent)
 
 void gfx_vk::swapchain::create(tglm::ivec2 extent)
 {
-    vko::Instance const& instance = m_context.get_instance();
-
-    vko::PhysicalDeviceSurfaceParameters const& parameters = m_context.get_physical_device_surface_parameters();
+    physical_device_properties const& parameters = m_context.get_physical_device_props();
 
     uint32_t const min_image_count = parameters.capabilities.minImageCount;
     uint32_t const max_image_count = parameters.capabilities.maxImageCount;
@@ -125,14 +121,14 @@ void gfx_vk::swapchain::create(tglm::ivec2 extent)
 
         .preTransform = parameters.capabilities.currentTransform,
         .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-        .presentMode = find_present_mode(parameters.presentModes),
+        .presentMode = find_present_mode(parameters.present_modes),
         .clipped = VK_TRUE,
         .oldSwapchain = VK_NULL_HANDLE, // TODO use
     };
 
-    if (parameters.graphicsQueueFamily->getIndex() != parameters.presentQueueFamily->getIndex())
+    if (*parameters.graphics_queue_family != *parameters.present_queue_family)
     {
-        uint32_t queueFamilyIndices[] = { parameters.graphicsQueueFamily->getIndex(), parameters.presentQueueFamily->getIndex() };
+        uint32_t queueFamilyIndices[] = { *parameters.graphics_queue_family, *parameters.present_queue_family };
         info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         info.queueFamilyIndexCount = 2;
         info.pQueueFamilyIndices = queueFamilyIndices;
@@ -152,7 +148,7 @@ void gfx_vk::swapchain::create(tglm::ivec2 extent)
     m_images.resize(count);
     GFX_VK_VERIFY(vkGetSwapchainImagesKHR(m_context.get_device_handle(), m_handle, &count, m_images.data()));
 
-    instance.setDebugName(m_context.get_device_handle(), m_handle, "Main");
+    m_context.get_instance().set_debug_name(m_handle, "Main swapchain with extent {}", extent);
 
     m_depth_image = m_context.get_resources().create_image({
         .width = m_extent.width,
@@ -184,7 +180,7 @@ void gfx_vk::swapchain::create(tglm::ivec2 extent)
 
 void gfx_vk::swapchain::destroy()
 {
-    m_context.get_device().waitIdle();
+    m_context.wait_idle();
 
     m_framebuffers.clear();
     // TODO destroy m_swapchain_images

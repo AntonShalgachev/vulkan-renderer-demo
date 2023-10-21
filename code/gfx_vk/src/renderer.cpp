@@ -13,11 +13,6 @@
 #include "vko/Fence.h"
 #include "vko/CommandPool.h"
 #include "vko/CommandBuffers.h"
-#include "vko/Queue.h"
-#include "vko/Instance.h"
-#include "vko/PhysicalDeviceSurfaceParameters.h"
-
-#include "common/fmt.h"
 
 #include "nstl/array.h"
 
@@ -201,7 +196,7 @@ void gfx_vk::renderer::submit()
     frame_resources& resources = get_current_frame_resources();
 
     resources.command_buffers.end(0);
-    resources.command_buffers.submit(0, m_context.get_device().getGraphicsQueue(), &resources.render_finished_semaphore, &resources.image_available_semaphore, &resources.in_flight_fence);
+    resources.command_buffers.submit(0, m_context.get_graphics_queue_handle(), &resources.render_finished_semaphore, &resources.image_available_semaphore, &resources.in_flight_fence);
 
     nstl::array wait_semaphores{ resources.render_finished_semaphore.getHandle() };
     nstl::array swapchains = { m_swapchain->get_handle() };
@@ -216,7 +211,7 @@ void gfx_vk::renderer::submit()
         .pResults = nullptr,
     };
 
-    [[maybe_unused]] VkResult result = vkQueuePresentKHR(m_context.get_device().getPresentQueue().getHandle(), &info);
+    [[maybe_unused]] VkResult result = vkQueuePresentKHR(m_context.get_present_queue_handle(), &info);
     assert(result == VK_SUCCESS);
 }
 
@@ -239,7 +234,7 @@ void gfx_vk::renderer::create_swapchain(tglm::ivec2 extent)
         .keep_depth_values_after_renderpass = false,
     });
 
-    m_context.get_instance().setDebugName(m_context.get_device_handle(), m_context.get_resources().get_renderpass(m_renderpass).get_handle(), "Main renderpass");
+    m_context.get_instance().set_debug_name(m_context.get_resources().get_renderpass(m_renderpass).get_handle(), "Main renderpass");
 
     m_swapchain = nstl::make_unique<swapchain>(m_context, m_renderpass, surface_format, depth_format, extent);
 }
@@ -247,11 +242,10 @@ void gfx_vk::renderer::create_swapchain(tglm::ivec2 extent)
 void gfx_vk::renderer::create_frame_resources(renderer_config const& config)
 {
     VkDevice device = m_context.get_device_handle();
-    vko::Instance const& instance = m_context.get_instance();
 
     for (size_t i = 0; i < config.max_frames_in_flight; i++)
     {
-        vko::CommandPool command_pool{ device, m_context.get_device().getGraphicsQueue().getFamily() };
+        vko::CommandPool command_pool{ device, m_context.get_graphics_queue_family_index() };
         vko::CommandBuffers command_buffers{ command_pool.allocate(1) };
 
         m_frame_resources.push_back({
@@ -264,13 +258,13 @@ void gfx_vk::renderer::create_frame_resources(renderer_config const& config)
 
         frame_resources& resources = m_frame_resources.back();
 
-        instance.setDebugName(device, resources.image_available_semaphore.getHandle(), common::format("Image available semaphore (frame {})", i));
-        instance.setDebugName(device, resources.render_finished_semaphore.getHandle(), common::format("Render finished semaphore (frame {})", i));
-        instance.setDebugName(device, resources.in_flight_fence.getHandle(), common::format("In-flight fence (frame {})", i));
-        instance.setDebugName(device, resources.command_pool.getHandle(), common::format("Main command pool (frame {})", i));
+        m_context.get_instance().set_debug_name(resources.image_available_semaphore.getHandle(), "Image available semaphore (frame {})", i);
+        m_context.get_instance().set_debug_name(resources.render_finished_semaphore.getHandle(), "Render finished semaphore (frame {})", i);
+        m_context.get_instance().set_debug_name(resources.in_flight_fence.getHandle(), "In-flight fence (frame {})", i);
+        m_context.get_instance().set_debug_name(resources.command_pool.getHandle(), "Main command pool (frame {})", i);
 
         for (size_t index = 0; index < resources.command_buffers.getSize(); index++)
-            instance.setDebugName(device, resources.command_buffers.getHandle(index), common::format("Command buffer {} (frame {})", index, i));
+            m_context.get_instance().set_debug_name(resources.command_buffers.getHandle(index), "Command buffer {} (frame {})", index, i);
     }
 }
 

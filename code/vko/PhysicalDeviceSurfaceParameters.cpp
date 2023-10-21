@@ -4,69 +4,39 @@
 #include "PhysicalDevice.h"
 #include "Surface.h"
 
-namespace
+vko::PhysicalDeviceSurfaceParameters vko::queryPhysicalDeviceSurfaceParameters(PhysicalDevice const& physicalDevice, VkSurfaceKHR surface)
 {
-    VkSurfaceCapabilitiesKHR queryCapabilities(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
-    {
-        VkSurfaceCapabilitiesKHR result{};
-        VKO_VERIFY(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice.getHandle(), surface.getHandle(), &result));
-        return result;
-    }
+    VkPhysicalDevice handle = physicalDevice.getHandle();
+    nstl::span<VkQueueFamilyProperties const> queueFamilyProperties = physicalDevice.getQueueFamilyProperties();
 
-    nstl::vector<VkSurfaceFormatKHR> queryFormats(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
+    PhysicalDeviceSurfaceParameters params{};
+    VKO_VERIFY(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(handle, surface, &params.capabilities));
+
     {
         uint32_t count = 0;
-        VKO_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice.getHandle(), surface.getHandle(), &count, nullptr));
-
-        if (count <= 0)
-            return {};
-
-        nstl::vector<VkSurfaceFormatKHR> result;
-        result.resize(count);
-
-        VKO_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice.getHandle(), surface.getHandle(), &count, result.data()));
-
-        return result;
+        VKO_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &count, nullptr));
+        params.formats.resize(count);
+        VKO_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(handle, surface, &count, params.formats.data()));
     }
 
-    nstl::vector<VkPresentModeKHR> queryPresentModes(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface)
     {
         uint32_t count = 0;
-        VKO_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice.getHandle(), surface.getHandle(), &count, nullptr));
-
-        if (count <= 0)
-            return {};
-
-        nstl::vector<VkPresentModeKHR> result;
-        result.resize(count);
-
-        VKO_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice.getHandle(), surface.getHandle(), &count, result.data()));
-
-        return result;
+        VKO_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &count, nullptr));
+        params.presentModes.resize(count);
+        VKO_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(handle, surface, &count, params.presentModes.data()));
     }
 
-    bool queryPresentationSupport(vko::PhysicalDevice const& physicalDevice, vko::Surface const& surface, vko::QueueFamily const& queueFamily)
+    for (uint32_t familyIndex = 0; familyIndex < queueFamilyProperties.size(); familyIndex++)
+//     for (QueueFamily const& queueFamily : queueFamilies)
     {
-        VkBool32 result = false;
-        VKO_VERIFY(vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice.getHandle(), queueFamily.getIndex(), surface.getHandle(), &result));
-        return result;
-    }
-}
+        VkBool32 hasPresentationSupport = false;
+        VKO_VERIFY(vkGetPhysicalDeviceSurfaceSupportKHR(handle, familyIndex, surface, &hasPresentationSupport));
 
-vko::PhysicalDeviceSurfaceParameters vko::queryPhysicalDeviceSurfaceParameters(PhysicalDevice const& physicalDevice, Surface const& surface)
-{
-    PhysicalDeviceSurfaceParameters params;
-    params.capabilities = queryCapabilities(physicalDevice, surface);
-    params.formats = queryFormats(physicalDevice, surface);
-    params.presentModes = queryPresentModes(physicalDevice, surface);
+        if (queueFamilyProperties[familyIndex].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+            params.graphicsQueueFamily = familyIndex;
 
-    for (QueueFamily const& queueFamily : physicalDevice.getQueueFamilies())
-    {
-        if (queueFamily.getProperties().queueFlags & VK_QUEUE_GRAPHICS_BIT)
-            params.graphicsQueueFamily = &queueFamily;
-
-        if (queryPresentationSupport(physicalDevice, surface, queueFamily))
-            params.presentQueueFamily = &queueFamily;
+        if (hasPresentationSupport)
+            params.presentQueueFamily = familyIndex;
 
         if (params.graphicsQueueFamily && params.presentQueueFamily)
             break;

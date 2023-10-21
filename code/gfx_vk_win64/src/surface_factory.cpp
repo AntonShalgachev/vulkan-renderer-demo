@@ -20,7 +20,7 @@ nstl::span<char const* const> gfx_vk_win64::surface_factory::get_instance_extens
     return { extensions, count };
 }
 
-VkResult gfx_vk_win64::surface_factory::create(VkInstance instance, VkSurfaceKHR* handle)
+VkResult gfx_vk_win64::surface_factory::create(VkInstance instance, VkAllocationCallbacks const* allocator, VkSurfaceKHR* handle)
 {
-    return glfwCreateWindowSurface(instance, platform_win64::get_native_window_handle(m_window), nullptr, handle);
+    return glfwCreateWindowSurface(instance, platform_win64::get_native_window_handle(m_window), allocator, handle);
 }

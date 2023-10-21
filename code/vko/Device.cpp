@@ -4,11 +4,11 @@
 #include "vko/PhysicalDevice.h"
 #include "vko/Queue.h"
 
-vko::Device::Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily const& graphics, vko::QueueFamily const& present, nstl::span<const char* const> extensions)
+vko::Device::Device(vko::PhysicalDevice const& physicalDevice, uint32_t graphics, uint32_t present, nstl::span<const char* const> extensions)
 {
-    nstl::vector<QueueFamily const*> uniqueQueueFamilies = { &graphics };
-    if (&present != &graphics)
-        uniqueQueueFamilies.push_back(&present);
+    nstl::vector<uint32_t> uniqueQueueFamilies = { graphics };
+    if (present != graphics)
+        uniqueQueueFamilies.push_back(present);
 
     // The device is created with 1 queue of each family
 
@@ -16,11 +16,11 @@ vko::Device::Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily 
 
     nstl::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     queueCreateInfos.reserve(uniqueQueueFamilies.size());
-    for (QueueFamily const* queueFamily : uniqueQueueFamilies)
+    for (uint32_t queueFamily : uniqueQueueFamilies)
     {
         VkDeviceQueueCreateInfo& queueCreateInfo = queueCreateInfos.emplace_back();
         queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = queueFamily->getIndex();
+        queueCreateInfo.queueFamilyIndex = queueFamily;
         queueCreateInfo.queueCount = static_cast<uint32_t>(queuePriorities.size());
         queueCreateInfo.pQueuePriorities = queuePriorities.data();
     }
@@ -46,15 +46,15 @@ vko::Device::Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily 
 
     VKO_VERIFY(vkCreateDevice(physicalDevice.getHandle(), &deviceCreateInfo, &m_allocator.getCallbacks(), &m_handle.get()));
     
-    for(QueueFamily const* queueFamily : uniqueQueueFamilies)
+    for(uint32_t queueFamily : uniqueQueueFamilies)
     {
         VkQueue handle = VK_NULL_HANDLE;
-        vkGetDeviceQueue(m_handle, queueFamily->getIndex(), 0, &handle);
-        Queue const& queue = m_queues.emplace_back(handle, *queueFamily);
+        vkGetDeviceQueue(m_handle, queueFamily, 0, &handle);
+        Queue const& queue = m_queues.emplace_back(handle, queueFamily);
 
-        if (queueFamily->getIndex() == graphics.getIndex())
+        if (queueFamily == graphics)
             m_graphicsQueue = &queue;
-        if (queueFamily->getIndex() == present.getIndex())
+        if (queueFamily == present)
             m_presentQueue = &queue;
     }
 

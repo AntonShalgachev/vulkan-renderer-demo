@@ -10,7 +10,7 @@ namespace gfx_vk_win64
         surface_factory(platform::window_handle_t window);
 
         nstl::span<char const* const> get_instance_extensions() override;
-        VkResult create(VkInstance instance, VkSurfaceKHR* handle) override;
+        VkResult create(VkInstance instance, VkAllocationCallbacks const* allocator, VkSurfaceKHR* handle) override;
 
     private:
         platform::window_handle_t m_window = nullptr;

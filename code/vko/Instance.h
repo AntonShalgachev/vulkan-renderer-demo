@@ -27,7 +27,7 @@ namespace vko
 
         VkInstance getHandle() const { return m_handle; }
 
-        nstl::vector<vko::PhysicalDevice> findPhysicalDevices() const;
+        nstl::vector<VkPhysicalDevice> findPhysicalDevices() const;
 
 #define SET_DEBUG_NAME_FUNC(T, ObjectType) \
     void setDebugName(VkDevice device, T handle, char const* name) const { return setDebugName(device, reinterpret_cast<uint64_t>(handle), ObjectType, name); }                 \
@@ -52,12 +52,12 @@ namespace vko
 
         void dispatchDebugMessage(DebugMessage message);
 
+        void setDebugName(VkDevice device, uint64_t handle, VkObjectType type, char const* name) const;
+
     private:
         void createInstance(char const* appName, nstl::vector<char const*> const& extensions, bool enableValidation);
         void findFunctions(bool enableValidation);
         void createDebugMessenger();
-
-        void setDebugName(VkDevice device, uint64_t handle, VkObjectType type, char const* name) const;
 
     private:
         Allocator m_allocator{ AllocatorScope::Instance };

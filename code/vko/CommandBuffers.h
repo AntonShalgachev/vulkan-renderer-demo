@@ -35,7 +35,7 @@ namespace vko
         void reset(size_t index) const;
         void begin(size_t index, bool oneTime = true) const;
         void end(size_t index) const;
-        void submit(size_t index, Queue const& queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence) const;
+        void submit(size_t index, VkQueue queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence) const;
 
     private:
         VkDevice m_device;

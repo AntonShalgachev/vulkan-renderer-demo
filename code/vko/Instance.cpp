@@ -157,21 +157,16 @@ void vko::Instance::setDebugName(VkDevice device, uint64_t handle, VkObjectType 
     VKO_VERIFY(m_vkSetDebugUtilsObjectNameEXT(device, &nameInfo));
 }
 
-nstl::vector<vko::PhysicalDevice> vko::Instance::findPhysicalDevices() const
+nstl::vector<VkPhysicalDevice> vko::Instance::findPhysicalDevices() const
 {
     uint32_t count = 0;
     VKO_VERIFY(vkEnumeratePhysicalDevices(m_handle, &count, nullptr));
     assert(count > 0);
 
-    nstl::vector<VkPhysicalDevice> physicalDeviceHandles(count);
-    VKO_VERIFY(vkEnumeratePhysicalDevices(m_handle, &count, physicalDeviceHandles.data()));
+    nstl::vector<VkPhysicalDevice> handles(count);
+    VKO_VERIFY(vkEnumeratePhysicalDevices(m_handle, &count, handles.data()));
 
-    nstl::vector<vko::PhysicalDevice> physicalDevices;
-    physicalDevices.reserve(count);
-    for (auto const& handle : physicalDeviceHandles)
-        physicalDevices.emplace_back(handle);
-
-    return physicalDevices;
+    return handles;
 }
 
 void vko::Instance::dispatchDebugMessage(DebugMessage message)

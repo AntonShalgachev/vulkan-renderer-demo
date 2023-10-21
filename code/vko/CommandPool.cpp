@@ -5,12 +5,12 @@
 #include "vko/QueueFamily.h"
 #include "vko/CommandBuffers.h"
 
-vko::CommandPool::CommandPool(VkDevice device, QueueFamily const& queueFamily)
+vko::CommandPool::CommandPool(VkDevice device, uint32_t family_index)
     : m_device(device)
 {
     VkCommandPoolCreateInfo poolCreateInfo{};
     poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolCreateInfo.queueFamilyIndex = queueFamily.getIndex();
+    poolCreateInfo.queueFamilyIndex = family_index;
     poolCreateInfo.flags = 0; // TODO make use of it
 
     VKO_VERIFY(vkCreateCommandPool(m_device, &poolCreateInfo, &m_allocator.getCallbacks(), &m_handle.get()));

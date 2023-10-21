@@ -4,9 +4,8 @@
 #include "vko/Image.h"
 #include "vko/Device.h"
 #include "vko/Surface.h"
-#include "vko/QueueFamily.h"
 
-vko::Swapchain::Swapchain(Device const& device, Surface const& surface, QueueFamily const& graphics, QueueFamily const& presentation, Config config)
+vko::Swapchain::Swapchain(Device const& device, Surface const& surface, uint32_t graphics, uint32_t presentation, Config config)
     : m_device(device)
     , m_config(nstl::move(config))
 {
@@ -21,9 +20,9 @@ vko::Swapchain::Swapchain(Device const& device, Surface const& surface, QueueFam
     swapchainCreateInfo.imageArrayLayers = 1;
     swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    if (graphics.getIndex() != presentation.getIndex())
+    if (graphics != presentation)
     {
-        uint32_t queueFamilyIndices[] = { graphics.getIndex(), presentation.getIndex() };
+        uint32_t queueFamilyIndices[] = { graphics, presentation };
         swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         swapchainCreateInfo.queueFamilyIndexCount = 2;
         swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
@@ -39,7 +38,7 @@ vko::Swapchain::Swapchain(Device const& device, Surface const& surface, QueueFam
     swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     swapchainCreateInfo.presentMode = config.presentMode;
     swapchainCreateInfo.clipped = VK_TRUE;
-    swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+    swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE; // TODO use it when recreating the swapchain
 
     VKO_VERIFY(vkCreateSwapchainKHR(m_device.getHandle(), &swapchainCreateInfo, &m_allocator.getCallbacks(), &m_handle.get()));
 

@@ -9,15 +9,15 @@ namespace vko
     class Queue
     {
     public:
-    	Queue(VkQueue handle, QueueFamily const& queueFamily);
+    	Queue(VkQueue handle, uint32_t queueFamily);
 
         VkQueue getHandle() const { return m_handle; }
-        QueueFamily const& getFamily() const { return m_family; }
+        uint32_t getFamily() const { return m_family; }
 
         void waitIdle() const;
 
     private:
         VkQueue m_handle = VK_NULL_HANDLE;
-        QueueFamily const& m_family;
+        uint32_t m_family;
     };
 }

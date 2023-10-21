@@ -13,7 +13,7 @@ namespace vko
         VkQueueFamilyProperties const& getProperties() const { return m_properties; }
 
     private:
-        uint32_t m_index;
-        VkQueueFamilyProperties m_properties;
+        uint32_t m_index = 0;
+        VkQueueFamilyProperties m_properties{};
     };
 }

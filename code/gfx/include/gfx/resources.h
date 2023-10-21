@@ -9,6 +9,16 @@
 
 namespace gfx
 {
+    enum class debug_message_level
+    {
+        verbose,
+        info,
+        warning,
+        error,
+    };
+
+    //////////////////////////////////////////////////////////////////////////
+
     // TODO make resources opaque handles
 
     struct handle

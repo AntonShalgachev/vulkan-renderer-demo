@@ -12,13 +12,12 @@ namespace vko
 {
     class Queue;
     class PhysicalDevice;
-    class QueueFamily;
 
     class Device
     {
     public:
         // TODO use std::span for extensions
-        explicit Device(vko::PhysicalDevice const& physicalDevice, vko::QueueFamily const& graphics, vko::QueueFamily const& present, nstl::span<const char* const> extensions);
+        explicit Device(vko::PhysicalDevice const& physicalDevice, uint32_t graphics, uint32_t present, nstl::span<const char* const> extensions);
     	~Device();
 
         Device(Device const&) = default;
