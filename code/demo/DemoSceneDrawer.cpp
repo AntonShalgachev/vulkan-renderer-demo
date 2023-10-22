@@ -525,18 +525,6 @@ void DemoSceneDrawer::addMeshInstance(DemoMesh* mesh, tglm::mat4 matrix, tglm::v
 
         object->mesh = mesh;
         object->primitiveIndex = i;
-
-//         vkgfx::TestObject& testObject = m_demoScene.objects.emplace_back();
-//         testObject.materialDescriptorGroup = material->descriptorgroup;
-//         testObject.newUniformBuffer = objectUniformBuffer;
-//         testObject.descriptorGroup = descriptorGroup;
-//         testObject.state = state;
-//         testObject.shadowmapState = shadowmapState;
-// 
-//         testObject.indexBuffer = primitive.indexBuffer;
-//         testObject.vertexBuffers = primitive.vertexBuffers;
-//         testObject.indexType = primitive.indexType;
-//         testObject.indexCount = primitive.indexCount;
     }
 }
 

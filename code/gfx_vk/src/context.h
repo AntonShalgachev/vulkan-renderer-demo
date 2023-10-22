@@ -7,11 +7,6 @@
 
 #include "vko/CommandPool.h"
 
-namespace vko
-{
-    class Queue;
-}
-
 namespace gfx_vk
 {
     class surface_factory;

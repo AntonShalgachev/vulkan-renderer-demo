@@ -30,5 +30,5 @@ vko::CommandPool::~CommandPool()
 
 vko::CommandBuffers vko::CommandPool::allocate(size_t size) const
 {
-    return CommandBuffers{ m_device, *this, size };
+    return CommandBuffers{ m_device, getHandle(), size };
 }

@@ -53,7 +53,7 @@ namespace gfx_vk
             return m_handle != VK_NULL_HANDLE;
         }
 
-        operator T() const
+        operator T const&() const
         {
             return m_handle;
         }

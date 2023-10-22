@@ -9,21 +9,121 @@
 #include "descriptorgroup.h"
 #include "buffer.h"
 
-#include "vko/Semaphore.h"
-#include "vko/Fence.h"
-#include "vko/CommandPool.h"
-#include "vko/CommandBuffers.h"
-
 #include "nstl/array.h"
+
+namespace
+{
+    class semaphore
+    {
+    public:
+        semaphore(gfx_vk::context& context) : m_context(context)
+        {
+            VkSemaphoreCreateInfo info{ .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
+
+            GFX_VK_VERIFY(vkCreateSemaphore(m_context.get_device_handle(), &info, &m_context.get_allocator(), &m_handle.get()));
+        }
+        semaphore(semaphore&&) = default;
+        ~semaphore()
+        {
+            vkDestroySemaphore(m_context.get_device_handle(), m_handle, &m_context.get_allocator());
+            m_handle = nullptr;
+        }
+        semaphore& operator=(semaphore&& rhs) = default;
+
+        VkSemaphore const& get_handle() const { return m_handle; }
+
+    private:
+        gfx_vk::context& m_context;
+        gfx_vk::unique_handle<VkSemaphore> m_handle;
+    };
+
+    class fence
+    {
+    public:
+        fence(gfx_vk::context& context) : m_context(context)
+        {
+            VkFenceCreateInfo info{
+                .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+                .flags = VK_FENCE_CREATE_SIGNALED_BIT,
+            };
+
+            GFX_VK_VERIFY(vkCreateFence(m_context.get_device_handle(), &info, &m_context.get_allocator(), &m_handle.get()));
+        }
+        fence(fence&&) = default;
+        ~fence()
+        {
+            vkDestroyFence(m_context.get_device_handle(), m_handle, &m_context.get_allocator());
+            m_handle = nullptr;
+        }
+        fence& operator=(fence&& rhs) = default;
+
+        VkFence const& get_handle() const { return m_handle; }
+
+        void wait() const
+        {
+            GFX_VK_VERIFY(vkWaitForFences(m_context.get_device_handle(), 1, &m_handle.get(), VK_TRUE, UINT64_MAX));
+        }
+
+        void reset() const
+        {
+            GFX_VK_VERIFY(vkResetFences(m_context.get_device_handle(), 1, &m_handle.get()));
+        }
+
+    private:
+        gfx_vk::context& m_context;
+        gfx_vk::unique_handle<VkFence> m_handle;
+    };
+
+    class command_pool
+    {
+    public:
+        command_pool(gfx_vk::context& context) : m_context(context)
+        {
+            VkCommandPoolCreateInfo info{
+                .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+                .queueFamilyIndex = m_context.get_graphics_queue_family_index(),
+            };
+
+            GFX_VK_VERIFY(vkCreateCommandPool(m_context.get_device_handle(), &info, &m_context.get_allocator(), &m_handle.get()));
+        }
+        command_pool(command_pool&&) = default;
+        ~command_pool()
+        {
+            vkDestroyCommandPool(m_context.get_device_handle(), m_handle, &m_context.get_allocator());
+            m_handle = nullptr;
+        }
+        command_pool& operator=(command_pool&& rhs) = default;
+
+        VkCommandPool const& get_handle() const { return m_handle; }
+
+        VkCommandBuffer allocate()
+        {
+            VkCommandBufferAllocateInfo info{
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+                .commandPool = m_handle,
+                .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+                .commandBufferCount = 1,
+            };
+
+            VkCommandBuffer result = VK_NULL_HANDLE;
+            GFX_VK_VERIFY(vkAllocateCommandBuffers(m_context.get_device_handle(), &info, &result));
+            return result;
+        }
+
+    private:
+        gfx_vk::context& m_context;
+        gfx_vk::unique_handle<VkCommandPool> m_handle;
+    };
+}
 
 struct gfx_vk::renderer::frame_resources
 {
-    vko::Semaphore image_available_semaphore;
-    vko::Semaphore render_finished_semaphore;
-    vko::Fence in_flight_fence;
+    semaphore image_available_semaphore;
+    semaphore render_finished_semaphore;
+    fence in_flight_fence;
 
-    vko::CommandPool command_pool;
-    vko::CommandBuffers command_buffers;
+    command_pool command_pool;
+    VkCommandBuffer command_buffer;
 };
 
 gfx_vk::renderer::renderer(context& context, tglm::ivec2 extent, renderer_config const& config) : m_context(context)
@@ -47,7 +147,7 @@ gfx::framebuffer_handle gfx_vk::renderer::acquire_main_framebuffer()
     frame_resources& resources = get_current_frame_resources();
 
     uint32_t image_index = 0;
-    [[maybe_unused]] VkResult result = vkAcquireNextImageKHR(m_context.get_device_handle(), m_swapchain->get_handle(), UINT64_MAX, resources.image_available_semaphore.getHandle(), VK_NULL_HANDLE, &image_index);
+    [[maybe_unused]] VkResult result = vkAcquireNextImageKHR(m_context.get_device_handle(), m_swapchain->get_handle(), UINT64_MAX, resources.image_available_semaphore.get_handle(), VK_NULL_HANDLE, &image_index);
     assert(result == VK_SUCCESS); // TODO handle swapchain resize
 
     m_swapchain_image_index = image_index;
@@ -71,8 +171,14 @@ void gfx_vk::renderer::begin_resource_update()
 
 void gfx_vk::renderer::begin_frame()
 {
-    get_current_frame_resources().command_pool.reset();
-    get_current_frame_resources().command_buffers.begin(0);
+    VkCommandPoolResetFlags flags = 0;
+    GFX_VK_VERIFY(vkResetCommandPool(m_context.get_device_handle(), get_current_frame_resources().command_pool.get_handle(), flags));
+
+    VkCommandBufferBeginInfo info{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+    };
+    GFX_VK_VERIFY(vkBeginCommandBuffer(get_current_frame_resources().command_buffer, &info));
 
     m_in_frame = true;
 }
@@ -111,7 +217,7 @@ void gfx_vk::renderer::renderpass_begin(gfx::renderpass_begin_params const& para
         .pClearValues = clear_values.data(),
     };
 
-    vkCmdBeginRenderPass(resources.command_buffers.getHandle(0), &info, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(resources.command_buffer, &info, VK_SUBPASS_CONTENTS_INLINE);
 
     VkViewport viewport = {
         .x = 0.0f,
@@ -121,7 +227,7 @@ void gfx_vk::renderer::renderpass_begin(gfx::renderpass_begin_params const& para
         .minDepth = 0.0f,
         .maxDepth = 1.0f,
     };
-    vkCmdSetViewport(resources.command_buffers.getHandle(0), 0, 1, &viewport);
+    vkCmdSetViewport(resources.command_buffer, 0, 1, &viewport);
 
     m_current_renderpass = params.renderpass;
     m_current_framebuffer = params.framebuffer;
@@ -132,14 +238,14 @@ void gfx_vk::renderer::renderpass_end()
     m_current_renderpass = nullptr;
     m_current_framebuffer = nullptr;
 
-    vkCmdEndRenderPass(get_current_frame_resources().command_buffers.getHandle(0));
+    vkCmdEndRenderPass(get_current_frame_resources().command_buffer);
 }
 
 void gfx_vk::renderer::draw_indexed(gfx::draw_indexed_args const& args)
 {
     assert(m_current_renderpass != nullptr);
 
-    VkCommandBuffer command_buffer = get_current_frame_resources().command_buffers.getHandle(0);
+    VkCommandBuffer command_buffer = get_current_frame_resources().command_buffer;
 
     renderstate& rs = m_context.get_resources().get_renderstate(args.renderstate);
 
@@ -195,10 +301,26 @@ void gfx_vk::renderer::submit()
 
     frame_resources& resources = get_current_frame_resources();
 
-    resources.command_buffers.end(0);
-    resources.command_buffers.submit(0, m_context.get_graphics_queue_handle(), &resources.render_finished_semaphore, &resources.image_available_semaphore, &resources.in_flight_fence);
+    GFX_VK_VERIFY(vkEndCommandBuffer(get_current_frame_resources().command_buffer));
 
-    nstl::array wait_semaphores{ resources.render_finished_semaphore.getHandle() };
+    {
+        VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+        VkSubmitInfo info{
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .waitSemaphoreCount = 1,
+            .pWaitSemaphores = &resources.image_available_semaphore.get_handle(),
+            .pWaitDstStageMask = &wait_stage,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &resources.command_buffer,
+            .signalSemaphoreCount = 1,
+            .pSignalSemaphores = &resources.render_finished_semaphore.get_handle(),
+        };
+
+        GFX_VK_VERIFY(vkQueueSubmit(m_context.get_graphics_queue_handle(), 1, &info, resources.in_flight_fence.get_handle()));
+    }
+
+    nstl::array wait_semaphores{ resources.render_finished_semaphore.get_handle()};
     nstl::array swapchains = { m_swapchain->get_handle() };
 
     VkPresentInfoKHR info{
@@ -241,30 +363,26 @@ void gfx_vk::renderer::create_swapchain(tglm::ivec2 extent)
 
 void gfx_vk::renderer::create_frame_resources(renderer_config const& config)
 {
-    VkDevice device = m_context.get_device_handle();
-
     for (size_t i = 0; i < config.max_frames_in_flight; i++)
     {
-        vko::CommandPool command_pool{ device, m_context.get_graphics_queue_family_index() };
-        vko::CommandBuffers command_buffers{ command_pool.allocate(1) };
+        command_pool pool{ m_context };
+        VkCommandBuffer command_buffer = pool.allocate();
 
         m_frame_resources.push_back({
-            .image_available_semaphore{ device },
-            .render_finished_semaphore{ device },
-            .in_flight_fence{ device },
-            .command_pool = nstl::move(command_pool),
-            .command_buffers = nstl::move(command_buffers),
+            .image_available_semaphore{ m_context },
+            .render_finished_semaphore{ m_context },
+            .in_flight_fence{ m_context },
+            .command_pool = nstl::move(pool),
+            .command_buffer = command_buffer,
         });
 
         frame_resources& resources = m_frame_resources.back();
 
-        m_context.get_instance().set_debug_name(resources.image_available_semaphore.getHandle(), "Image available semaphore (frame {})", i);
-        m_context.get_instance().set_debug_name(resources.render_finished_semaphore.getHandle(), "Render finished semaphore (frame {})", i);
-        m_context.get_instance().set_debug_name(resources.in_flight_fence.getHandle(), "In-flight fence (frame {})", i);
-        m_context.get_instance().set_debug_name(resources.command_pool.getHandle(), "Main command pool (frame {})", i);
-
-        for (size_t index = 0; index < resources.command_buffers.getSize(); index++)
-            m_context.get_instance().set_debug_name(resources.command_buffers.getHandle(index), "Command buffer {} (frame {})", index, i);
+        m_context.get_instance().set_debug_name(resources.image_available_semaphore.get_handle(), "Image available semaphore (frame {})", i);
+        m_context.get_instance().set_debug_name(resources.render_finished_semaphore.get_handle(), "Render finished semaphore (frame {})", i);
+        m_context.get_instance().set_debug_name(resources.in_flight_fence.get_handle(), "In-flight fence (frame {})", i);
+        m_context.get_instance().set_debug_name(resources.command_pool.get_handle(), "Main command pool (frame {})", i);
+        m_context.get_instance().set_debug_name(resources.command_buffer, "Main command buffer (frame {})", i);
     }
 }
 

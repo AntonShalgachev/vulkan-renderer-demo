@@ -119,16 +119,16 @@ namespace
         return gfx::debug_message_level::error;
     }
 
-    void on_debug_message(gfx::debug_message_level level, nstl::string_view id, nstl::string_view text)
+    void on_debug_message(gfx::debug_message_level level, nstl::string_view, nstl::string_view text)
     {
         if (level == gfx::debug_message_level::verbose)
-            logging::info("[{}] {}", id, text);
+            logging::info("{}", text);
         if (level == gfx::debug_message_level::info)
-            logging::info("[{}] {}", id, text);
+            logging::info("{}", text);
         if (level == gfx::debug_message_level::warning)
-            logging::warn("[{}] {}", id, text);
+            logging::warn("{}", text);
         if (level == gfx::debug_message_level::error)
-            logging::error("[{}] {}", id, text);
+            logging::error("{}", text);
 
         assert(level != gfx::debug_message_level::error);
     }

@@ -10,9 +10,9 @@
 
 #include "nstl/static_vector.h"
 
-vko::CommandBuffers::CommandBuffers(VkDevice device, CommandPool const& commandPool, size_t size)
+vko::CommandBuffers::CommandBuffers(VkDevice device, VkCommandPool commandPool, size_t size)
     : m_device(device)
-    , m_commandPool(commandPool.getHandle())
+    , m_commandPool(commandPool)
 {
     VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
     commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -66,7 +66,7 @@ void vko::CommandBuffers::end(size_t index) const
     VKO_VERIFY(vkEndCommandBuffer(m_handles[index]));
 }
 
-void vko::CommandBuffers::submit(size_t index, VkQueue queue, Semaphore const* signalSemaphore, Semaphore const* waitSemaphore, Fence const* signalFence) const
+void vko::CommandBuffers::submit(size_t index, VkQueue queue, VkSemaphore signalSemaphore, VkSemaphore waitSemaphore, VkFence signalFence) const
 {
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -74,23 +74,21 @@ void vko::CommandBuffers::submit(size_t index, VkQueue queue, Semaphore const* s
     submitInfo.pCommandBuffers = &m_handles[index].get();
 
     nstl::static_vector<VkSemaphore, 1> signalSemaphores;
-    if (signalSemaphore)
-        signalSemaphores.push_back(signalSemaphore->getHandle());
+    if (signalSemaphore != VK_NULL_HANDLE)
+        signalSemaphores.push_back(signalSemaphore);
     submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
     submitInfo.pSignalSemaphores = signalSemaphores.data();
 
     nstl::static_vector<VkSemaphore, 1> waitSemaphores;
     nstl::static_vector<VkPipelineStageFlags, 1> waitStages;
-    if (waitSemaphore)
+    if (waitSemaphore != VK_NULL_HANDLE)
     {
-        waitSemaphores.push_back(waitSemaphore->getHandle());
+        waitSemaphores.push_back(waitSemaphore);
         waitStages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
     }
     submitInfo.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
     submitInfo.pWaitSemaphores = waitSemaphores.data();
     submitInfo.pWaitDstStageMask = waitStages.data();
 
-    VkFence signalFenceHandle = signalFence ? signalFence->getHandle() : VK_NULL_HANDLE;
-
-    VKO_VERIFY(vkQueueSubmit(queue, 1, &submitInfo, signalFenceHandle));
+    VKO_VERIFY(vkQueueSubmit(queue, 1, &submitInfo, signalFence));
 }
