@@ -3,11 +3,6 @@
 #include "context.h"
 #include "conversions.h"
 
-#include "vko/Buffer.h"
-#include "vko/CommandBuffers.h"
-#include "vko/CommandPool.h"
-#include "vko/DeviceMemory.h"
-
 gfx_vk::image::image(context& context, gfx::image_params const& params, VkImage handle)
     : m_context(context)
     , m_params(params)
@@ -42,9 +37,11 @@ gfx_vk::image::image(context& context, gfx::image_params const& params, VkImage 
 
         m_memory_size = requirements.size;
 
-        m_memory = nstl::make_unique<vko::DeviceMemory>(m_context.get_device_handle(), m_context.get_physical_device_handle(), requirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        m_allocation = m_context.get_memory().allocate(requirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        allocation_data const* data = m_context.get_memory().get_data(m_allocation);
+        assert(data);
 
-        GFX_VK_VERIFY(vkBindImageMemory(m_context.get_device_handle(), m_handle, m_memory->getHandle(), 0));
+        GFX_VK_VERIFY(vkBindImageMemory(m_context.get_device_handle(), m_handle, data->handle, data->offset));
     }
     else
     {
@@ -78,6 +75,9 @@ gfx_vk::image::~image()
     if (m_view_handle)
         vkDestroyImageView(m_context.get_device_handle(), m_view_handle, &m_context.get_allocator());
     m_view_handle = nullptr;
+
+    m_context.get_memory().free(m_allocation);
+    m_allocation = {};
 }
 
 void gfx_vk::image::upload_sync(nstl::blob_view bytes)
@@ -87,16 +87,7 @@ void gfx_vk::image::upload_sync(nstl::blob_view bytes)
     auto width = static_cast<uint32_t>(m_params.width);
     auto height = static_cast<uint32_t>(m_params.height);
 
-    // TODO merge with buffer::upload_sync
-    vko::Buffer staging_buffer{ m_context.get_device_handle(), bytes.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT };
-    VkMemoryRequirements requirements;
-    vkGetBufferMemoryRequirements(m_context.get_device_handle(), staging_buffer.getHandle(), &requirements);
-    vko::DeviceMemory staging_memory{ m_context.get_device_handle(), m_context.get_physical_device_handle(), requirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
-    staging_buffer.bindMemory(staging_memory);
-    staging_memory.copyFrom(bytes.data(), bytes.size());
-
-    vko::CommandBuffers buffers = m_context.get_transfer_command_pool().allocate(1);
-    buffers.begin(0, true);
+    transfer_data data = m_context.get_transfers().begin_transfer(bytes);
 
     VkImageMemoryBarrier barrier{
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -117,7 +108,7 @@ void gfx_vk::image::upload_sync(nstl::blob_view bytes)
     barrier.srcAccessMask = 0;
     barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     vkCmdPipelineBarrier(
-        buffers.getHandle(0),
+        data.command_buffer,
         VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
         0,
         0, nullptr,
@@ -125,8 +116,9 @@ void gfx_vk::image::upload_sync(nstl::blob_view bytes)
         1, &barrier
     );
     
+    assert(data.buffer_offset == 0); // TODO test non-zero offsets
     VkBufferImageCopy region{
-        .bufferOffset = 0,
+        .bufferOffset = data.buffer_offset,
         .bufferRowLength = 0,
         .bufferImageHeight = 0,
 
@@ -146,8 +138,8 @@ void gfx_vk::image::upload_sync(nstl::blob_view bytes)
     };
 
     vkCmdCopyBufferToImage(
-        buffers.getHandle(0),
-        staging_buffer.getHandle(),
+        data.command_buffer,
+        data.buffer,
         m_handle.get(),
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         1,
@@ -159,7 +151,7 @@ void gfx_vk::image::upload_sync(nstl::blob_view bytes)
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
     vkCmdPipelineBarrier(
-        buffers.getHandle(0),
+        data.command_buffer,
         VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
         0,
         0, nullptr,
@@ -167,7 +159,5 @@ void gfx_vk::image::upload_sync(nstl::blob_view bytes)
         1, &barrier
     );
 
-    buffers.end(0);
-    buffers.submit(0, m_context.get_transfer_queue_handle(), nullptr, nullptr, nullptr);
-    m_context.wait_idle(); // TODO remove
+    m_context.get_transfers().submit_and_wait(data.index);
 }

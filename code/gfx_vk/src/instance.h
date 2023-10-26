@@ -18,8 +18,11 @@ namespace gfx_vk
         VkSurfaceCapabilitiesKHR capabilities{};
         nstl::vector<VkSurfaceFormatKHR> formats;
         nstl::vector<VkPresentModeKHR> present_modes;
+        nstl::optional<uint32_t> transfer_queue_family;
         nstl::optional<uint32_t> graphics_queue_family;
         nstl::optional<uint32_t> present_queue_family;
+
+        VkPhysicalDeviceMemoryProperties memory_properties;
     };
 
     class instance
@@ -35,9 +38,9 @@ namespace gfx_vk
         VkSurfaceKHR get_surface_handle() const { return m_surface; }
         VkDevice get_device_handle() const { return m_device; }
 
-        VkQueue get_transfer_queue_handle() const { return m_graphics_queue; } // TODO use a dedicated queue
-
         void wait_idle();
+        uint32_t get_transfer_queue_family_index() const { return *m_physical_device_props.transfer_queue_family; }
+        VkQueue get_transfer_queue_handle() const { return m_transfer_queue; }
         uint32_t get_graphics_queue_family_index() const { return *m_physical_device_props.graphics_queue_family; }
         VkQueue get_graphics_queue_handle() const { return m_graphics_queue; }
         VkQueue get_present_queue_handle() const { return m_present_queue; }
@@ -80,6 +83,7 @@ namespace gfx_vk
         physical_device_properties m_physical_device_props{};
 
         unique_handle<VkDevice> m_device;
+        VkQueue m_transfer_queue = VK_NULL_HANDLE;
         VkQueue m_graphics_queue = VK_NULL_HANDLE;
         VkQueue m_present_queue = VK_NULL_HANDLE;
     };

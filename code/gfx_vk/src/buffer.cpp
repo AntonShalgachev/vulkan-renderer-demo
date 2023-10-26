@@ -3,11 +3,6 @@
 #include "context.h"
 #include "utils.h"
 
-#include "vko/Buffer.h"
-#include "vko/CommandBuffers.h"
-#include "vko/CommandPool.h"
-#include "vko/DeviceMemory.h"
-
 namespace
 {
     VkBufferUsageFlags get_usage(gfx::buffer_usage usage)
@@ -103,16 +98,22 @@ gfx_vk::buffer::buffer(context& context, gfx::buffer_params const& params)
 
     requirements.size = m_aligned_size * resource_count;
 
-    m_memory = nstl::make_unique<vko::DeviceMemory>(m_context.get_device_handle(), m_context.get_physical_device_handle(), requirements, get_memory_flags(params.location));
+    m_allocation = m_context.get_memory().allocate(requirements, get_memory_flags(params.location));
+    allocation_data const* data = m_context.get_memory().get_data(m_allocation);
+    assert(data);
 
     for (size_t i = 0; i < resource_count; i++)
     {
         size_t memory_offset = i * m_aligned_size;
-        GFX_VK_VERIFY(vkBindBufferMemory(m_context.get_device_handle(), m_buffers[i].handle, m_memory->getHandle(), memory_offset));
+        GFX_VK_VERIFY(vkBindBufferMemory(m_context.get_device_handle(), m_buffers[i].handle, data->handle, data->offset + memory_offset));
     }
 }
 
-gfx_vk::buffer::~buffer() = default;
+gfx_vk::buffer::~buffer()
+{
+    m_context.get_memory().free(m_allocation);
+    m_allocation = {};
+}
 
 VkBuffer gfx_vk::buffer::get_handle(size_t index) const
 {
@@ -133,31 +134,25 @@ void gfx_vk::buffer::upload_sync(nstl::blob_view bytes, size_t offset)
 
     if (m_params.location == gfx::buffer_location::device_local)
     {
-        // TODO merge with image::upload_sync
-        vko::Buffer staging_buffer{ m_context.get_device_handle(), bytes.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT };
-        VkMemoryRequirements requirements;
-        vkGetBufferMemoryRequirements(m_context.get_device_handle(), staging_buffer.getHandle(), &requirements);
-        vko::DeviceMemory staging_memory{ m_context.get_device_handle(), m_context.get_physical_device_handle(), requirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT};
-        staging_buffer.bindMemory(staging_memory);
-        staging_memory.copyFrom(bytes.data(), bytes.size());
-
-        vko::CommandBuffers buffers = m_context.get_transfer_command_pool().allocate(1);
-        buffers.begin(0, true);
+        transfer_data data = m_context.get_transfers().begin_transfer(bytes);
 
         VkBufferCopy region{
-            .srcOffset = 0,
+            .srcOffset = data.buffer_offset,
             .dstOffset = offset,
             .size = bytes.size(),
         };
-        vkCmdCopyBuffer(buffers.getHandle(0), staging_buffer.getHandle(), m_buffers[subresource_index].handle, 1, &region);
+        vkCmdCopyBuffer(data.command_buffer, data.buffer, m_buffers[subresource_index].handle, 1, &region);
 
-        buffers.end(0);
-        buffers.submit(0, m_context.get_transfer_queue_handle(), nullptr, nullptr, nullptr);
-        m_context.wait_idle(); // TODO remove
+        m_context.get_transfers().submit_and_wait(data.index);
     }
     else
     {
         size_t memory_offset = subresource_index * m_aligned_size + offset;
-        m_memory->copyFrom(bytes.data(), bytes.size(), memory_offset);
+
+        allocation_data const* data = m_context.get_memory().get_data(m_allocation);
+        assert(data);
+        assert(data->ptr);
+
+        memcpy(static_cast<unsigned char*>(data->ptr) + memory_offset, bytes.data(), bytes.size());
     }
 }

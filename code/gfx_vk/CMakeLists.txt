@@ -43,6 +43,12 @@ add_library(gfx_vk
     "src/utils.cpp"
     "src/instance.h"
     "src/instance.cpp"
+    "src/memory.h"
+    "src/memory.cpp"
+    "src/transfers.cpp"
+    "src/transfers.h"
+    "src/command_pool.h"
+    "src/command_pool.cpp"
 )
 
 demo_set_common_properties(gfx_vk)

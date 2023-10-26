@@ -8,6 +8,7 @@
 #include "renderstate.h"
 #include "descriptorgroup.h"
 #include "buffer.h"
+#include "command_pool.h"
 
 #include "nstl/array.h"
 
@@ -72,47 +73,6 @@ namespace
     private:
         gfx_vk::context& m_context;
         gfx_vk::unique_handle<VkFence> m_handle;
-    };
-
-    class command_pool
-    {
-    public:
-        command_pool(gfx_vk::context& context) : m_context(context)
-        {
-            VkCommandPoolCreateInfo info{
-                .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-                .queueFamilyIndex = m_context.get_graphics_queue_family_index(),
-            };
-
-            GFX_VK_VERIFY(vkCreateCommandPool(m_context.get_device_handle(), &info, &m_context.get_allocator(), &m_handle.get()));
-        }
-        command_pool(command_pool&&) = default;
-        ~command_pool()
-        {
-            vkDestroyCommandPool(m_context.get_device_handle(), m_handle, &m_context.get_allocator());
-            m_handle = nullptr;
-        }
-        command_pool& operator=(command_pool&& rhs) = default;
-
-        VkCommandPool const& get_handle() const { return m_handle; }
-
-        VkCommandBuffer allocate()
-        {
-            VkCommandBufferAllocateInfo info{
-                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-                .commandPool = m_handle,
-                .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-                .commandBufferCount = 1,
-            };
-
-            VkCommandBuffer result = VK_NULL_HANDLE;
-            GFX_VK_VERIFY(vkAllocateCommandBuffers(m_context.get_device_handle(), &info, &result));
-            return result;
-        }
-
-    private:
-        gfx_vk::context& m_context;
-        gfx_vk::unique_handle<VkCommandPool> m_handle;
     };
 }
 
@@ -365,7 +325,7 @@ void gfx_vk::renderer::create_frame_resources(renderer_config const& config)
 {
     for (size_t i = 0; i < config.max_frames_in_flight; i++)
     {
-        command_pool pool{ m_context };
+        command_pool pool{ m_context, m_context.get_graphics_queue_family_index() };
         VkCommandBuffer command_buffer = pool.allocate();
 
         m_frame_resources.push_back({

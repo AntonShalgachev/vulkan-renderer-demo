@@ -93,15 +93,21 @@ namespace
             VkBool32 hasPresentationSupport = false;
             GFX_VK_VERIFY(vkGetPhysicalDeviceSurfaceSupportKHR(handle, familyIndex, surface, &hasPresentationSupport));
 
+            // TODO choose transfer queue in a smarter way
+            if (queue_family_properties[familyIndex].queueFlags & VK_QUEUE_TRANSFER_BIT)
+                props.transfer_queue_family = familyIndex;
+
             if (queue_family_properties[familyIndex].queueFlags & VK_QUEUE_GRAPHICS_BIT)
                 props.graphics_queue_family = familyIndex;
 
             if (hasPresentationSupport)
                 props.present_queue_family = familyIndex;
 
-            if (props.graphics_queue_family && props.present_queue_family)
+            if (props.transfer_queue_family && props.graphics_queue_family && props.present_queue_family)
                 break;
         }
+
+        vkGetPhysicalDeviceMemoryProperties(handle, &props.memory_properties);
     }
 
     gfx::debug_message_level get_level(VkDebugUtilsMessageSeverityFlagBitsEXT severity)
@@ -277,7 +283,7 @@ void gfx_vk::instance::find_physical_device()
         if (!features.samplerAnisotropy)
             continue;
 
-        if (!props.graphics_queue_family || !props.present_queue_family)
+        if (!props.transfer_queue_family || !props.graphics_queue_family || !props.present_queue_family)
             continue;
         if (props.formats.empty())
             continue;
@@ -294,8 +300,11 @@ void gfx_vk::instance::find_physical_device()
 
 void gfx_vk::instance::create_device()
 {
-    nstl::vector<uint32_t> queue_families = { *m_physical_device_props.graphics_queue_family };
-    if (m_physical_device_props.present_queue_family != m_physical_device_props.graphics_queue_family)
+    // TODO rewrite
+    nstl::vector<uint32_t> queue_families = { *m_physical_device_props.transfer_queue_family };
+    if (m_physical_device_props.graphics_queue_family != m_physical_device_props.transfer_queue_family)
+        queue_families.push_back(*m_physical_device_props.graphics_queue_family);
+    if (m_physical_device_props.present_queue_family != m_physical_device_props.transfer_queue_family && m_physical_device_props.present_queue_family != m_physical_device_props.graphics_queue_family)
         queue_families.push_back(*m_physical_device_props.present_queue_family);
 
     nstl::array priorities = { 1.0f };
@@ -339,6 +348,8 @@ void gfx_vk::instance::create_device()
         VkQueue handle = VK_NULL_HANDLE;
         vkGetDeviceQueue(m_device, queue_family, 0, &handle);
 
+        if (queue_family == m_physical_device_props.transfer_queue_family)
+            m_transfer_queue = handle;
         if (queue_family == m_physical_device_props.graphics_queue_family)
             m_graphics_queue = handle;
         if (queue_family == m_physical_device_props.present_queue_family)

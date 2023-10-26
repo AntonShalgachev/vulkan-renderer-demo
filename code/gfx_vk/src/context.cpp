@@ -2,7 +2,8 @@
 
 gfx_vk::context::context(surface_factory& factory, tglm::ivec2 extent, config const& config)
     : m_instance(factory, config)
-    , m_transfer_command_pool(m_instance.get_device_handle(), m_instance.get_graphics_queue_family_index())
+    , m_memory(*this)
+    , m_transfers(*this)
     , m_resources(*this)
     , m_descriptor_allocator(*this, config.descriptors)
     , m_renderer(*this, extent, config.renderer)
@@ -31,11 +32,6 @@ VkDevice gfx_vk::context::get_device_handle() const
 VkSurfaceKHR gfx_vk::context::get_surface_handle() const
 {
     return m_instance.get_surface_handle();
-}
-
-vko::CommandPool const& gfx_vk::context::get_transfer_command_pool() const
-{
-    return m_transfer_command_pool;
 }
 
 void gfx_vk::context::on_surface_changed()

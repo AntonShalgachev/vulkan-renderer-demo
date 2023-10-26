@@ -1,17 +1,11 @@
 #pragma once
 
+#include "memory.h"
 #include "utils.h"
 
 #include "gfx/resources.h"
 
-#include "nstl/unique_ptr.h"
-
 #include <vulkan/vulkan.h>
-
-namespace vko
-{
-    class DeviceMemory;
-}
 
 namespace gfx_vk
 {
@@ -41,7 +35,7 @@ namespace gfx_vk
         unique_handle<VkImage> m_handle;
         unique_handle<VkImageView> m_view_handle;
 
-        nstl::unique_ptr<vko::DeviceMemory> m_memory;
+        allocation_handle m_allocation;
 
         size_t m_memory_size = 0;
     };

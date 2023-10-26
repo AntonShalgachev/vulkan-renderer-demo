@@ -1,15 +1,10 @@
 #pragma once
 
+#include "memory.h"
+
 #include "gfx/resources.h"
 
-#include "nstl/unique_ptr.h"
-
 #include <vulkan/vulkan.h>
-
-namespace vko
-{
-    class DeviceMemory;
-}
 
 namespace gfx_vk
 {
@@ -35,7 +30,7 @@ namespace gfx_vk
         gfx::buffer_params m_params;
         size_t m_aligned_size = 0;
 
-        nstl::unique_ptr<vko::DeviceMemory> m_memory;
+        allocation_handle m_allocation;
 
         struct impl;
         nstl::vector<impl> m_buffers;
