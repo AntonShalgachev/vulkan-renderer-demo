@@ -275,7 +275,7 @@ void gfx_vk::renderer::submit()
             .pSignalSemaphores = &resources.render_finished_semaphore.get_handle(),
         };
 
-        GFX_VK_VERIFY(vkQueueSubmit(m_context.get_graphics_queue_handle(), 1, &info, resources.in_flight_fence.get_handle()));
+        GFX_VK_VERIFY(vkQueueSubmit(m_context.get_instance().get_graphics_queue_handle(), 1, &info, resources.in_flight_fence.get_handle()));
     }
 
     nstl::array wait_semaphores{ resources.render_finished_semaphore.get_handle()};
@@ -291,7 +291,7 @@ void gfx_vk::renderer::submit()
         .pResults = nullptr,
     };
 
-    [[maybe_unused]] VkResult result = vkQueuePresentKHR(m_context.get_present_queue_handle(), &info);
+    [[maybe_unused]] VkResult result = vkQueuePresentKHR(m_context.get_instance().get_present_queue_handle(), &info);
     assert(result == VK_SUCCESS);
 }
 
@@ -323,7 +323,7 @@ void gfx_vk::renderer::create_frame_resources(renderer_config const& config)
 {
     for (size_t i = 0; i < config.max_frames_in_flight; i++)
     {
-        command_pool pool{ m_context, m_context.get_graphics_queue_family_index() };
+        command_pool pool{ m_context, m_context.get_instance().get_graphics_queue_family_index() };
         VkCommandBuffer command_buffer = pool.allocate();
 
         m_frame_resources.push_back({

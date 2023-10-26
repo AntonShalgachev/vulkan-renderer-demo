@@ -43,7 +43,7 @@ struct gfx_vk::transfers::transfer_storage
 
 gfx_vk::transfers::transfers(context& context)
     : m_context(context)
-    , m_command_pool(m_context, m_context.get_transfer_queue_family_index())
+    , m_command_pool(m_context, m_context.get_instance().get_transfer_queue_family_index())
 {
     m_command_buffer = m_command_pool.allocate();
 }
@@ -105,9 +105,9 @@ void gfx_vk::transfers::submit_and_wait(size_t index)
         .pCommandBuffers = &m_command_buffer,
     };
 
-    GFX_VK_VERIFY(vkQueueSubmit(m_context.get_transfer_queue_handle(), 1, &info, VK_NULL_HANDLE));
+    GFX_VK_VERIFY(vkQueueSubmit(m_context.get_instance().get_transfer_queue_handle(), 1, &info, VK_NULL_HANDLE));
 
-    vkQueueWaitIdle(m_context.get_transfer_queue_handle()); // TODO remove
+    m_context.get_instance().wait_idle();
 
     m_context.get_memory().free(m_transfers[index].allocation);
 

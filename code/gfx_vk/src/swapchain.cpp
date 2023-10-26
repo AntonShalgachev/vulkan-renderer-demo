@@ -180,7 +180,7 @@ void gfx_vk::swapchain::create(tglm::ivec2 extent)
 
 void gfx_vk::swapchain::destroy()
 {
-    m_context.wait_idle();
+    m_context.get_instance().wait_idle();
 
     m_framebuffers.clear();
     // TODO destroy m_swapchain_images

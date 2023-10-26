@@ -13,7 +13,7 @@ gfx_vk::backend::backend(surface_factory& factory, tglm::ivec2 extent, config co
 
 gfx_vk::backend::~backend()
 {
-    m_context->wait_idle();
+    m_context->get_instance().wait_idle();
 }
 
 void gfx_vk::backend::resize_main_framebuffer(tglm::ivec2 size)
