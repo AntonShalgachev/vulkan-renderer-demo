@@ -29,7 +29,6 @@ namespace
             vkDestroySemaphore(m_context.get_device_handle(), m_handle, &m_context.get_allocator());
             m_handle = nullptr;
         }
-        semaphore& operator=(semaphore&& rhs) = default;
 
         VkSemaphore const& get_handle() const { return m_handle; }
 
@@ -56,7 +55,6 @@ namespace
             vkDestroyFence(m_context.get_device_handle(), m_handle, &m_context.get_allocator());
             m_handle = nullptr;
         }
-        fence& operator=(fence&& rhs) = default;
 
         VkFence const& get_handle() const { return m_handle; }
 

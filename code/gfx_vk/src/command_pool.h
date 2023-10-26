@@ -13,8 +13,6 @@ namespace gfx_vk
         command_pool(command_pool&&) = default;
         ~command_pool();
 
-        command_pool& operator=(command_pool&& rhs) = default;
-
         VkCommandPool const& get_handle() const { return m_handle; }
 
         VkCommandBuffer allocate();

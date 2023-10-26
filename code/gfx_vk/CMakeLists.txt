@@ -60,6 +60,5 @@ target_include_directories(gfx_vk PUBLIC
 target_link_libraries(gfx_vk
     gfx
     Vulkan::Vulkan
-    vko # TODO remove
     logging
 )

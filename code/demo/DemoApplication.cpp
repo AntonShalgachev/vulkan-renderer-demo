@@ -21,9 +21,9 @@
 #include "services/CommandLineService.h"
 #include "services/DebugDrawService.h"
 
-#include "demo/console/GlmSerializer.h"
-#include "demo/console/EnumSerializer.h"
-#include "demo/console/EditorSerializer.h"
+#include "console/GlmSerializer.h"
+#include "console/EnumSerializer.h"
+#include "console/EditorSerializer.h"
 
 #include "editor/assets/AssetDatabase.h"
 #include "editor/assets/AssetData.h"

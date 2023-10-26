@@ -19,7 +19,6 @@ namespace
             GFX_VK_VERIFY(vkCreateBuffer(context.get_device_handle(), &info, &context.get_allocator(), &handle.get()));
         }
 
-        buffer(buffer const&) = default;
         buffer(buffer&& rhs) = default;
 
         ~buffer()
@@ -30,9 +29,6 @@ namespace
             vkDestroyBuffer(context.get_device_handle(), handle, &context.get_allocator());
             handle = nullptr;
         }
-
-        buffer& operator=(buffer const&) = default;
-        buffer& operator=(buffer&& rhs) = default;
 
         gfx_vk::context& context;
         gfx_vk::unique_handle<VkBuffer> handle;

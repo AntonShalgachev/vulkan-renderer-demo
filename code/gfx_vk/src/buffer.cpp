@@ -56,7 +56,6 @@ struct gfx_vk::buffer::impl
         GFX_VK_VERIFY(vkCreateBuffer(context.get_device_handle(), &info, &context.get_allocator(), &handle.get()));
     }
 
-    impl(impl const&) = default;
     impl(impl&& rhs) = default;
 
     ~impl()
@@ -67,9 +66,6 @@ struct gfx_vk::buffer::impl
         vkDestroyBuffer(context.get_device_handle(), handle, &context.get_allocator());
         handle = nullptr;
     }
-
-    impl& operator=(impl const&) = default;
-    impl& operator=(impl&& rhs) = default;
 
     context& context;
     unique_handle<VkBuffer> handle;
