@@ -316,11 +316,16 @@ bool DemoApplication::init(int argc, char** argv)
 void DemoApplication::run()
 {
     auto const& lines = m_services.commandLine().get("--exec-before-run");
+
+    vkc::Timer loadingTimer;
+    loadingTimer.start();
     for (auto const& line : lines)
     {
         [[maybe_unused]] bool success = m_services.debugConsole().execute(line);
         assert(success);
     }
+    float time = loadingTimer.getTime();
+    logging::info("Loading finished. Time: {} seconds", time);
 
     m_frameTimer.start();
     m_window->startEventLoop([this]() { drawFrame(); });
