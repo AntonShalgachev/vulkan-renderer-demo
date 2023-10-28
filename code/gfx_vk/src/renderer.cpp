@@ -11,6 +11,7 @@
 #include "command_pool.h"
 
 #include "nstl/array.h"
+#include "nstl/static_vector.h"
 
 namespace
 {
@@ -211,13 +212,13 @@ void gfx_vk::renderer::draw_indexed(gfx::draw_indexed_args const& args)
 
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, rs.get_handle());
 
-    nstl::vector<VkDescriptorSet> sets;
+    nstl::static_vector<VkDescriptorSet, 5> sets;
     for (gfx::descriptorgroup_handle handle : args.descriptorgroups)
         sets.push_back(m_context.get_resources().get_descriptorgroup(handle).get_current_handle());
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, rs.get_params().layout, 0, static_cast<uint32_t>(sets.size()), sets.data(), 0, nullptr);
 
-    nstl::vector<VkBuffer> vertex_buffers;
-    nstl::vector<VkDeviceSize> vertex_buffers_offset;
+    nstl::static_vector<VkBuffer, 5> vertex_buffers;
+    nstl::static_vector<VkDeviceSize, 5> vertex_buffers_offset;
     for (auto&& [buffer, offset] : args.vertex_buffers)
     {
         vertex_buffers.push_back(m_context.get_resources().get_buffer(buffer).get_current_handle());

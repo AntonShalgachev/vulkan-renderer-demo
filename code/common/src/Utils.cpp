@@ -1,25 +1,8 @@
 #include "common/Utils.h"
 
-#include "memory/tracking.h"
-
 #include "nstl/blob.h"
 
-#include "fs/file.h"
-
 #include <assert.h>
-
-nstl::blob vkc::utils::readBinaryFile(nstl::string_view filename)
-{
-    static auto fileScopeId = memory::tracking::create_scope_id("IO/ReadFile");
-    MEMORY_TRACKING_SCOPE(fileScopeId);
-
-    fs::file f{ filename, fs::open_mode::read };
-
-    nstl::blob buffer{ f.size() };
-    f.read(buffer.data(), buffer.size());
-
-    return buffer;
-}
 
 nstl::vector<nstl::string_view> vkc::utils::split(nstl::string_view str)
 {

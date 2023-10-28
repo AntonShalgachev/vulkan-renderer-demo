@@ -67,7 +67,7 @@ class DemoSceneDrawer
 public:
     DemoSceneDrawer(gfx::renderer& renderer, gfx::renderpass_handle shadowRenderpass);
 
-    DemoTexture* createTexture(nstl::blob_view bytes);
+    DemoTexture* createTexture(nstl::string_view path);
     DemoMaterial* createMaterial(tglm::vec4 color, DemoTexture* albedoTexture, DemoTexture* normalTexture, bool doubleSided);
 
     struct AttributeParams

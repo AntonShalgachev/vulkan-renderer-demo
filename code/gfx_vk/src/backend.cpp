@@ -66,14 +66,14 @@ void gfx_vk::backend::begin_resource_update()
     return m_context->get_renderer().begin_resource_update();
 }
 
-void gfx_vk::backend::buffer_upload_sync(gfx::buffer_handle handle, nstl::blob_view bytes, size_t offset)
+void gfx_vk::backend::buffer_upload_sync(gfx::buffer_handle handle, gfx::data_reader& reader, size_t offset)
 {
-    return m_context->get_resources().get_buffer(handle).upload_sync(bytes, offset);
+    return m_context->get_resources().get_buffer(handle).upload_sync(reader, offset);
 }
 
-void gfx_vk::backend::image_upload_sync(gfx::image_handle handle, nstl::blob_view bytes)
+void gfx_vk::backend::image_upload_sync(gfx::image_handle handle, gfx::data_reader& reader)
 {
-    return m_context->get_resources().get_image(handle).upload_sync(bytes);
+    return m_context->get_resources().get_image(handle).upload_sync(reader);
 }
 
 gfx::renderpass_handle gfx_vk::backend::get_main_renderpass()

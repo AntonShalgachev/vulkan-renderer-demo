@@ -142,7 +142,7 @@ nstl::optional<editor::assets::AssetMetadata> editor::assets::AssetDatabase::loa
 {
     namespace json = yyjsoncpp;
 
-    nstl::string path = constructAndCreateAssetPath(id, "asset.json");
+    nstl::string path = constructAssetPath(id, "asset.json");
 
     fs::file f{ path, fs::open_mode::read };
     nstl::blob content{ f.size() };
@@ -263,18 +263,12 @@ editor::assets::MaterialData editor::assets::AssetDatabase::loadMaterial(Uuid id
     return data;
 }
 
-nstl::blob editor::assets::AssetDatabase::loadImage(Uuid id) const
+nstl::string editor::assets::AssetDatabase::getImagePath(Uuid id) const
 {
     auto metadata = loadMetadataFile(id);
     assert(metadata);
     assert(metadata->type == AssetType::Image);
     assert(metadata->files.size() == 1);
 
-    nstl::string path = constructAssetPath(id, metadata->files[0]);
-
-    fs::file f{ path, fs::open_mode::read };
-    nstl::blob data{ f.size() };
-    f.read(data.data(), data.size());
-
-    return data;
+    return constructAssetPath(id, metadata->files[0]);
 }

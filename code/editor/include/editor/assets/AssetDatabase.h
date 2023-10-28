@@ -69,7 +69,7 @@ namespace editor::assets
         MeshData loadMesh(Uuid id) const;
         nstl::blob loadMeshData(Uuid id) const;
         MaterialData loadMaterial(Uuid id) const;
-        nstl::blob loadImage(Uuid id) const;
+        nstl::string getImagePath(Uuid id) const;
 
     private:
         AssetMetadata getMetadata(Uuid id) const;

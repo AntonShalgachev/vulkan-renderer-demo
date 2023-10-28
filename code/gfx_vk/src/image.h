@@ -24,7 +24,7 @@ namespace gfx_vk
         size_t get_height() const { return m_params.height; }
         gfx::image_type get_type() const { return m_params.type; }
 
-        void upload_sync(nstl::blob_view bytes);
+        void upload_sync(gfx::data_reader& reader);
 
     private:
         context& m_context;

@@ -8,9 +8,9 @@
 
 void platform::create_directory(nstl::string_view path)
 {
-    nstl::string pathCopy = path;
+    nstl::string path_copy = path;
 
-    bool result = CreateDirectoryA(pathCopy.c_str(), nullptr);
+    bool result = CreateDirectoryA(path_copy.c_str(), nullptr);
 
     [[maybe_unused]] auto lastError = GetLastError();
     if (!result)
@@ -20,29 +20,29 @@ void platform::create_directory(nstl::string_view path)
 bool platform::open_file(file_storage_t& storage, nstl::string_view filename, fs::open_mode mode)
 {
     assert(filename.length() <= MAX_PATH);
-    nstl::string filenameCopy = filename;
+    nstl::string filename_copy = filename;
 
-    DWORD desiredAccess = 0; // GENERIC_READ, GENERIC_WRITE
-    DWORD shareMode = 0;
-    DWORD creationDisposition = 0; // OPEN_EXISTING, CREATE_ALWAYS
-    DWORD flagsAndAttributes = FILE_ATTRIBUTE_NORMAL;
+    DWORD desired_access = 0; // GENERIC_READ, GENERIC_WRITE
+    DWORD share_mode = 0;
+    DWORD creation_disposition = 0; // OPEN_EXISTING, CREATE_ALWAYS
+    DWORD flags_and_attributes = FILE_ATTRIBUTE_NORMAL;
 
     if (mode == fs::open_mode::read)
     {
-        desiredAccess = GENERIC_READ;
-        creationDisposition = OPEN_EXISTING;
+        desired_access = GENERIC_READ;
+        creation_disposition = OPEN_EXISTING;
     }
     else if (mode == fs::open_mode::write)
     {
-        desiredAccess = GENERIC_WRITE;
-        creationDisposition = CREATE_ALWAYS;
+        desired_access = GENERIC_WRITE;
+        creation_disposition = CREATE_ALWAYS;
     }
     else
     {
         assert(false);
     }
 
-    HANDLE h = CreateFileA(filenameCopy.c_str(), desiredAccess, shareMode, nullptr, creationDisposition, flagsAndAttributes, nullptr);
+    HANDLE h = CreateFileA(filename_copy.c_str(), desired_access, share_mode, nullptr, creation_disposition, flags_and_attributes, nullptr);
     if (h == INVALID_HANDLE_VALUE)
     {
         auto e = platform_win64::get_last_error(); // TODO make use of it
@@ -89,15 +89,15 @@ bool platform::read_file(file_storage_t& storage, void* data, size_t size, size_
 
     assert(size <= UINT32_MAX);
 
-    DWORD bytesRead = 0;
-    if (!ReadFile(handle, data, static_cast<uint32_t>(size), &bytesRead, &o))
+    DWORD bytes_read = 0;
+    if (!ReadFile(handle, data, static_cast<uint32_t>(size), &bytes_read, &o))
     {
         auto e = platform_win64::get_last_error(); // TODO make use of it
         assert(false);
         return false;
     }
 
-    return bytesRead == size;
+    return bytes_read == size;
 }
 
 bool platform::write_file(file_storage_t& storage, void const* data, size_t size, size_t offset)
@@ -110,13 +110,13 @@ bool platform::write_file(file_storage_t& storage, void const* data, size_t size
 
         assert(size <= UINT32_MAX);
 
-    DWORD bytesWritten = 0;
-    if (!WriteFile(handle, data, static_cast<uint32_t>(size), &bytesWritten, &o))
+    DWORD bytes_written = 0;
+    if (!WriteFile(handle, data, static_cast<uint32_t>(size), &bytes_written, &o))
     {
         auto e = platform_win64::get_last_error(); // TODO make use of it
         assert(false);
         return false;
     }
 
-    return bytesWritten == size;
+    return bytes_written == size;
 }

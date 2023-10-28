@@ -1,6 +1,9 @@
 #pragma once
 
 #include "command_pool.h"
+#include "memory.h"
+
+#include "gfx/resources.h"
 
 #include "nstl/blob_view.h"
 #include "nstl/vector.h"
@@ -9,8 +12,6 @@
 
 namespace gfx_vk
 {
-    struct allocation_handle;
-
     class context;
 
     struct transfer_data
@@ -29,16 +30,17 @@ namespace gfx_vk
         transfers(context& context);
         ~transfers();
 
-        transfer_data begin_transfer(nstl::blob_view bytes);
+        transfer_data begin_transfer(gfx::data_reader& reader);
         void submit_and_wait(size_t index);
 
     private:
         context& m_context;
 
+        unique_handle<VkBuffer> m_buffer;
+        allocation_handle m_memory;
+
         command_pool m_command_pool;
         VkCommandBuffer m_command_buffer = VK_NULL_HANDLE;
-
-        nstl::vector<allocation_handle> m_allocations;
 
         struct transfer_storage;
         nstl::vector<transfer_storage> m_transfers;

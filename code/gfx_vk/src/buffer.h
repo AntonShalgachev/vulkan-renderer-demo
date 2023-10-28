@@ -22,7 +22,7 @@ namespace gfx_vk
         bool is_mutable() const { return m_params.is_mutable; }
         size_t get_size() const { return m_params.size; }
 
-        void upload_sync(nstl::blob_view bytes, size_t offset);
+        void upload_sync(gfx::data_reader& reader, size_t offset);
 
     private:
         context& m_context;

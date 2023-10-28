@@ -80,14 +80,14 @@ gfx_vk::image::~image()
     m_allocation = {};
 }
 
-void gfx_vk::image::upload_sync(nstl::blob_view bytes)
+void gfx_vk::image::upload_sync(gfx::data_reader& reader)
 {
-    assert(bytes.size() <= m_memory_size);
+    assert(reader.get_size() <= m_memory_size);
 
     auto width = static_cast<uint32_t>(m_params.width);
     auto height = static_cast<uint32_t>(m_params.height);
 
-    transfer_data data = m_context.get_transfers().begin_transfer(bytes);
+    transfer_data data = m_context.get_transfers().begin_transfer(reader);
 
     VkImageMemoryBarrier barrier{
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,

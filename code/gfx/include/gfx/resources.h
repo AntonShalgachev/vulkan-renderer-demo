@@ -19,6 +19,31 @@ namespace gfx
 
     //////////////////////////////////////////////////////////////////////////
 
+    // TODO move somewhere else
+    struct data_reader
+    {
+        // TODO add alignment requirements
+        virtual size_t get_size() const = 0;
+        virtual bool read(void* destination, size_t size) = 0;
+    };
+
+    struct memory_reader : gfx::data_reader
+    {
+        memory_reader(nstl::blob_view bytes) : bytes(bytes) {}
+
+        size_t get_size() const override { return bytes.size(); }
+        bool read(void* destination, size_t size) override
+        {
+            assert(size <= get_size());
+            memcpy(destination, bytes.data(), size);
+            return true;
+        }
+
+        nstl::blob_view bytes;
+    };
+
+    //////////////////////////////////////////////////////////////////////////
+
     // TODO make resources opaque handles
 
     struct handle

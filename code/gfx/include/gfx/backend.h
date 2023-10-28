@@ -24,8 +24,8 @@ namespace gfx
         [[nodiscard]] virtual renderstate_handle create_renderstate(renderstate_params const& params) = 0;
 
         virtual void begin_resource_update() = 0;
-        virtual void buffer_upload_sync(buffer_handle handle, nstl::blob_view bytes, size_t offset) = 0;
-        virtual void image_upload_sync(gfx::image_handle handle, nstl::blob_view bytes) = 0;
+        virtual void buffer_upload_sync(buffer_handle handle, gfx::data_reader& reader, size_t offset) = 0;
+        virtual void image_upload_sync(gfx::image_handle handle, data_reader& reader) = 0;
 
         [[nodiscard]] virtual renderpass_handle get_main_renderpass() = 0;
         [[nodiscard]] virtual framebuffer_handle acquire_main_framebuffer() = 0;

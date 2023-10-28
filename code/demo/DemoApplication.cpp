@@ -679,7 +679,7 @@ bool DemoApplication::loadGltfModel(nstl::string_view basePath, cgltf_data const
 
         nstl::string imagePath = basePath + gltfImage.uri;
 
-        m_gltfResources->demoTextures.push_back(m_sceneDrawer->createTexture(vkc::utils::readBinaryFile(imagePath)));
+        m_gltfResources->demoTextures.push_back(m_sceneDrawer->createTexture(imagePath));
     }
 
     for (size_t i = 0; i < model.materials_count; i++)
@@ -862,7 +862,8 @@ void DemoApplication::editorLoadImage(editor::assets::Uuid id)
     static auto scopeId = memory::tracking::create_scope_id("Scene/Load/Editor/Image");
     MEMORY_TRACKING_SCOPE(scopeId);
 
-    m_editorGltfResources->demoTextures[id] = m_sceneDrawer->createTexture(m_assetDatabase->loadImage(id));
+    nstl::string path = m_assetDatabase->getImagePath(id);
+    m_editorGltfResources->demoTextures[id] = m_sceneDrawer->createTexture(path);
 }
 
 void DemoApplication::editorLoadMaterial(editor::assets::Uuid id)

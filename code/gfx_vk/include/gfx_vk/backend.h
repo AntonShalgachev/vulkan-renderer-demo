@@ -31,8 +31,8 @@ namespace gfx_vk
         [[nodiscard]] gfx::renderstate_handle create_renderstate(gfx::renderstate_params const& params) override;
 
         void begin_resource_update() override;
-        void buffer_upload_sync(gfx::buffer_handle handle, nstl::blob_view bytes, size_t offset) override;
-        void image_upload_sync(gfx::image_handle handle, nstl::blob_view bytes) override;
+        void buffer_upload_sync(gfx::buffer_handle handle, gfx::data_reader& reader, size_t offset) override;
+        void image_upload_sync(gfx::image_handle handle, gfx::data_reader& reader) override;
 
         [[nodiscard]] gfx::renderpass_handle get_main_renderpass() override;
         [[nodiscard]] gfx::framebuffer_handle acquire_main_framebuffer() override;

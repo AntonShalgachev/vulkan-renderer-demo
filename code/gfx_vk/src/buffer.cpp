@@ -122,7 +122,7 @@ VkBuffer gfx_vk::buffer::get_current_handle() const
     return get_handle(index);
 }
 
-void gfx_vk::buffer::upload_sync(nstl::blob_view bytes, size_t offset)
+void gfx_vk::buffer::upload_sync(gfx::data_reader& reader, size_t offset)
 {
     // TODO prevent calling this function on immutable resource
 
@@ -130,12 +130,12 @@ void gfx_vk::buffer::upload_sync(nstl::blob_view bytes, size_t offset)
 
     if (m_params.location == gfx::buffer_location::device_local)
     {
-        transfer_data data = m_context.get_transfers().begin_transfer(bytes);
+        transfer_data data = m_context.get_transfers().begin_transfer(reader);
 
         VkBufferCopy region{
             .srcOffset = data.buffer_offset,
             .dstOffset = offset,
-            .size = bytes.size(),
+            .size = reader.get_size(),
         };
         vkCmdCopyBuffer(data.command_buffer, data.buffer, m_buffers[subresource_index].handle, 1, &region);
 
@@ -149,6 +149,8 @@ void gfx_vk::buffer::upload_sync(nstl::blob_view bytes, size_t offset)
         assert(data);
         assert(data->ptr);
 
-        memcpy(static_cast<unsigned char*>(data->ptr) + memory_offset, bytes.data(), bytes.size());
+        if (!reader.read(static_cast<unsigned char*>(data->ptr) + memory_offset, reader.get_size()))
+            assert(false);
+//         memcpy(static_cast<unsigned char*>(data->ptr) + memory_offset, bytes.data(), bytes.size());
     }
 }

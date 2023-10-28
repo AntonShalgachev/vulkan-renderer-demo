@@ -53,8 +53,10 @@ namespace gfx
 
         // Resource update
         void begin_resource_update() { return m_backend->begin_resource_update(); }
-        void buffer_upload_sync(buffer_handle handle, nstl::blob_view bytes, size_t offset = 0) { return m_backend->buffer_upload_sync(handle, bytes, offset); } // TODO: add async upload
-        void image_upload_sync(image_handle handle, nstl::blob_view bytes) { return m_backend->image_upload_sync(handle, bytes); } // TODO: add async upload
+        void buffer_upload_sync(buffer_handle handle, gfx::data_reader& reader, size_t offset = 0) { return m_backend->buffer_upload_sync(handle, reader, offset); } // TODO: add async upload
+        void buffer_upload_sync(buffer_handle handle, nstl::blob_view bytes, size_t offset = 0);
+        void image_upload_sync(image_handle handle, data_reader& reader) { return m_backend->image_upload_sync(handle, reader); } // TODO: add async upload
+        void image_upload_sync(image_handle handle, nstl::blob_view bytes);
 
         // Main framebuffer resources
         [[nodiscard]] renderpass_handle get_main_renderpass() { return m_backend->get_main_renderpass(); }

@@ -6,9 +6,11 @@
 
 #include "memory/tracking.h"
 
-#include "nstl/array.h"
+#include "fs/file.h"
 
-#include "stb_image.h"
+#include "nstl/array.h"
+#include "nstl/blob.h"
+
 #include "dds-ktx.h"
 
 #include <limits.h>
@@ -29,60 +31,8 @@ namespace
 
         gfx::image_format format = gfx::image_format::r8g8b8a8;
 
-        nstl::vector<unsigned char> bytes;
         nstl::vector<MipData> mips;
     };
-
-    nstl::optional<ImageData> loadWithStbImage(nstl::blob_view bytes)
-    {
-        static auto scopeId = memory::tracking::create_scope_id("Image/Load/STBI");
-        MEMORY_TRACKING_SCOPE(scopeId);
-
-        assert(bytes.size() <= INT_MAX);
-
-        int w = 0, h = 0, comp = 0, req_comp = 4;
-        unsigned char* data = stbi_load_from_memory(bytes.ucdata(), static_cast<int>(bytes.size()), &w, &h, &comp, req_comp);
-        int bits = 8;
-
-        if (!data)
-            return {};
-
-        if (w < 1 || h < 1)
-        {
-            stbi_image_free(data);
-            return {};
-        }
-
-        if (req_comp != 0)
-        {
-            // loaded data has `req_comp` channels(components)
-            comp = req_comp;
-        }
-
-        ImageData imageData;
-
-        imageData.width = static_cast<size_t>(w);
-        imageData.height = static_cast<size_t>(h);
-
-        // TODO refactor this mess and support other pixel types
-        imageData.format = [](int bits, int comp)
-        {
-            if (bits == 8 && comp == 4)
-                return gfx::image_format::r8g8b8a8;
-
-            assert(false);
-            return gfx::image_format::r8g8b8a8;
-        }(bits, comp);
-
-        size_t dataSize = static_cast<size_t>(w * h * comp) * size_t(bits / 8);
-        imageData.bytes.resize(dataSize);
-        nstl::copy(data, data + dataSize, imageData.bytes.begin());
-        stbi_image_free(data);
-
-        imageData.mips = { { 0, imageData.bytes.size() } };
-
-        return imageData;
-    }
 
     nstl::optional<ImageData> loadWithDdspp(nstl::blob_view bytes)
     {
@@ -123,10 +73,6 @@ namespace
             return gfx::image_format::bc1_unorm;
         }(info.format);
 
-        // TODO don't include the header
-        imageData.bytes.resize(bytes.size());
-        memcpy(imageData.bytes.data(), bytes.data(), bytes.size());
-
         for (int mip = 0; mip < info.num_mips; mip++)
         {
             ddsktx_sub_data mipInfo;
@@ -142,7 +88,7 @@ namespace
         return imageData;
     }
 
-    nstl::optional<ImageData> loadWithKtx(nstl::blob_view bytes)
+    nstl::optional<ImageData> loadWithKtx(fs::file& f)
     {
         static auto scopeId = memory::tracking::create_scope_id("Image/Load/KTX");
         MEMORY_TRACKING_SCOPE(scopeId);
@@ -150,27 +96,26 @@ namespace
         class memory_stream : public tiny_ktx::input_stream
         {
         public:
-            memory_stream(nstl::blob_view bytes) : m_bytes(bytes) {}
+            memory_stream(fs::file& f) : m_file(f) {}
 
             bool read(void* dest, size_t size) override
             {
                 if (!dest)
                     return false;
 
-                if (m_position + size > m_bytes.size())
+                if (!m_file.try_read(dest, size, m_position))
                     return false;
 
-                memcpy(dest, m_bytes.ucdata() + m_position, size);
                 m_position += size;
                 return true;
             }
 
         private:
-            nstl::blob_view m_bytes;
+            fs::file& m_file;
             size_t m_position = 0;
         };
 
-        memory_stream stream{ bytes };
+        memory_stream stream{ f };
 
         tiny_ktx::image_header header;
         if (!tiny_ktx::parse_header(&header, stream))
@@ -208,35 +153,32 @@ namespace
             return {};
 
         size_t dataOffset = levelIndex[mipsCount - 1].byte_offset;
-        size_t dataSize = levelIndex[0].byte_offset + levelIndex[0].byte_length - dataOffset;
-        imageData.bytes.resize(dataSize);
+        [[maybe_unused]] size_t dataSize = levelIndex[0].byte_offset + levelIndex[0].byte_length - dataOffset;
 
-        assert(dataOffset + dataSize <= bytes.size());
-        memcpy(imageData.bytes.data(), bytes.ucdata() + dataOffset, dataSize);
+//         assert(dataOffset + dataSize <= bytes.size());
 
         for (size_t i = 0; i < mipsCount; i++)
         {
             size_t mipOffset = levelIndex[i].byte_offset - dataOffset;
             size_t mipSize = levelIndex[i].byte_length;
 
-            imageData.mips.push_back({ mipOffset, mipSize });
+            imageData.mips.push_back({ dataOffset + mipOffset, mipSize });
         }
 
         return imageData;
     }
 
-    nstl::optional<ImageData> loadImage(nstl::blob_view bytes)
+    nstl::optional<ImageData> loadImage(nstl::string_view path)
     {
         static auto scopeId = memory::tracking::create_scope_id("Image/Load");
         MEMORY_TRACKING_SCOPE(scopeId);
 
-        if (auto data = loadWithDdspp(bytes))
-            return data;
+        fs::file f{ path, fs::open_mode::read };
 
-        if (auto data = loadWithStbImage(bytes))
-            return data;
+//         if (auto data = loadWithDdspp(f))
+//             return data;
 
-        if (auto data = loadWithKtx(bytes))
+        if (auto data = loadWithKtx(f))
             return data;
 
         return {};
@@ -295,29 +237,50 @@ DemoSceneDrawer::DemoSceneDrawer(gfx::renderer& renderer, gfx::renderpass_handle
     m_defaultSampler = m_renderer.create_sampler({});
 }
 
-DemoTexture* DemoSceneDrawer::createTexture(nstl::blob_view bytes)
+DemoTexture* DemoSceneDrawer::createTexture(nstl::string_view path)
 {
     // TODO leads to unnecessary data copy; change that
-    nstl::optional<ImageData> imageData = loadImage(bytes);
+    nstl::optional<ImageData> imageData = loadImage(path);
     assert(imageData);
 
-    assert(!imageData->bytes.empty());
     assert(!imageData->mips.empty());
     assert(imageData->mips[0].size > 0);
 
     // TODO support all mips
 
     ImageData::MipData const& mipData = imageData->mips[0];
-    auto mipBytes = nstl::span<unsigned char const>{ imageData->bytes }.subspan(mipData.offset, mipData.size);
+
+    struct file_reader : gfx::data_reader
+    {
+        file_reader(nstl::string_view path, size_t offset, size_t size) : m_offset(offset), m_size(size)
+        {
+            m_file.open(path, fs::open_mode::read);
+            assert(m_offset + m_size <= m_file.size());
+        }
+
+        size_t get_size() const override { return m_size; }
+
+        bool read(void* destination, size_t size) override
+        {
+            assert(size <= m_size);
+            return m_file.try_read(destination, size, m_offset);
+        }
+
+        fs::file m_file;
+        size_t m_offset = 0;
+        size_t m_size = 0;
+    };
+
+    file_reader reader{ path, mipData.offset, mipData.size };
 
     auto image = m_renderer.create_image({
         .width = imageData->width,
         .height = imageData->height,
-        .format = static_cast<gfx::image_format>(static_cast<size_t>(imageData->format)), // TODO: remove
+        .format = imageData->format,
         .type = gfx::image_type::color,
         .usage = gfx::image_usage::upload_sampled,
     });
-    m_renderer.image_upload_sync(image, mipBytes);
+    m_renderer.image_upload_sync(image, reader);
 
     m_textures.push_back(nstl::make_unique<DemoTexture>());
     DemoTexture* texture = m_textures.back().get();
