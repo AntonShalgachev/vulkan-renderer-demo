@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/fmt.h"
-
 #include <vulkan/vulkan.h>
 
 #include <assert.h>

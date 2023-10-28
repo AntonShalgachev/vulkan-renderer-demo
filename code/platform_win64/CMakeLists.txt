@@ -1,6 +1,7 @@
 add_library(platform_win64
     "include/platform_win64/window.h"
 
+    "src/pch.h"
     "src/memory.cpp"
     "src/filesystem.cpp"
     "src/uuid.cpp"
@@ -24,3 +25,5 @@ target_link_libraries(platform_win64
     "Rpcrt4.lib"
     glfw # TODO remove
 )
+
+target_precompile_headers(platform_win64 PRIVATE "src/pch.h")

@@ -4,7 +4,8 @@ add_library(gfx_vk
     "include/gfx_vk/backend.h"
     "include/gfx_vk/config.h"
     "include/gfx_vk/surface_factory.h"
-    
+
+    "src/pch.h"
     "src/backend.cpp"
     "src/context.h"
     "src/context.cpp"
@@ -16,7 +17,6 @@ add_library(gfx_vk
     "src/descriptor_allocator.cpp"
     "src/renderer.h"
     "src/renderer.cpp"
-
     "src/swapchain.h"
     "src/swapchain.cpp"
     "src/buffer.h"
@@ -62,3 +62,5 @@ target_link_libraries(gfx_vk
     Vulkan::Vulkan
     logging
 )
+
+target_precompile_headers(gfx_vk PRIVATE "src/pch.h")

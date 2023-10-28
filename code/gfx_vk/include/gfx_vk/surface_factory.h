@@ -1,8 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
-#include "platform/window.h"
+#include <vulkan/vulkan_core.h>
 
 #include "nstl/span.h"
 

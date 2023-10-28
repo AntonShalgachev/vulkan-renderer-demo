@@ -23,9 +23,7 @@ target_include_directories(imgui PUBLIC
     "${imgui_SOURCE_DIR}"
 )
 
-target_link_libraries(imgui
-    glfw
-)
+target_compile_definitions(imgui PRIVATE IMGUI_DISABLE_WIN32_FUNCTIONS)
 
 set_target_properties(imgui
     PROPERTIES

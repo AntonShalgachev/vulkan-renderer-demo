@@ -46,9 +46,6 @@ namespace vkc
             return true;
         }
 
-        // TODO implement asset manager instead
-        nstl::blob readBinaryFile(nstl::string_view filename);
-
         // TODO implement as an interator
         nstl::vector<nstl::string_view> split(nstl::string_view str);
     }

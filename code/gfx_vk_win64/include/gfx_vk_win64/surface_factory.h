@@ -2,6 +2,8 @@
 
 #include "gfx_vk/surface_factory.h"
 
+#include "platform/window.h"
+
 namespace gfx_vk_win64
 {
     class surface_factory final : public gfx_vk::surface_factory
