@@ -89,4 +89,9 @@ namespace platform_win64
         nstl::event<float, float> m_on_scroll;
         nstl::event<char> m_on_char;
     };
+
+    class window : public glfw_window
+    {
+        using glfw_window::glfw_window;
+    };
 }

@@ -400,7 +400,7 @@ void DemoApplication::init()
         assert(success);
     }
 
-    m_window = nstl::make_unique<platform_win64::glfw_window>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "vulkan_renderer_demo"); // WTF
+    m_window = nstl::make_unique<platform_win64::window>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "vulkan_renderer_demo");
     m_window->add_keyboard_button_callback([this](auto&&... args) { onKey(nstl::forward<decltype(args)>(args)...); });
     m_window->add_mouse_button_callback([this](auto&&... args) { onMouseButton(nstl::forward<decltype(args)>(args)...); });
     m_window->add_mouse_delta_callback([this](float dx, float dy) { onMouseMove({ dx, dy }); });
@@ -548,7 +548,7 @@ void DemoApplication::unloadImgui()
     ImGui::DestroyContext();
 }
 
-void DemoApplication::onKey(platform::button_action action, platform::keyboard_button button, platform::button_modifiers modifiers)
+void DemoApplication::onKey(platform::button_action action, platform::keyboard_button button, platform::button_modifiers)
 {
     if (action != platform::button_action::press && action != platform::button_action::release)
         return;
@@ -559,7 +559,7 @@ void DemoApplication::onKey(platform::button_action action, platform::keyboard_b
         m_debugConsole->toggle();
 }
 
-void DemoApplication::onMouseButton(platform::button_action action, platform::mouse_button button, platform::button_modifiers modifiers)
+void DemoApplication::onMouseButton(platform::button_action action, platform::mouse_button button, platform::button_modifiers)
 {
     if (button == platform::mouse_button::left)
         m_leftMouseDown = action != platform::button_action::release;

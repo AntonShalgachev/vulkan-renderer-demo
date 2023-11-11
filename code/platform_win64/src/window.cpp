@@ -218,7 +218,7 @@ platform_win64::glfw_window::glfw_window(size_t width, size_t height, char const
     glfwInit();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    m_handle = glfwCreateWindow(width, height, title, nullptr, nullptr);
+    m_handle = glfwCreateWindow(static_cast<int>(width), static_cast<int>(height), title, nullptr, nullptr);
     glfwSetWindowUserPointer(m_handle, this);
 
     glfwSetWindowSizeCallback(m_handle, createGlfwCallback<&glfw_window::on_window_resized>());
@@ -334,7 +334,7 @@ void platform_win64::glfw_window::on_iconified(int iconified)
     m_is_iconified = static_cast<bool>(iconified);
 }
 
-void platform_win64::glfw_window::on_keyboard_button(int key, int scancode, int action, int mods)
+void platform_win64::glfw_window::on_keyboard_button(int key, int, int action, int mods)
 {
     m_on_keyboard_button(get_action(action), get_key(key), get_modifiers(mods));
 }
