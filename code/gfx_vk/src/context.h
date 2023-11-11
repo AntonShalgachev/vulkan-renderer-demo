@@ -14,7 +14,7 @@ namespace gfx_vk
     class context
     {
     public:
-        context(surface_factory& factory, tglm::ivec2 extent, config const& config);
+        context(surface_factory& factory, size_t w, size_t h, config const& config);
         ~context();
 
         VkAllocationCallbacks const& get_allocator() const;

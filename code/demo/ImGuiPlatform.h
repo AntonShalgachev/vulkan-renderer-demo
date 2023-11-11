@@ -1,11 +1,14 @@
 #pragma once
 
-class GlfwWindow;
+namespace platform
+{
+    class window;
+}
 
 class ImGuiPlatform
 {
 public:
-    ImGuiPlatform(GlfwWindow& window);
+    ImGuiPlatform(platform::window& window);
     ~ImGuiPlatform();
 
     void update(float frameTime);
@@ -17,5 +20,5 @@ private:
     void updateCursor();
 
 private:
-    GlfwWindow& m_window;
+    platform::window& m_window;
 };

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common/Timer.h"
-#include "GlfwWindow.h"
 #include "DemoSceneDrawer.h"
 
 #include "ui/DebugConsoleWidget.h"
@@ -15,6 +14,8 @@
 #include "editor/assets/Uuid.h"
 
 #include "gfx/resources.h"
+
+#include "platform/window.h"
 
 #include "nstl/vector.h"
 #include "nstl/unordered_map.h"
@@ -94,7 +95,8 @@ private:
     void loadImgui();
     void unloadImgui();
 
-    void onKey(GlfwWindow::Action action, GlfwWindow::OldKey key, char c, GlfwWindow::Modifiers mods);
+    void onKey(platform::button_action action, platform::keyboard_button button, platform::button_modifiers modifiers);
+    void onMouseButton(platform::button_action action, platform::mouse_button button, platform::button_modifiers modifiers);
     void onMouseMove(tglm::vec2 const& delta);
 
     void createDemoScene(cgltf_data const& gltfModel, cgltf_scene const& gltfScene) const;
@@ -138,7 +140,7 @@ private:
 
     ScopedDebugCommands m_commands{ m_services };
 
-    nstl::unique_ptr<GlfwWindow> m_window;
+    nstl::unique_ptr<platform::window> m_window;
 
     nstl::unique_ptr<ImGuiPlatform> m_imGuiPlatform;
     nstl::unique_ptr<ImGuiDrawer> m_imGuiDrawer;
@@ -159,10 +161,12 @@ private:
     float m_cameraSpeed = 5.0f;
     bool m_paused = false;
 
+    bool m_mouseCapturedByUi = false;
+    bool m_leftMouseDown = false;
+
     bool m_validationEnabled = false;
 
-    nstl::vector<bool> m_keyState;
-    GlfwWindow::Modifiers m_modifiers = GlfwWindow::Modifiers::None;
+    nstl::array<bool, tiny_ctti::enum_size_v<platform::keyboard_button>> m_keyState{};
 
     nstl::optional<ui::NotificationManager> m_notifications;
     nstl::optional<ui::DebugConsoleWidget> m_debugConsole;

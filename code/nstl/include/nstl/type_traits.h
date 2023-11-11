@@ -123,8 +123,8 @@ namespace nstl
 #error Unsupported compiler
 #endif
 
-    template<typename T>
-    inline constexpr bool is_enum_v = __is_enum(T);
+    template<typename T> inline constexpr bool is_enum_v = __is_enum(T);
+    template<typename T> concept enumeration = is_enum_v<T>;
 
     template<typename T>
     using underlying_type_t = __underlying_type(T);

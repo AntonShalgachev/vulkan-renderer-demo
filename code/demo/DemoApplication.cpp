@@ -328,7 +328,12 @@ void DemoApplication::run()
     logging::info("Loading finished. Time: {} seconds", time);
 
     m_frameTimer.start();
-    m_window->startEventLoop([this]() { drawFrame(); });
+
+    while (!m_window->should_close())
+    {
+        m_window->poll_events();
+        drawFrame();
+    }
 }
 
 void DemoApplication::init()
@@ -395,16 +400,15 @@ void DemoApplication::init()
         assert(success);
     }
 
-    m_keyState.resize(1 << 8 * sizeof(char), false);
+    m_window = nstl::make_unique<platform_win64::glfw_window>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "vulkan_renderer_demo"); // WTF
+    m_window->add_keyboard_button_callback([this](auto&&... args) { onKey(nstl::forward<decltype(args)>(args)...); });
+    m_window->add_mouse_button_callback([this](auto&&... args) { onMouseButton(nstl::forward<decltype(args)>(args)...); });
+    m_window->add_mouse_delta_callback([this](float dx, float dy) { onMouseMove({ dx, dy }); });
 
-    m_window = nstl::make_unique<GlfwWindow>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "Vulkan Demo");
-    m_window->addOldKeyCallback([this](GlfwWindow::Action action, GlfwWindow::OldKey key, char c, GlfwWindow::Modifiers modifiers) { onKey(action, key, c, modifiers); });
-    m_window->addOldMouseDeltaCallback([this](float deltaX, float deltaY) { onMouseMove({ deltaX, deltaY }); });
-
-    gfx_vk_win64::surface_factory surfaceFactory{ m_window->getWindowHandle() };
+    gfx_vk_win64::surface_factory surfaceFactory{ *m_window };
 
     gfx_vk::config config = {
-        .name = "Vulkan Demo",
+        .name = "vulkan_renderer_demo",
         .enable_validation = m_validationEnabled,
 
         .descriptors = {
@@ -412,23 +416,23 @@ void DemoApplication::init()
             .max_descriptors_per_type_per_pool = 4 * 2048 * 16,
         },
     };
-    auto backend = nstl::make_unique<gfx_vk::backend>(surfaceFactory, m_window->getFramebufferSize(), config);
+    auto backend = nstl::make_unique<gfx_vk::backend>(surfaceFactory, m_window->get_framebuffer_width(), m_window->get_framebuffer_height(), config);
     m_renderer = nstl::make_unique<gfx::renderer>(nstl::move(backend));
 
-    m_window->addFramebufferResizeCallback([this](int width, int height) {
-        if (width <= 0 || height <= 0)
+    m_window->add_framebuffer_resize_callback([this](size_t width, size_t height) {
+        if (width == 0 || height == 0)
             return;
 
-        m_renderer->resize_main_framebuffer({ width, height });
+        m_renderer->resize_main_framebuffer(width, height);
     });
 
     m_services.setDebugDraw(nstl::make_unique<DebugDrawService>(*m_renderer));
 
     loadImgui();
 
-    m_commands["window.resize"].arguments("width", "height") = coil::bind(&GlfwWindow::resize, m_window.get());
-    m_commands["window.width"] = coil::bindProperty(&GlfwWindow::getWindowWidth, m_window.get());
-    m_commands["window.height"] = coil::bindProperty(&GlfwWindow::getWindowHeight, m_window.get());
+    m_commands["window.resize"].arguments("width", "height") = coil::bind(&platform::window::resize, m_window.get());
+    m_commands["window.width"] = coil::bindProperty(&platform::window::get_window_width, m_window.get());
+    m_commands["window.height"] = coil::bindProperty(&platform::window::get_window_height, m_window.get());
 
     m_commands["scene.load"].description("Load scene from a GLTF model").arguments("path") = [this](coil::Context context, nstl::string_view path) {
         if (!loadScene(path))
@@ -544,21 +548,31 @@ void DemoApplication::unloadImgui()
     ImGui::DestroyContext();
 }
 
-void DemoApplication::onKey(GlfwWindow::Action action, GlfwWindow::OldKey, char c, GlfwWindow::Modifiers mods)
+void DemoApplication::onKey(platform::button_action action, platform::keyboard_button button, platform::button_modifiers modifiers)
 {
-    if (action != GlfwWindow::Action::Press && action != GlfwWindow::Action::Release)
+    if (action != platform::button_action::press && action != platform::button_action::release)
         return;
 
-    size_t index = static_cast<size_t>(c);
-    m_keyState[index] = action == GlfwWindow::Action::Press;
-    m_modifiers = mods;
+    m_keyState[static_cast<size_t>(button)] = action == platform::button_action::press;
 
-    if (c == '`' && action == GlfwWindow::Action::Press)
+    if (button == platform::keyboard_button::grave_accent && action == platform::button_action::press)
         m_debugConsole->toggle();
+}
+
+void DemoApplication::onMouseButton(platform::button_action action, platform::mouse_button button, platform::button_modifiers modifiers)
+{
+    if (button == platform::mouse_button::left)
+        m_leftMouseDown = action != platform::button_action::release;
 }
 
 void DemoApplication::onMouseMove(tglm::vec2 const& delta)
 {
+    if (!m_leftMouseDown)
+        return;
+
+    if (m_mouseCapturedByUi)
+        return;
+
     tglm::vec3 angleDelta = m_mouseSensitivity * tglm::vec3{ -delta.y, -delta.x, 0.0f };
     tglm::quat rotationDelta = createRotation(angleDelta);
 
@@ -1046,8 +1060,7 @@ void DemoApplication::updateUI(float frameTime)
     m_debugConsole->draw();
     m_memoryViewer->draw();
 
-    // TODO fix this logic
-    m_window->setCanCaptureCursor(!io.WantCaptureMouse);
+    m_mouseCapturedByUi = io.WantCaptureMouse;
 }
 
 void DemoApplication::drawFrame()
@@ -1102,18 +1115,18 @@ void DemoApplication::updateCamera(float dt)
     tglm::vec3 up = m_cameraTransform.rotation.rotate(tglm::vec3(0.0f, 1.0f, 0.0f));
 
     tglm::vec3 posDelta = { 0.0f, 0.0f, 0.0f };
-
-    if (m_keyState['A'])
+    
+    if (m_keyState[static_cast<size_t>(platform::keyboard_button::a)])
         posDelta += -right;
-    if (m_keyState['D'])
+    if (m_keyState[static_cast<size_t>(platform::keyboard_button::d)])
         posDelta += right;
-    if (m_keyState['S'])
+    if (m_keyState[static_cast<size_t>(platform::keyboard_button::s)])
         posDelta += -forward;
-    if (m_keyState['W'])
+    if (m_keyState[static_cast<size_t>(platform::keyboard_button::w)])
         posDelta += forward;
-    if (m_keyState['Q'])
+    if (m_keyState[static_cast<size_t>(platform::keyboard_button::q)])
         posDelta += -up;
-    if (m_keyState['E'])
+    if (m_keyState[static_cast<size_t>(platform::keyboard_button::e)])
         posDelta += up;
 
     m_cameraTransform.position += m_cameraSpeed * dt * posDelta.normalized();
@@ -1123,7 +1136,7 @@ void DemoApplication::draw()
 {
     ImGui::Render();
 
-    if (m_window->isIconified())
+    if (m_window->is_iconified())
         return;
 
     m_renderer->begin_resource_update();

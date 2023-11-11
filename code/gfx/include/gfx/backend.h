@@ -12,7 +12,7 @@ namespace gfx
     public:
         virtual ~backend() = default;
 
-        virtual void resize_main_framebuffer(tglm::ivec2 size) = 0;
+        virtual void resize_main_framebuffer(size_t w, size_t h) = 0;
 
         [[nodiscard]] virtual buffer_handle create_buffer(buffer_params const& params) = 0;
         [[nodiscard]] virtual image_handle create_image(image_params const& params) = 0;

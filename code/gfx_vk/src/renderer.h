@@ -16,10 +16,10 @@ namespace gfx_vk
     class renderer
     {
     public:
-        renderer(context& context, tglm::ivec2 extent, renderer_config const& config);
+        renderer(context& context, size_t w, size_t h, renderer_config const& config);
         ~renderer();
 
-        void resize_main_framebuffer(tglm::ivec2 size);
+        void resize_main_framebuffer(size_t w, size_t h);
 
         [[nodiscard]] gfx::renderpass_handle get_main_renderpass() const { return m_renderpass; }
         [[nodiscard]] gfx::framebuffer_handle acquire_main_framebuffer();
@@ -39,7 +39,7 @@ namespace gfx_vk
         struct frame_resources;
 
     private:
-        void create_swapchain(tglm::ivec2 extent);
+        void create_swapchain(size_t w, size_t h);
         void create_frame_resources(renderer_config const& config);
 
         frame_resources& get_current_frame_resources();

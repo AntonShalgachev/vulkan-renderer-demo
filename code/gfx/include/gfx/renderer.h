@@ -37,7 +37,7 @@ namespace gfx
         renderer(nstl::unique_ptr<backend> backend);
         void set_backend(nstl::unique_ptr<backend> backend);
 
-        void resize_main_framebuffer(tglm::ivec2 size) { return m_backend->resize_main_framebuffer(size); }
+        void resize_main_framebuffer(size_t w, size_t h) { return m_backend->resize_main_framebuffer(w, h); }
 
         // TODO add some basic validation before calling backend
 

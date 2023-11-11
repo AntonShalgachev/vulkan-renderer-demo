@@ -1,22 +1,24 @@
 #include "ImGuiPlatform.h"
 
-#include "GlfwWindow.h"
-
 #include "memory/tracking.h"
+
+#include "platform/window.h"
 
 #include "imgui.h"
 
+#include "nstl/enum.h"
+
 namespace
 {
-    ImGuiMouseButton translate(GlfwWindow::MouseButton button)
+    ImGuiMouseButton translate(platform::mouse_button button)
     {
         switch (button)
         {
-        case GlfwWindow::MouseButton::Left:
+        case platform::mouse_button::left:
             return ImGuiMouseButton_Left;
-        case GlfwWindow::MouseButton::Middle:
+        case platform::mouse_button::middle:
             return ImGuiMouseButton_Middle;
-        case GlfwWindow::MouseButton::Right:
+        case platform::mouse_button::right:
             return ImGuiMouseButton_Right;
         }
 
@@ -24,151 +26,151 @@ namespace
         return ImGuiMouseButton_Left;
     }
 
-    ImGuiKey translate(GlfwWindow::Key key)
+    ImGuiKey translate(platform::keyboard_button key)
     {
         switch (key)
         {
-        case GlfwWindow::Key::Unknown: return ImGuiKey_None;
-        case GlfwWindow::Key::Tab: return ImGuiKey_Tab;
-        case GlfwWindow::Key::LeftArrow: return ImGuiKey_LeftArrow;
-        case GlfwWindow::Key::RightArrow: return ImGuiKey_RightArrow;
-        case GlfwWindow::Key::UpArrow: return ImGuiKey_UpArrow;
-        case GlfwWindow::Key::DownArrow: return ImGuiKey_DownArrow;
-        case GlfwWindow::Key::PageUp: return ImGuiKey_PageUp;
-        case GlfwWindow::Key::PageDown: return ImGuiKey_PageDown;
-        case GlfwWindow::Key::Home: return ImGuiKey_Home;
-        case GlfwWindow::Key::End: return ImGuiKey_End;
-        case GlfwWindow::Key::Insert: return ImGuiKey_Insert;
-        case GlfwWindow::Key::Delete: return ImGuiKey_Delete;
-        case GlfwWindow::Key::Backspace: return ImGuiKey_Backspace;
-        case GlfwWindow::Key::Space: return ImGuiKey_Space;
-        case GlfwWindow::Key::Enter: return ImGuiKey_Enter;
-        case GlfwWindow::Key::Escape: return ImGuiKey_Escape;
-        case GlfwWindow::Key::Apostrophe: return ImGuiKey_Apostrophe;
-        case GlfwWindow::Key::Comma: return ImGuiKey_Comma;
-        case GlfwWindow::Key::Minus: return ImGuiKey_Minus;
-        case GlfwWindow::Key::Period: return ImGuiKey_Period;
-        case GlfwWindow::Key::Slash: return ImGuiKey_Slash;
-        case GlfwWindow::Key::Semicolon: return ImGuiKey_Semicolon;
-        case GlfwWindow::Key::Equal: return ImGuiKey_Equal;
-        case GlfwWindow::Key::LeftBracket: return ImGuiKey_LeftBracket;
-        case GlfwWindow::Key::Backslash: return ImGuiKey_Backslash;
-        case GlfwWindow::Key::RightBracket: return ImGuiKey_RightBracket;
-        case GlfwWindow::Key::GraveAccent: return ImGuiKey_GraveAccent;
-        case GlfwWindow::Key::CapsLock: return ImGuiKey_CapsLock;
-        case GlfwWindow::Key::ScrollLock: return ImGuiKey_ScrollLock;
-        case GlfwWindow::Key::NumLock: return ImGuiKey_NumLock;
-        case GlfwWindow::Key::PrintScreen: return ImGuiKey_PrintScreen;
-        case GlfwWindow::Key::Pause: return ImGuiKey_Pause;
-        case GlfwWindow::Key::Keypad0: return ImGuiKey_Keypad0;
-        case GlfwWindow::Key::Keypad1: return ImGuiKey_Keypad1;
-        case GlfwWindow::Key::Keypad2: return ImGuiKey_Keypad2;
-        case GlfwWindow::Key::Keypad3: return ImGuiKey_Keypad3;
-        case GlfwWindow::Key::Keypad4: return ImGuiKey_Keypad4;
-        case GlfwWindow::Key::Keypad5: return ImGuiKey_Keypad5;
-        case GlfwWindow::Key::Keypad6: return ImGuiKey_Keypad6;
-        case GlfwWindow::Key::Keypad7: return ImGuiKey_Keypad7;
-        case GlfwWindow::Key::Keypad8: return ImGuiKey_Keypad8;
-        case GlfwWindow::Key::Keypad9: return ImGuiKey_Keypad9;
-        case GlfwWindow::Key::KeypadDecimal: return ImGuiKey_KeypadDecimal;
-        case GlfwWindow::Key::KeypadDivide: return ImGuiKey_KeypadDivide;
-        case GlfwWindow::Key::KeypadMultiply: return ImGuiKey_KeypadMultiply;
-        case GlfwWindow::Key::KeypadSubtract: return ImGuiKey_KeypadSubtract;
-        case GlfwWindow::Key::KeypadAdd: return ImGuiKey_KeypadAdd;
-        case GlfwWindow::Key::KeypadEnter: return ImGuiKey_KeypadEnter;
-        case GlfwWindow::Key::KeypadEqual: return ImGuiKey_KeypadEqual;
-        case GlfwWindow::Key::LeftShift: return ImGuiKey_LeftShift;
-        case GlfwWindow::Key::LeftCtrl: return ImGuiKey_LeftCtrl;
-        case GlfwWindow::Key::LeftAlt: return ImGuiKey_LeftAlt;
-        case GlfwWindow::Key::LeftSuper: return ImGuiKey_LeftSuper;
-        case GlfwWindow::Key::RightShift: return ImGuiKey_RightShift;
-        case GlfwWindow::Key::RightCtrl: return ImGuiKey_RightCtrl;
-        case GlfwWindow::Key::RightAlt: return ImGuiKey_RightAlt;
-        case GlfwWindow::Key::RightSuper: return ImGuiKey_RightSuper;
-        case GlfwWindow::Key::Menu: return ImGuiKey_Menu;
-        case GlfwWindow::Key::Zero: return ImGuiKey_0;
-        case GlfwWindow::Key::One: return ImGuiKey_1;
-        case GlfwWindow::Key::Two: return ImGuiKey_2;
-        case GlfwWindow::Key::Three: return ImGuiKey_3;
-        case GlfwWindow::Key::Four: return ImGuiKey_4;
-        case GlfwWindow::Key::Five: return ImGuiKey_5;
-        case GlfwWindow::Key::Six: return ImGuiKey_6;
-        case GlfwWindow::Key::Seven: return ImGuiKey_7;
-        case GlfwWindow::Key::Eight: return ImGuiKey_8;
-        case GlfwWindow::Key::Nine: return ImGuiKey_9;
-        case GlfwWindow::Key::A: return ImGuiKey_A;
-        case GlfwWindow::Key::B: return ImGuiKey_B;
-        case GlfwWindow::Key::C: return ImGuiKey_C;
-        case GlfwWindow::Key::D: return ImGuiKey_D;
-        case GlfwWindow::Key::E: return ImGuiKey_E;
-        case GlfwWindow::Key::F: return ImGuiKey_F;
-        case GlfwWindow::Key::G: return ImGuiKey_G;
-        case GlfwWindow::Key::H: return ImGuiKey_H;
-        case GlfwWindow::Key::I: return ImGuiKey_I;
-        case GlfwWindow::Key::J: return ImGuiKey_J;
-        case GlfwWindow::Key::K: return ImGuiKey_K;
-        case GlfwWindow::Key::L: return ImGuiKey_L;
-        case GlfwWindow::Key::M: return ImGuiKey_M;
-        case GlfwWindow::Key::N: return ImGuiKey_N;
-        case GlfwWindow::Key::O: return ImGuiKey_O;
-        case GlfwWindow::Key::P: return ImGuiKey_P;
-        case GlfwWindow::Key::Q: return ImGuiKey_Q;
-        case GlfwWindow::Key::R: return ImGuiKey_R;
-        case GlfwWindow::Key::S: return ImGuiKey_S;
-        case GlfwWindow::Key::T: return ImGuiKey_T;
-        case GlfwWindow::Key::U: return ImGuiKey_U;
-        case GlfwWindow::Key::V: return ImGuiKey_V;
-        case GlfwWindow::Key::W: return ImGuiKey_W;
-        case GlfwWindow::Key::X: return ImGuiKey_X;
-        case GlfwWindow::Key::Y: return ImGuiKey_Y;
-        case GlfwWindow::Key::Z: return ImGuiKey_Z;
-        case GlfwWindow::Key::F1: return ImGuiKey_F1;
-        case GlfwWindow::Key::F2: return ImGuiKey_F2;
-        case GlfwWindow::Key::F3: return ImGuiKey_F3;
-        case GlfwWindow::Key::F4: return ImGuiKey_F4;
-        case GlfwWindow::Key::F5: return ImGuiKey_F5;
-        case GlfwWindow::Key::F6: return ImGuiKey_F6;
-        case GlfwWindow::Key::F7: return ImGuiKey_F7;
-        case GlfwWindow::Key::F8: return ImGuiKey_F8;
-        case GlfwWindow::Key::F9: return ImGuiKey_F9;
-        case GlfwWindow::Key::F10: return ImGuiKey_F10;
-        case GlfwWindow::Key::F11: return ImGuiKey_F11;
-        case GlfwWindow::Key::F12: return ImGuiKey_F12;
+        case platform::keyboard_button::unknown: return ImGuiKey_None;
+        case platform::keyboard_button::tab: return ImGuiKey_Tab;
+        case platform::keyboard_button::left_arrow: return ImGuiKey_LeftArrow;
+        case platform::keyboard_button::right_arrow: return ImGuiKey_RightArrow;
+        case platform::keyboard_button::up_arrow: return ImGuiKey_UpArrow;
+        case platform::keyboard_button::down_arrow: return ImGuiKey_DownArrow;
+        case platform::keyboard_button::page_up: return ImGuiKey_PageUp;
+        case platform::keyboard_button::page_down: return ImGuiKey_PageDown;
+        case platform::keyboard_button::home: return ImGuiKey_Home;
+        case platform::keyboard_button::end: return ImGuiKey_End;
+        case platform::keyboard_button::insert: return ImGuiKey_Insert;
+        case platform::keyboard_button::del: return ImGuiKey_Delete;
+        case platform::keyboard_button::backspace: return ImGuiKey_Backspace;
+        case platform::keyboard_button::space: return ImGuiKey_Space;
+        case platform::keyboard_button::enter: return ImGuiKey_Enter;
+        case platform::keyboard_button::escape: return ImGuiKey_Escape;
+        case platform::keyboard_button::apostrophe: return ImGuiKey_Apostrophe;
+        case platform::keyboard_button::comma: return ImGuiKey_Comma;
+        case platform::keyboard_button::minus: return ImGuiKey_Minus;
+        case platform::keyboard_button::period: return ImGuiKey_Period;
+        case platform::keyboard_button::slash: return ImGuiKey_Slash;
+        case platform::keyboard_button::semicolon: return ImGuiKey_Semicolon;
+        case platform::keyboard_button::equal: return ImGuiKey_Equal;
+        case platform::keyboard_button::left_bracket: return ImGuiKey_LeftBracket;
+        case platform::keyboard_button::backslash: return ImGuiKey_Backslash;
+        case platform::keyboard_button::right_bracket: return ImGuiKey_RightBracket;
+        case platform::keyboard_button::grave_accent: return ImGuiKey_GraveAccent;
+        case platform::keyboard_button::caps_lock: return ImGuiKey_CapsLock;
+        case platform::keyboard_button::scroll_lock: return ImGuiKey_ScrollLock;
+        case platform::keyboard_button::num_lock: return ImGuiKey_NumLock;
+        case platform::keyboard_button::print_screen: return ImGuiKey_PrintScreen;
+        case platform::keyboard_button::pause: return ImGuiKey_Pause;
+        case platform::keyboard_button::keypad0: return ImGuiKey_Keypad0;
+        case platform::keyboard_button::keypad1: return ImGuiKey_Keypad1;
+        case platform::keyboard_button::keypad2: return ImGuiKey_Keypad2;
+        case platform::keyboard_button::keypad3: return ImGuiKey_Keypad3;
+        case platform::keyboard_button::keypad4: return ImGuiKey_Keypad4;
+        case platform::keyboard_button::keypad5: return ImGuiKey_Keypad5;
+        case platform::keyboard_button::keypad6: return ImGuiKey_Keypad6;
+        case platform::keyboard_button::keypad7: return ImGuiKey_Keypad7;
+        case platform::keyboard_button::keypad8: return ImGuiKey_Keypad8;
+        case platform::keyboard_button::keypad9: return ImGuiKey_Keypad9;
+        case platform::keyboard_button::keypad_decimal: return ImGuiKey_KeypadDecimal;
+        case platform::keyboard_button::keypad_divide: return ImGuiKey_KeypadDivide;
+        case platform::keyboard_button::keypad_multiply: return ImGuiKey_KeypadMultiply;
+        case platform::keyboard_button::keypad_subtract: return ImGuiKey_KeypadSubtract;
+        case platform::keyboard_button::keypad_add: return ImGuiKey_KeypadAdd;
+        case platform::keyboard_button::keypad_enter: return ImGuiKey_KeypadEnter;
+        case platform::keyboard_button::keypad_equal: return ImGuiKey_KeypadEqual;
+        case platform::keyboard_button::left_shift: return ImGuiKey_LeftShift;
+        case platform::keyboard_button::left_ctrl: return ImGuiKey_LeftCtrl;
+        case platform::keyboard_button::left_alt: return ImGuiKey_LeftAlt;
+        case platform::keyboard_button::left_super: return ImGuiKey_LeftSuper;
+        case platform::keyboard_button::right_shift: return ImGuiKey_RightShift;
+        case platform::keyboard_button::right_ctrl: return ImGuiKey_RightCtrl;
+        case platform::keyboard_button::right_alt: return ImGuiKey_RightAlt;
+        case platform::keyboard_button::right_super: return ImGuiKey_RightSuper;
+        case platform::keyboard_button::menu: return ImGuiKey_Menu;
+        case platform::keyboard_button::zero: return ImGuiKey_0;
+        case platform::keyboard_button::one: return ImGuiKey_1;
+        case platform::keyboard_button::two: return ImGuiKey_2;
+        case platform::keyboard_button::three: return ImGuiKey_3;
+        case platform::keyboard_button::four: return ImGuiKey_4;
+        case platform::keyboard_button::five: return ImGuiKey_5;
+        case platform::keyboard_button::six: return ImGuiKey_6;
+        case platform::keyboard_button::seven: return ImGuiKey_7;
+        case platform::keyboard_button::eight: return ImGuiKey_8;
+        case platform::keyboard_button::nine: return ImGuiKey_9;
+        case platform::keyboard_button::a: return ImGuiKey_A;
+        case platform::keyboard_button::b: return ImGuiKey_B;
+        case platform::keyboard_button::c: return ImGuiKey_C;
+        case platform::keyboard_button::d: return ImGuiKey_D;
+        case platform::keyboard_button::e: return ImGuiKey_E;
+        case platform::keyboard_button::f: return ImGuiKey_F;
+        case platform::keyboard_button::g: return ImGuiKey_G;
+        case platform::keyboard_button::h: return ImGuiKey_H;
+        case platform::keyboard_button::i: return ImGuiKey_I;
+        case platform::keyboard_button::j: return ImGuiKey_J;
+        case platform::keyboard_button::k: return ImGuiKey_K;
+        case platform::keyboard_button::l: return ImGuiKey_L;
+        case platform::keyboard_button::m: return ImGuiKey_M;
+        case platform::keyboard_button::n: return ImGuiKey_N;
+        case platform::keyboard_button::o: return ImGuiKey_O;
+        case platform::keyboard_button::p: return ImGuiKey_P;
+        case platform::keyboard_button::q: return ImGuiKey_Q;
+        case platform::keyboard_button::r: return ImGuiKey_R;
+        case platform::keyboard_button::s: return ImGuiKey_S;
+        case platform::keyboard_button::t: return ImGuiKey_T;
+        case platform::keyboard_button::u: return ImGuiKey_U;
+        case platform::keyboard_button::v: return ImGuiKey_V;
+        case platform::keyboard_button::w: return ImGuiKey_W;
+        case platform::keyboard_button::x: return ImGuiKey_X;
+        case platform::keyboard_button::y: return ImGuiKey_Y;
+        case platform::keyboard_button::z: return ImGuiKey_Z;
+        case platform::keyboard_button::f1: return ImGuiKey_F1;
+        case platform::keyboard_button::f2: return ImGuiKey_F2;
+        case platform::keyboard_button::f3: return ImGuiKey_F3;
+        case platform::keyboard_button::f4: return ImGuiKey_F4;
+        case platform::keyboard_button::f5: return ImGuiKey_F5;
+        case platform::keyboard_button::f6: return ImGuiKey_F6;
+        case platform::keyboard_button::f7: return ImGuiKey_F7;
+        case platform::keyboard_button::f8: return ImGuiKey_F8;
+        case platform::keyboard_button::f9: return ImGuiKey_F9;
+        case platform::keyboard_button::f10: return ImGuiKey_F10;
+        case platform::keyboard_button::f11: return ImGuiKey_F11;
+        case platform::keyboard_button::f12: return ImGuiKey_F12;
         }
 
         assert(false);
         return ImGuiKey_None;
     }
 
-    MouseCursorIcon translate(ImGuiMouseCursor cursor)
+    platform::mouse_cursor_icon translate(ImGuiMouseCursor cursor)
     {
         switch (cursor)
         {
-            case ImGuiMouseCursor_Arrow: return MouseCursorIcon::Arrow;
-            case ImGuiMouseCursor_TextInput: return MouseCursorIcon::TextInput;
-            case ImGuiMouseCursor_ResizeAll: return MouseCursorIcon::ResizeAll;
-            case ImGuiMouseCursor_ResizeNS: return MouseCursorIcon::ResizeNS;
-            case ImGuiMouseCursor_ResizeEW: return MouseCursorIcon::ResizeEW;
-            case ImGuiMouseCursor_ResizeNESW: return MouseCursorIcon::ResizeNESW;
-            case ImGuiMouseCursor_ResizeNWSE: return MouseCursorIcon::ResizeNWSE;
-            case ImGuiMouseCursor_NotAllowed: return MouseCursorIcon::NotAllowed;
-            case ImGuiMouseCursor_Hand: return MouseCursorIcon::Hand;
+        case ImGuiMouseCursor_Arrow: return platform::mouse_cursor_icon::arrow;
+        case ImGuiMouseCursor_TextInput: return platform::mouse_cursor_icon::text_input;
+        case ImGuiMouseCursor_ResizeAll: return platform::mouse_cursor_icon::resize_all;
+        case ImGuiMouseCursor_ResizeNS: return platform::mouse_cursor_icon::resize_ns;
+        case ImGuiMouseCursor_ResizeEW: return platform::mouse_cursor_icon::resize_ew;
+        case ImGuiMouseCursor_ResizeNESW: return platform::mouse_cursor_icon::resize_nesw;
+        case ImGuiMouseCursor_ResizeNWSE: return platform::mouse_cursor_icon::resize_nwse;
+        case ImGuiMouseCursor_NotAllowed: return platform::mouse_cursor_icon::not_allowed;
+        case ImGuiMouseCursor_Hand: return platform::mouse_cursor_icon::hand;
         }
 
         assert(false);
-        return MouseCursorIcon::Arrow;
+        return platform::mouse_cursor_icon::arrow;
     }
 
-    void updateModifiers(GlfwWindow::Modifiers modifiers)
+    void updateModifiers(platform::button_modifiers modifiers)
     {
         ImGuiIO& io = ImGui::GetIO();
-        io.AddKeyEvent(ImGuiKey_ModCtrl, (modifiers & GlfwWindow::Modifiers::Ctrl) != 0);
-        io.AddKeyEvent(ImGuiKey_ModShift, (modifiers & GlfwWindow::Modifiers::Shift) != 0);
-        io.AddKeyEvent(ImGuiKey_ModAlt, (modifiers & GlfwWindow::Modifiers::Alt) != 0);
+        io.AddKeyEvent(ImGuiKey_ModCtrl, (modifiers & platform::button_modifiers::ctrl) != 0);
+        io.AddKeyEvent(ImGuiKey_ModShift, (modifiers & platform::button_modifiers::shift) != 0);
+        io.AddKeyEvent(ImGuiKey_ModAlt, (modifiers & platform::button_modifiers::alt) != 0);
     }
 }
 
-ImGuiPlatform::ImGuiPlatform(GlfwWindow& window) : m_window(window)
+ImGuiPlatform::ImGuiPlatform(platform::window& window) : m_window(window)
 {
     static auto scopeId = memory::tracking::create_scope_id("UI/ImGui/Platform");
     MEMORY_TRACKING_SCOPE(scopeId);
@@ -177,8 +179,8 @@ ImGuiPlatform::ImGuiPlatform(GlfwWindow& window) : m_window(window)
     io.BackendPlatformName = "vulkan_renderer_demo";
     io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
 
-    io.SetClipboardTextFn = [](void* userData, char const* text) { return static_cast<GlfwWindow*>(userData)->setClipboardText(text); };
-    io.GetClipboardTextFn = [](void* userData) { return static_cast<GlfwWindow*>(userData)->getClipboardText(); };
+    io.SetClipboardTextFn = [](void* userData, char const* text) { return static_cast<platform::window*>(userData)->set_clipboard_text(text); };
+    io.GetClipboardTextFn = [](void* userData) { return static_cast<platform::window*>(userData)->get_clipboard_text(); };
     io.ClipboardUserData = &m_window;
 
     setupCallbacks();
@@ -201,39 +203,39 @@ void ImGuiPlatform::update(float frameTime)
 
 void ImGuiPlatform::setupCallbacks()
 {
-    m_window.addFocusCallback([](bool focused) {
+    m_window.add_focus_callback([](bool focused) {
         ImGui::GetIO().AddFocusEvent(focused);
     });
 
-    m_window.addMouseButtonCallback([](GlfwWindow::Action action, GlfwWindow::MouseButton button, GlfwWindow::Modifiers modifiers) {
-        if (action != GlfwWindow::Action::Press && action != GlfwWindow::Action::Release)
+    m_window.add_mouse_button_callback([](platform::button_action action, platform::mouse_button button, platform::button_modifiers modifiers) {
+        if (action != platform::button_action::press && action != platform::button_action::release)
             return;
 
         updateModifiers(modifiers);
-        ImGui::GetIO().AddMouseButtonEvent(translate(button), action == GlfwWindow::Action::Press);
+        ImGui::GetIO().AddMouseButtonEvent(translate(button), action == platform::button_action::press);
     });
 
-    m_window.addCursorPositionCallback([](float x, float y) {
+    m_window.add_mouse_position_callback([](float x, float y) {
         ImGui::GetIO().AddMousePosEvent(x, y);
     });
 
-    m_window.addKeyCallback([](GlfwWindow::Action action, GlfwWindow::Key key, GlfwWindow::Modifiers modifiers) {
-        if (action != GlfwWindow::Action::Press && action != GlfwWindow::Action::Release)
+    m_window.add_keyboard_button_callback([](platform::button_action action, platform::keyboard_button button, platform::button_modifiers modifiers) {
+        if (action != platform::button_action::press && action != platform::button_action::release)
             return;
 
         updateModifiers(modifiers);
 
 //         keycode = ImGui_ImplGlfw_TranslateUntranslatedKey(keycode, scancode); // TODO
 
-        ImGui::GetIO().AddKeyEvent(translate(key), action == GlfwWindow::Action::Press);
+        ImGui::GetIO().AddKeyEvent(translate(button), action == platform::button_action::press);
     });
 
-    m_window.addCharCallback([](char c) {
+    m_window.add_char_callback([](char c) {
         assert(c >= 0);
         ImGui::GetIO().AddInputCharacter(static_cast<unsigned int>(c));
     });
 
-    m_window.addScrollCallback([](float x, float y) {
+    m_window.add_scroll_callback([](float x, float y) {
         ImGui::GetIO().AddMouseWheelEvent(x, y);
     });
 }
@@ -241,8 +243,8 @@ void ImGuiPlatform::setupCallbacks()
 void ImGuiPlatform::updateDisplaySize()
 {
     ImGuiIO& io = ImGui::GetIO();
-    ImVec2 windowSize = { 1.0f * m_window.getWindowWidth(), 1.0f * m_window.getWindowHeight() };
-    ImVec2 framebufferSize = { 1.0f * m_window.getFramebufferWidth(), 1.0f * m_window.getFramebufferHeight() };
+    ImVec2 windowSize = { 1.0f * m_window.get_window_width(), 1.0f * m_window.get_window_height() };
+    ImVec2 framebufferSize = { 1.0f * m_window.get_framebuffer_width(), 1.0f * m_window.get_framebuffer_height() };
     io.DisplaySize = windowSize;
     if (windowSize.x > 0 && windowSize.y > 0)
         io.DisplayFramebufferScale = ImVec2(framebufferSize.x / windowSize.x, framebufferSize.y / windowSize.y);
@@ -254,17 +256,17 @@ void ImGuiPlatform::updateCursor()
     if ((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange))
         return;
 
-    if (m_window.getCursorMode() == MouseCursorMode::Disabled)
+    if (m_window.get_cursor_mode() == platform::mouse_cursor_mode::disabled)
         return;
 
     ImGuiMouseCursor imguiCursor = ImGui::GetMouseCursor();
     if (imguiCursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
     {
-        m_window.setCursorMode(MouseCursorMode::Hidden);
+        m_window.set_cursor_mode(platform::mouse_cursor_mode::hidden);
     }
     else
     {
-        m_window.setCursorMode(MouseCursorMode::Normal);
-        m_window.setCursorIcon(translate(imguiCursor));
+        m_window.set_cursor_mode(platform::mouse_cursor_mode::normal);
+        m_window.set_cursor_icon(translate(imguiCursor));
     }
 }

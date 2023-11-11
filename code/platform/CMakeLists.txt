@@ -16,4 +16,5 @@ target_include_directories(platform INTERFACE
 target_link_libraries(platform INTERFACE
     nstl
     fs
+    tiny_ctti
 )

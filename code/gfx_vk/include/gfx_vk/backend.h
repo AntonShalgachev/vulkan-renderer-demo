@@ -16,10 +16,10 @@ namespace gfx_vk
     class backend final : public gfx::backend
     {
     public:
-        backend(surface_factory& factory, tglm::ivec2 extent, config const& config);
+        backend(surface_factory& factory, size_t w, size_t h, config const& config);
         ~backend() override;
 
-        void resize_main_framebuffer(tglm::ivec2 size) override;
+        void resize_main_framebuffer(size_t w, size_t h) override;
 
         [[nodiscard]] gfx::buffer_handle create_buffer(gfx::buffer_params const& params) override;
         [[nodiscard]] gfx::image_handle create_image(gfx::image_params const& params) override;

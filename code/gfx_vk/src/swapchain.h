@@ -27,20 +27,19 @@ namespace gfx_vk
     class swapchain
     {
     public:
-        swapchain(context& context, gfx::renderpass_handle renderpass, surface_format surface_format, gfx::image_format depth_format, tglm::ivec2 extent);
+        swapchain(context& context, gfx::renderpass_handle renderpass, surface_format surface_format, gfx::image_format depth_format, size_t w, size_t h);
         ~swapchain();
 
         VkSwapchainKHR get_handle() const;
         VkExtent2D get_extent() const;
 
-        void resize(tglm::ivec2 extent);
+        void resize(size_t w, size_t h);
 
         nstl::span<gfx::framebuffer_handle const> get_framebuffers() const { return m_framebuffers; }
 
     private:
-        void create(tglm::ivec2 extent);
+        void create(size_t w, size_t h);
         void destroy();
-        void recreate(tglm::ivec2 extent);
 
     private:
         context& m_context;

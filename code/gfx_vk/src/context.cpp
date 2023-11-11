@@ -1,12 +1,12 @@
 #include "context.h"
 
-gfx_vk::context::context(surface_factory& factory, tglm::ivec2 extent, config const& config)
+gfx_vk::context::context(surface_factory& factory, size_t w, size_t h, config const& config)
     : m_instance(factory, config)
     , m_memory(*this)
     , m_transfers(*this)
     , m_resources(*this)
     , m_descriptor_allocator(*this, config.descriptors)
-    , m_renderer(*this, extent, config.renderer)
+    , m_renderer(*this, w, h, config.renderer)
     , m_mutable_resource_multiplier(config.renderer.max_frames_in_flight)
 {
 

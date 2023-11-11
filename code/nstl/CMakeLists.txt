@@ -37,6 +37,8 @@ add_library(nstl # non-standard template library
     "include/nstl/source_location.h"
     "include/nstl/blob_view.h"
     "include/nstl/sort.h"
+    "include/nstl/event.h"
+    "include/nstl/enum.h"
 
     "src/string.cpp"
     "src/string_view.cpp"

@@ -85,18 +85,18 @@ struct gfx_vk::renderer::frame_resources
     VkCommandBuffer command_buffer;
 };
 
-gfx_vk::renderer::renderer(context& context, tglm::ivec2 extent, renderer_config const& config) : m_context(context)
+gfx_vk::renderer::renderer(context& context, size_t w, size_t h, renderer_config const& config) : m_context(context)
 {
-    create_swapchain(extent);
+    create_swapchain(w, h);
     create_frame_resources(config);
 }
 
 gfx_vk::renderer::~renderer() = default;
 
-void gfx_vk::renderer::resize_main_framebuffer(tglm::ivec2 size)
+void gfx_vk::renderer::resize_main_framebuffer(size_t w, size_t h)
 {
     m_context.on_surface_changed();
-    m_swapchain->resize(size);
+    m_swapchain->resize(w, h);
 }
 
 gfx::framebuffer_handle gfx_vk::renderer::acquire_main_framebuffer()
@@ -298,7 +298,7 @@ void gfx_vk::renderer::submit()
 
 //////////////////////////////////////////////////////////////////////////
 
-void gfx_vk::renderer::create_swapchain(tglm::ivec2 extent)
+void gfx_vk::renderer::create_swapchain(size_t w, size_t h)
 {
     // TODO don't rely on these formats being supported
     gfx_vk::surface_format surface_format = {
@@ -317,7 +317,7 @@ void gfx_vk::renderer::create_swapchain(tglm::ivec2 extent)
 
     m_context.get_instance().set_debug_name(m_context.get_resources().get_renderpass(m_renderpass).get_handle(), "Main renderpass");
 
-    m_swapchain = nstl::make_unique<swapchain>(m_context, m_renderpass, surface_format, depth_format, extent);
+    m_swapchain = nstl::make_unique<swapchain>(m_context, m_renderpass, surface_format, depth_format, w, h);
 }
 
 void gfx_vk::renderer::create_frame_resources(renderer_config const& config)
