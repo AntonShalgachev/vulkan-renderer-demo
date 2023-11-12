@@ -26,3 +26,15 @@ tglm::vec4::operator tglm::vec3() const
     glm_vec3(const_cast<vec4*>(this)->data, result.data);
     return result;
 }
+
+float& tglm::vec4::operator[](size_t index)
+{
+    assert(index < elements_count);
+    return data[index];
+}
+
+float const& tglm::vec4::operator[](size_t index) const
+{
+    assert(index < elements_count);
+    return data[index];
+}

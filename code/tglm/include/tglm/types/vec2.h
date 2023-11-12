@@ -22,6 +22,9 @@ namespace tglm
         // TODO conversion operators?
         explicit operator ivec2() const;
 
+        float& operator[](size_t index);
+        float const& operator[](size_t index) const;
+
         union
         {
             cglm_vec2 data;

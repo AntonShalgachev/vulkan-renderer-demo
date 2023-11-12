@@ -14,6 +14,7 @@ namespace tglm
         static quat identity();
         static quat from_euler_xyz(vec3 const& angles);
         static quat from_euler_zyx(vec3 const& angles);
+        static quat from_axis_rotation(float angle, vec3 const& axis);
 
         quat() : data{} {}
         quat(float x, float y, float z, float w) : data{ x, y, z, w } {}

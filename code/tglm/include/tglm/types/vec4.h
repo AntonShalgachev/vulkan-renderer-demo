@@ -21,6 +21,9 @@ namespace tglm
         // TODO other conversion operators?
         operator vec3() const; // TODO move to the vec3's constructors?
 
+        float& operator[](size_t index);
+        float const& operator[](size_t index) const;
+
         union
         {
             cglm_vec4 data;

@@ -42,6 +42,14 @@ tglm::quat tglm::quat::from_euler_zyx(vec3 const& angles)
     return result;
 }
 
+tglm::quat tglm::quat::from_axis_rotation(float angle, vec3 const& axis)
+{
+    tglm::quat result;
+    glm_quatv(result.data, angle, const_cast<vec3&>(axis).data);
+
+    return result;
+}
+
 tglm::quat::quat(float const* v, [[maybe_unused]] size_t count)
 {
     assert(count == elements_count);

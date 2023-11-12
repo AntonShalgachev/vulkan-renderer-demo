@@ -183,6 +183,9 @@ private:
 
     nstl::string m_currentScenePath = "";
 
+    float m_cameraPitch = 0.0f; // up is positive
+    float m_cameraYaw = 0.0f; // right is positive
+
     DemoCameraTransform m_cameraTransform;
     DemoCameraParameters m_cameraParameters;
     DemoLightParameters m_lightParameters;

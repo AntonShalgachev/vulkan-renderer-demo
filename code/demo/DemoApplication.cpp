@@ -370,8 +370,14 @@ void DemoApplication::init()
     m_commands["camera.pos"] = coil::variable(&m_cameraTransform.position);
     m_commands["camera.angles"] = coil::property([this]() {
         return tglm::degrees(m_cameraTransform.rotation.to_euler_xyz());
-    }, [this](tglm::vec3 const& angles) {
-        m_cameraTransform.rotation = createRotation(angles);
+    });
+    m_commands["camera.rotation"] = coil::property([this]()
+    {
+        return tglm::degrees({ m_cameraPitch, m_cameraYaw });
+    }, [this](tglm::vec2 const& angles) {
+        tglm::vec2 rad = tglm::radians(angles);
+        m_cameraPitch = rad.x;
+        m_cameraYaw = rad.y;
     });
 
     m_commands["light.pos"] = coil::variable(&m_lightParameters.position);
@@ -573,10 +579,9 @@ void DemoApplication::onMouseMove(tglm::vec2 const& delta)
     if (m_mouseCapturedByUi)
         return;
 
-    tglm::vec3 angleDelta = m_mouseSensitivity * tglm::vec3{ -delta.y, -delta.x, 0.0f };
-    tglm::quat rotationDelta = createRotation(angleDelta);
-
-    m_cameraTransform.rotation *= rotationDelta;
+    tglm::vec2 angleDelta = tglm::radians(m_mouseSensitivity * delta);
+    m_cameraPitch -= angleDelta.y; // flip vertical axis
+    m_cameraYaw += angleDelta.x;
 }
 
 void DemoApplication::createDemoScene(cgltf_data const& gltfModel, cgltf_scene const& gltfScene) const
@@ -1130,6 +1135,10 @@ void DemoApplication::updateCamera(float dt)
         posDelta += up;
 
     m_cameraTransform.position += m_cameraSpeed * dt * posDelta.normalized();
+
+    tglm::quat verticalRotation = tglm::quat::from_axis_rotation(m_cameraPitch, { 1, 0, 0 });
+    tglm::quat horizontalRotation = tglm::quat::from_axis_rotation(-m_cameraYaw, { 0, 1, 0 });
+    m_cameraTransform.rotation = horizontalRotation * verticalRotation;
 }
 
 void DemoApplication::draw()

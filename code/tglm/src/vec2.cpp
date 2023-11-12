@@ -31,6 +31,18 @@ tglm::vec2::operator tglm::ivec2() const
     return { static_cast<int>(data[0]), static_cast<int>(data[1]) };
 }
 
+float& tglm::vec2::operator[](size_t index)
+{
+    assert(index < elements_count);
+    return data[index];
+}
+
+float const& tglm::vec2::operator[](size_t index) const
+{
+    assert(index < elements_count);
+    return data[index];
+}
+
 tglm::vec2 tglm::operator*(vec2 const& lhs, float rhs)
 {
     vec2 result;
