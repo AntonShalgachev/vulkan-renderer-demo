@@ -1,7 +1,8 @@
 #pragma once
 
-#include "tiny_ctti/tiny_ctti.hpp"
+#include "common/tiny_ctti.h"
 
+#include "nstl/flags_enum.h"
 #include "nstl/function.h"
 
 namespace platform
@@ -12,11 +13,11 @@ namespace platform
 
     enum class mouse_cursor_mode
     {
-        normal,
+        visible,
         hidden,
         disabled,
     };
-    TINY_CTTI_DESCRIBE_ENUM(mouse_cursor_mode, normal, hidden, disabled);
+    TINY_CTTI_DESCRIBE_ENUM(mouse_cursor_mode, visible, hidden, disabled);
 
     enum class mouse_cursor_icon
     {
@@ -34,7 +35,6 @@ namespace platform
 
     enum class keyboard_button
     {
-        unknown,
         tab, left_arrow, right_arrow, up_arrow, down_arrow,
         page_up, page_down, home, end, insert, del,
         backspace, space, enter, escape, apostrophe, comma,
@@ -49,7 +49,6 @@ namespace platform
         f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12
     };
     TINY_CTTI_DESCRIBE_ENUM(keyboard_button,
-        unknown,
         tab, left_arrow, right_arrow, up_arrow, down_arrow,
         page_up, page_down, home, end, insert, del,
         backspace, space, enter, escape, apostrophe, comma,
@@ -80,14 +79,14 @@ namespace platform
         alt = 4,
     };
     TINY_CTTI_DESCRIBE_ENUM(button_modifiers, none, ctrl, shift, alt);
+    NSTL_FLAGS_ENUM(button_modifiers);
 
     enum class button_action
     {
         press,
         release,
-        repeat,
     };
-    TINY_CTTI_DESCRIBE_ENUM(button_action, press, release, repeat);
+    TINY_CTTI_DESCRIBE_ENUM(button_action, press, release);
 
     class window
     {
@@ -103,14 +102,13 @@ namespace platform
         virtual void add_mouse_position_callback(nstl::function<void(float, float)> callback) = 0;
         virtual void add_mouse_delta_callback(nstl::function<void(float, float)> callback) = 0;
         virtual void add_focus_callback(nstl::function<void(bool)> callback) = 0;
-        virtual void add_cursor_enter_callback(nstl::function<void(bool)> callback) = 0;
         virtual void add_scroll_callback(nstl::function<void(float, float)> callback) = 0;
-        virtual void add_char_callback(nstl::function<void(char)> callback) = 0;
+        virtual void add_char_callback(nstl::function<void(unsigned int)> callback) = 0;
 
-        virtual bool should_close() const = 0;
+        virtual bool is_closed() const = 0;
         virtual bool is_iconified() const = 0;
 
-        virtual void resize(int width, int height) = 0;
+        virtual void resize(size_t width, size_t height) = 0;
         virtual size_t get_window_width() const = 0;
         virtual size_t get_window_height() const = 0;
         virtual size_t get_framebuffer_width() const = 0;
@@ -123,7 +121,7 @@ namespace platform
         virtual mouse_cursor_icon get_cursor_icon() const = 0;
 
         // TODO use nstl::string_view?
-        virtual char const* get_clipboard_text() const = 0;
+        virtual char const* get_clipboard_text() = 0;
         virtual void set_clipboard_text(char const* text) = 0;
     };
 }

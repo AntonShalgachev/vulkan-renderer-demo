@@ -97,7 +97,7 @@ private:
 
     void onKey(platform::button_action action, platform::keyboard_button button, platform::button_modifiers modifiers);
     void onMouseButton(platform::button_action action, platform::mouse_button button, platform::button_modifiers modifiers);
-    void onMouseMove(tglm::vec2 const& delta);
+    void onMouseMove(tglm::ivec2 const& delta);
 
     void createDemoScene(cgltf_data const& gltfModel, cgltf_scene const& gltfScene) const;
     void createDemoObjectRecursive(cgltf_data const& gltfModel, size_t nodeIndex, tglm::mat4 parentTransform) const;

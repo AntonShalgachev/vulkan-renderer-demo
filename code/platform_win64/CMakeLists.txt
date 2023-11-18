@@ -24,6 +24,7 @@ target_link_libraries(platform_win64
     platform
     "Rpcrt4.lib"
     glfw # TODO remove
+    common # TODO remove, only needed for tiny_ctti
 )
 
 target_precompile_headers(platform_win64 PRIVATE "src/pch.h")

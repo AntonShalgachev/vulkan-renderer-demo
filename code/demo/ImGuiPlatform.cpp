@@ -6,8 +6,6 @@
 
 #include "imgui.h"
 
-#include "nstl/enum.h"
-
 namespace
 {
     ImGuiMouseButton translate(platform::mouse_button button)
@@ -30,7 +28,6 @@ namespace
     {
         switch (key)
         {
-        case platform::keyboard_button::unknown: return ImGuiKey_None;
         case platform::keyboard_button::tab: return ImGuiKey_Tab;
         case platform::keyboard_button::left_arrow: return ImGuiKey_LeftArrow;
         case platform::keyboard_button::right_arrow: return ImGuiKey_RightArrow;
@@ -164,9 +161,9 @@ namespace
     void updateModifiers(platform::button_modifiers modifiers)
     {
         ImGuiIO& io = ImGui::GetIO();
-        io.AddKeyEvent(ImGuiKey_ModCtrl, (modifiers & platform::button_modifiers::ctrl) != 0);
-        io.AddKeyEvent(ImGuiKey_ModShift, (modifiers & platform::button_modifiers::shift) != 0);
-        io.AddKeyEvent(ImGuiKey_ModAlt, (modifiers & platform::button_modifiers::alt) != 0);
+        io.AddKeyEvent(ImGuiMod_Ctrl, (modifiers & platform::button_modifiers::ctrl) == platform::button_modifiers::ctrl);
+        io.AddKeyEvent(ImGuiMod_Shift, (modifiers & platform::button_modifiers::shift) == platform::button_modifiers::shift);
+        io.AddKeyEvent(ImGuiMod_Alt, (modifiers & platform::button_modifiers::alt) == platform::button_modifiers::alt);
     }
 }
 
@@ -230,13 +227,12 @@ void ImGuiPlatform::setupCallbacks()
         ImGui::GetIO().AddKeyEvent(translate(button), action == platform::button_action::press);
     });
 
-    m_window.add_char_callback([](char c) {
-        assert(c >= 0);
-        ImGui::GetIO().AddInputCharacter(static_cast<unsigned int>(c));
+    m_window.add_char_callback([](unsigned int codepoint) {
+        ImGui::GetIO().AddInputCharacter(codepoint);
     });
 
     m_window.add_scroll_callback([](float x, float y) {
-        ImGui::GetIO().AddMouseWheelEvent(x, y);
+        ImGui::GetIO().AddMouseWheelEvent(-x, y); // ImGui: negative x => right, positive x => left
     });
 }
 
@@ -266,7 +262,7 @@ void ImGuiPlatform::updateCursor()
     }
     else
     {
-        m_window.set_cursor_mode(platform::mouse_cursor_mode::normal);
+        m_window.set_cursor_mode(platform::mouse_cursor_mode::visible);
         m_window.set_cursor_icon(translate(imguiCursor));
     }
 }

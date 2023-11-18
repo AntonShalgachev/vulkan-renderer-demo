@@ -329,10 +329,10 @@ void DemoApplication::run()
 
     m_frameTimer.start();
 
-    while (!m_window->should_close())
+    while (!m_window->is_closed())
     {
-        m_window->poll_events();
         drawFrame();
+        m_window->poll_events();
     }
 }
 
@@ -409,7 +409,7 @@ void DemoApplication::init()
     m_window = nstl::make_unique<platform_win64::window>(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT, "vulkan_renderer_demo");
     m_window->add_keyboard_button_callback([this](auto&&... args) { onKey(nstl::forward<decltype(args)>(args)...); });
     m_window->add_mouse_button_callback([this](auto&&... args) { onMouseButton(nstl::forward<decltype(args)>(args)...); });
-    m_window->add_mouse_delta_callback([this](float dx, float dy) { onMouseMove({ dx, dy }); });
+    m_window->add_mouse_delta_callback([this](int dx, int dy) { onMouseMove({ dx, dy }); });
 
     gfx_vk_win64::surface_factory surfaceFactory{ *m_window };
 
@@ -571,7 +571,7 @@ void DemoApplication::onMouseButton(platform::button_action action, platform::mo
         m_leftMouseDown = action != platform::button_action::release;
 }
 
-void DemoApplication::onMouseMove(tglm::vec2 const& delta)
+void DemoApplication::onMouseMove(tglm::ivec2 const& delta)
 {
     if (!m_leftMouseDown)
         return;
@@ -579,7 +579,7 @@ void DemoApplication::onMouseMove(tglm::vec2 const& delta)
     if (m_mouseCapturedByUi)
         return;
 
-    tglm::vec2 angleDelta = tglm::radians(m_mouseSensitivity * delta);
+    tglm::vec2 angleDelta = tglm::radians(m_mouseSensitivity * static_cast<tglm::vec2>(delta));
     m_cameraPitch -= angleDelta.y; // flip vertical axis
     m_cameraYaw += angleDelta.x;
 }

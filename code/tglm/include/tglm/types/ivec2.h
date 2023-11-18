@@ -4,6 +4,8 @@
 
 namespace tglm
 {
+    struct vec2;
+
     struct ivec2
     {
         constexpr static size_t elements_count = 2;
@@ -15,6 +17,7 @@ namespace tglm
         ivec2(int const(&v)[elements_count]) : ivec2(v, elements_count) {}
 
         // TODO conversion operators?
+        explicit operator vec2() const;
 
         union
         {

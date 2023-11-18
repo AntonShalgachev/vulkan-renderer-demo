@@ -57,7 +57,7 @@ bool platform::create_thread(thread_storage_t& storage, thread_func_t func, void
         return false;
     }
 
-    storage.create<HANDLE>(h);
+    storage.create_inplace<HANDLE>(h);
     return true;
 }
 
@@ -68,7 +68,7 @@ uint64_t platform::thread_get_current_id()
 
 bool platform::mutex_create(mutex_storage_t& storage)
 {
-    storage.create<CRITICAL_SECTION>();
+    storage.create_inplace<CRITICAL_SECTION>();
 
     CRITICAL_SECTION& section = storage.get_as<CRITICAL_SECTION>();
     InitializeCriticalSection(&section);

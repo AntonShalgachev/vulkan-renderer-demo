@@ -9,17 +9,20 @@ size_t nstl::string::npos = static_cast<size_t>(-1);
 
 nstl::string::string(any_allocator alloc) : m_buffer(0, sizeof(char), nstl::move(alloc)) {}
 
-nstl::string::string(char const* str, any_allocator alloc) : string(str, strlen(str), nstl::move(alloc)) {}
-
-nstl::string::string(string_view str, any_allocator alloc) : string(str.data(), str.length(), nstl::move(alloc)) {}
-
-nstl::string::string(char const* str, size_t length, any_allocator alloc) : string(nstl::move(alloc))
+nstl::string::string(size_t length, any_allocator alloc) : string(nstl::move(alloc))
 {
     if (length == 0)
         return;
 
     resize(length);
+}
 
+nstl::string::string(char const* str, any_allocator alloc) : string(str, strlen(str), nstl::move(alloc)) {}
+
+nstl::string::string(string_view str, any_allocator alloc) : string(str.data(), str.length(), nstl::move(alloc)) {}
+
+nstl::string::string(char const* str, size_t length, any_allocator alloc) : string(length, nstl::move(alloc))
+{
     NSTL_ASSERT(str);
     m_buffer.copy(str, length);
 
@@ -164,6 +167,18 @@ char* nstl::string::end()
 char const* nstl::string::end() const
 {
     return begin() + length();
+}
+
+char& nstl::string::operator[](size_t index)
+{
+    NSTL_ASSERT(index < length());
+    return *(begin() + index);
+}
+
+char const& nstl::string::operator[](size_t index) const
+{
+    NSTL_ASSERT(index < length());
+    return *(begin() + index);
 }
 
 nstl::string& nstl::string::operator+=(char rhs)

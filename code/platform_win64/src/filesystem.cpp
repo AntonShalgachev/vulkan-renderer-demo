@@ -50,7 +50,7 @@ bool platform::open_file(file_storage_t& storage, nstl::string_view filename, fs
         return false;
     }
 
-    storage.create<HANDLE>(h);
+    storage.create_inplace<HANDLE>(h);
     return true;
 }
 

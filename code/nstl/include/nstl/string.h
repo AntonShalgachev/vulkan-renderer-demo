@@ -15,6 +15,7 @@ namespace nstl
     {
     public:
         string(any_allocator alloc = {});
+        string(size_t length, any_allocator alloc = {});
         string(char const* str, any_allocator alloc = {});
         string(string_view str, any_allocator alloc = {});
         string(char const* str, size_t length, any_allocator alloc = {});
@@ -42,6 +43,9 @@ namespace nstl
         char const* begin() const;
         char* end();
         char const* end() const;
+
+        char& operator[](size_t index);
+        char const& operator[](size_t index) const;
 
         string& operator+=(char rhs);
         string& operator+=(char const* rhs);
