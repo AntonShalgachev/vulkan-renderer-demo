@@ -23,7 +23,6 @@ target_include_directories(platform_win64 PUBLIC
 target_link_libraries(platform_win64
     platform
     "Rpcrt4.lib"
-    glfw # TODO remove
     common # TODO remove, only needed for tiny_ctti
 )
 
