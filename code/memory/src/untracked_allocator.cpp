@@ -2,9 +2,9 @@
 
 #include "platform/memory.h"
 
-void* memory::untracked_allocator::allocate(size_t size)
+void* memory::untracked_allocator::allocate(size_t size, size_t alignment)
 {
-    return platform::allocate(size);
+    return platform::allocate(size, alignment);
 }
 
 void memory::untracked_allocator::deallocate(void* ptr)

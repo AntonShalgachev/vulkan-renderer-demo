@@ -12,7 +12,7 @@ namespace nstl
     class buffer
     {
     public:
-        buffer(size_t capacity, size_t chunkSize, any_allocator alloc);
+        buffer(size_t capacity, size_t element_size, size_t element_alignment, any_allocator alloc);
         buffer(buffer const& rhs);
         buffer(buffer&& rhs);
         ~buffer();
@@ -38,7 +38,8 @@ namespace nstl
         {
             NSTL_ASSERT(m_ptr);
             NSTL_ASSERT(m_size < m_capacity);
-            NSTL_ASSERT(m_chunkSize == sizeof(T));
+            NSTL_ASSERT(m_element_size == sizeof(T));
+            NSTL_ASSERT(m_element_alignment == alignof(T));
 
             T* obj = new (new_tag{}, m_ptr + m_size * sizeof(T)) T(nstl::forward<Args>(args)...);
             m_size++;
@@ -54,7 +55,8 @@ namespace nstl
         void destructLast()
         {
             NSTL_ASSERT(m_size > 0);
-            NSTL_ASSERT(m_chunkSize == sizeof(T));
+            NSTL_ASSERT(m_element_size == sizeof(T));
+            NSTL_ASSERT(m_element_alignment == alignof(T));
 
             get<T>(m_size - 1)->~T();
             m_size--;
@@ -87,7 +89,8 @@ namespace nstl
 
         char* m_ptr = nullptr;
         size_t m_capacity = 0;
-        size_t m_chunkSize = 0;
+        size_t m_element_size = 0;
+        size_t m_element_alignment = 0;
 
         size_t m_size = 0;
 

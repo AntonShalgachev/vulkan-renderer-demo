@@ -70,8 +70,8 @@ namespace platform_win64
         size_t m_framebuffer_width = 0;
         size_t m_framebuffer_height = 0;
 
-        int m_last_mouse_pos_x = 0.0f;
-        int m_last_mouse_pos_y = 0.0f;
+        int m_last_mouse_pos_x = 0;
+        int m_last_mouse_pos_y = 0;
 
         platform::button_modifiers m_current_modifiers = platform::button_modifiers::none;
         nstl::string m_clipboard_text;

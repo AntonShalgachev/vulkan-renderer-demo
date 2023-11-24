@@ -3,6 +3,8 @@
 #include "context.h"
 #include "utils.h"
 
+#include "nstl/alignment.h"
+
 namespace
 {
     VkBufferUsageFlags get_usage(gfx::buffer_usage usage)
@@ -35,17 +37,6 @@ namespace
 
         assert(false);
         return 0;
-    }
-
-    // TODO move somewhere
-    size_t align_up(size_t value, size_t alignment)
-    {
-        // TODO assert that alignment is a power of 2
-
-        if (alignment == 0)
-            return value;
-
-        return (value + alignment - 1) & ~(alignment - 1);
     }
 }
 
@@ -90,7 +81,7 @@ gfx_vk::buffer::buffer(context& context, gfx::buffer_params const& params)
     VkMemoryRequirements requirements{};
     vkGetBufferMemoryRequirements(m_context.get_device_handle(), m_buffers[0].handle, &requirements);
 
-    m_aligned_size = align_up(requirements.size, requirements.alignment);
+    m_aligned_size = nstl::align_up(requirements.size, requirements.alignment);
 
     requirements.size = m_aligned_size * resource_count;
 

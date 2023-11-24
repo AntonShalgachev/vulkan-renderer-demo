@@ -9,23 +9,24 @@
 
 namespace nstl
 {
+    template<typename T>
+    concept allocator_like = requires(T& allocator, size_t size, size_t alignment, void* ptr, T const& lhs, T const& rhs)
+    {
+        { allocator.allocate(size, alignment) } -> same_as<void*>;
+        { allocator.deallocate(ptr) };
+        { lhs == rhs} -> same_as<bool>;
+    };
+
     // TODO store small allocators on the stack (make the size configurable, like any_allocator<64>)
     class any_allocator
     {
     public:
         any_allocator() = default;
 
-        template<typename Alloc>
+        template<allocator_like Alloc>
         any_allocator(Alloc allocator)
         {
-            // TODO
-//             static_assert(alignof(Alloc) <= alignof(max_align_t));
-
-            static_assert(nstl::is_same_v<decltype(allocator.allocate(0)), void*>, "");
-            static_assert(nstl::is_same_v<decltype(allocator.deallocate(nullptr)), void>, "");
-            static_assert(nstl::is_same_v<decltype(allocator == allocator), bool>, "");
-
-            m_allocator = allocator.allocate(sizeof(Alloc));
+            m_allocator = allocator.allocate(sizeof(Alloc), alignof(Alloc));
             new(nstl::new_tag{}, m_allocator) Alloc(nstl::move(allocator));
 
             m_destructStorage = [](any_allocator* self)
@@ -59,11 +60,11 @@ namespace nstl
                 NSTL_ASSERT(destination->m_allocator == nullptr);
 
                 Alloc* allocator = static_cast<Alloc*>(source->m_allocator);
-                destination->m_allocator = allocator->allocate(sizeof(Alloc));
+                destination->m_allocator = allocator->allocate(sizeof(Alloc), alignof(Alloc));
                 new(nstl::new_tag{}, destination->m_allocator) Alloc(*allocator);
             };
 
-            m_allocate = [](void* allocator, size_t size) { return static_cast<Alloc*>(allocator)->allocate(size); };
+            m_allocate = [](void* allocator, size_t size, size_t alignment) { return static_cast<Alloc*>(allocator)->allocate(size, alignment); };
             m_deallocate = [](void* allocator, void* ptr) { return static_cast<Alloc*>(allocator)->deallocate(ptr); };
         }
 
@@ -75,7 +76,7 @@ namespace nstl
         any_allocator& operator=(any_allocator const&);
         any_allocator& operator=(any_allocator&&);
 
-        void* allocate(size_t size);
+        void* allocate(size_t size, size_t alignment);
         void deallocate(void* ptr);
 
         explicit operator bool() const;
@@ -90,7 +91,7 @@ namespace nstl
         using CompareFunc = bool(*)(any_allocator const& lhs, any_allocator const& rhs);
         using DestructStorageFunc = void(*)(any_allocator*);
 
-        using AllocFunc = void* (*)(void* allocator, size_t size);
+        using AllocFunc = void* (*)(void* allocator, size_t size, size_t alignment);
         using DeallocFunc = void(*)(void* allocator, void* ptr);
 
         void* m_allocator = nullptr;

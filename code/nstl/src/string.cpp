@@ -7,7 +7,7 @@
 
 size_t nstl::string::npos = static_cast<size_t>(-1);
 
-nstl::string::string(any_allocator alloc) : m_buffer(0, sizeof(char), nstl::move(alloc)) {}
+nstl::string::string(any_allocator alloc) : m_buffer(0, sizeof(char), alignof(char), nstl::move(alloc)) {}
 
 nstl::string::string(size_t length, any_allocator alloc) : string(nstl::move(alloc))
 {
@@ -69,7 +69,7 @@ void nstl::string::reserve(size_t capacity)
     if (requiredBufferSize > m_buffer.capacity())
     {
         // TODO don't copy allocator
-        buffer buffer{ requiredBufferSize, sizeof(char), m_buffer.get_allocator() };
+        buffer buffer{ requiredBufferSize, sizeof(char), alignof(char), m_buffer.get_allocator()};
         buffer.copy(m_buffer.data(), length());
         *buffer.get(length()) = '\0';
         buffer.resize(m_buffer.size());

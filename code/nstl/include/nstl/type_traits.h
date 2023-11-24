@@ -96,6 +96,8 @@ namespace nstl
     inline constexpr bool is_same_v<T, T> = true;
 #endif
 
+    template<typename T1, typename T2> concept same_as = is_same_v<T1, T2>;
+
     template<typename T>
     inline constexpr bool is_void_v = is_same_v<remove_cv_t<T>, void>;
 

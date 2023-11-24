@@ -1,13 +1,15 @@
 #include "nstl/malloc_allocator.h"
 
-void* nstl::malloc_allocator::allocate(size_t size)
+#include "memory/memory.h"
+
+void* nstl::malloc_allocator::allocate(size_t size, size_t alignment)
 {
-    return ::operator new(size);
+    return memory::allocate(size, alignment);
 }
 
 void nstl::malloc_allocator::deallocate(void* ptr)
 {
-    return ::operator delete(ptr);
+    return memory::deallocate(ptr);
 }
 
 bool nstl::malloc_allocator::operator==(malloc_allocator const&) const

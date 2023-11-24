@@ -39,6 +39,7 @@ add_library(nstl # non-standard template library
     "include/nstl/sort.h"
     "include/nstl/event.h"
     "include/nstl/flags_enum.h"
+    "include/nstl/alignment.h"
 
     "src/string.cpp"
     "src/string_view.cpp"
@@ -51,6 +52,7 @@ add_library(nstl # non-standard template library
     "src/malloc_allocator.cpp"
     "src/blob.cpp"
     "src/blob_view.cpp"
+    "src/alignment.cpp"
 
     "nstl.natvis"
 )
@@ -72,3 +74,7 @@ endif()
 if (${NSTL_ENABLE_ASSERTS})
     target_compile_definitions(nstl PUBLIC NSTL_CONFIG_ENABLE_ASSERTS=1)
 endif()
+
+target_link_libraries(nstl
+    memory
+)

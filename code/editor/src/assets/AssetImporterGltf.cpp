@@ -5,7 +5,6 @@
 #include "editor/assets/AssetData.h"
 
 #include "memory/tracking.h"
-#include "common/align.h"
 #include "common/Utils.h"
 #include "common/json-tiny-ctti.h"
 #include "common/json-nstl.h"
@@ -17,6 +16,7 @@
 
 #include "fs/file.h"
 
+#include "nstl/alignment.h"
 #include "nstl/span.h"
 #include "nstl/scope_exit.h"
 #include "nstl/sprintf.h"
@@ -354,7 +354,7 @@ namespace
 
             size_t alignment = chunk_size; // TODO double-check?
 
-            size_t destination_offset = common::align_up(buffer.size(), alignment);
+            size_t destination_offset = nstl::align_up(buffer.size(), alignment);
             size_t destination_stride = chunk_size;
             buffer.resize(destination_offset + chunk_size * count);
             memcpy_stride(buffer.data() + destination_offset, source.data(), count, chunk_size, destination_stride, stride);

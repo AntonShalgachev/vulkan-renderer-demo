@@ -4,30 +4,34 @@
 
 #include "memory/tracking.h"
 
-void* memory::allocate(size_t size)
+#include "nstl/alignment.h"
+
+void* memory::allocate(size_t size, size_t alignment)
 {
     if (size == 0)
         return nullptr;
 
-    void* ptr = platform::allocate(size);
+    void* ptr = platform::allocate(size, alignment);
     assert(ptr);
+    assert(nstl::is_aligned(ptr, alignment));
 
     memory::tracking::track_allocation(ptr, size);
 
     return ptr;
 }
 
-void* memory::reallocate(void* ptr, size_t size)
+void* memory::reallocate(void* ptr, size_t size, size_t alignment)
 {
-    void* newPtr = platform::reallocate(ptr, size);
+    void* new_ptr = platform::reallocate(ptr, size, alignment);
+    assert(nstl::is_aligned(new_ptr, alignment));
 
     // TODO implement track_reallocation?
     if (ptr)
         memory::tracking::track_deallocation(ptr);
-    if (newPtr && size > 0)
-        memory::tracking::track_allocation(newPtr, size);
+    if (new_ptr && size > 0)
+        memory::tracking::track_allocation(new_ptr, size);
 
-    return newPtr;
+    return new_ptr;
 }
 
 void memory::deallocate(void* ptr)

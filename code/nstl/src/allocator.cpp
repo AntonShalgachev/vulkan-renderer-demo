@@ -45,10 +45,10 @@ nstl::any_allocator& nstl::any_allocator::operator=(any_allocator&& rhs)
     return *this;
 }
 
-void* nstl::any_allocator::allocate(size_t size)
+void* nstl::any_allocator::allocate(size_t size, size_t alignment)
 {
     NSTL_ASSERT(m_allocate);
-    return m_allocate(m_allocator, size);
+    return m_allocate(m_allocator, size, alignment);
 }
 
 void nstl::any_allocator::deallocate(void* ptr)

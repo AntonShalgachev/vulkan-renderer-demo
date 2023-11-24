@@ -21,7 +21,7 @@ namespace
     public:
         wstring(nstl::any_allocator alloc = {}) : wstring(0, nstl::move(alloc)) {}
         wstring(size_t length, nstl::any_allocator alloc = {})
-            : m_buffer(length, sizeof(wchar_t), nstl::move(alloc))
+            : m_buffer(length, sizeof(wchar_t), alignof(wchar_t), nstl::move(alloc))
         {
             m_buffer.resize(length);
         }

@@ -110,20 +110,20 @@ namespace nstl::detail
 }
 
 template<typename T>
-nstl::vector<T>::vector(any_allocator alloc) : m_buffer(0, sizeof(T), nstl::move(alloc))
+nstl::vector<T>::vector(any_allocator alloc) : m_buffer(0, sizeof(T), alignof(T), nstl::move(alloc))
 {
 
 }
 
 template<typename T>
-nstl::vector<T>::vector(size_t size, any_allocator alloc) : m_buffer(size, sizeof(T), nstl::move(alloc))
+nstl::vector<T>::vector(size_t size, any_allocator alloc) : m_buffer(size, sizeof(T), alignof(T), nstl::move(alloc))
 {
     resize(size);
 }
 
 template<typename T>
 template<typename Iterator>
-nstl::vector<T>::vector(Iterator begin, Iterator end, any_allocator alloc) : m_buffer(static_cast<size_t>(end - begin), sizeof(T), nstl::move(alloc))
+nstl::vector<T>::vector(Iterator begin, Iterator end, any_allocator alloc) : m_buffer(static_cast<size_t>(end - begin), sizeof(T), alignof(T), nstl::move(alloc))
 {
     NSTL_ASSERT(begin <= end);
     size_t size = static_cast<size_t>(end - begin);
@@ -462,7 +462,7 @@ void nstl::vector<T>::grow(size_t new_capacity)
     new_capacity = detail::next_pow2(new_capacity);
 
     // TODO don't copy allocator
-    buffer newBuffer{ new_capacity, sizeof(T), m_buffer.get_allocator() };
+    buffer newBuffer{ new_capacity, sizeof(T), alignof(T), m_buffer.get_allocator()};
 
     if constexpr (nstl::is_trivial_v<T>)
     {

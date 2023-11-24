@@ -5,16 +5,17 @@
 
 #include <string.h>
 
-nstl::buffer::buffer(size_t capacity, size_t chunkSize, any_allocator alloc)
+nstl::buffer::buffer(size_t capacity, size_t element_size, size_t element_alignment, any_allocator alloc)
     : m_allocator(alloc ? nstl::move(alloc) : malloc_allocator{})
-    , m_ptr(capacity*chunkSize > 0 ? static_cast<char*>(m_allocator.allocate(capacity * chunkSize)) : nullptr)
+    , m_ptr(capacity*element_size > 0 ? static_cast<char*>(m_allocator.allocate(capacity * element_size, element_alignment)) : nullptr)
     , m_capacity(capacity)
-    , m_chunkSize(chunkSize)
+    , m_element_size(element_size)
+    , m_element_alignment(element_alignment)
 {
-    NSTL_ASSERT(chunkSize > 0);
+    NSTL_ASSERT(element_size > 0);
 }
 
-nstl::buffer::buffer(buffer const& rhs) : buffer(rhs.m_capacity, rhs.m_chunkSize, rhs.m_allocator)
+nstl::buffer::buffer(buffer const& rhs) : buffer(rhs.m_capacity, rhs.m_element_size, rhs.m_element_alignment, rhs.m_allocator)
 {
     NSTL_ASSERT(rhs.m_constructedObjectsCount == 0);
 
@@ -55,7 +56,7 @@ nstl::buffer& nstl::buffer::operator=(buffer&& rhs)
 
 size_t nstl::buffer::capacityBytes() const
 {
-    return m_capacity * m_chunkSize;
+    return m_capacity * m_element_size;
 }
 
 void nstl::buffer::resize(size_t newSize)
@@ -80,9 +81,9 @@ void nstl::buffer::copy(void const* ptr, size_t size)
         return;
 
     NSTL_ASSERT(ptr);
-    NSTL_ASSERT(size * m_chunkSize <= capacityBytes());
+    NSTL_ASSERT(size * m_element_size <= capacityBytes());
 
-    memcpy(m_ptr, ptr, size * m_chunkSize);
+    memcpy(m_ptr, ptr, size * m_element_size);
 }
 
 nstl::any_allocator const& nstl::buffer::get_allocator() const
@@ -95,7 +96,8 @@ void nstl::buffer::swap(buffer& rhs) noexcept
     nstl::exchange(m_allocator, rhs.m_allocator);
     nstl::exchange(m_ptr, rhs.m_ptr);
     nstl::exchange(m_capacity, rhs.m_capacity);
-    nstl::exchange(m_chunkSize, rhs.m_chunkSize);
+    nstl::exchange(m_element_size, rhs.m_element_size);
+    nstl::exchange(m_element_alignment, rhs.m_element_alignment);
 
     nstl::exchange(m_size, rhs.m_size);
 

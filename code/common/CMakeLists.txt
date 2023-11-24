@@ -6,14 +6,12 @@ add_library(common
     "include/common/json-glm.h"
     "include/common/Timer.h"
     "include/common/Utils.h"
-    "include/common/align.h"
 
     "src/fmt.cpp"
     "src/json-nstl.cpp"
     "src/json-glm.cpp"
     "src/Timer.cpp"
     "src/Utils.cpp"
-    "src/align.cpp"
 )
 
 target_include_directories(common PUBLIC "include")

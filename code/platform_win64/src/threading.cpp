@@ -42,7 +42,7 @@ bool platform::create_thread(thread_storage_t& storage, thread_func_t func, void
     SIZE_T stackSize = 0; // default
 
     // TODO what if the thread is valid but would never start? In this case `args` would leak
-    void* ptr = platform::allocate(sizeof(thread_args));
+    void* ptr = platform::allocate(sizeof(thread_args), alignof(thread_args));
     [[maybe_unused]] thread_args* args = new(new_tag{}, ptr) thread_args{ .func = func, .arg = arg };
     assert(args == ptr);
 

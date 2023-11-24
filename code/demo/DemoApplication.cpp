@@ -523,7 +523,7 @@ void DemoApplication::loadImgui()
         {
             MEMORY_TRACKING_SCOPE(scopeId);
 
-            return memory::allocate(size);
+            return memory::allocate(size, __STDCPP_DEFAULT_NEW_ALIGNMENT__);
         }, [](void* ptr, void*)
         {
             return memory::deallocate(ptr);

@@ -2,7 +2,7 @@
 
 #include "nstl/blob_view.h"
 
-nstl::blob::blob(size_t size, any_allocator alloc) : m_buffer(size, sizeof(char), nstl::move(alloc))
+nstl::blob::blob(size_t size, any_allocator alloc) : m_buffer(size, sizeof(char), alignof(char), nstl::move(alloc))
 {
     m_buffer.resize(size);
 }
