@@ -54,6 +54,7 @@ namespace
     {
         static nstl::vector<char const*> extensions = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+            VK_KHR_INDEX_TYPE_UINT8_EXTENSION_NAME,
         };
 
         return extensions;
