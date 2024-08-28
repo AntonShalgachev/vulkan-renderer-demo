@@ -19,7 +19,7 @@ void operator delete(void* ptr) noexcept
     return memory::deallocate(ptr);
 }
 
-void operator delete(void* ptr, std::align_val_t align) noexcept
+void operator delete(void* ptr, std::align_val_t) noexcept
 {
     return memory::deallocate(ptr);
 }

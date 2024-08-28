@@ -3,7 +3,6 @@
 #include "common.h"
 
 #include "nstl/string.h"
-#include "nstl/buffer.h"
 
 #include <Windowsx.h>
 
@@ -15,59 +14,6 @@ namespace
 
     constexpr DWORD WINDOW_STYLE = WS_OVERLAPPEDWINDOW | WS_CAPTION;
     constexpr DWORD WINDOW_STYLE_EX = 0;
-
-    class wstring
-    {
-    public:
-        wstring(nstl::any_allocator alloc = {}) : wstring(0, nstl::move(alloc)) {}
-        wstring(size_t length, nstl::any_allocator alloc = {})
-            : m_buffer(length, sizeof(wchar_t), alignof(wchar_t), nstl::move(alloc))
-        {
-            m_buffer.resize(length);
-        }
-
-        size_t length() const { return m_buffer.size(); }
-        wchar_t const* c_str() const { return data(); }
-        wchar_t* data() { return m_buffer.get<wchar_t>(0); }
-        wchar_t const* data() const { return m_buffer.get<wchar_t>(0); }
-
-        wchar_t& operator[](size_t index) { assert(index < m_buffer.size()); return *m_buffer.get<wchar_t>(index); }
-
-    private:
-        nstl::buffer m_buffer;
-    };
-
-    wstring convert_to_wstring(nstl::string_view str)
-    {
-        if (str.empty())
-            return {};
-
-        int length = MultiByteToWideChar(CP_UTF8, 0, str.data(), str.size(), nullptr, 0);
-        assert(length > 0);
-
-        wstring result{ static_cast<size_t>(length) + 1 };
-
-        int chars_written = MultiByteToWideChar(CP_UTF8, 0, str.data(), str.size(), result.data(), result.length());
-        assert(chars_written == length);
-
-        result[chars_written] = 0;
-
-        return result;
-    }
-
-    nstl::string convert_to_string(WCHAR const* str)
-    {
-        int length = WideCharToMultiByte(CP_UTF8, 0, str, -1, nullptr, 0, nullptr, nullptr);
-        if (length == 0)
-            return {};
-
-        nstl::string result{ static_cast<size_t>(length) };
-
-        int chars_written = WideCharToMultiByte(CP_UTF8, 0, str, -1, result.data(), result.length(), nullptr, nullptr);
-        assert(chars_written == length);
-
-        return result;
-    }
 
     template<typename T>
     void set_window_extra(HWND handle, T const& extra)
@@ -259,7 +205,9 @@ namespace
 
         case WM_CHAR:
         case WM_SYSCHAR:
-            window->on_char(wparam);
+            assert(wparam >= 0);
+            assert(wparam <= UINT_MAX);
+            window->on_char(static_cast<unsigned int>(wparam));
             break;
 
         case WM_MOUSEMOVE:
@@ -520,7 +468,6 @@ void platform_win64::win32_window::on_keyboard_button(platform::button_action ac
             m_current_modifiers &= ~modifier;
     };
 
-    bool is_press = action == platform::button_action::press;
     if (button == platform::keyboard_button::left_shift || button == platform::keyboard_button::right_shift)
         update_modifier(action, platform::button_modifiers::shift);
     if (button == platform::keyboard_button::left_ctrl || button == platform::keyboard_button::right_ctrl)
@@ -538,7 +485,7 @@ void platform_win64::win32_window::on_mouse_button(platform::button_action actio
 
 void platform_win64::win32_window::on_cursor_position(int xpos, int ypos)
 {
-    m_on_mouse_position(xpos, ypos);
+    m_on_mouse_position(static_cast<float>(xpos), static_cast<float>(ypos));
 
     int dx = xpos - m_last_mouse_pos_x;
     int dy = ypos - m_last_mouse_pos_y;
@@ -546,7 +493,7 @@ void platform_win64::win32_window::on_cursor_position(int xpos, int ypos)
     m_last_mouse_pos_x = xpos;
     m_last_mouse_pos_y = ypos;
 
-    m_on_mouse_delta(dx, dy);
+    m_on_mouse_delta(static_cast<float>(dx), static_cast<float>(dy));
 }
 
 void platform_win64::win32_window::on_focus(bool focused)
