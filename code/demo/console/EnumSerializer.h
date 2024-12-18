@@ -4,6 +4,8 @@
 
 #include "coil/Coil.h" // TODO don't include whole Coil
 
+#include "nstl/string_builder.h"
+
 #include <ctype.h>
 
 namespace utils

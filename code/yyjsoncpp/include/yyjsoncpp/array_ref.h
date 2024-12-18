@@ -2,7 +2,7 @@
 
 #include "yyjsoncpp/value_ref.h"
 
-#include "yyjsoncpp/doc.h"
+#include "yyjsoncpp/serializer.h"
 
 namespace yyjsoncpp
 {
@@ -47,10 +47,10 @@ namespace yyjsoncpp
         using mutable_value_ref::mutable_value_ref;
 
         template<typename T>
-        void push_back(T&& value)
+        void push_back(T const& value)
         {
             assert(m_doc);
-            return push_back(m_doc->create_value(value));
+            return push_back(serializer<T>::to_json(*m_doc, value));
         }
         void push_back(mutable_value_ref value);
         void push_back(mutable_array_ref value);

@@ -2,6 +2,7 @@
 
 #include "nstl/function.h"
 #include "nstl/scope_exit.h"
+#include "nstl/string_view.h"
 
 #include "platform/threading.h"
 

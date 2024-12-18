@@ -156,7 +156,7 @@ yyjsoncpp::mutable_doc::mutable_doc(doc const& source)
     assert(source.is_valid());
 
     yyjson_alc const* allocator = nullptr;
-    m_handle = yyjson_doc_mut_copy(source.m_handle, allocator);
+    m_handle = yyjson_doc_mut_copy(source.get_handle(), allocator);
     assert(m_handle);
 }
 

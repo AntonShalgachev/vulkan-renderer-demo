@@ -4,6 +4,7 @@
 #include "yyjsoncpp/doc.h"
 #include "yyjsoncpp/value_ref.h"
 #include "yyjsoncpp/type.h"
+#include "yyjsoncpp/object_ref.h"
 
 #include "common/tiny_ctti.h"
 

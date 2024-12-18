@@ -3,6 +3,7 @@
 #include "yyjsoncpp/config.h"
 #include "yyjsoncpp/write_flags.h"
 #include "yyjsoncpp/serializer.h"
+#include "yyjsoncpp/array_ref.h"
 
 struct yyjson_doc;
 struct yyjson_mut_doc;
@@ -41,12 +42,12 @@ namespace yyjsoncpp
 
     class doc
     {
-        friend class mutable_doc;
-
     public:
         doc() = default;
         // TODO move/copy constructors and assignment operators
         ~doc();
+
+        yyjson_doc* get_handle() const { return m_handle; }
 
         read_result read(char const* str, size_t length);
 
@@ -66,22 +67,18 @@ namespace yyjsoncpp
     //////////////////////////////////////////////////////////////////////////
 
     class mutable_value_ref;
-    class mutable_array_ref;
     class mutable_object_ref;
 
     class mutable_doc
     {
-        friend class doc;
-        friend class mutable_value_ref;
-        friend class mutable_array_ref;
-        friend class mutable_object_ref;
-
     public:
         // TODO add allocator
         mutable_doc();
         explicit mutable_doc(doc const& source);
         // TODO move/copy constructors and assignment operators
         ~mutable_doc();
+
+        yyjson_mut_doc* get_handle() const { return m_handle; }
 
         mutable_array_ref create_array();
 
