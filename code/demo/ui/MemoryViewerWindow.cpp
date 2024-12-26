@@ -149,7 +149,7 @@ void ui::MemoryViewerWindow::drawTable()
     ImGui::TableSetupColumn("Allocations ever");
     ImGui::TableHeadersRow();
 
-    nstl::span<memory::tracking::scope_stat const> entries = memory::tracking::get_scope_stats();
+    nstl::vector<memory::tracking::scope_stat> entries = memory::tracking::get_scope_stats_copy();
 
     for (TreeNode& node : m_nodes)
         node.reset();

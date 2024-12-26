@@ -18,24 +18,6 @@ namespace
         memory::tracking::scope_type type = memory::tracking::scope_type::internal;
     };
 
-    nstl::vector<scope_parameters>& get_scope_parameters_container()
-    {
-        static nstl::vector<scope_parameters> params{ memory::untracked_allocator{} };
-        return params;
-    }
-
-    scope_parameters const& get_scope_parameters(memory::tracking::scope_id id)
-    {
-        return get_scope_parameters_container()[id.index];
-    }
-
-    // TODO use static_vector
-    nstl::vector<memory::tracking::scope_id>& get_scope_stack()
-    {
-        static nstl::vector<memory::tracking::scope_id> names{ memory::untracked_allocator{} };
-        return names;
-    }
-
     struct allocation_metadata
     {
         size_t size = 0;
@@ -43,45 +25,109 @@ namespace
         // TODO callstack id, etc.
     };
 
-    nstl::unordered_map<void*, allocation_metadata>& get_allocation_metadata()
-    {
-        static nstl::unordered_map<void*, allocation_metadata> metadata{ memory::untracked_allocator{} };
-        return metadata;
-    }
-
-    class scope_stats
+    class teardown_tracker
     {
     public:
-        scope_stats() = default;
-        ~scope_stats()
+        static void on_teardown_started()
         {
-            for (memory::tracking::scope_stat const& entry : entries)
+            mt::lock_guard lock{ g_mutex };
+            g_is_tearing_down = true;
+        }
+
+        static bool is_tearing_down()
+        {
+            mt::lock_guard lock{ g_mutex };
+            return g_is_tearing_down;
+        }
+
+    private:
+        static inline mt::mutex g_mutex;
+        static inline bool g_is_tearing_down = false;
+    };
+
+    class global_tracking_data
+    {
+    public:
+        global_tracking_data() = default;
+        ~global_tracking_data()
+        {
+            teardown_tracker::on_teardown_started();
+
+            mt::lock_guard lock{ m_mutex };
+
+            for (memory::tracking::scope_stat const& entry : m_scope_stats)
             {
-                scope_parameters const& params = get_scope_parameters(entry.id);
+                scope_parameters const& params = m_scope_params[entry.id.index];
                 if (params.type == memory::tracking::scope_type::external)
                     continue;
 
                 assert(entry.active_bytes == 0);
                 assert(entry.active_allocations == 0);
             }
-
-            logging::info("No memory leaks detected");
         }
 
-        nstl::span<memory::tracking::scope_stat const> get_entries()
+        nstl::string_view get_scope_name(memory::tracking::scope_id id)
         {
-            return entries;
+            mt::lock_guard lock{ m_mutex };
+
+            return m_scope_params[id.index].name;
+        }
+
+        memory::tracking::scope_id create_scope_id(nstl::string_view name, memory::tracking::scope_type type)
+        {
+            mt::lock_guard lock{ m_mutex };
+
+            memory::tracking::scope_id id = {
+                .index = m_scope_params.size()
+            };
+
+            m_scope_params.push_back(scope_parameters{
+                .name = name,
+                .type = type,
+                });
+
+            return id;
+        }
+
+        void add_allocation_metadata(void* ptr, size_t size, memory::tracking::scope_id scope_id)
+        {
+            mt::lock_guard lock{ m_mutex };
+
+            assert(m_allocation_metadata.find(ptr) == m_allocation_metadata.end());
+            m_allocation_metadata[ptr] = allocation_metadata{ size, scope_id };
+        }
+
+        allocation_metadata get_allocation_metadata(void* ptr)
+        {
+            mt::lock_guard lock{ m_mutex };
+
+            assert(ptr);
+            assert(m_allocation_metadata.find(ptr) != m_allocation_metadata.end());
+
+            return m_allocation_metadata[ptr];
+        }
+
+        void remove_allocation_metadata(void* ptr)
+        {
+            mt::lock_guard lock{ m_mutex };
+
+            assert(ptr);
+            assert(m_allocation_metadata.find(ptr) != m_allocation_metadata.end());
+
+            m_allocation_metadata.erase(ptr);
         }
 
         void track_allocation(memory::tracking::scope_id id, size_t bytes)
         {
+            mt::lock_guard lock{ m_mutex };
+
             assert(bytes > 0);
 
-            for (size_t index = entries.size(); index <= id.index; index++)
-                entries.push_back(memory::tracking::scope_stat{ .id = memory::tracking::scope_id{index} });
+            for (size_t index = m_scope_stats.size(); index <= id.index; index++)
+                m_scope_stats.push_back(memory::tracking::scope_stat{ .id = memory::tracking::scope_id{index} });
 
-            assert(id.index < entries.size());
-            memory::tracking::scope_stat& entry = entries[id.index];
+            assert(id.index < m_scope_stats.size());
+            memory::tracking::scope_stat& entry = m_scope_stats[id.index];
 
             entry.active_bytes += bytes;
             entry.total_bytes += bytes;
@@ -91,10 +137,12 @@ namespace
 
         void track_deallocation(memory::tracking::scope_id id, size_t bytes)
         {
+            mt::lock_guard lock{ m_mutex };
+
             assert(bytes > 0);
 
-            assert(id.index < entries.size());
-            memory::tracking::scope_stat& entry = entries[id.index];
+            assert(id.index < m_scope_stats.size());
+            memory::tracking::scope_stat& entry = m_scope_stats[id.index];
 
             assert(entry.active_bytes >= bytes);
             entry.active_bytes -= bytes;
@@ -103,89 +151,113 @@ namespace
             entry.active_allocations--;
         }
 
+        nstl::vector<memory::tracking::scope_stat> get_scope_stats_copy()
+        {
+            mt::lock_guard lock{ m_mutex };
+
+            return m_scope_stats;
+        }
+
     private:
-        nstl::vector<memory::tracking::scope_stat> entries{ memory::untracked_allocator{} };
+        mt::mutex m_mutex;
+        nstl::vector<scope_parameters> m_scope_params{ memory::untracked_allocator{} };
+        nstl::unordered_map<void*, allocation_metadata> m_allocation_metadata{ memory::untracked_allocator{} };
+        nstl::vector<memory::tracking::scope_stat> m_scope_stats{ memory::untracked_allocator{} };
     };
 
-    scope_stats& get_scope_stats()
+    class thread_tracking_data
     {
-        static scope_stats stats;
-        return stats;
+    public:
+        thread_tracking_data() = default;
+
+        void push_scope(memory::tracking::scope_id id)
+        {
+            m_scope_stack.push_back(id);
+        }
+
+        void pop_scope()
+        {
+            m_scope_stack.pop_back();
+        }
+
+        memory::tracking::scope_id get_current_scope_id()
+        {
+            static memory::tracking::scope_id const unsorted_scope_id = memory::tracking::create_scope_id("Unsorted");
+
+            if (m_scope_stack.empty())
+                return unsorted_scope_id;
+
+            return m_scope_stack.back();
+        }
+
+    private:
+        nstl::vector<memory::tracking::scope_id> m_scope_stack{ memory::untracked_allocator{} }; // TODO use static_vector
+    };
+
+    thread_tracking_data& get_thread_data()
+    {
+        assert(!teardown_tracker::is_tearing_down());
+
+        static thread_local thread_tracking_data data;
+        return data;
+    }
+
+    global_tracking_data& get_global_data()
+    {
+        static global_tracking_data data;
+        return data;
     }
 }
 
 memory::tracking::scope_id memory::tracking::create_scope_id(nstl::string_view name, scope_type type)
 {
-    scope_id id = {
-        .index = get_scope_parameters_container().size()
-    };
-
-    get_scope_parameters_container().push_back(scope_parameters{
-        .name = name,
-        .type = type,
-    });
-
-    return id;
+    return get_global_data().create_scope_id(name, type);
 }
 
 nstl::string_view memory::tracking::get_scope_name(scope_id id)
 {
-    return get_scope_parameters(id).name;
+    return get_global_data().get_scope_name(id);
 }
 
 void memory::tracking::on_scope_enter(scope_id id)
 {
-    get_scope_stack().push_back(id);
+    get_thread_data().push_scope(id);
 }
 
 void memory::tracking::on_scope_exit()
 {
-    get_scope_stack().pop_back();
+    get_thread_data().pop_scope();
 }
 
-memory::tracking::scope_id memory::tracking::get_current_scope_id()
+memory::tracking::scope_id memory::tracking::get_current_thread_scope_id()
 {
-    static scope_id const unsorted_scope_id = create_scope_id("Unsorted");
-
-    if (get_scope_stack().empty())
-        return unsorted_scope_id;
-
-    return get_scope_stack().back();
+    return get_thread_data().get_current_scope_id();
 }
-
-static mt::mutex g_mutex;
 
 void memory::tracking::track_allocation(void* ptr, size_t size)
 {
-    mt::lock_guard lock{ g_mutex };
-
     assert(ptr);
     assert(size > 0);
-    assert(get_allocation_metadata().find(ptr) == get_allocation_metadata().end());
 
-    scope_id scope_id = get_current_scope_id();
-    get_allocation_metadata()[ptr] = allocation_metadata{ size, scope_id };
+    scope_id scope_id = get_current_thread_scope_id();
 
-    ::get_scope_stats().track_allocation(scope_id, size);
+    get_global_data().add_allocation_metadata(ptr, size, scope_id);
+    get_global_data().track_allocation(scope_id, size);
 }
 
 void memory::tracking::track_deallocation(void* ptr)
 {
-    mt::lock_guard lock{ g_mutex };
+    global_tracking_data& data = get_global_data();
 
-    assert(ptr);
-    assert(get_allocation_metadata().find(ptr) != get_allocation_metadata().end());
-
-    allocation_metadata const& metadata = get_allocation_metadata()[ptr];
+    allocation_metadata metadata = data.get_allocation_metadata(ptr);
 
     assert(metadata.size > 0);
 
-    ::get_scope_stats().track_deallocation(metadata.scope_id, metadata.size);
-
-    get_allocation_metadata().erase(ptr);
+    data.track_deallocation(metadata.scope_id, metadata.size);
+    data.remove_allocation_metadata(ptr);
 }
 
-nstl::span<memory::tracking::scope_stat const> memory::tracking::get_scope_stats()
+nstl::vector<memory::tracking::scope_stat> memory::tracking::get_scope_stats_copy()
 {
-    return ::get_scope_stats().get_entries();
+    return ::get_global_data().get_scope_stats_copy();
 }

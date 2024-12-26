@@ -1,7 +1,7 @@
 #pragma once
 
 #include "nstl/string_view.h"
-#include "nstl/span.h"
+#include "nstl/vector.h"
 
 namespace memory
 {
@@ -23,7 +23,7 @@ namespace memory
 
         void on_scope_enter(scope_id id);
         void on_scope_exit();
-        scope_id get_current_scope_id();
+        scope_id get_current_thread_scope_id();
 
         struct scope_guard
         {
@@ -50,7 +50,7 @@ namespace memory
         void track_allocation(void* ptr, size_t size);
         void track_deallocation(void* ptr);
 
-        nstl::span<scope_stat const> get_scope_stats();
+        nstl::vector<scope_stat> get_scope_stats_copy();
     }
 }
 
