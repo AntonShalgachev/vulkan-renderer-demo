@@ -18,3 +18,17 @@ target_link_libraries(platform INTERFACE
     fs
     tiny_ctti
 )
+
+if (WIN32)
+    target_link_libraries(platform INTERFACE platform_win64)
+else()
+    message(FATAL_ERROR "Unknown platform")
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_link_libraries(platform INTERFACE platform_clang)
+elseif(MSVC)
+    target_link_libraries(platform INTERFACE platform_msvc)
+else()
+    message(FATAL_ERROR "Unknown compiler")
+endif()
