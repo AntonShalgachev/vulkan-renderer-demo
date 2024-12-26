@@ -58,7 +58,7 @@ nstl::string platform_win64::convert_to_string(WCHAR const* str)
     nstl::string result{ static_cast<size_t>(length) };
 
     assert(result.length() <= INT_MAX);
-    int chars_written = WideCharToMultiByte(CP_UTF8, 0, str, -1, result.data(), static_cast<int>(result.length()), nullptr, nullptr);
+    [[maybe_unused]] int chars_written = WideCharToMultiByte(CP_UTF8, 0, str, -1, result.data(), static_cast<int>(result.length()), nullptr, nullptr);
     assert(chars_written == length);
 
     return result;

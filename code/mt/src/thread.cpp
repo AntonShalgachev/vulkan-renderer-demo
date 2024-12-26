@@ -6,7 +6,7 @@
 
 mt::thread::thread(thread&& rhs)
 {
-    bool res = platform::thread_create_empty(m_storage);
+    [[maybe_unused]] bool res = platform::thread_create_empty(m_storage);
     assert(res);
 
     *this = nstl::move(rhs);
